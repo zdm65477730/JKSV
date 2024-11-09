@@ -1,5 +1,5 @@
-appletModeWarning = 0, "*ADVERTENCIA*: JKSV se está ejecutando en modo 'applet'. Algunas características no funcionarán."
 author = 0, "Impeeza"
+appletModeWarning = 0, "*ADVERTENCIA*: JKSV se está ejecutando en modo 'applet'. Algunas características no funcionarán."
 confirmBlacklist = 0, "¿Estás seguro que deseas adicionar #%s# a la lista negra?"
 confirmCopy = 0, "¿Seguro que desea copiar #%s# a #%s#?"
 confirmCreateAllSaveData = 0, "¿Seguro que desea crear todos los Datos de Partidas Guardadas en este sistema para #%s#? ¡Puede tomar un tiempo dependiendo de la cantidad de títulos sean encontrados!"
