@@ -7,7 +7,8 @@ class ProgressState : public AppState
 {
     public:
         template <typename... Args>
-        ProgressState(void (*Function)(Args...), Args... Arguments) : m_Task(Function, std::forward<Args>(Arguments)...){};
+        ProgressState(void (*Function)(System::ProgressTask *, Args...), Args... Arguments)
+            : m_Task(Function, std::forward<Args>(Arguments)...){};
         ~ProgressState() {};
 
         void Update(void);

@@ -1,0 +1,75 @@
+{
+    "TranslationInfo": [
+        "Tradotto da: %s",
+        "NULL"
+    ],
+    "ControlGuides": [
+        "[A] Seleziona   [Y] Esporta tutti i salvataggi   [X] Opzioni utente",
+        "[A] Seleziona   [L] [R] Salta   [Y] Preferito   [X] Opzioni titolo  [B] Indietro",
+        "[A] Seleziona  [Y] Ripristina  [X] Elimina   [ZR] Carica  [B] Chiudi",
+        "[A] Attiva/Disattiva   [X] Valori predefiniti   [B] Indietro"
+    ],
+    "SaveDataTypes": [
+        "Sistema",
+        "Account",
+        "BCAT",
+        "Dispositivo",
+        "Temporaneo",
+        "Cache",
+        "BCAT di sistema"
+    ],
+    "SettingsMenu": [
+        "Imposta la cartella di output di JKSV.",
+        "Modifica la blacklist",
+        "Includi salvataggi del dispositivo con gli utenti: %s",
+        "Backup automatico al ripristino: %s",
+        "Assegna nomi automatici ai backup: %s",
+        "Carica automaticamente i backup sullo spazio di archiviazione remoto: %s",
+        "Tieni premuto per eliminare i backup: %s",
+        "Tieni premuto per ripristinare i backup: %s",
+        "Tieni premuto per sovrascrivere i backup: %s",
+        "Elenca solo i titoli montabili: %s",
+        "Mostra i salvataggi di sistema dell'account: %s",
+        "Abilita la scrittura nei salvataggi di sistema e NAND: %s",
+        "Esporta i salvataggi in formato ZIP: %s",
+        "Livello di compressione ZIP: %u",
+        "Tipo di ordinamento titoli: %s",
+        "Modalità menu testuale (JKSM): %s",
+        "Forza l'inglese: %s",
+        "Abilita il cestino: %s",
+        "Scala animazioni: %.02f"
+    ],
+    "ExtrasMenu": [
+        "Ricarica i titoli",
+        "Esplora SD su SD",
+        "BIS: ProfInfoF",
+        "BIS: Sicuro",
+        "BIS: Sistema",
+        "BIS: Utente",
+        "Termina processo",
+        "Monta il salvataggio di sistema"
+    ],
+    "OnOff": [
+        "Spento",
+        ">Acceso>"
+    ],
+    "BackupMenu": [
+        "Nuovo backup"
+    ],
+    "CopyingFiles": [
+        "Copia di #%s# in corso...",
+        "Compressione di #%s# in formato ZIP...",
+        "Decompressione di #%s# da ZIP..."
+    ],
+    "KeyboardStrings": [
+        "Inserisci un nuovo nome per il backup.",
+        "Inserisci l'indice della cache.",
+        "Inserisci un nuovo percorso di output per JKSV",
+        "Inserisci l'ID del processo da terminare.",
+        "Inserisci un ID di salvataggio di sistema",
+        "Inserisci un nuovo nome per l'elemento di destinazione.",
+        "Inserisci un nome per la nuova cartella.",
+        "Inserisci un nuovo nome per la cartella di output di %s.",
+        "Inserisci quanto espandere (in MB)."
+    ]
+}

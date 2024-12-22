@@ -97,6 +97,11 @@ void UI::Menu::Render(SDL_Texture *Target, bool HasFocus)
         {
             continue;
         }
+        else if (TempY > m_RenderTargetHeight)
+        {
+            // This is safe to break the loop for.
+            break;
+        }
 
         // Clear target texture.
         m_OptionTarget->Clear(Colors::Transparent);
@@ -139,7 +144,14 @@ void UI::Menu::SetSelected(int Selected)
     m_Selected = Selected;
 }
 
+void UI::Menu::SetWidth(int Width)
+{
+    m_Width = Width;
+}
+
 void UI::Menu::Reset(void)
 {
+    m_Selected = 0;
+    m_Y = m_OriginalY;
     m_Options.clear();
 }

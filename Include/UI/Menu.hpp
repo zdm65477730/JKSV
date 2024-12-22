@@ -19,6 +19,9 @@ namespace UI
             void AddOption(std::string_view NewOption);
             int GetSelected(void) const;
             void SetSelected(int Selected);
+            // This is a workaround until I figure out a better solution that won't be a ton of work and time.
+            void SetWidth(int Width);
+
             void Reset(void);
 
         protected:

@@ -15,8 +15,8 @@ namespace System
             }
 
             // This is an alternate constructor that passes through a pointer to a derived class.
-            template <typename... Args>
-            Task(void (*Function)(System::Task *, Args...), System::Task *Task, Args... Arguments)
+            template <typename TaskType, typename... Args>
+            Task(void (*Function)(TaskType *, Args...), TaskType *Task, Args... Arguments)
             {
                 m_Thread = std::thread(Function, Task, std::forward<Args>(Arguments)...);
             }

@@ -44,6 +44,7 @@ namespace Config
         static constexpr std::string_view ListAccountSystemSaves = "ListAccountSystemSaves";
         static constexpr std::string_view AllowSystemSaveWriting = "AllowSystemSaveWriting";
         static constexpr std::string_view ExportToZip = "ExportToZip";
+        static constexpr std::string_view ZipCompressionLevel = "ZipCompressionLevel";
         static constexpr std::string_view TitleSortType = "TitleSortType";
         static constexpr std::string_view JKSMTextMode = "JKSMTextMode";
         static constexpr std::string_view ForceEnglish = "ForceEnglish";

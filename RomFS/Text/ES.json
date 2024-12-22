@@ -1,0 +1,75 @@
+{
+    "TranslationInfo": [
+        "Traducido por: %s",
+        "NULL"
+    ],
+    "ControlGuides": [
+        "[A] Seleccionar   [Y] Volcar todas las partidas guardadas   [X] Opciones del usuario",
+        "[A] Seleccionar   [L] [R] Saltar   [Y] Favorito   [X] Opciones de título  [B] Atrás",
+        "[A] Seleccionar  [Y] Restaurar  [X] Eliminar   [ZR] Subir  [B] Cerrar",
+        "[A] Alternar   [X] Valores predeterminados   [B] Atrás"
+    ],
+    "SaveDataTypes": [
+        "Sistema",
+        "Cuenta",
+        "BCAT",
+        "Dispositivo",
+        "Temporal",
+        "Caché",
+        "BCAT del sistema"
+    ],
+    "SettingsMenu": [
+        "Establecer carpeta de salida de JKSV.",
+        "Editar lista negra",
+        "Incluir partidas guardadas del dispositivo con los usuarios: %s",
+        "Copia de seguridad automática al restaurar: %s",
+        "Nombres automáticos para copias de seguridad: %s",
+        "Subir automáticamente las copias de seguridad al almacenamiento remoto: %s",
+        "Mantener presionado para eliminar copias de seguridad: %s",
+        "Mantener presionado para restaurar copias de seguridad: %s",
+        "Mantener presionado para sobrescribir copias de seguridad: %s",
+        "Listar solo títulos montables: %s",
+        "Mostrar partidas guardadas del sistema de la cuenta: %s",
+        "Habilitar escritura en partidas guardadas del sistema y NAND: %s",
+        "Exportar partidas guardadas a ZIP: %s",
+        "Nivel de compresión ZIP: %u",
+        "Tipo de ordenación de títulos: %s",
+        "Modo de menú de texto (JKSM): %s",
+        "Forzar inglés: %s",
+        "Habilitar papelera de reciclaje: %s",
+        "Escalado de animaciones: %.02f"
+    ],
+    "ExtrasMenu": [
+        "Recargar títulos",
+        "Navegador SD a SD",
+        "BIS: ProfInfoF",
+        "BIS: Seguro",
+        "BIS: Sistema",
+        "BIS: Usuario",
+        "Terminar proceso",
+        "Montar partida guardada del sistema"
+    ],
+    "OnOff": [
+        "Apagado",
+        ">Encendido>"
+    ],
+    "BackupMenu": [
+        "Nueva copia de seguridad"
+    ],
+    "CopyingFiles": [
+        "Copiando #%s#...",
+        "Comprimiendo #%s# a ZIP...",
+        "Descomprimiendo #%s# desde ZIP..."
+    ],
+    "KeyboardStrings": [
+        "Introduce un nuevo nombre para la copia de seguridad.",
+        "Introduce el índice de caché.",
+        "Introduce una nueva ruta de salida para JKSV",
+        "Introduce el ID del proceso a terminar.",
+        "Introduce un ID de partida guardada del sistema",
+        "Introduce un nuevo nombre para el elemento de destino.",
+        "Introduce un nombre para la nueva carpeta.",
+        "Introduce un nuevo nombre para la carpeta de salida de %s.",
+        "Introduce cuánto expandir (en MB)."
+    ]
+}

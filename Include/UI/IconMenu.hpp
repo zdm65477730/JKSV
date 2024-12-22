@@ -7,8 +7,14 @@ namespace UI
     class IconMenu : public UI::Menu
     {
         public:
+            // Default constructor
+            IconMenu(void) = default;
+            // This calls initialize.
             IconMenu(int X, int Y, int RenderTargetHeight);
             ~IconMenu() {};
+
+            // Initializes menu with values passed.
+            void Initialize(int X, int Y, int RenderTargetHeight);
 
             void Update(bool HasFocus);
             void Render(SDL_Texture *Target, bool HasFocus);
@@ -17,6 +23,7 @@ namespace UI
             void AddOption(SDL::SharedTexture NewOption);
 
         private:
+            // Vector of option icons.
             std::vector<SDL::SharedTexture> m_Options;
     };
 } // namespace UI

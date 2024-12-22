@@ -1,0 +1,75 @@
+{
+    "TranslationInfo": [
+        "Traduzido por: %s",
+        "NULL"
+    ],
+    "ControlGuides": [
+        "[A] Selecionar   [Y] Dump de todos os saves   [X] Opções do usuário",
+        "[A] Selecionar   [L] [R] Pular   [Y] Favoritos   [X] Opções de título  [B] Voltar",
+        "[A] Selecionar  [Y] Restaurar  [X] Excluir   [ZR] Carregar  [B] Fechar",
+        "[A] Alternar   [X] Padrões   [B] Voltar"
+    ],
+    "SaveDataTypes": [
+        "Sistema",
+        "Conta",
+        "BCAT",
+        "Dispositivo",
+        "Temporário",
+        "Cache",
+        "Sistema BCAT"
+    ],
+    "SettingsMenu": [
+        "Defina a pasta de saída do JKSV.",
+        "Editar Lista Negra",
+        "Incluir Saves de Dispositivos com usuários: %s",
+        "Backup automático ao restaurar: %s",
+        "Nomeação automática de backups: %s",
+        "Carregar backups automaticamente para o armazenamento remoto: %s",
+        "Manter pressionado para excluir backups: %s",
+        "Manter pressionado para restaurar backups: %s",
+        "Manter pressionado para sobrescrever backups: %s",
+        "Listar apenas títulos montáveis: %s",
+        "Mostrar saves de sistema de conta: %s",
+        "Habilitar escrita em saves de sistema e NAND: %s",
+        "Exportar saves para ZIP: %s",
+        "Nível de compressão do ZIP: %u",
+        "Tipo de ordenação de títulos: %s",
+        "Modo de menu de texto (JKSM): %s",
+        "Forçar inglês: %s",
+        "Habilitar lixeira: %s",
+        "Escala de animação: %.02f"
+    ],
+    "ExtrasMenu": [
+        "Recarregar Títulos",
+        "Navegador SD para SD",
+        "BIS: ProfInfoF",
+        "BIS: Safe",
+        "BIS: System",
+        "BIS: User",
+        "Finalizar Processo",
+        "Montar Save de Sistema"
+    ],
+    "OnOff": [
+        "Desligado",
+        ">Ligado>"
+    ],
+    "BackupMenu": [
+        "Novo Backup"
+    ],
+    "CopyingFiles": [
+        "Copiando #%s#...",
+        "Comprimindo #%s# para ZIP...",
+        "Descomprimindo #%s# de ZIP..."
+    ],
+    "KeyboardStrings": [
+        "Digite um novo nome para o backup.",
+        "Digite o índice do cache.",
+        "Digite um novo caminho de saída para o JKSV.",
+        "Digite o ID do processo para finalizar.",
+        "Digite o ID do save de sistema.",
+        "Digite um novo nome para o item de destino.",
+        "Digite um nome para a nova pasta.",
+        "Digite um novo nome de pasta de saída para %s.",
+        "Digite o quanto expandir (em MB)."
+    ]
+}

@@ -32,13 +32,13 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	JKSV
 BUILD		:=	build
-SOURCES		:=	Source Source/AppStates Source/UI Source/Data
+SOURCES		:=	Source Source/AppStates Source/UI Source/Data Source/System Source/FS
 DATA		:=	data
 INCLUDES	:=	Include ./Libraries/FsLib/Switch/FsLib/include ./Libraries/SDLLib/SDL/include
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
-APP_VERSION :=  12.05.2024
+APP_VERSION :=  12.22.2024
 ROMFS	    :=	RomFS
 ICON		:=	icon.jpg
 
@@ -165,8 +165,8 @@ SDLLib:
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@$(MAKE) -C ./Libraries/FsLib clean
-	@$(MAKE) -C ./Libraries/SDLLib clean
+	@$(MAKE) -C ./Libraries/FsLib/Switch/FsLib clean
+	@$(MAKE) -C ./Libraries/SDLLib/SDL clean
 	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
 

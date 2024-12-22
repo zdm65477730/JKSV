@@ -18,7 +18,8 @@ static inline const char *GetValueText(uint8_t Value)
 
 SettingsState::SettingsState(void)
     : m_SettingsMenu(32, 8, 1000, 24, 555),
-      m_RenderTarget(SDL::TextureManager::CreateLoadTexture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
+      m_RenderTarget(SDL::TextureManager::CreateLoadTexture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
+      m_ControlGuideX(1220 - SDL::Text::GetWidth(22, Strings::GetByName(Strings::Names::ControlGuides, 3)))
 {
     // Add the first two, because they don't have values to display.
     m_SettingsMenu.AddOption(Strings::GetByName(Strings::Names::SettingsMenu, 0));
@@ -50,4 +51,15 @@ void SettingsState::Render(void)
     m_RenderTarget->Clear(Colors::Transparent);
     m_SettingsMenu.Render(m_RenderTarget->Get(), AppState::HasFocus());
     m_RenderTarget->Render(NULL, 201, 91);
+
+    if (AppState::HasFocus())
+    {
+        SDL::Text::Render(NULL,
+                          m_ControlGuideX,
+                          673,
+                          22,
+                          SDL::Text::NO_TEXT_WRAP,
+                          Colors::White,
+                          Strings::GetByName(Strings::Names::ControlGuides, 3));
+    }
 }

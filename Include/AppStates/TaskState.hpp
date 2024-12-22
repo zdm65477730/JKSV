@@ -6,7 +6,7 @@ class TaskState : public AppState
 {
     public:
         template <typename... Args>
-        TaskState(void (*Function)(Args...), Args... Arguments) : m_Task(Function, std::forward<Args>(Arguments)...){};
+        TaskState(void (*Function)(System::Task *, Args...), Args... Arguments) : m_Task(Function, std::forward<Args>(Arguments)...){};
         ~TaskState() {};
 
         void Update(void);

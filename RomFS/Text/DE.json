@@ -1,0 +1,150 @@
+{
+    "TranslationInfo": [
+        "Übersetzt von: %s",
+        "NULL"
+    ],
+    "ControlGuides": [
+        "[A] Auswählen   [Y] Alle Speicherstände ausgeben   [X] Benutzeroptionen",
+        "[A] Auswählen   [L] [R] Springen   [Y] Favorit   [X] Titeloptionen  [B] Zurück",
+        "[A] Auswählen  [Y] Wiederherstellen  [X] Löschen   [ZR] Hochladen  [B] Schließen",
+        "[A] Umschalten   [X] Standardwerte   [B] Zurück"
+    ],
+    "SaveDataTypes": [
+        "System",
+        "Konto",
+        "BCAT",
+        "Gerät",
+        "Temporär",
+        "Cache",
+        "System BCAT"
+    ],
+    "SettingsMenu": [
+        "JKSV-Ausgabeverzeichnis festlegen.",
+        "Blacklist bearbeiten",
+        "Gerätespeicher mit Benutzern einbeziehen: %s",
+        "Automatisches Backup bei Wiederherstellung: %s",
+        "Backups automatisch benennen: %s",
+        "Backups automatisch in den entfernten Speicher hochladen: %s",
+        "Zum Löschen von Backups gedrückt halten: %s",
+        "Zum Wiederherstellen von Backups gedrückt halten: %s",
+        "Zum Überschreiben von Backups gedrückt halten: %s",
+        "Nur mountbare Titel auflisten: %s",
+        "Systemspeicherstände des Kontos anzeigen: %s",
+        "Schreiben in Systemspeicher und NAND aktivieren: %s",
+        "Speicherstände in ZIP exportieren: %s",
+        "ZIP-Komprimierungsstufe: %u",
+        "Titelsortierungstyp: %s",
+        "Textmenü (JKSM) Modus: %s",
+        "Englisch erzwingen: %s",
+        "Papierkorb aktivieren: %s",
+        "Animationsskalierung: %.02f"
+    ],
+    "ExtrasMenu": [
+        "Titel neu laden",
+        "SD-zu-SD-Browser",
+        "BIS: ProfInfoF",
+        "BIS: Sicher",
+        "BIS: System",
+        "BIS: Benutzer",
+        "Prozess beenden",
+        "Systemspeicher mounten"
+    ],
+    "OnOff": [
+        "Aus",
+        ">Ein>"
+    ],
+    "BackupMenu": [
+        "Neues Backup"
+    ],
+    "CopyingFiles": [
+        "Kopiere #%s#...",
+        "Komprimiere #%s# zu ZIP...",
+        "Dekomprimiere #%s# aus ZIP..."
+    ],
+    "KeyboardStrings": [
+        "Geben Sie einen neuen Backup-Namen ein.",
+        "Cache-Index eingeben.",
+        "Neuen Ausgabepfad für JKSV eingeben",
+        "Prozess-ID zum Beenden eingeben.",
+        "Systemspeicher-ID eingeben",
+        "Geben Sie einen neuen Namen für das Zielobjekt ein.",
+        "Geben Sie einen Namen für den neuen Ordner ein.",
+        "Neuen Namen für das Ausgabeverzeichnis von %s eingeben.",
+        "Geben Sie an, wie viel erweitert werden soll (in MB)."
+    ]
+}
+{
+    "TranslationInfo": [
+        "Übersetzt von: %s",
+        "NULL"
+    ],
+    "ControlGuides": [
+        "[A] Auswählen   [Y] Alle Speicherstände ausgeben   [X] Benutzeroptionen",
+        "[A] Auswählen   [L] [R] Springen   [Y] Favorit   [X] Titeloptionen  [B] Zurück",
+        "[A] Auswählen  [Y] Wiederherstellen  [X] Löschen   [ZR] Hochladen  [B] Schließen",
+        "[A] Umschalten   [X] Standardwerte   [B] Zurück"
+    ],
+    "SaveDataTypes": [
+        "System",
+        "Konto",
+        "BCAT",
+        "Gerät",
+        "Temporär",
+        "Cache",
+        "System BCAT"
+    ],
+    "SettingsMenu": [
+        "JKSV-Ausgabeverzeichnis festlegen.",
+        "Blacklist bearbeiten",
+        "Gerätespeicher mit Benutzern einbeziehen: %s",
+        "Automatisches Backup bei Wiederherstellung: %s",
+        "Backups automatisch benennen: %s",
+        "Backups automatisch in den entfernten Speicher hochladen: %s",
+        "Zum Löschen von Backups gedrückt halten: %s",
+        "Zum Wiederherstellen von Backups gedrückt halten: %s",
+        "Zum Überschreiben von Backups gedrückt halten: %s",
+        "Nur mountbare Titel auflisten: %s",
+        "Systemspeicherstände des Kontos anzeigen: %s",
+        "Schreiben in Systemspeicher und NAND aktivieren: %s",
+        "Speicherstände in ZIP exportieren: %s",
+        "ZIP-Komprimierungsstufe: %u",
+        "Titelsortierungstyp: %s",
+        "Textmenü (JKSM) Modus: %s",
+        "Englisch erzwingen: %s",
+        "Papierkorb aktivieren: %s",
+        "Animationsskalierung: %.02f"
+    ],
+    "ExtrasMenu": [
+        "Titel neu laden",
+        "SD-zu-SD-Browser",
+        "BIS: ProfInfoF",
+        "BIS: Sicher",
+        "BIS: System",
+        "BIS: Benutzer",
+        "Prozess beenden",
+        "Systemspeicher mounten"
+    ],
+    "OnOff": [
+        "Aus",
+        ">Ein>"
+    ],
+    "BackupMenu": [
+        "Neues Backup"
+    ],
+    "CopyingFiles": [
+        "Kopiere #%s#...",
+        "Komprimiere #%s# zu ZIP...",
+        "Dekomprimiere #%s# aus ZIP..."
+    ],
+    "KeyboardStrings": [
+        "Geben Sie einen neuen Backup-Namen ein.",
+        "Cache-Index eingeben.",
+        "Neuen Ausgabepfad für JKSV eingeben",
+        "Prozess-ID zum Beenden eingeben.",
+        "Systemspeicher-ID eingeben",
+        "Geben Sie einen neuen Namen für das Zielobjekt ein.",
+        "Geben Sie einen Namen für den neuen Ordner ein.",
+        "Neuen Namen für das Ausgabeverzeichnis von %s eingeben.",
+        "Geben Sie an, wie viel erweitert werden soll (in MB)."
+    ]
+}

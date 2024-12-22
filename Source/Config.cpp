@@ -105,6 +105,7 @@ void Config::ResetToDefault(void)
     s_ConfigVector.push_back(std::make_pair(Config::Keys::ListAccountSystemSaves.data(), 0));
     s_ConfigVector.push_back(std::make_pair(Config::Keys::AllowSystemSaveWriting.data(), 0));
     s_ConfigVector.push_back(std::make_pair(Config::Keys::ExportToZip.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::ZipCompressionLevel.data(), 6));
     s_ConfigVector.push_back(std::make_pair(Config::Keys::TitleSortType.data(), 0));
     s_ConfigVector.push_back(std::make_pair(Config::Keys::JKSMTextMode.data(), 0));
     s_ConfigVector.push_back(std::make_pair(Config::Keys::ForceEnglish.data(), 0));

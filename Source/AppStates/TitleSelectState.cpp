@@ -1,8 +1,12 @@
 #include "AppStates/TitleSelectState.hpp"
+#include "AppStates/BackupMenuState.hpp"
 #include "AppStates/MainMenuState.hpp"
 #include "Colors.hpp"
 #include "Config.hpp"
+#include "FS/SaveMount.hpp"
+#include "FsLib.hpp"
 #include "Input.hpp"
+#include "JKSV.hpp"
 #include "SDL.hpp"
 #include "Strings.hpp"
 #include <string_view>
@@ -22,7 +26,22 @@ void TitleSelectState::Update(void)
 {
     m_TitleView.Update(AppState::HasFocus());
 
-    if (Input::ButtonPressed(HidNpadButton_B))
+    if (Input::ButtonPressed(HidNpadButton_A))
+    {
+        // Get data needed to mount save.
+        uint64_t ApplicationID = m_User->GetApplicationIDAt(m_TitleView.GetSelected());
+        Data::TitleInfo *TitleInfo = Data::GetTitleInfoByID(ApplicationID);
+
+        // Path to output to.
+        FsLib::Path TargetPath = Config::GetWorkingDirectory() / TitleInfo->GetPathSafeTitle();
+
+        if ((FsLib::DirectoryExists(TargetPath) || FsLib::CreateDirectory(TargetPath)) &&
+            FS::MountSaveData(*m_User->GetSaveInfoByID(ApplicationID), FS::DEFAULT_SAVE_MOUNT))
+        {
+            JKSV::PushState(std::make_shared<BackupMenuState>(m_User, TitleInfo));
+        }
+    }
+    else if (Input::ButtonPressed(HidNpadButton_B))
     {
         // This will reset all the tiles so they're 128x128.
         m_TitleView.Reset();

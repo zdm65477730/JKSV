@@ -1,0 +1,75 @@
+{
+    "TranslationInfo": [
+        "Vertaald door: %s",
+        "NULL"
+    ],
+    "ControlGuides": [
+        "[A] Selecteer   [Y] Dump alle saves   [X] Gebruikersopties",
+        "[A] Selecteer   [L] [R] Spring   [Y] Favoriet   [X] Titelopties  [B] Terug",
+        "[A] Selecteer  [Y] Herstellen  [X] Verwijderen   [ZR] Uploaden  [B] Sluiten",
+        "[A] Schakel   [X] Standaardinstellingen   [B] Terug"
+    ],
+    "SaveDataTypes": [
+        "Systeem",
+        "Account",
+        "BCAT",
+        "Apparaat",
+        "Tijdelijk",
+        "Cache",
+        "Systeem BCAT"
+    ],
+    "SettingsMenu": [
+        "Stel JKSV uitvoermap in",
+        "Bewerk Zwarte lijst",
+        "Voeg apparaat saves toe voor gebruikers: %s",
+        "Auto-backup bij herstellen: %s",
+        "Automatisch back-ups naamgeven: %s",
+        "Automatisch back-ups naar externe opslag uploaden: %s",
+        "Houd ingedrukt om back-ups te verwijderen: %s",
+        "Houd ingedrukt om back-ups te herstellen: %s",
+        "Houd ingedrukt om back-ups te overschrijven: %s",
+        "Toon alleen mountbare titels: %s",
+        "Toon account systeem saves: %s",
+        "Schrijven naar systeem saves en NAND inschakelen: %s",
+        "Saves naar ZIP exporteren: %s",
+        "ZIP compressieniveau: %u",
+        "Titel sorteertype: %s",
+        "Tekstmenu (JKSM) modus: %s",
+        "Forceer Engels: %s",
+        "Schakel prullenbak in: %s",
+        "Animatieschaal: %.02f"
+    ],
+    "ExtrasMenu": [
+        "Laad titels opnieuw",
+        "SD naar SD browser",
+        "BIS: ProfInfoF",
+        "BIS: Safe",
+        "BIS: System",
+        "BIS: User",
+        "Stop proces",
+        "Mount systeem save"
+    ],
+    "OnOff": [
+        "Uit",
+        ">Aan>"
+    ],
+    "BackupMenu": [
+        "Nieuwe back-up"
+    ],
+    "CopyingFiles": [
+        "Bezig met kopiëren #%s#...",
+        "Bezig met comprimeren #%s# naar ZIP...",
+        "Bezig met decompressen #%s# van ZIP..."
+    ],
+    "KeyboardStrings": [
+        "Voer een nieuwe back-up naam in.",
+        "Voer de cache-index in.",
+        "Voer een nieuw uitvoerpad voor JKSV in.",
+        "Voer het proces-ID in om te stoppen.",
+        "Voer een systeem save-ID in.",
+        "Voer een nieuwe naam in voor het doelitem.",
+        "Voer een naam in voor de nieuwe map.",
+        "Voer een nieuwe uitvoermapnaam in voor %s.",
+        "Voer in hoeveel je wilt uitbreiden (in MB)."
+    ]
+}

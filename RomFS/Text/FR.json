@@ -1,0 +1,75 @@
+{
+    "TranslationInfo": [
+        "Traduit par : %s",
+        "NULL"
+    ],
+    "ControlGuides": [
+        "[A] Sélectionner   [Y] Exporter toutes les sauvegardes   [X] Options utilisateur",
+        "[A] Sélectionner   [L] [R] Sauter   [Y] Favori   [X] Options du titre  [B] Retour",
+        "[A] Sélectionner  [Y] Restaurer  [X] Supprimer   [ZR] Télécharger  [B] Fermer",
+        "[A] Basculer   [X] Valeurs par défaut   [B] Retour"
+    ],
+    "SaveDataTypes": [
+        "Système",
+        "Compte",
+        "BCAT",
+        "Appareil",
+        "Temporaire",
+        "Cache",
+        "BCAT Système"
+    ],
+    "SettingsMenu": [
+        "Définir le dossier de sortie de JKSV.",
+        "Modifier la liste noire",
+        "Inclure les sauvegardes des appareils avec les utilisateurs : %s",
+        "Sauvegarde automatique lors de la restauration : %s",
+        "Nommer automatiquement les sauvegardes : %s",
+        "Téléverser automatiquement les sauvegardes vers le stockage distant : %s",
+        "Maintenir pour supprimer les sauvegardes : %s",
+        "Maintenir pour restaurer les sauvegardes : %s",
+        "Maintenir pour écraser les sauvegardes : %s",
+        "Lister uniquement les titres montables : %s",
+        "Afficher les sauvegardes système des comptes : %s",
+        "Activer l'écriture dans les sauvegardes système et NAND : %s",
+        "Exporter les sauvegardes au format ZIP : %s",
+        "Niveau de compression ZIP : %u",
+        "Type de tri des titres : %s",
+        "Mode menu texte (JKSM) : %s",
+        "Forcer l'anglais : %s",
+        "Activer la corbeille : %s",
+        "Échelle d'animation : %.02f"
+    ],
+    "ExtrasMenu": [
+        "Recharger les titres",
+        "Navigateur SD vers SD",
+        "BIS : ProfInfoF",
+        "BIS : Sécurisé",
+        "BIS : Système",
+        "BIS : Utilisateur",
+        "Terminer le processus",
+        "Monter la sauvegarde système"
+    ],
+    "OnOff": [
+        "Désactivé",
+        ">Activé>"
+    ],
+    "BackupMenu": [
+        "Nouvelle sauvegarde"
+    ],
+    "CopyingFiles": [
+        "Copie de #%s# en cours...",
+        "Compression de #%s# au format ZIP...",
+        "Décompression de #%s# à partir du ZIP..."
+    ],
+    "KeyboardStrings": [
+        "Entrez un nouveau nom pour la sauvegarde.",
+        "Entrez l'index du cache.",
+        "Entrez un nouveau chemin de sortie pour JKSV",
+        "Entrez l'ID du processus à terminer.",
+        "Entrez un ID de sauvegarde système",
+        "Entrez un nouveau nom pour l'élément cible.",
+        "Entrez un nom pour le nouveau dossier.",
+        "Entrez un nouveau nom pour le dossier de sortie de %s.",
+        "Entrez la taille à étendre (en Mo)."
+    ]
+}

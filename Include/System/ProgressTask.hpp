@@ -15,6 +15,8 @@ namespace System
             // Sets current value
             void UpdateCurrent(double Current);
 
+            // Returns goal.
+            double GetGoal(void) const;
             // Returns progress
             double GetCurrentProgress(void) const;
 
