@@ -61,6 +61,13 @@
         "Compressing #%s# to ZIP...",
         "Decompressing #%s# from ZIP..."
     ],
+    "BackupMenuConfirmations": [
+        "Are you sure you really want to restore #%s#?",
+        "Are you sure you really want to delete #%s#?"
+    ],
+    "DeletingFiles": [
+        "Deleting #%s#..."
+    ],
     "KeyboardStrings": [
         "Enter a new backup name.",
         "Enter cache index.",
@@ -71,5 +78,22 @@
         "Enter a name for the new folder.",
         "Enter a new output folder name for %s.",
         "Enter how much to expand (in MB)."
+    ],
+    "UserOptions": [
+        "Dump all for #%s#",
+        "Create Save Data for #%s#",
+        "Create All Save Data for #%s#",
+        "Delete All Save Data for #%s#"
+    ],
+    "TitleOptions": [
+        "Information",
+        "Blacklist Title",
+        "Change Output folder",
+        "Open in File Mode",
+        "Delete all save backups",
+        "Reset save data.",
+        "Delete save data from system",
+        "Extend save data container",
+        "Export SVI file"
     ]
 }

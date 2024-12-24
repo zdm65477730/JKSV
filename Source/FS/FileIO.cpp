@@ -78,9 +78,6 @@ void FS::CopyFile(const FsLib::Path &Source,
     // This thread has a local buffer so the read thread can continue while this one writes.
     std::unique_ptr<unsigned char[]> LocalBuffer(new unsigned char[FILE_BUFFER_SIZE]);
 
-    // This stores the number of bytes the other thread reads locally.
-    size_t ReadCount = 0;
-
     // Get file size for loop and set goal.
     int64_t FileSize = SourceFile.GetSize();
     if (Task)
@@ -88,7 +85,7 @@ void FS::CopyFile(const FsLib::Path &Source,
         Task->Reset(static_cast<double>(FileSize));
     }
 
-    for (int64_t WriteCount = 0, JournalCount = 0; WriteCount < FileSize;)
+    for (int64_t WriteCount = 0, ReadCount = 0, JournalCount = 0; WriteCount < FileSize;)
     {
         {
             // Wait for lock/signal.
@@ -107,7 +104,7 @@ void FS::CopyFile(const FsLib::Path &Source,
         }
 
         // Journaling size check. Breathing room is given.
-        if (JournalSize != 0 && (JournalCount + ReadCount) >= JournalSize - 0x100000)
+        if (JournalSize != 0 && (JournalCount + ReadCount) >= static_cast<int64_t>(JournalSize) - 0x100000)
         {
             // Reset journal count.
             JournalCount = 0;

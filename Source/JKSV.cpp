@@ -19,7 +19,7 @@
 namespace
 {
     constexpr uint8_t BUILD_MON = 12;
-    constexpr uint8_t BUILD_DAY = 22;
+    constexpr uint8_t BUILD_DAY = 24;
     constexpr uint16_t BUILD_YEAR = 2024;
 } // namespace
 

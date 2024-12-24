@@ -11,11 +11,12 @@
 class BackupMenuState : public AppState
 {
     public:
-        BackupMenuState(Data::User *User, Data::TitleInfo *TitleInfo);
+        BackupMenuState(Data::User *User, Data::TitleInfo *TitleInfo, FsSaveDataType SaveType);
         ~BackupMenuState() {};
 
         void Update(void);
         void Render(void);
+
         // Refreshes/Updates menu and listing.
         void RefreshListing(void);
 
@@ -24,6 +25,8 @@ class BackupMenuState : public AppState
         Data::User *m_User;
         // Pointer to title info.
         Data::TitleInfo *m_TitleInfo;
+        // Save data type.
+        FsSaveDataType m_SaveType;
         // Backup folder path
         FsLib::Path m_DirectoryPath;
         // Directory listing of that folder.

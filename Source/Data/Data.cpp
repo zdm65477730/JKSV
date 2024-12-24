@@ -1,6 +1,7 @@
 #include "Data/Data.hpp"
 #include "Config.hpp"
 #include "Data/AccountUID.hpp"
+#include "FS/SaveMount.hpp"
 #include "FsLib.hpp"
 #include "Logger.hpp"
 #include "Strings.hpp"
@@ -111,7 +112,14 @@ bool Data::Initialize(void)
                     break;
             }
 
+            // Test if save is even mountable.
+            if (Config::GetByKey(Config::Keys::OnlyListMountable) && !FS::MountSaveData(SaveInfo, FS::DEFAULT_SAVE_MOUNT))
+            {
+                continue;
+            }
+            FsLib::CloseFileSystem(FS::DEFAULT_SAVE_MOUNT);
 
+            // Find the user with info ID
             auto FindUser = std::find_if(s_UserVector.begin(), s_UserVector.end(), [&SaveInfo](UserIDPair &IDPair) {
                 return IDPair.first == SaveInfo.uid;
             });

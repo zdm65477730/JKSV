@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdarg>
 #include <cstring>
+#include <ctime>
 #include <switch.h>
 
 namespace
@@ -78,4 +79,30 @@ bool StringUtil::SanitizeStringForPath(const char *StringIn, char *StringOut, si
         StringOut[--StringOutLength] = 0x00;
     }
     return true;
+}
+
+std::string StringUtil::GetDateString(StringUtil::DateFormat Format)
+{
+    char StringBuffer[0x80];
+
+    std::time_t Timer;
+    std::time(&Timer);
+    std::tm *LocalTime = std::localtime(&Timer);
+
+    switch (Format)
+    {
+        case StringUtil::DateFormat::YearMonthDay:
+        {
+            std::strftime(StringBuffer, 0x80, "%Y-%m-%d_%H-%M-%S", LocalTime);
+        }
+        break;
+
+        case StringUtil::DateFormat::YearDayMonth:
+        {
+            std::strftime(StringBuffer, 0x80, "%Y-%d-%m_%H-%M-%S", LocalTime);
+        }
+        break;
+    }
+
+    return std::string(StringBuffer);
 }

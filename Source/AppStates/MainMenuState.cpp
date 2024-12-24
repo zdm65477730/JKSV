@@ -4,6 +4,7 @@
 #include "AppStates/TextTitleSelectState.hpp"
 #include "AppStates/TitleSelectCommon.hpp"
 #include "AppStates/TitleSelectState.hpp"
+#include "AppStates/UserOptionState.hpp"
 #include "Colors.hpp"
 #include "Config.hpp"
 #include "Input.hpp"
@@ -61,6 +62,10 @@ void MainMenuState::Update(void)
     {
         m_States.at(m_MainMenu.GetSelected())->Reactivate();
         JKSV::PushState(m_States.at(m_MainMenu.GetSelected()));
+    }
+    else if (Input::ButtonPressed(HidNpadButton_X) && m_MainMenu.GetSelected() < static_cast<int>(m_Users.size()))
+    {
+        JKSV::PushState(std::make_shared<UserOptionState>(m_Users.at(m_MainMenu.GetSelected())));
     }
 }
 

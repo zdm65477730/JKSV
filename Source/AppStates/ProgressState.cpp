@@ -26,17 +26,6 @@ void ProgressState::Render(void)
     // This will dim the background.
     SDL::RenderRectFill(NULL, 0, 0, 1280, 720, Colors::BackgroundDim);
 
-    // Debug info
-    SDL::Text::Render(NULL,
-                      0,
-                      0,
-                      16,
-                      SDL::Text::NO_TEXT_WRAP,
-                      Colors::Green,
-                      "Goal: %f\nCurrent: %f",
-                      m_Task.GetGoal(),
-                      m_Task.GetCurrentProgress());
-
     // Render the dialog and little loading bar thingy.
     UI::RenderDialogBox(NULL, 280, 262, 720, 256);
     SDL::Text::Render(NULL, 312, 288, 18, 648, Colors::White, m_Task.GetStatus().c_str());

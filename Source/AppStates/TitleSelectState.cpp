@@ -30,15 +30,15 @@ void TitleSelectState::Update(void)
     {
         // Get data needed to mount save.
         uint64_t ApplicationID = m_User->GetApplicationIDAt(m_TitleView.GetSelected());
+        FsSaveDataInfo *SaveInfo = m_User->GetSaveInfoByID(ApplicationID);
         Data::TitleInfo *TitleInfo = Data::GetTitleInfoByID(ApplicationID);
 
         // Path to output to.
         FsLib::Path TargetPath = Config::GetWorkingDirectory() / TitleInfo->GetPathSafeTitle();
 
-        if ((FsLib::DirectoryExists(TargetPath) || FsLib::CreateDirectory(TargetPath)) &&
-            FS::MountSaveData(*m_User->GetSaveInfoByID(ApplicationID), FS::DEFAULT_SAVE_MOUNT))
+        if ((FsLib::DirectoryExists(TargetPath) || FsLib::CreateDirectory(TargetPath)) && FS::MountSaveData(*SaveInfo, FS::DEFAULT_SAVE_MOUNT))
         {
-            JKSV::PushState(std::make_shared<BackupMenuState>(m_User, TitleInfo));
+            JKSV::PushState(std::make_shared<BackupMenuState>(m_User, TitleInfo, static_cast<FsSaveDataType>(SaveInfo->save_data_type)));
         }
     }
     else if (Input::ButtonPressed(HidNpadButton_B))

@@ -31,7 +31,7 @@ typedef struct
 } ZipIOStruct;
 
 // Function for reading files for Zipping.
-void ZipReadThreadFunction(FsLib::File &Source, std::shared_ptr<ZipIOStruct> SharedData)
+static void ZipReadThreadFunction(FsLib::File &Source, std::shared_ptr<ZipIOStruct> SharedData)
 {
     int64_t FileSize = Source.GetSize();
     for (int64_t ReadCount = 0; ReadCount < FileSize;)
@@ -50,11 +50,20 @@ void ZipReadThreadFunction(FsLib::File &Source, std::shared_ptr<ZipIOStruct> Sha
 }
 
 // Function for reading data from Zip to buffer.
-void UnzipReadThreadFunction(unzFile Source, int64_t FileSize, std::shared_ptr<ZipIOStruct> SharedData)
+static void UnzipReadThreadFunction(unzFile Source, int64_t FileSize, std::shared_ptr<ZipIOStruct> SharedData)
 {
     for (int64_t ReadCount = 0; ReadCount < FileSize;)
     {
-        ReadCount = unzReadCurrentFile(Source, SharedData->SharedBuffer.get(), UNZIP_BUFFER_SIZE);
+        // Read from zip file.
+        SharedData->ReadCount = unzReadCurrentFile(Source, SharedData->SharedBuffer.get(), UNZIP_BUFFER_SIZE);
+
+        ReadCount += SharedData->ReadCount;
+
+        SharedData->BufferIsFull = true;
+        SharedData->BufferCondition.notify_one();
+
+        std::unique_lock<std::mutex> BufferLock(SharedData->BufferLock);
+        SharedData->BufferCondition.wait(BufferLock, [&SharedData]() { return SharedData->BufferIsFull == false; });
     }
 }
 
@@ -85,7 +94,7 @@ void FS::CopyDirectoryToZip(const FsLib::Path &Source, zipFile Destination, Syst
                 continue;
             }
 
-            // Date for file.
+            // Date for file(s)
             std::time_t Timer;
             std::time(&Timer);
             std::tm *LocalTime = std::localtime(&Timer);
@@ -169,4 +178,118 @@ void FS::CopyDirectoryToZip(const FsLib::Path &Source, zipFile Destination, Syst
             zipCloseFileInZip(Destination);
         }
     }
+}
+
+void FS::CopyZipToDirectory(unzFile Source,
+                            const FsLib::Path &Destination,
+                            uint64_t JournalSize,
+                            std::string_view CommitDevice,
+                            System::ProgressTask *Task)
+{
+    int ZipError = unzGoToFirstFile(Source);
+    if (ZipError != UNZ_OK)
+    {
+        Logger::Log("Error opening empty ZIP file: %i.", ZipError);
+        return;
+    }
+
+    do
+    {
+        // Get file information.
+        unz_file_info64 CurrentFileInfo;
+        char FileName[FS_MAX_PATH] = {0};
+        if (unzGetCurrentFileInfo64(Source, &CurrentFileInfo, FileName, FS_MAX_PATH, NULL, 0, NULL, 0) != UNZ_OK ||
+            unzOpenCurrentFile(Source) != UNZ_OK)
+        {
+            Logger::Log("Error opening and getting information for file in zip.");
+            continue;
+        }
+
+        // Create full path to item, make sure directories are created if needed.
+        FsLib::Path FullDestination = Destination / FileName;
+
+        FsLib::Path Directories = FullDestination.SubPath(FullDestination.FindLastOf('/') - 1);
+        // To do: Make FsLib handle this correctly. First condition is a workaround for now...
+        if (Directories.IsValid() && !FsLib::CreateDirectoriesRecursively(Directories))
+        {
+            Logger::Log("Error creating zip file path \"%s\": %s", Directories.CString(), FsLib::GetErrorString());
+            continue;
+        }
+
+        FsLib::File DestinationFile(FullDestination, FsOpenMode_Create | FsOpenMode_Write, CurrentFileInfo.uncompressed_size);
+        if (!DestinationFile.IsOpen())
+        {
+            Logger::Log("Error creating file from zip: %s", FsLib::GetErrorString());
+            continue;
+        }
+
+        // Shared data for both threads
+        std::shared_ptr<ZipIOStruct> SharedData(new ZipIOStruct);
+        SharedData->SharedBuffer = std::make_unique<unsigned char[]>(UNZIP_BUFFER_SIZE);
+
+        // Spawn read thread.
+        std::thread ReadThread(UnzipReadThreadFunction, Source, CurrentFileInfo.uncompressed_size, SharedData);
+
+        // Local buffer
+        std::unique_ptr<unsigned char[]> LocalBuffer(new unsigned char[UNZIP_BUFFER_SIZE]);
+
+        // Set status
+        if (Task)
+        {
+            Task->SetStatus(Strings::GetByName(Strings::Names::CopyingFiles, 3), FileName);
+            Task->Reset(static_cast<double>(CurrentFileInfo.uncompressed_size));
+        }
+
+        for (int64_t WriteCount = 0, ReadCount = 0, JournalCount = 0; WriteCount < static_cast<int64_t>(CurrentFileInfo.uncompressed_size);)
+        {
+            {
+                // Wait for buffer.
+                std::unique_lock<std::mutex> BufferLock(SharedData->BufferLock);
+                SharedData->BufferCondition.wait(BufferLock, [&SharedData]() { return SharedData->BufferIsFull; });
+
+                // Save read count for later
+                ReadCount = SharedData->ReadCount;
+
+                // Copy shared to local
+                std::memcpy(LocalBuffer.get(), SharedData->SharedBuffer.get(), ReadCount);
+
+                // Signal this thread is done.
+                SharedData->BufferIsFull = false;
+                SharedData->BufferCondition.notify_one();
+            }
+
+            // Journaling check
+            if (JournalCount + ReadCount >= static_cast<int64_t>(JournalSize))
+            {
+                // Close.
+                DestinationFile.Close();
+                // Commit
+                if (!FsLib::CommitDataToFileSystem(CommitDevice))
+                {
+                    Logger::Log("Error committing data to save: %s", FsLib::GetErrorString());
+                }
+                // Reopen, seek to previous position.
+                DestinationFile.Open(FullDestination, FsOpenMode_Write);
+                DestinationFile.Seek(WriteCount, DestinationFile.Beginning);
+                // Reset journal
+                JournalCount = 0;
+            }
+            // Write data.
+            DestinationFile.Write(LocalBuffer.get(), ReadCount);
+            // Update write and journal count
+            WriteCount += ReadCount;
+            JournalCount += JournalCount;
+            // Update status
+            if (Task)
+            {
+                Task->UpdateCurrent(WriteCount);
+            }
+        }
+        // Close file and commit again just for good measure.
+        DestinationFile.Close();
+        if (!FsLib::CommitDataToFileSystem(CommitDevice))
+        {
+            Logger::Log("Error performing final file commit: %s", FsLib::GetErrorString());
+        }
+    } while (unzGoToNextFile(Source) != UNZ_END_OF_LIST_OF_FILE);
 }

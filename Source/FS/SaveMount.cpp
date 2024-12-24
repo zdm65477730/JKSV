@@ -8,13 +8,21 @@ bool FS::MountSaveData(const FsSaveDataInfo &SaveInfo, std::string_view DeviceNa
         case FsSaveDataType_System:
         {
             // This should work because JKSV's internal ID for the system user is 0.
-            return FsLib::OpenSystemSaveFileSystem(DeviceName, SaveInfo.system_save_data_id, SaveInfo.uid);
+            return FsLib::OpenSystemSaveFileSystem(DeviceName,
+                                                   SaveInfo.system_save_data_id,
+                                                   static_cast<FsSaveDataSpaceId>(SaveInfo.save_data_space_id),
+                                                   static_cast<FsSaveDataRank>(SaveInfo.save_data_rank),
+                                                   SaveInfo.uid);
         }
         break;
 
         case FsSaveDataType_Account:
         {
-            return FsLib::OpenAccountSaveFileSystem(DeviceName, SaveInfo.application_id, SaveInfo.uid);
+            return FsLib::OpenAccountSaveFileSystem(DeviceName,
+                                                    SaveInfo.application_id,
+                                                    SaveInfo.uid,
+                                                    static_cast<FsSaveDataSpaceId>(SaveInfo.save_data_space_id),
+                                                    static_cast<FsSaveDataRank>(SaveInfo.save_data_rank));
         }
         break;
 
@@ -38,7 +46,11 @@ bool FS::MountSaveData(const FsSaveDataInfo &SaveInfo, std::string_view DeviceNa
 
         case FsSaveDataType_Cache:
         {
-            return FsLib::OpenCacheSaveFileSystem(DeviceName, SaveInfo.application_id, SaveInfo.save_data_index);
+            return FsLib::OpenCacheSaveFileSystem(DeviceName,
+                                                  SaveInfo.application_id,
+                                                  SaveInfo.save_data_index,
+                                                  static_cast<FsSaveDataSpaceId>(SaveInfo.save_data_space_id),
+                                                  static_cast<FsSaveDataRank>(SaveInfo.save_data_rank));
         }
         break;
 

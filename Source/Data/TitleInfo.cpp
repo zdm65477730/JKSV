@@ -74,6 +74,188 @@ const char *Data::TitleInfo::GetPublisher(void)
     return Entry->author;
 }
 
+uint64_t Data::TitleInfo::GetSaveDataSize(FsSaveDataType SaveType) const
+{
+    switch (SaveType)
+    {
+        case FsSaveDataType_Account:
+        {
+            return m_NACP.user_account_save_data_size;
+        }
+        break;
+
+        case FsSaveDataType_Bcat:
+        {
+            return m_NACP.bcat_delivery_cache_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Device:
+        {
+            return m_NACP.device_save_data_size;
+        }
+        break;
+
+        case FsSaveDataType_Temporary:
+        {
+            return m_NACP.temporary_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Cache:
+        {
+            return m_NACP.cache_storage_size;
+        }
+        break;
+
+        default:
+        {
+            return 0;
+        }
+        break;
+    }
+    return 0;
+}
+
+uint64_t Data::TitleInfo::GetSaveDataSizeMax(FsSaveDataType SaveType) const
+{
+    switch (SaveType)
+    {
+        case FsSaveDataType_Account:
+        {
+            return m_NACP.user_account_save_data_size_max > m_NACP.user_account_save_data_size ? m_NACP.user_account_save_data_size_max
+                                                                                               : m_NACP.user_account_save_data_size;
+        }
+        break;
+
+        case FsSaveDataType_Bcat:
+        {
+            return m_NACP.bcat_delivery_cache_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Device:
+        {
+            return m_NACP.device_save_data_size_max > m_NACP.device_save_data_size ? m_NACP.device_save_data_size_max
+                                                                                   : m_NACP.device_save_data_size;
+        }
+        break;
+
+        case FsSaveDataType_Temporary:
+        {
+            return m_NACP.temporary_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Cache:
+        {
+            return m_NACP.cache_storage_data_and_journal_size_max > m_NACP.cache_storage_size ? m_NACP.cache_storage_data_and_journal_size_max
+                                                                                              : m_NACP.cache_storage_size;
+        }
+        break;
+
+        default:
+        {
+            return 0;
+        }
+        break;
+    }
+    return 0;
+}
+
+uint64_t Data::TitleInfo::GetJournalSize(FsSaveDataType SaveType) const
+{
+    switch (SaveType)
+    {
+        case FsSaveDataType_Account:
+        {
+            return m_NACP.user_account_save_data_journal_size;
+        }
+        break;
+
+        case FsSaveDataType_Bcat:
+        {
+            // I'm just assuming this is right...
+            return m_NACP.bcat_delivery_cache_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Device:
+        {
+            return m_NACP.device_save_data_journal_size;
+        }
+        break;
+
+        case FsSaveDataType_Temporary:
+        {
+            // Again, just assuming.
+            return m_NACP.temporary_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Cache:
+        {
+            return m_NACP.cache_storage_journal_size;
+        }
+        break;
+
+        default:
+        {
+            return 0;
+        }
+        break;
+    }
+    return 0;
+}
+
+uint64_t Data::TitleInfo::GetJournalSizeMax(FsSaveDataType SaveType) const
+{
+    switch (SaveType)
+    {
+        case FsSaveDataType_Account:
+        {
+            return m_NACP.user_account_save_data_journal_size_max > m_NACP.user_account_save_data_journal_size
+                       ? m_NACP.user_account_save_data_journal_size_max
+                       : m_NACP.user_account_save_data_journal_size;
+        }
+        break;
+
+        case FsSaveDataType_Bcat:
+        {
+            return m_NACP.bcat_delivery_cache_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Device:
+        {
+            return m_NACP.device_save_data_journal_size_max > m_NACP.device_save_data_journal_size ? m_NACP.device_save_data_journal_size_max
+                                                                                                   : m_NACP.device_save_data_journal_size;
+        }
+        break;
+
+        case FsSaveDataType_Temporary:
+        {
+            return m_NACP.temporary_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Cache:
+        {
+            return m_NACP.cache_storage_data_and_journal_size_max > m_NACP.cache_storage_journal_size
+                       ? m_NACP.cache_storage_data_and_journal_size_max
+                       : m_NACP.cache_storage_journal_size;
+        }
+        break;
+
+        default:
+        {
+            return 0;
+        }
+        break;
+    }
+    return 0;
+}
+
 SDL::SharedTexture Data::TitleInfo::GetIcon(void) const
 {
     return m_Icon;

@@ -17,6 +17,14 @@ namespace Data
             const char *GetPathSafeTitle(void);
             // Returns publisher
             const char *GetPublisher(void);
+            // Returns save data size for save type. 0 on default.
+            uint64_t GetSaveDataSize(FsSaveDataType SaveType) const;
+            // Returns save data size max for save type. 0 on default.
+            uint64_t GetSaveDataSizeMax(FsSaveDataType SaveType) const;
+            // Returns journal size for given save type. 0 on default.
+            uint64_t GetJournalSize(FsSaveDataType SaveType) const;
+            // Returns the max journal size for save data type. 0 on default.
+            uint64_t GetJournalSizeMax(FsSaveDataType SaveType) const;
 
             // Returns icon
             SDL::SharedTexture GetIcon(void) const;

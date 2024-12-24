@@ -59,7 +59,7 @@
     "CopyingFiles": [
         "Copying #%s#, guv...",
         "Compressing #%s# to a lovely ZIP...",
-        "Decompressing #%s# from that same ZIP..."
+        "Decompressing #%s# from that ZIP..."
     ],
     "KeyboardStrings": [
         "Enter a jolly new backup name.",
