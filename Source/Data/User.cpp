@@ -119,6 +119,11 @@ void Data::User::SortData(void)
     std::sort(m_UserData.begin(), m_UserData.end(), SortUserData);
 }
 
+AccountUid Data::User::GetAccountID(void) const
+{
+    return m_AccountID;
+}
+
 const char *Data::User::GetNickname(void) const
 {
     return m_Nickname;

@@ -18,9 +18,9 @@
 
 namespace
 {
-    constexpr uint8_t BUILD_MON = 12;
-    constexpr uint8_t BUILD_DAY = 24;
-    constexpr uint16_t BUILD_YEAR = 2024;
+    constexpr uint8_t BUILD_MON = 1;
+    constexpr uint8_t BUILD_DAY = 6;
+    constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace
 
 template <typename... Args>
@@ -66,6 +66,14 @@ JKSV::JKSV(void)
 
     // Neither does config.
     Config::Initialize();
+
+    // Get and create working directory. There isn't much of an FS anymore.
+    FsLib::Path WorkingDirectory = Config::GetWorkingDirectory();
+    if (!FsLib::DirectoryExists(WorkingDirectory) && !FsLib::CreateDirectoriesRecursively(WorkingDirectory))
+    {
+        Logger::Log("Error creating working directory: %s", FsLib::GetErrorString());
+        return;
+    }
 
     // JKSV also has no internal strings anymore. This is FATAL now.
     ABORT_ON_FAILURE(Strings::Initialize());

@@ -12,4 +12,6 @@ namespace Data
     void GetUsers(std::vector<Data::User *> &VectorOut);
     // Gets the TitleInfo mapped to ApplicationID.
     Data::TitleInfo *GetTitleInfoByID(uint64_t ApplicationID);
+    // Gets a vector of pointers to all TitleInfo in map according to save type.
+    void GetTitleInfoByType(FsSaveDataType SaveType, std::vector<Data::TitleInfo *> &TitleInfoOut);
 } // namespace Data

@@ -95,5 +95,8 @@
         "Delete save data from system",
         "Extend save data container",
         "Export SVI file"
+    ],
+    "CreatingSaveDataFor": [
+        "Creating save data for #%s#..."
     ]
 }

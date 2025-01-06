@@ -177,3 +177,18 @@ Data::TitleInfo *Data::GetTitleInfoByID(uint64_t ApplicationID)
     }
     return &s_TitleInfoMap.at(ApplicationID);
 }
+
+void Data::GetTitleInfoByType(FsSaveDataType SaveType, std::vector<Data::TitleInfo *> &TitleInfoOut)
+{
+    // Clear vector JIC
+    TitleInfoOut.clear();
+
+    // Loop and push pointers
+    for (auto &[TitleID, Info] : s_TitleInfoMap)
+    {
+        if (Info.HasSaveDataType(SaveType))
+        {
+            TitleInfoOut.push_back(&Info);
+        }
+    }
+}

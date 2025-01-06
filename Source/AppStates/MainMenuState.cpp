@@ -65,7 +65,11 @@ void MainMenuState::Update(void)
     }
     else if (Input::ButtonPressed(HidNpadButton_X) && m_MainMenu.GetSelected() < static_cast<int>(m_Users.size()))
     {
-        JKSV::PushState(std::make_shared<UserOptionState>(m_Users.at(m_MainMenu.GetSelected())));
+        // Get pointers to data the user option state needs.
+        Data::User *TargetUser = m_Users.at(m_MainMenu.GetSelected());
+        TitleSelectCommon *TargetTitleSelect = reinterpret_cast<TitleSelectCommon *>(m_States.at(m_MainMenu.GetSelected()).get());
+
+        JKSV::PushState(std::make_shared<UserOptionState>(TargetUser, TargetTitleSelect));
     }
 }
 

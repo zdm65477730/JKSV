@@ -74,6 +74,11 @@ const char *Data::TitleInfo::GetPublisher(void)
     return Entry->author;
 }
 
+uint64_t Data::TitleInfo::GetSaveDataOwnerID(void) const
+{
+    return m_NACP.save_data_owner_id;
+}
+
 uint64_t Data::TitleInfo::GetSaveDataSize(FsSaveDataType SaveType) const
 {
     switch (SaveType)
@@ -254,6 +259,43 @@ uint64_t Data::TitleInfo::GetJournalSizeMax(FsSaveDataType SaveType) const
         break;
     }
     return 0;
+}
+
+bool Data::TitleInfo::HasSaveDataType(FsSaveDataType SaveType)
+{
+    switch (SaveType)
+    {
+        case FsSaveDataType_Account:
+        {
+            return m_NACP.user_account_save_data_size > 0 || m_NACP.user_account_save_data_size_max > 0;
+        }
+        break;
+
+        case FsSaveDataType_Bcat:
+        {
+            return m_NACP.bcat_delivery_cache_storage_size > 0;
+        }
+        break;
+
+        case FsSaveDataType_Device:
+        {
+            return m_NACP.device_save_data_size > 0 || m_NACP.device_save_data_size_max > 0;
+        }
+        break;
+
+        case FsSaveDataType_Cache:
+        {
+            return m_NACP.cache_storage_size > 0 || m_NACP.cache_storage_data_and_journal_size_max > 0;
+        }
+        break;
+
+        default:
+        {
+            return false;
+        }
+        break;
+    }
+    return false;
 }
 
 SDL::SharedTexture Data::TitleInfo::GetIcon(void) const

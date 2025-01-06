@@ -22,6 +22,8 @@ namespace Data
             void AddData(const FsSaveDataInfo &SaveInfo, const PdmPlayStatistics &PlayStats);
             // Runs the title sorting algorithm.
             void SortData(void);
+            // Returns Account ID
+            AccountUid GetAccountID(void) const;
             // Returns nickname
             const char *GetNickname(void) const;
             // Returns "path safe" nickname

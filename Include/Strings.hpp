@@ -23,5 +23,6 @@ namespace Strings
         static constexpr std::string_view DeletingFiles = "DeletingFiles";
         static constexpr std::string_view KeyboardStrings = "KeyboardStrings";
         static constexpr std::string_view UserOptions = "UserOptions";
+        static constexpr std::string_view CreatingSaveDataFor = "CreatingSaveDataFor";
     } // namespace Names
 } // namespace Strings
