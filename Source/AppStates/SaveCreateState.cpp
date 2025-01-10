@@ -79,17 +79,15 @@ static void CreateSaveDataFor(System::Task *Task, Data::User *TargetUser, Data::
     Task->Finished();
 }
 
-SaveCreateState::SaveCreateState(Data::User *TargetUser, TitleSelectCommon *TitleSelect) : m_User(TargetUser), m_TitleSelect(TitleSelect)
+SaveCreateState::SaveCreateState(Data::User *TargetUser, TitleSelectCommon *TitleSelect)
+    : m_User(TargetUser), m_TitleSelect(TitleSelect), m_SaveMenu(8, 8, 624, 22, 720)
 {
-    // If these aren't null, just return since they're already initialized.
-    if (m_SlidePanel && m_SaveDataMenu)
+    // If the panel is null, create it.
+    if (!m_SlidePanel)
     {
-        return;
+        // Create panel and menu.
+        m_SlidePanel = std::make_unique<UI::SlideOutPanel>(640, UI::SlideOutPanel::Side::Right);
     }
-
-    // Create panel and menu.
-    m_SlidePanel = std::make_unique<UI::SlideOutPanel>(640, UI::SlideOutPanel::Side::Right);
-    m_SaveDataMenu = std::make_unique<UI::Menu>(8, 8, 624, 22, 720);
 
     // Get title info vector and copy titles to menu.
     Data::GetTitleInfoByType(FsSaveDataType_Account, m_TitleInfoVector);
@@ -99,19 +97,28 @@ SaveCreateState::SaveCreateState(Data::User *TargetUser, TitleSelectCommon *Titl
 
     for (size_t i = 0; i < m_TitleInfoVector.size(); i++)
     {
-        m_SaveDataMenu->AddOption(m_TitleInfoVector.at(i)->GetTitle());
+        m_SaveMenu.AddOption(m_TitleInfoVector.at(i)->GetTitle());
     }
 }
 
 void SaveCreateState::Update(void)
 {
     m_SlidePanel->Update(AppState::HasFocus());
-    m_SaveDataMenu->Update(AppState::HasFocus());
+    m_SaveMenu.Update(AppState::HasFocus());
 
     if (Input::ButtonPressed(HidNpadButton_A))
     {
-        Data::TitleInfo *TargetTitle = m_TitleInfoVector.at(m_SaveDataMenu->GetSelected());
+        Data::TitleInfo *TargetTitle = m_TitleInfoVector.at(m_SaveMenu.GetSelected());
         JKSV::PushState(std::make_shared<TaskState>(CreateSaveDataFor, m_User, TargetTitle));
+    }
+    else if (Input::ButtonPressed(HidNpadButton_B))
+    {
+        m_SlidePanel->Close();
+    }
+    else if (m_SlidePanel->IsClosed())
+    {
+        m_SlidePanel->Reset();
+        AppState::Deactivate();
     }
 }
 
@@ -119,6 +126,6 @@ void SaveCreateState::Render(void)
 {
     // Clear slide target, render menu, render slide to frame buffer.
     m_SlidePanel->ClearTarget();
-    m_SaveDataMenu->Render(m_SlidePanel->Get(), AppState::HasFocus());
+    m_SaveMenu.Render(m_SlidePanel->Get(), AppState::HasFocus());
     m_SlidePanel->Render(NULL, AppState::HasFocus());
 }

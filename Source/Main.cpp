@@ -5,7 +5,7 @@
 int main(void)
 {
     JKSV Jksv{};
-    while (Jksv.IsRunning())
+    while (appletMainLoop() && Jksv.IsRunning())
     {
         Jksv.Update();
         Jksv.Render();

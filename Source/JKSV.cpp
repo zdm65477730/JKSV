@@ -126,7 +126,7 @@ void JKSV::Update(void)
 {
     Input::Update();
 
-    if (Input::ButtonPressed(HidNpadButton_Plus))
+    if (Input::ButtonPressed(HidNpadButton_Plus) && !m_StateVector.empty() && m_StateVector.back()->IsClosable())
     {
         m_IsRunning = false;
     }
@@ -165,7 +165,10 @@ void JKSV::Render(void)
                           Strings::GetByName(Strings::Names::TranslationInfo, 0),
                           Strings::GetByName(Strings::Names::TranslationInfo, 1));
     }
+    // Build date
+    SDL::Text::Render(NULL, 8, 700, 14, SDL::Text::NO_TEXT_WRAP, Colors::White, "v. %02d.%02d.%04d", BUILD_MON, BUILD_DAY, BUILD_YEAR);
 
+    // State render loop.
     if (!m_StateVector.empty())
     {
         for (auto &CurrentState : m_StateVector)
@@ -173,8 +176,6 @@ void JKSV::Render(void)
             CurrentState->Render();
         }
     }
-
-    SDL::Text::Render(NULL, 8, 700, 14, SDL::Text::NO_TEXT_WRAP, Colors::White, "v. %02d.%02d.%04d", BUILD_MON, BUILD_DAY, BUILD_YEAR);
 
     SDL::FrameEnd();
 }

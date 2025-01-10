@@ -49,6 +49,15 @@
         "Terminate Process",
         "Mount System Save"
     ],
+    "YesNo": [
+        "Yes [A]",
+        "No [B]"
+    ],
+    "HoldingStrings": [
+        "Hold [A]",
+        "Keep Holding [A]",
+        "Almost There! [A]"
+    ],
     "OnOff": [
         "Off",
         ">On>"

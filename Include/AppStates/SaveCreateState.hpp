@@ -20,9 +20,10 @@ class SaveCreateState : public AppState
         // Pointer to user and title select
         Data::User *m_User;
         TitleSelectCommon *m_TitleSelect;
+        // Menu
+        UI::Menu m_SaveMenu;
         // Vector of pointers to save info we're using
         std::vector<Data::TitleInfo *> m_TitleInfoVector;
-        // All instances shared these so they're static.
+        // All instances shared this so they're static.
         static inline std::unique_ptr<UI::SlideOutPanel> m_SlidePanel = nullptr;
-        static inline std::unique_ptr<UI::Menu> m_SaveDataMenu = nullptr;
 };

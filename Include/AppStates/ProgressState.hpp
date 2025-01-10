@@ -2,14 +2,22 @@
 #include "AppStates/AppState.hpp"
 #include "System/ProgressTask.hpp"
 #include <string>
+#include <switch.h>
 
 class ProgressState : public AppState
 {
     public:
         template <typename... Args>
         ProgressState(void (*Function)(System::ProgressTask *, Args...), Args... Arguments)
-            : m_Task(Function, std::forward<Args>(Arguments)...){};
-        ~ProgressState() {};
+            : AppState(false), m_Task(Function, std::forward<Args>(Arguments)...)
+        {
+            appletBeginBlockingHomeButton(0);
+        }
+
+        ~ProgressState()
+        {
+            appletEndBlockingHomeButton();
+        }
 
         void Update(void);
         void Render(void);

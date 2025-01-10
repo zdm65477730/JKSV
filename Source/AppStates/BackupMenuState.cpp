@@ -19,7 +19,7 @@
 #include <cstring>
 
 // This struct is used to pass data to Restore, Delete, and upload.
-struct TargetStruct : ConfirmStruct
+struct TargetStruct
 {
         FsLib::Path TargetPath;
         uint64_t JournalSize = 0;
@@ -44,7 +44,7 @@ static void CreateNewBackup(System::ProgressTask *Task, FsLib::Path DestinationP
     Task->Finished();
 }
 
-static void RestoreBackup(System::ProgressTask *Task, std::shared_ptr<ConfirmStruct> DataStruct)
+static void RestoreBackup(System::ProgressTask *Task, std::shared_ptr<TargetStruct> DataStruct)
 {
     // Wipe the save root first.
     if (!FsLib::DeleteDirectoryRecursively(FS::DEFAULT_SAVE_PATH))
@@ -54,50 +54,45 @@ static void RestoreBackup(System::ProgressTask *Task, std::shared_ptr<ConfirmStr
         return;
     }
 
-    // Cast struct to what we really need.
-    std::shared_ptr<TargetStruct> Data = std::static_pointer_cast<TargetStruct>(DataStruct);
-
-    if (FsLib::DirectoryExists(Data->TargetPath))
+    if (FsLib::DirectoryExists(DataStruct->TargetPath))
     {
-        FS::CopyDirectory(Data->TargetPath, FS::DEFAULT_SAVE_PATH, Data->JournalSize, FS::DEFAULT_SAVE_MOUNT, Task);
+        FS::CopyDirectory(DataStruct->TargetPath, FS::DEFAULT_SAVE_PATH, DataStruct->JournalSize, FS::DEFAULT_SAVE_MOUNT, Task);
     }
-    else if (std::strstr(Data->TargetPath.CString(), ".zip") != NULL)
+    else if (std::strstr(DataStruct->TargetPath.CString(), ".zip") != NULL)
     {
-        unzFile TargetZip = unzOpen64(Data->TargetPath.CString());
+        unzFile TargetZip = unzOpen64(DataStruct->TargetPath.CString());
         if (!TargetZip)
         {
             Logger::Log("Error opening zip for reading.");
             Task->Finished();
             return;
         }
-        FS::CopyZipToDirectory(TargetZip, FS::DEFAULT_SAVE_PATH, Data->JournalSize, FS::DEFAULT_SAVE_MOUNT, Task);
+        FS::CopyZipToDirectory(TargetZip, FS::DEFAULT_SAVE_PATH, DataStruct->JournalSize, FS::DEFAULT_SAVE_MOUNT, Task);
         unzClose(TargetZip);
     }
     else
     {
-        FS::CopyFile(Data->TargetPath, FS::DEFAULT_SAVE_PATH, Data->JournalSize, FS::DEFAULT_SAVE_MOUNT, Task);
+        FS::CopyFile(DataStruct->TargetPath, FS::DEFAULT_SAVE_PATH, DataStruct->JournalSize, FS::DEFAULT_SAVE_MOUNT, Task);
     }
     Task->Finished();
 }
 
-static void DeleteBackup(System::Task *Task, std::shared_ptr<ConfirmStruct> DataStruct)
+static void DeleteBackup(System::Task *Task, std::shared_ptr<TargetStruct> DataStruct)
 {
-    std::shared_ptr<TargetStruct> Data = std::static_pointer_cast<TargetStruct>(DataStruct);
-
     if (Task)
     {
-        Task->SetStatus(Strings::GetByName(Strings::Names::DeletingFiles, 0), Data->TargetPath.CString());
+        Task->SetStatus(Strings::GetByName(Strings::Names::DeletingFiles, 0), DataStruct->TargetPath.CString());
     }
 
-    if (FsLib::DirectoryExists(Data->TargetPath) && !FsLib::DeleteDirectoryRecursively(Data->TargetPath))
+    if (FsLib::DirectoryExists(DataStruct->TargetPath) && !FsLib::DeleteDirectoryRecursively(DataStruct->TargetPath))
     {
         Logger::Log("Error deleting folder backup: %s", FsLib::GetErrorString());
     }
-    else if (!FsLib::DeleteFile(Data->TargetPath))
+    else if (!FsLib::DeleteFile(DataStruct->TargetPath))
     {
         Logger::Log("Error deleting backup: %s", FsLib::GetErrorString());
     }
-    Data->CreatingState->RefreshListing();
+    DataStruct->CreatingState->RefreshListing();
     Task->Finished();
 }
 
@@ -163,14 +158,18 @@ void BackupMenuState::Update(void)
     {
         int Selected = m_BackupMenu->GetSelected() - 1;
 
-        std::shared_ptr<ConfirmStruct> DataStruct = std::make_shared<TargetStruct>();
-        std::static_pointer_cast<TargetStruct>(DataStruct)->TargetPath = m_DirectoryPath / m_DirectoryListing[Selected];
-        std::static_pointer_cast<TargetStruct>(DataStruct)->JournalSize = m_TitleInfo->GetJournalSize(m_SaveType);
+        std::shared_ptr<TargetStruct> DataStruct(new TargetStruct);
+        DataStruct->TargetPath = m_DirectoryPath / m_DirectoryListing[Selected];
+        DataStruct->JournalSize = m_TitleInfo->GetJournalSize(m_SaveType);
 
         std::string QueryString =
             StringUtil::GetFormattedString(Strings::GetByName(Strings::Names::BackupMenuConfirmations, 0), m_DirectoryListing[Selected]);
 
-        JKSV::PushState(std::make_shared<ConfirmState<System::ProgressTask, ProgressState>>(QueryString, false, RestoreBackup, DataStruct));
+        JKSV::PushState(std::make_shared<ConfirmState<System::ProgressTask, ProgressState, TargetStruct>>(
+            QueryString,
+            Config::GetByKey(Config::Keys::HoldForRestoration),
+            RestoreBackup,
+            DataStruct));
     }
     else if (Input::ButtonPressed(HidNpadButton_X) && m_BackupMenu->GetSelected() > 0)
     {
@@ -178,16 +177,19 @@ void BackupMenuState::Update(void)
         int Selected = m_BackupMenu->GetSelected() - 1;
 
         // Create struct to pass.
-        std::shared_ptr<ConfirmStruct> DataStruct = std::make_shared<TargetStruct>();
-        std::static_pointer_cast<TargetStruct>(DataStruct)->TargetPath = m_DirectoryPath / m_DirectoryListing[Selected];
-        std::static_pointer_cast<TargetStruct>(DataStruct)->CreatingState = this;
+        std::shared_ptr<TargetStruct> DataStruct(new TargetStruct);
+        DataStruct->TargetPath = m_DirectoryPath / m_DirectoryListing[Selected];
+        DataStruct->CreatingState = this;
 
         // Get the string.
         std::string QueryString =
             StringUtil::GetFormattedString(Strings::GetByName(Strings::Names::BackupMenuConfirmations, 1), m_DirectoryListing[Selected]);
 
         // Create/push new state.
-        JKSV::PushState(std::make_shared<ConfirmState<System::Task, TaskState>>(QueryString, false, DeleteBackup, DataStruct));
+        JKSV::PushState(std::make_shared<ConfirmState<System::Task, TaskState, TargetStruct>>(QueryString,
+                                                                                              Config::GetByKey(Config::Keys::HoldForDeletion),
+                                                                                              DeleteBackup,
+                                                                                              DataStruct));
     }
     else if (Input::ButtonPressed(HidNpadButton_B))
     {
