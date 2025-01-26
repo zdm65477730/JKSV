@@ -119,7 +119,7 @@ void ui::Menu::render(SDL_Texture *target, bool hasFocus)
         // render text to target.
         sdl::text::render(m_optionTarget->get(),
                           24,
-                          (m_optionHeight / 2) - (m_fontSize / 2),
+                          ((m_optionHeight / 2) - (m_fontSize / 2)) - 1,
                           m_fontSize,
                           sdl::text::NO_TEXT_WRAP,
                           i == m_selected && hasFocus ? colors::BLUE_GREEN : colors::WHITE,

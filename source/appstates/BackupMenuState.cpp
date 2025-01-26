@@ -65,7 +65,8 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
     // Check if there's currently any data to backup to prevent blanks.
     {
         fslib::Directory saveCheck(fs::DEFAULT_SAVE_PATH);
-        m_saveHasData = saveCheck.getCount() == 0;
+        logger::log("Save file count: %i", saveCheck.getCount());
+        m_saveHasData = saveCheck.getCount() > 0;
     }
 
     BackupMenuState::refresh();
