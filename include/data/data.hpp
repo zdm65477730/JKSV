@@ -1,0 +1,31 @@
+#pragma once
+#include "data/TitleInfo.hpp"
+#include "data/User.hpp"
+#include "data/accountUID.hpp"
+#include <unordered_map>
+#include <vector>
+
+namespace data
+{
+    /// @brief Loads users, applications, and save info from the system.
+    /// @return True if everything goes fine. False if something goes horribly wrong.
+    bool initialize(void);
+
+    /// @brief Writes pointers to users to vectorOut
+    /// @param vectorOut Vector to push the pointers to.
+    void getUsers(std::vector<data::User *> &vectorOut);
+
+    /// @brief Returns a pointer to the title mapped to applicationID.
+    /// @param applicationID ApplicationID of title to retrieve.
+    /// @return Pointer to data. nullptr if it's not found.
+    data::TitleInfo *getTitleInfoByID(uint64_t applicationID);
+
+    /// @brief Returns a reference to the title info map.
+    /// @return Reference to TitleInfoMap.
+    std::unordered_map<uint64_t, data::TitleInfo> &getTitleInfoMap(void);
+
+    /// @brief Gets a vector of pointers with all titles with saveType.
+    /// @param saveType Save data type to check for.
+    /// @param vectorOut Vector to push pointers to.
+    void getTitleInfoByType(FsSaveDataType saveType, std::vector<data::TitleInfo *> &vectorOut);
+} // namespace data

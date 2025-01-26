@@ -1,0 +1,115 @@
+{
+    "TranslationInfo": [
+        "Translated By: %s",
+        "NULL"
+    ],
+    "ControlGuides": [
+        "[A] Select   [Y] Dump All Saves   [X] User Options",
+        "[A] Select   [L] [R] Jump   [Y] Favorite   [X] Title Options  [B] Back",
+        "[A] Select  [Y] Restore  [X] Delete  [ZR] Upload  [B] Close",
+        "[A] Toggle   [X] Defaults   [B] Back"
+    ],
+    "SaveDataTypes": [
+        "System",
+        "Account",
+        "BCAT",
+        "Device",
+        "Temporary",
+        "Cache",
+        "System BCAT"
+    ],
+    "SettingsMenu": [
+        "Set JKSV output folder.",
+        "Edit Blacklist",
+        "Include Device Saves with users: %s",
+        "Auto-backup on restore: %s",
+        "Auto-name backups: %s",
+        "Auto-upload backups to remote storage: %s",
+        "Hold to delete backups: %s",
+        "Hold to restore backups: %s",
+        "Hold to overwrite backups: %s",
+        "Only list mountable titles: %s",
+        "Show account system saves: %s",
+        "Enable writing to system saves and NAND: %s",
+        "Export saves to ZIP: %s",
+        "Zip compression level: %u",
+        "Title sort type: %s",
+        "Text menu (JKSM) mode: %s",
+        "Force English: %s",
+        "Enable trash bin: %s",
+        "Animation scaling: %.02f"
+    ],
+    "ExtrasMenu": [
+        "Reload Titles",
+        "SD to SD Browser",
+        "BIS: ProfInfoF",
+        "BIS: Safe",
+        "BIS: System",
+        "BIS: User",
+        "Terminate Process",
+        "Mount System Save"
+    ],
+    "YesNo": [
+        "Yes [A]",
+        "No [B]"
+    ],
+    "HoldingStrings": [
+        "Hold [A]",
+        "Keep Holding [A]",
+        "Almost There! [A]"
+    ],
+    "OnOff": [
+        "Off",
+        ">On>"
+    ],
+    "BackupMenu": [
+        "New Backup"
+    ],
+    "CopyingFiles": [
+        "Copying #%s#...",
+        "Compressing #%s# to ZIP...",
+        "Decompressing #%s# from ZIP..."
+    ],
+    "BackupMenuConfirmations": [
+        "Are you sure you really want to restore #%s#?",
+        "Are you sure you really want to delete #%s#?"
+    ],
+    "DeletingFiles": [
+        "Deleting #%s#..."
+    ],
+    "KeyboardStrings": [
+        "Enter a new backup name.",
+        "Enter cache index.",
+        "Enter a new output path for JKSV",
+        "Enter process ID to terminate.",
+        "Enter a system save ID",
+        "Enter a new name for the target item.",
+        "Enter a name for the new folder.",
+        "Enter a new output folder name for %s.",
+        "Enter how much to expand (in MB)."
+    ],
+    "UserOptions": [
+        "Dump all for #%s#",
+        "Create Save Data for #%s#",
+        "Create All Save Data for #%s#",
+        "Delete All Save Data for #%s#"
+    ],
+    "TitleOptions": [
+        "Information",
+        "Blacklist Title",
+        "Change Output folder",
+        "Open in File Mode",
+        "Delete all save backups",
+        "Reset save data.",
+        "Delete save data from system",
+        "Extend save data container",
+        "Export SVI file"
+    ],
+    "CreatingSaveDataFor": [
+        "Creating save data for #%s#..."
+    ],
+    "PopMessages": [
+        "Save data is empty!",
+        "Backup is empty!"
+    ]
+}
