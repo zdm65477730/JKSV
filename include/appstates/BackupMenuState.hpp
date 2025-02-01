@@ -19,7 +19,7 @@ class BackupMenuState : public AppState
         BackupMenuState(data::User *user, data::TitleInfo *titleInfo, FsSaveDataType saveType);
 
         /// @brief Destructor. This is required even if it doesn't free or do anything.
-        ~BackupMenuState() {};
+        ~BackupMenuState();
 
         /// @brief Required. Inherited virtual function from AppState.
         void update(void);
@@ -29,6 +29,9 @@ class BackupMenuState : public AppState
 
         /// @brief Refreshes the directory listing and menu.
         void refresh(void);
+
+        /// @brief Allows a spawned task to tell this class that it wrote save data to the system.
+        void saveDataWritten(void);
 
     private:
         /// @brief Pointer to current user.
@@ -41,30 +44,17 @@ class BackupMenuState : public AppState
         fslib::Path m_directoryPath;
         /// @brief Directory listing of the above.
         fslib::Directory m_directoryListing;
-        /// @brief The width of the current title in pixels.
-        int m_titleWidth = 0;
-        /// @brief X coordinate to render the games's title at.
-        int m_titleX = 0;
-        /// @brief Whether or not the above is too long to be displayed at once and needs to be scrolled.
-        bool m_titleScrolling = false;
-        /// @brief Whether or not the scrolling timer was triggered and we should scroll the title string.
-        bool m_titleScrollTriggered = false;
-        /// @brief Timer for scrolling the title text if it's too long.
-        sys::Timer m_titleScrollTimer;
         /// @brief Variable that saves whether or not the filesystem has data in it.
         bool m_saveHasData = false;
 
         /// @brief Whether or not anything beyond this point needs to be init'd. Everything here is static and shared by all instances.
         static inline bool sm_isInitialized = false;
         /// @brief The menu used by all instances of BackupMenuState.
-        static inline std::unique_ptr<ui::Menu> m_backupMenu = nullptr;
+        static inline std::shared_ptr<ui::Menu> sm_backupMenu = nullptr;
         /// @brief The slide out panel used by all instances of BackupMenuState.
-        static inline std::unique_ptr<ui::SlideOutPanel> m_slidePanel = nullptr;
+        static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel = nullptr;
         /// @brief Inner render target so the menu only renders to a certain area.
-        static inline sdl::SharedTexture m_menuRenderTarget = nullptr;
+        static inline sdl::SharedTexture sm_menuRenderTarget = nullptr;
         /// @brief The width of the panels. This is set according to the control guide text.
-        static inline int m_panelWidth = 0;
-
-        /// @brief Renders the title of the currently targetted game.
-        void renderTitle(void);
+        static inline int sm_panelWidth = 0;
 };

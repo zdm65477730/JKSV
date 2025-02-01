@@ -2,6 +2,7 @@
 #include "JKSV.hpp"
 #include "appstates/BackupMenuState.hpp"
 #include "appstates/MainMenuState.hpp"
+#include "appstates/TitleOptionState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
 #include "fs/fs.hpp"
@@ -46,6 +47,13 @@ void TitleSelectState::update(void)
         {
             logger::log("%s", fslib::getErrorString());
         }
+    }
+    else if (input::buttonPressed(HidNpadButton_X))
+    {
+        uint64_t applicationID = m_user->getApplicationIDAt(m_titleView.getSelected());
+        data::TitleInfo *titleInfo = data::getTitleInfoByID(applicationID);
+
+        JKSV::pushState(std::make_shared<TitleOptionState>(m_user, titleInfo));
     }
     else if (input::buttonPressed(HidNpadButton_B))
     {

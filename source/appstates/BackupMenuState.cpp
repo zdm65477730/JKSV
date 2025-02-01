@@ -10,10 +10,11 @@
 #include "keyboard.hpp"
 #include "logger.hpp"
 #include "sdl.hpp"
-#include "stringUtil.hpp"
 #include "strings.hpp"
+#include "stringutil.hpp"
 #include "system/system.hpp"
 #include "ui/PopMessageManager.hpp"
+#include "ui/TextScroll.hpp"
 #include <cstring>
 
 // This struct is used to pass data to Restore, Delete, and upload.
@@ -23,13 +24,24 @@ struct TargetStruct
         fslib::Path m_targetPath;
         // Journal size if commit is needed.
         uint64_t m_journalSize;
+        // User
+        data::User *m_user;
+        // Title info
+        data::TitleInfo *m_titleInfo;
         // Spawning state so refresh can be called.
         BackupMenuState *m_spawningState = nullptr;
 };
 
 // Declarations here. Definitions after class.
-// Create new backup in destinationPath
-static void createnewBackup(sys::ProgressTask *task, fslib::Path destinationPath, BackupMenuState *spawningState);
+// Create new backup in targetPath
+static void createNewBackup(sys::ProgressTask *task,
+                            data::User *user,
+                            data::TitleInfo *titleInfo,
+                            fslib::Path targetPath,
+                            BackupMenuState *spawningState);
+
+// Overwrites and existing backup.
+static void overwriteBackup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct);
 // Restores a backup and requires confirmation to do so. Takes a shared_ptr to a TargetStruct.
 static void restoreBackup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct);
 // Deletes a backup and requires confirmation to do so. Takes a shared_ptr to a TargetStruct.
@@ -37,44 +49,40 @@ static void deleteBackup(sys::Task *task, std::shared_ptr<TargetStruct> dataStru
 
 BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, FsSaveDataType saveType)
     : m_user(user), m_titleInfo(titleInfo), m_saveType(saveType),
-      m_directoryPath(config::getWorkingDirectory() / m_titleInfo->getPathSafeTitle()),
-      m_titleWidth(sdl::text::getWidth(22, m_titleInfo->getTitle())), m_titleScrollTimer(3000)
+      m_directoryPath(config::getWorkingDirectory() / m_titleInfo->getPathSafeTitle())
 {
     if (!sm_isInitialized)
     {
-        m_panelWidth = sdl::text::getWidth(22, strings::getByName(strings::names::CONTROL_GUIDES, 2)) + 64;
+        sm_panelWidth = sdl::text::getWidth(22, strings::getByName(strings::names::CONTROL_GUIDES, 2)) + 64;
         // To do: Give classes an alternate so they don't have to be constructed.
-        m_backupMenu = std::make_unique<ui::Menu>(8, 8, m_panelWidth - 24, 24, 600);
-        m_slidePanel = std::make_unique<ui::SlideOutPanel>(m_panelWidth, ui::SlideOutPanel::Side::Right);
-        m_menuRenderTarget =
-            sdl::TextureManager::createLoadTexture("backupMenuTarget", m_panelWidth, 600, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+        sm_backupMenu = std::make_shared<ui::Menu>(8, 8, sm_panelWidth - 14, 24, 600);
+        sm_slidePanel = std::make_unique<ui::SlideOutPanel>(sm_panelWidth, ui::SlideOutPanel::Side::Right);
+        sm_menuRenderTarget =
+            sdl::TextureManager::createLoadTexture("backupMenuTarget", sm_panelWidth, 600, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
         sm_isInitialized = true;
     }
 
-    // Check if title needs to be scrolled above the menu or just set the X position.
-    if (m_titleWidth >= m_panelWidth)
-    {
-        m_titleScrolling = true;
-        m_titleX = 8;
-    }
-    else
-    {
-        m_titleX = (m_panelWidth / 2) - (m_titleWidth / 2);
-    }
+    // String for the top of the panel.
+    std::string panelString = stringutil::getFormattedString("`%s` - %s", m_user->getNickname(), m_titleInfo->getTitle());
 
-    // Check if there's currently any data to backup to prevent blanks.
-    {
-        fslib::Directory saveCheck(fs::DEFAULT_SAVE_PATH);
-        logger::log("Save file count: %i", saveCheck.getCount());
-        m_saveHasData = saveCheck.getCount() > 0;
-    }
+    // This needs sm_panelWidth or it'd be in the initializer list.
+    sm_slidePanel->pushNewElement(std::make_shared<ui::TextScroll>(panelString, 22, sm_panelWidth, 8, colors::WHITE));
+
+
+    fslib::Directory saveCheck(fs::DEFAULT_SAVE_PATH);
+    m_saveHasData = saveCheck.getCount() > 0;
 
     BackupMenuState::refresh();
 }
 
+BackupMenuState::~BackupMenuState()
+{
+    sm_slidePanel->clearElements();
+}
+
 void BackupMenuState::update(void)
 {
-    if (input::buttonPressed(HidNpadButton_A) && m_backupMenu->getSelected() == 0 && m_saveHasData)
+    if (input::buttonPressed(HidNpadButton_A) && sm_backupMenu->getSelected() == 0 && m_saveHasData)
     {
         // get name for backup.
         char backupName[0x81] = {0};
@@ -99,24 +107,64 @@ void BackupMenuState::update(void)
             return;
         }
         // Push the task.
-        JKSV::pushState(std::make_shared<ProgressState>(createnewBackup, m_directoryPath / backupName, this));
+        JKSV::pushState(std::make_shared<ProgressState>(createNewBackup, m_user, m_titleInfo, m_directoryPath / backupName, this));
     }
-    else if (input::buttonPressed(HidNpadButton_A) && m_backupMenu->getSelected() == 0 && !m_saveHasData)
+    else if (input::buttonPressed(HidNpadButton_A) && sm_backupMenu->getSelected() == 0 && !m_saveHasData)
     {
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS, strings::getByName(strings::names::POP_MESSAGES, 0));
+        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                           strings::getByName(strings::names::POP_MESSAGES_BACKUP_MENU, 0));
     }
-    else if (input::buttonPressed(HidNpadButton_Y) && m_backupMenu->getSelected() > 0 &&
+    else if (input::buttonPressed(HidNpadButton_A) && m_saveHasData && sm_backupMenu->getSelected() > 0)
+    {
+        int selected = sm_backupMenu->getSelected() - 1;
+
+        std::string queryString =
+            stringutil::getFormattedString(strings::getByName(strings::names::BACKUPMENU_CONFIRMATIONS, 0), m_directoryListing[selected]);
+
+        std::shared_ptr<TargetStruct> dataStruct(new TargetStruct);
+        dataStruct->m_targetPath = m_directoryPath / m_directoryListing[selected];
+
+        JKSV::pushState(
+            std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, TargetStruct>>(queryString,
+                                                                                           config::getByKey(config::keys::HOLD_FOR_OVERWRITE),
+                                                                                           overwriteBackup,
+                                                                                           dataStruct));
+    }
+    else if (input::buttonPressed(HidNpadButton_A) && !m_saveHasData && sm_backupMenu->getSelected() > 0)
+    {
+        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                           strings::getByName(strings::names::POP_MESSAGES_BACKUP_MENU, 0));
+    }
+    else if (input::buttonPressed(HidNpadButton_Y) && sm_backupMenu->getSelected() > 0 &&
              (m_saveType != FsSaveDataType_System || config::getByKey(config::keys::ALLOW_WRITING_TO_SYSTEM)))
     {
         // Need to account for new at the top.
-        int selected = m_backupMenu->getSelected() - 1;
+        int selected = sm_backupMenu->getSelected() - 1;
+
+        // Gonna need to test this quick.
+        fslib::Path targetPath = m_directoryPath / m_directoryListing[selected];
+
+        // This is a quick check to avoid restoring blanks.
+        if (fslib::directoryExists(targetPath) && !fs::directoryHasContents(targetPath))
+        {
+            ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                               strings::getByName(strings::names::POP_MESSAGES_BACKUP_MENU, 1));
+            return;
+        }
+        else if (fslib::fileExists(targetPath) && std::strcmp("zip", targetPath.getExtension()) == 0 && !fs::zipHasContents(targetPath))
+        {
+            ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                               strings::getByName(strings::names::POP_MESSAGES_BACKUP_MENU, 1));
+            return;
+        }
 
         std::shared_ptr<TargetStruct> dataStruct(new TargetStruct);
         dataStruct->m_targetPath = m_directoryPath / m_directoryListing[selected];
         dataStruct->m_journalSize = m_titleInfo->getJournalSize(m_saveType);
+        dataStruct->m_spawningState = this;
 
         std::string queryString =
-            stringutil::getFormattedString(strings::getByName(strings::names::BACKUPMENU_CONFIRMATIONS, 0), m_directoryListing[selected]);
+            stringutil::getFormattedString(strings::getByName(strings::names::BACKUPMENU_CONFIRMATIONS, 1), m_directoryListing[selected]);
 
         JKSV::pushState(
             std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, TargetStruct>>(queryString,
@@ -124,10 +172,10 @@ void BackupMenuState::update(void)
                                                                                            restoreBackup,
                                                                                            dataStruct));
     }
-    else if (input::buttonPressed(HidNpadButton_X) && m_backupMenu->getSelected() > 0)
+    else if (input::buttonPressed(HidNpadButton_X) && sm_backupMenu->getSelected() > 0)
     {
         // Selected needs to be offset by one to account for New
-        int selected = m_backupMenu->getSelected() - 1;
+        int selected = sm_backupMenu->getSelected() - 1;
 
         // Create struct to pass.
         std::shared_ptr<TargetStruct> dataStruct(new TargetStruct);
@@ -136,7 +184,7 @@ void BackupMenuState::update(void)
 
         // get the string.
         std::string queryString =
-            stringutil::getFormattedString(strings::getByName(strings::names::BACKUPMENU_CONFIRMATIONS, 1), m_directoryListing[selected]);
+            stringutil::getFormattedString(strings::getByName(strings::names::BACKUPMENU_CONFIRMATIONS, 2), m_directoryListing[selected]);
 
         // Create/push new state.
         JKSV::pushState(std::make_shared<ConfirmState<sys::Task, TaskState, TargetStruct>>(queryString,
@@ -147,114 +195,164 @@ void BackupMenuState::update(void)
     else if (input::buttonPressed(HidNpadButton_B))
     {
         fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
-        m_slidePanel->close();
+        sm_slidePanel->close();
     }
-    else if (m_slidePanel->isClosed())
+    else if (sm_slidePanel->isClosed())
     {
-        m_slidePanel->reset();
+        sm_slidePanel->reset();
         AppState::deactivate();
     }
-
-    m_slidePanel->update(AppState::hasFocus());
+    // Update panel.
+    sm_slidePanel->update(AppState::hasFocus());
     // This state bypasses the Slideout panel's normal behavior because it kind of has to.
-    m_backupMenu->update(AppState::hasFocus());
+    sm_backupMenu->update(AppState::hasFocus());
 }
 
 void BackupMenuState::render(void)
 {
     // Clear panel target.
-    m_slidePanel->clearTarget();
-    // render the current title's name.
-    BackupMenuState::renderTitle();
-    sdl::renderLine(m_slidePanel->get(), 10, 42, m_panelWidth - 20, 42, colors::WHITE);
-    sdl::renderLine(m_slidePanel->get(), 10, 648, m_panelWidth - 20, 648, colors::WHITE);
-    sdl::text::render(m_slidePanel->get(),
-                      32,
-                      673,
-                      22,
-                      sdl::text::NO_TEXT_WRAP,
-                      colors::WHITE,
-                      strings::getByName(strings::names::CONTROL_GUIDES, 2));
+    sm_slidePanel->clearTarget();
+
+    // Grab the render target.
+    SDL_Texture *slideTarget = sm_slidePanel->get();
+
+    sdl::renderLine(slideTarget, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
+    sdl::renderLine(slideTarget, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
+    sdl::text::render(slideTarget, 32, 673, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, strings::getByName(strings::names::CONTROL_GUIDES, 2));
 
     // Clear menu target.
-    m_menuRenderTarget->clear(colors::TRANSPARENT);
+    sm_menuRenderTarget->clear(colors::TRANSPARENT);
     // render menu to it.
-    m_backupMenu->render(m_menuRenderTarget->get(), AppState::hasFocus());
+    sm_backupMenu->render(sm_menuRenderTarget->get(), AppState::hasFocus());
     // render it to panel target.
-    m_menuRenderTarget->render(m_slidePanel->get(), 0, 43);
-    m_slidePanel->render(NULL, AppState::hasFocus());
+    sm_menuRenderTarget->render(sm_slidePanel->get(), 0, 43);
+
+    sm_slidePanel->render(NULL, AppState::hasFocus());
 }
 
 void BackupMenuState::refresh(void)
 {
     m_directoryListing.open(m_directoryPath);
-    if (!m_directoryListing.isOpen())
+    if (!m_directoryListing)
     {
         return;
     }
 
-    m_backupMenu->reset();
-    m_backupMenu->addOption(strings::getByName(strings::names::BACKUP_MENU, 0));
+    sm_backupMenu->reset();
+    sm_backupMenu->addOption(strings::getByName(strings::names::BACKUP_MENU, 0));
     for (int64_t i = 0; i < m_directoryListing.getCount(); i++)
     {
-        m_backupMenu->addOption(m_directoryListing[i]);
+        sm_backupMenu->addOption(m_directoryListing[i]);
     }
 }
 
-void BackupMenuState::renderTitle(void)
+void BackupMenuState::saveDataWritten(void)
 {
-    SDL_Texture *SlidePanelTarget = m_slidePanel->get();
-
-    if (m_titleScrolling && m_titleScrollTriggered && m_titleX > -(m_titleWidth + 8))
+    if (!m_saveHasData)
     {
-        m_titleX -= 2;
-    }
-    else if (m_titleScrolling && m_titleScrollTriggered && m_titleX <= -(m_titleWidth + 8))
-    {
-        m_titleX = 8;
-        m_titleScrollTriggered = false;
-        m_titleScrollTimer.restart();
-    }
-    else if (m_titleScrolling && m_titleScrollTimer.isTriggered())
-    {
-        m_titleScrollTriggered = true;
-    }
-
-    if (m_titleScrolling && m_titleScrollTriggered)
-    {
-        // This is just a trick, or maybe the only way to accomplish this. Either way, it works.
-        // render title first time.
-        sdl::text::render(SlidePanelTarget, m_titleX, 8, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_titleInfo->getTitle());
-        // render it again following the first.
-        sdl::text::render(SlidePanelTarget,
-                          m_titleX + m_titleWidth + 16,
-                          8,
-                          22,
-                          sdl::text::NO_TEXT_WRAP,
-                          colors::WHITE,
-                          m_titleInfo->getTitle());
-    }
-    else
-    {
-        sdl::text::render(SlidePanelTarget, m_titleX, 8, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_titleInfo->getTitle());
+        m_saveHasData = true;
     }
 }
 
 // This is the function to create new backups.
-static void createnewBackup(sys::ProgressTask *task, fslib::Path destinationPath, BackupMenuState *spawningState)
+static void createNewBackup(sys::ProgressTask *task,
+                            data::User *user,
+                            data::TitleInfo *titleInfo,
+                            fslib::Path targetPath,
+                            BackupMenuState *spawningState)
 {
+    // SaveMeta
+    FsSaveDataInfo *saveInfo = user->getSaveInfoByID(titleInfo->getApplicationID());
+
+    // I got tired of typing out the cast.
+    fs::SaveMetaData saveMeta = {.m_magic = fs::SAVE_META_MAGIC,
+                                 .m_applicationID = titleInfo->getApplicationID(),
+                                 .m_saveType = saveInfo->save_data_type,
+                                 .m_saveRank = saveInfo->save_data_rank,
+                                 .m_saveSpaceID = saveInfo->save_data_space_id,
+                                 .m_saveDataSize = titleInfo->getSaveDataSize(saveInfo->save_data_type),
+                                 .m_saveDataSizeMax = titleInfo->getSaveDataSizeMax(saveInfo->save_data_type),
+                                 .m_journalSize = titleInfo->getJournalSize(saveInfo->save_data_type),
+                                 .m_journalSizeMax = titleInfo->getSaveDataSizeMax(saveInfo->save_data_type),
+                                 .m_totalSaveSize = fs::getDirectoryTotalSize(fs::DEFAULT_SAVE_PATH)};
+
     // This extension search is lazy and needs to be revised.
-    if (config::getByKey(config::keys::EXPORT_TO_ZIP) || std::strstr(destinationPath.cString(), ".zip") != NULL)
+    if (config::getByKey(config::keys::EXPORT_TO_ZIP) || std::strcmp("zip", targetPath.getExtension()) == 0)
     {
-        zipFile newBackup = zipOpen64(destinationPath.cString(), APPEND_STATUS_CREATE);
+        zipFile newBackup = zipOpen64(targetPath.cString(), APPEND_STATUS_CREATE);
+        if (!newBackup)
+        {
+            // To do: Pop up.
+            logger::log("Error opening zip for backup.");
+            return;
+        }
+
+        // Write meta to zip.
+        int zipError = zipOpenNewFileInZip64(newBackup,
+                                             ".jksv_save_meta.bin",
+                                             NULL,
+                                             NULL,
+                                             0,
+                                             NULL,
+                                             0,
+                                             NULL,
+                                             Z_DEFLATED,
+                                             config::getByKey(config::keys::ZIP_COMPRESSION_LEVEL),
+                                             0);
+        if (zipError == ZIP_OK)
+        {
+            zipWriteInFileInZip(newBackup, &saveMeta, sizeof(fs::SaveMetaData));
+            zipCloseFileInZip(newBackup);
+        }
+
         fs::copyDirectoryToZip(fs::DEFAULT_SAVE_PATH, newBackup, task);
         zipClose(newBackup, NULL);
     }
     else
     {
-        fs::copyDirectory(fs::DEFAULT_SAVE_PATH, destinationPath, 0, {}, task);
+        {
+            // Write save meta quick.
+            fslib::Path saveMetaPath = targetPath / ".jksv_save_meta.bin";
+            fslib::File saveMetaOut(targetPath, FsOpenMode_Create | FsOpenMode_Write, sizeof(fs::SaveMetaData));
+            if (saveMetaOut)
+            {
+                saveMetaOut.write(&saveMeta, sizeof(fs::SaveMetaData));
+            }
+        }
+
+        fs::copyDirectory(fs::DEFAULT_SAVE_PATH, targetPath, 0, {}, task);
     }
     spawningState->refresh();
+    task->finished();
+}
+
+static void overwriteBackup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct)
+{
+    // DirectoryExists can also be used to check if the target is a directory.
+    if (fslib::directoryExists(dataStruct->m_targetPath) && !fslib::deleteDirectoryRecursively(dataStruct->m_targetPath))
+    {
+        logger::log("Error overwriting backup: %s", fslib::getErrorString());
+        task->finished();
+        return;
+    } // This has an added check for the zip extension so it can't try to overwrite files that aren't supposed to be zip.
+    else if (fslib::fileExists(dataStruct->m_targetPath) && std::strcmp("zip", dataStruct->m_targetPath.getExtension()) == 0 &&
+             !fslib::deleteFile(dataStruct->m_targetPath))
+    {
+        logger::log("Error overwriting backup: %s", fslib::getErrorString());
+        task->finished();
+        return;
+    }
+
+    if (std::strcmp("zip", dataStruct->m_targetPath.getExtension()))
+    {
+        zipFile backupZip = zipOpen64(dataStruct->m_targetPath.cString(), APPEND_STATUS_CREATE);
+        fs::copyDirectoryToZip(fs::DEFAULT_SAVE_PATH, backupZip, task);
+        zipClose(backupZip, NULL);
+    } // I hope this check works for making sure this is a folder
+    else if (dataStruct->m_targetPath.getExtension() == nullptr && fslib::createDirectory(dataStruct->m_targetPath))
+    {
+        fs::copyDirectory(fs::DEFAULT_SAVE_PATH, dataStruct->m_targetPath, 0, {}, task);
+    }
     task->finished();
 }
 
@@ -264,6 +362,8 @@ static void restoreBackup(sys::ProgressTask *task, std::shared_ptr<TargetStruct>
     if (!fslib::deleteDirectoryRecursively(fs::DEFAULT_SAVE_PATH))
     {
         logger::log("Error restoring save: %s", fslib::getErrorString());
+        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                           strings::getByName(strings::names::POP_MESSAGES_BACKUP_MENU, 2));
         task->finished();
         return;
     }
@@ -277,6 +377,8 @@ static void restoreBackup(sys::ProgressTask *task, std::shared_ptr<TargetStruct>
         unzFile targetZip = unzOpen64(dataStruct->m_targetPath.cString());
         if (!targetZip)
         {
+            ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                               strings::getByName(strings::names::POP_MESSAGES_BACKUP_MENU, 3));
             logger::log("Error opening zip for reading.");
             task->finished();
             return;
@@ -288,6 +390,10 @@ static void restoreBackup(sys::ProgressTask *task, std::shared_ptr<TargetStruct>
     {
         fs::copyFile(dataStruct->m_targetPath, fs::DEFAULT_SAVE_PATH, dataStruct->m_journalSize, fs::DEFAULT_SAVE_MOUNT, task);
     }
+
+    // Update this just in case.
+    dataStruct->m_spawningState->saveDataWritten();
+
     task->finished();
 }
 
@@ -301,10 +407,14 @@ static void deleteBackup(sys::Task *task, std::shared_ptr<TargetStruct> dataStru
     if (fslib::directoryExists(dataStruct->m_targetPath) && !fslib::deleteDirectoryRecursively(dataStruct->m_targetPath))
     {
         logger::log("Error deleting folder backup: %s", fslib::getErrorString());
+        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                           strings::getByName(strings::names::POP_MESSAGES_BACKUP_MENU, 4));
     }
     else if (!fslib::deleteFile(dataStruct->m_targetPath))
     {
         logger::log("Error deleting backup: %s", fslib::getErrorString());
+        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                           strings::getByName(strings::names::POP_MESSAGES_BACKUP_MENU, 4));
     }
     dataStruct->m_spawningState->refresh();
     task->finished();

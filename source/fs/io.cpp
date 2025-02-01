@@ -56,7 +56,7 @@ void fs::copyFile(const fslib::Path &source,
 {
     fslib::File sourceFile(source, FsOpenMode_Read);
     fslib::File destinationFile(destination, FsOpenMode_Create | FsOpenMode_Write, sourceFile.getSize());
-    if (!sourceFile.isOpen() || !destinationFile.isOpen())
+    if (!sourceFile || !destinationFile)
     {
         logger::log("Error opening one of the files: %s", fslib::getErrorString());
         return;
@@ -137,7 +137,7 @@ void fs::copyDirectory(const fslib::Path &source,
                        sys::ProgressTask *task)
 {
     fslib::Directory sourceDir(source);
-    if (!sourceDir.isOpen())
+    if (!sourceDir)
     {
         logger::log("Error opening directory for reading: %s", fslib::getErrorString());
         return;

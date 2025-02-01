@@ -14,7 +14,7 @@ namespace stringutil
     /// @param format Format of string.
     /// @param arguments Arguments for string.
     /// @return Formatted C++ string.
-    std::string getFormattedString(const char *Format, ...);
+    std::string getFormattedString(const char *format, ...);
 
     /// @brief Replaces and sequence of characters in a string.
     /// @param target Target string.

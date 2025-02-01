@@ -24,12 +24,21 @@ namespace data
             /// @param pathSafeNickname The path safe version of the save data since JKSV is in everything the Switch supports.
             /// @param iconPath Path to the icon to load for account.
             /// @param saveType Save data type of user.
-            User(AccountUid accountID, std::string_view pathSafeNickname, std::string_view iconPath, FsSaveDataType saveType);
+            User(AccountUid accountID,
+                 std::string_view nickname,
+                 std::string_view pathSafeNickname,
+                 std::string_view iconPath,
+                 FsSaveDataType saveType);
 
             /// @brief Pushes data to m_userData
             /// @param saveInfo SaveDataInfo.
             /// @param playStats Play statistics.
             void addData(const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats);
+
+
+            /// @brief Erases data at index.
+            /// @param index Index of save data info to erase.
+            void eraseData(int index);
 
             /// @brief Runs the sort algo on the vector.
             void sortData(void);

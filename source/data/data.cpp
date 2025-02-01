@@ -51,16 +51,34 @@ bool data::initialize(void)
     // Need this for save data of deleted users. It does happen. This is where they are inserted.
     // size_t userInsertPosition = s_userVector.size() - 1;
 
-    // "System" users.
+    // "System" user IDs.
     constexpr AccountUid deviceID = {FsSaveDataType_Device};
     constexpr AccountUid bcatID = {FsSaveDataType_Bcat};
     constexpr AccountUid cacheID = {FsSaveDataType_Cache};
     constexpr AccountUid systemID = {FsSaveDataType_System};
 
-    s_userVector.push_back(std::make_pair(deviceID, data::User(deviceID, "Device", "romfs:/Textures/SystemSaves.png", FsSaveDataType_Device)));
-    s_userVector.push_back(std::make_pair(bcatID, data::User(bcatID, "BCAT", "romfs:/Textures/BCAT.png", FsSaveDataType_Bcat)));
-    s_userVector.push_back(std::make_pair(cacheID, data::User(cacheID, "Cache", "romfs:/Textures/Cache.png", FsSaveDataType_Cache)));
-    s_userVector.push_back(std::make_pair(systemID, data::User(systemID, "System", "romfs:/Textures/SystemSaves.png", FsSaveDataType_System)));
+    // Push them to the user vector. Clang-format makes this look weird...
+    s_userVector.push_back(std::make_pair(deviceID,
+                                          data::User(deviceID,
+                                                     strings::getByName(strings::names::SAVE_DATA_TYPES, 3),
+                                                     "Device",
+                                                     "romfs:/Textures/SystemSaves.png",
+                                                     FsSaveDataType_Device)));
+    s_userVector.push_back(std::make_pair(
+        bcatID,
+        data::User(bcatID, strings::getByName(strings::names::SAVE_DATA_TYPES, 2), "BCAT", "romfs:/Textures/BCAT.png", FsSaveDataType_Bcat)));
+    s_userVector.push_back(std::make_pair(cacheID,
+                                          data::User(cacheID,
+                                                     strings::getByName(strings::names::SAVE_DATA_TYPES, 5),
+                                                     "Cache",
+                                                     "romfs:/Textures/Cache.png",
+                                                     FsSaveDataType_Cache)));
+    s_userVector.push_back(std::make_pair(systemID,
+                                          data::User(systemID,
+                                                     strings::getByName(strings::names::SAVE_DATA_TYPES, 0),
+                                                     "System",
+                                                     "romfs:/Textures/SystemSaves.png",
+                                                     FsSaveDataType_System)));
 
     NsApplicationRecord currentRecord = {0};
     int entryCount = 0, entryOffset = 0;
@@ -72,7 +90,7 @@ bool data::initialize(void)
     for (int i = 0; i < 7; i++)
     {
         fslib::SaveInfoReader saveInfoReader(SAVE_DATA_SPACE_ORDER[i]);
-        if (!saveInfoReader.isOpen())
+        if (!saveInfoReader)
         {
             logger::log(fslib::getErrorString());
             continue;

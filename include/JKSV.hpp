@@ -37,4 +37,6 @@ class JKSV
         sdl::SharedTexture m_headerIcon = nullptr;
         /// @brief Vector of states to update and render.
         static inline std::vector<std::shared_ptr<AppState>> sm_stateVector;
+        /// @brief Purges and updates states in sm_stateVector.
+        static void updateStateVector(void);
 };

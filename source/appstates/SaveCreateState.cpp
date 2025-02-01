@@ -2,10 +2,12 @@
 #include "JKSV.hpp"
 #include "appstates/TaskState.hpp"
 #include "data/data.hpp"
+#include "fs/fs.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "strings.hpp"
 #include "system/Task.hpp"
+#include "ui/PopMessageManager.hpp"
 #include <algorithm>
 #include <string>
 #include <switch.h>
@@ -45,14 +47,8 @@ static bool compareInfo(data::TitleInfo *infoA, data::TitleInfo *infoB)
     return false;
 }
 
-// This attempts to create the save data for the given user. It will fail if it already exists.
-static void createSaveDataFor(sys::Task *task, data::User *targetUser, data::TitleInfo *titleInfo)
-{
-    // Set task status.
-    task->setStatus(strings::getByName(strings::names::CREATING_SAVE_DATA_FOR, 0), titleInfo->getTitle());
-
-    task->finished();
-}
+// Declarations here. Definitions under class.
+static void createSaveData(sys::Task *task, data::User *targetUser, data::TitleInfo *titleInfo);
 
 SaveCreateState::SaveCreateState(data::User *targetUser, TitleSelectCommon *titleSelect)
     : m_user(targetUser), m_titleSelect(titleSelect), m_saveMenu(8, 8, 624, 22, 720)
@@ -78,13 +74,13 @@ SaveCreateState::SaveCreateState(data::User *targetUser, TitleSelectCommon *titl
 
 void SaveCreateState::update(void)
 {
-    sm_slidePanel->update(AppState::hasFocus());
     m_saveMenu.update(AppState::hasFocus());
+    sm_slidePanel->update(AppState::hasFocus());
 
     if (input::buttonPressed(HidNpadButton_A))
     {
         data::TitleInfo *targetTitle = m_titleInfoVector.at(m_saveMenu.getSelected());
-        JKSV::pushState(std::make_shared<TaskState>(createSaveDataFor, m_user, targetTitle));
+        JKSV::pushState(std::make_shared<TaskState>(createSaveData, m_user, targetTitle));
     }
     else if (input::buttonPressed(HidNpadButton_B))
     {
@@ -103,4 +99,23 @@ void SaveCreateState::render(void)
     sm_slidePanel->clearTarget();
     m_saveMenu.render(sm_slidePanel->get(), AppState::hasFocus());
     sm_slidePanel->render(NULL, AppState::hasFocus());
+}
+
+static void createSaveData(sys::Task *task, data::User *targetUser, data::TitleInfo *titleInfo)
+{
+    // Set status. We'll just borrow the string from the other group.
+    task->setStatus(strings::getByName(strings::names::USER_OPTION_STATUS, 0), titleInfo->getTitle());
+
+    if (fs::createSaveDataFor(targetUser, titleInfo))
+    {
+        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                           strings::getByName(strings::names::POP_MESSAGES_SAVE_CREATE, 0),
+                                           titleInfo->getTitle());
+    }
+    else
+    {
+        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                           strings::getByName(strings::names::POP_MESSAGES_SAVE_CREATE, 1));
+    }
+    task->finished();
 }

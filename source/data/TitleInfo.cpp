@@ -1,7 +1,8 @@
 #include "data/TitleInfo.hpp"
 #include "colors.hpp"
+#include "config.hpp"
 #include "logger.hpp"
-#include "stringUtil.hpp"
+#include "stringutil.hpp"
 #include <cstring>
 
 data::TitleInfo::TitleInfo(uint64_t applicationID) : m_applicationID(applicationID)
@@ -21,14 +22,23 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) : m_applicationID(application
 
     if (R_FAILED(nsError) || nsAppControlSize < sizeof(nsControlData.nacp))
     {
-        std::string applicationIDHex = stringutil::getFormattedString("%04X", applicationID & 0xFFFF);
+        std::string applicationIDHex = stringutil::getFormattedString("%04X", m_applicationID & 0xFFFF);
 
         // Blank the nacp just to be sure.
         std::memset(&m_nacp, 0x00, sizeof(NacpStruct));
 
         // Sprintf title ids to language entries for safety.
-        snprintf(m_nacp.lang[SetLanguage_ENUS].name, 0x200, "%016lX", applicationID);
-        snprintf(m_pathSafeTitle, 0x200, "%016lX", applicationID);
+        snprintf(m_nacp.lang[SetLanguage_ENUS].name, 0x200, "%016lX", m_applicationID);
+
+        // Path safe version of title.
+        if (config::hasCustomPath(m_applicationID))
+        {
+            config::getCustomPath(m_applicationID, m_pathSafeTitle, 0x200);
+        }
+        else
+        {
+            std::snprintf(m_pathSafeTitle, 0x200, "%016lX", m_applicationID);
+        }
 
         // Create a place holder icon.
         int textX = 128 - (sdl::text::getWidth(48, applicationIDHex.c_str()) / 2);
@@ -40,11 +50,18 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) : m_applicationID(application
     {
         // Memcpy the NACP since it has all the good stuff.
         std::memcpy(&m_nacp, &nsControlData.nacp, sizeof(NacpStruct));
+
+
         // Get a path safe version of the title.
-        if (!stringutil::sanitizeStringForPath(languageEntry->name, m_pathSafeTitle, 0x200))
+        if (config::hasCustomPath(m_applicationID))
         {
-            std::sprintf(m_pathSafeTitle, "%016lX", applicationID);
+            config::getCustomPath(m_applicationID, m_pathSafeTitle, 0x200);
         }
+        else if (!stringutil::sanitizeStringForPath(languageEntry->name, m_pathSafeTitle, 0x200))
+        {
+            std::snprintf(m_pathSafeTitle, 0x200, "%016lX", applicationID);
+        }
+
         // Load the icon.
         m_icon = sdl::TextureManager::createLoadTexture(languageEntry->name, nsControlData.icon, nsAppControlSize - sizeof(NacpStruct));
     }
@@ -70,6 +87,17 @@ const char *data::TitleInfo::getPathSafeTitle(void)
     return m_pathSafeTitle;
 }
 
+void data::TitleInfo::setPathSafeTitle(const char *newPathSafe, size_t newPathLength)
+{
+    if (newPathLength >= 0x200)
+    {
+        return;
+    }
+    // Need to memset just in case the new title is shorter than the old one.
+    std::memset(m_pathSafeTitle, 0x00, 0x200);
+    std::memcpy(m_pathSafeTitle, newPathSafe, newPathLength);
+}
+
 const char *data::TitleInfo::getPublisher(void)
 {
     NacpLanguageEntry *Entry = nullptr;
@@ -85,7 +113,7 @@ uint64_t data::TitleInfo::getSaveDataOwnerID(void) const
     return m_nacp.save_data_owner_id;
 }
 
-int64_t data::TitleInfo::getSaveDataSize(FsSaveDataType saveType) const
+int64_t data::TitleInfo::getSaveDataSize(uint8_t saveType) const
 {
     switch (saveType)
     {
@@ -128,7 +156,7 @@ int64_t data::TitleInfo::getSaveDataSize(FsSaveDataType saveType) const
     return 0;
 }
 
-int64_t data::TitleInfo::getSaveDataSizeMax(FsSaveDataType saveType) const
+int64_t data::TitleInfo::getSaveDataSizeMax(uint8_t saveType) const
 {
     switch (saveType)
     {
@@ -174,7 +202,7 @@ int64_t data::TitleInfo::getSaveDataSizeMax(FsSaveDataType saveType) const
     return 0;
 }
 
-int64_t data::TitleInfo::getJournalSize(FsSaveDataType saveType) const
+int64_t data::TitleInfo::getJournalSize(uint8_t saveType) const
 {
     switch (saveType)
     {
@@ -219,7 +247,7 @@ int64_t data::TitleInfo::getJournalSize(FsSaveDataType saveType) const
     return 0;
 }
 
-int64_t data::TitleInfo::getJournalSizeMax(FsSaveDataType saveType) const
+int64_t data::TitleInfo::getJournalSizeMax(uint8_t saveType) const
 {
     switch (saveType)
     {
@@ -267,7 +295,7 @@ int64_t data::TitleInfo::getJournalSizeMax(FsSaveDataType saveType) const
     return 0;
 }
 
-bool data::TitleInfo::hasSaveDataType(FsSaveDataType saveType)
+bool data::TitleInfo::hasSaveDataType(uint8_t saveType)
 {
     switch (saveType)
     {

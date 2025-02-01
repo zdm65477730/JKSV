@@ -26,4 +26,8 @@ class SettingsState : public AppState
         sdl::SharedTexture m_renderTarget = nullptr;
         /// @brief X coordinate of the control guide in the bottom right corner.
         int m_controlGuideX = 0;
+        /// @brief Runs a routine to update the menu strings for the menu.
+        void updateMenuOptions(void);
+        /// @brief Toggles or executes the code to changed the selected menu option.
+        void toggleOptions(void);
 };

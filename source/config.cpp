@@ -1,20 +1,26 @@
 #include "config.hpp"
 #include "JSON.hpp"
 #include "logger.hpp"
-#include "stringUtil.hpp"
+#include "stringutil.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace
 {
-    // Config path(s)
+    // Makes stuff slightly easier to read.
+    using ConfigPair = std::pair<std::string, uint8_t>;
+    // Folder path.
     const char *CONFIG_FOLDER = "sdmc:/config/JKSV";
+    // Actual config path.
     const char *CONFIG_PATH = "sdmc:/config/JKSV/JKSV.json";
+    // Paths file. Sweet name too.
+    const char *PATHS_PATH = "sdmc:/config/JKSV/Paths.json";
     // Vector to preserve order now.
-    std::vector<std::pair<std::string, uint8_t>> s_configVector;
+    std::vector<ConfigPair> s_configVector;
     // Working directory
     fslib::Path s_workingDirectory;
     // UI animation scaling.
@@ -23,6 +29,8 @@ namespace
     std::vector<uint64_t> s_favorites;
     // Vector of titles to ignore.
     std::vector<uint64_t> s_blacklist;
+    // Map of paths.
+    std::unordered_map<uint64_t, std::string> s_pathMap;
 } // namespace
 
 static void readArrayToVector(std::vector<uint64_t> &vector, json_object *array)
@@ -89,6 +97,33 @@ void config::initialize(void)
         }
         json_object_iter_next(&configIterator);
     }
+
+    // Load custom output paths.
+    if (!fslib::fileExists(PATHS_PATH))
+    {
+        // Just bail.
+        return;
+    }
+
+    json::Object pathsJSON = json::newObject(json_object_from_file, PATHS_PATH);
+    if (!pathsJSON)
+    {
+        return;
+    }
+
+    json_object_iterator pathsIterator = json_object_iter_begin(pathsJSON.get());
+    json_object_iterator pathsEnd = json_object_iter_end(pathsJSON.get());
+    while (!json_object_iter_equal(&pathsIterator, &pathsEnd))
+    {
+        // Grab these
+        uint64_t applicationID = std::strtoull(json_object_iter_peek_name(&pathsIterator), NULL, 16);
+        json_object *path = json_object_iter_peek_value(&pathsIterator);
+
+        // Map em.
+        s_pathMap[applicationID] = json_object_get_string(path);
+
+        json_object_iter_next(&pathsIterator);
+    }
 }
 
 void config::resetToDefault(void)
@@ -115,45 +150,73 @@ void config::resetToDefault(void)
 
 void config::save(void)
 {
-    json::Object configJSON = json::newObject(json_object_new_object);
-
-    // Add working directory first.
-    json_object *workingDirectory = json_object_new_string(s_workingDirectory.cString());
-    json_object_object_add(configJSON.get(), config::keys::WORKING_DIRECTORY.data(), workingDirectory);
-
-    // Loop through map and add it.
-    for (auto &[key, value] : s_configVector)
     {
-        json_object *jsonValue = json_object_new_uint64(value);
-        json_object_object_add(configJSON.get(), key.c_str(), jsonValue);
+        json::Object configJSON = json::newObject(json_object_new_object);
+
+        // Add working directory first.
+        json_object *workingDirectory = json_object_new_string(s_workingDirectory.cString());
+        json_object_object_add(configJSON.get(), config::keys::WORKING_DIRECTORY.data(), workingDirectory);
+
+        // Loop through map and add it.
+        for (auto &[key, value] : s_configVector)
+        {
+            json_object *jsonValue = json_object_new_uint64(value);
+            json_object_object_add(configJSON.get(), key.c_str(), jsonValue);
+        }
+
+        // Add UI scaling.
+        json_object *scaling = json_object_new_double(s_uiAnimationScaling);
+        json_object_object_add(configJSON.get(), config::keys::UI_ANIMATION_SCALE.data(), scaling);
+
+        // Favorites
+        json_object *favoritesArray = json_object_new_array();
+        for (uint64_t &titleID : s_favorites)
+        {
+            // Need to do it like this or json-c does decimal instead of hex.
+            json_object *newFavorite = json_object_new_string(stringutil::getFormattedString("%016lX", titleID).c_str());
+            json_object_array_add(favoritesArray, newFavorite);
+        }
+        json_object_object_add(configJSON.get(), config::keys::FAVORITES.data(), favoritesArray);
+
+        // Same but blacklist
+        json_object *blacklistArray = json_object_new_array();
+        for (uint64_t &titleID : s_blacklist)
+        {
+            json_object *newBlacklist = json_object_new_string(stringutil::getFormattedString("%016lX", titleID).c_str());
+            json_object_array_add(blacklistArray, newBlacklist);
+        }
+        json_object_object_add(configJSON.get(), config::keys::BLACKLIST.data(), blacklistArray);
+
+        // Write config file
+        fslib::File configFile(CONFIG_PATH, FsOpenMode_Create | FsOpenMode_Write, std::strlen(json_object_get_string(configJSON.get())));
+        if (configFile)
+        {
+            configFile << json_object_get_string(configJSON.get());
+        }
     }
 
-    // Add UI scaling.
-    json_object *scaling = json_object_new_double(s_uiAnimationScaling);
-    json_object_object_add(configJSON.get(), config::keys::UI_ANIMATION_SCALE.data(), scaling);
-
-    // Favorites
-    json_object *favoritesArray = json_object_new_array();
-    for (uint64_t &titleID : s_favorites)
+    if (!s_pathMap.empty())
     {
-        // Need to do it like this or json-c does decimal instead of hex.
-        json_object *newFavorite = json_object_new_string(stringutil::getFormattedString("%016lX", titleID).c_str());
-        json_object_array_add(favoritesArray, newFavorite);
-    }
-    json_object_object_add(configJSON.get(), config::keys::FAVORITES.data(), favoritesArray);
+        // Paths file.
+        json::Object pathsJSON = json::newObject(json_object_new_object);
+        // Loop through map and write stuff.
+        for (auto &[applicationID, path] : s_pathMap)
+        {
+            // Get ID as hex string.
+            std::string idHex = stringutil::getFormattedString("%016llX", applicationID);
+            // path
+            json_object *pathObject = json_object_new_string(path.c_str());
 
-    // Same but blacklist
-    json_object *blacklistArray = json_object_new_array();
-    for (uint64_t &titleID : s_blacklist)
-    {
-        json_object *newBlacklist = json_object_new_string(stringutil::getFormattedString("%016lX", titleID).c_str());
-        json_object_array_add(blacklistArray, newBlacklist);
+            // Add to pathsJSON object.
+            json_object_object_add(pathsJSON.get(), idHex.c_str(), pathObject);
+        }
+        // Write it.
+        fslib::File pathsFile(PATHS_PATH, FsOpenMode_Create | FsOpenMode_Write, std::strlen(json_object_get_string(pathsJSON.get())));
+        if (pathsFile)
+        {
+            pathsFile << json_object_get_string(pathsJSON.get());
+        }
     }
-    json_object_object_add(configJSON.get(), config::keys::BLACKLIST.data(), blacklistArray);
-
-    // Write config file
-    fslib::File configFile(CONFIG_PATH, FsOpenMode_Create | FsOpenMode_Write, std::strlen(json_object_get_string(configJSON.get())));
-    configFile << json_object_get_string(configJSON.get());
 }
 
 uint8_t config::getByKey(std::string_view key)
@@ -167,6 +230,30 @@ uint8_t config::getByKey(std::string_view key)
     return findKey->second;
 }
 
+void config::toggleByKey(std::string_view key)
+{
+    // Make sure the key exists first.
+    auto findKey =
+        std::find_if(s_configVector.begin(), s_configVector.end(), [key](const auto &configPair) { return key == configPair.first; });
+    if (findKey == s_configVector.end())
+    {
+        return;
+    }
+    findKey->second = findKey->second ? 0 : 1;
+}
+
+void config::setByKey(std::string_view key, uint8_t value)
+{
+    auto findKey =
+        std::find_if(s_configVector.begin(), s_configVector.end(), [key](const auto &configPair) { return key == configPair.first; });
+    if (findKey == s_configVector.end())
+    {
+        return;
+    }
+    findKey->second = value;
+}
+
+
 uint8_t config::getByIndex(int index)
 {
     if (index < 0 || index >= static_cast<int>(s_configVector.size()))
@@ -174,6 +261,24 @@ uint8_t config::getByIndex(int index)
         return 0;
     }
     return s_configVector.at(index).second;
+}
+
+void config::toggleByIndex(int index)
+{
+    if (index < 0 || index >= static_cast<int>(s_configVector.size()))
+    {
+        return;
+    }
+    s_configVector[index].second = s_configVector[index].second ? 0 : 1;
+}
+
+void config::setByIndex(int index, uint8_t value)
+{
+    if (index < 0 || index >= static_cast<int>(s_configVector.size()))
+    {
+        return;
+    }
+    s_configVector[index].second = value;
 }
 
 fslib::Path config::getWorkingDirectory(void)
@@ -184,6 +289,11 @@ fslib::Path config::getWorkingDirectory(void)
 double config::getAnimationScaling(void)
 {
     return s_uiAnimationScaling;
+}
+
+void config::setAnimationScaling(double newScale)
+{
+    s_uiAnimationScaling = newScale;
 }
 
 void config::addRemoveFavorite(uint64_t applicationID)
@@ -228,4 +338,27 @@ bool config::isBlacklisted(uint64_t applicationID)
         return false;
     }
     return true;
+}
+
+void config::addCustomPath(uint64_t applicationID, std::string_view customPath)
+{
+    s_pathMap[applicationID] = customPath.data();
+}
+
+bool config::hasCustomPath(uint64_t applicationID)
+{
+    if (s_pathMap.find(applicationID) == s_pathMap.end())
+    {
+        return false;
+    }
+    return true;
+}
+
+void config::getCustomPath(uint64_t applicationID, char *pathOut, size_t pathOutSize)
+{
+    if (s_pathMap.find(applicationID) == s_pathMap.end())
+    {
+        return;
+    }
+    std::memcpy(pathOut, s_pathMap[applicationID].c_str(), s_pathMap[applicationID].length());
 }

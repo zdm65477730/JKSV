@@ -53,6 +53,9 @@ namespace ui
             /// @param newElement New element to push.
             void pushNewElement(std::shared_ptr<ui::Element> newElement);
 
+            /// @brief Clears the element vector, freeing them in the process.
+            void clearElements(void);
+
             /// @brief Returns a pointer to the render target of the panel.
             /// @return Raw SDL_Texture pointer to target.
             SDL_Texture *get(void);
@@ -66,6 +69,8 @@ namespace ui
             double m_x;
             /// @brief Width of the panel in pixels.
             int m_width;
+            /// @brief Target X position of panel.
+            double m_targetX;
             /// @brief Which side the panel is on.
             SlideOutPanel::Side m_side;
             /// @brief Render target if panel.

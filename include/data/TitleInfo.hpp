@@ -25,6 +25,11 @@ namespace data
             /// @return Path safe version of the title.
             const char *getPathSafeTitle(void);
 
+            /// @brief Allows the path safe title to be set to a new path.
+            /// @param newPathSafe Buffer containing the new safe path to use.
+            /// @param newPathLength Size of the buffer passed.
+            void setPathSafeTitle(const char *newPathSafe, size_t newPathLength);
+
             /// @brief Returns the publisher of the title.
             /// @return Publisher string from NACP.
             const char *getPublisher(void);
@@ -36,27 +41,27 @@ namespace data
             /// @brief Returns the save data container's base size.
             /// @param saveType Type of save data to return.
             /// @return Size of baseline save data if applicable. If not, 0.
-            int64_t getSaveDataSize(FsSaveDataType saveType) const;
+            int64_t getSaveDataSize(uint8_t saveType) const;
 
             /// @brief Returns the maximum size of the save data container.
             /// @param saveType Type of save data to return.
             /// @return Maximum size of the save container if applicable. If not, 0.
-            int64_t getSaveDataSizeMax(FsSaveDataType saveType) const;
+            int64_t getSaveDataSizeMax(uint8_t saveType) const;
 
             /// @brief Returns the journaling size for the save type passed.
             /// @param saveType Save type to return.
             /// @return Journal size if applicable. If not, 0.
-            int64_t getJournalSize(FsSaveDataType saveType) const;
+            int64_t getJournalSize(uint8_t saveType) const;
 
             /// @brief Returns the maximum journal size for the save type passed.
             /// @param saveType Save type to return.
             /// @return Maximum journal size if applicable. If not, 0.
-            int64_t getJournalSizeMax(FsSaveDataType saveType) const;
+            int64_t getJournalSizeMax(uint8_t saveType) const;
 
             /// @brief Returns if a title uses the save type passed.
             /// @param saveType Save type to check for.
             /// @return True on success. False on failure.
-            bool hasSaveDataType(FsSaveDataType saveType);
+            bool hasSaveDataType(uint8_t saveType);
 
             /// @brief Returns a pointer to the icon texture.
             /// @return Icon

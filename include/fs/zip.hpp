@@ -25,4 +25,9 @@ namespace fs
                             uint64_t journalSize,
                             std::string_view commitDevice,
                             sys::ProgressTask *Task = nullptr);
+
+    /// @brief Returns whether or not zip has files inside.
+    /// @param zipPath Path to zip to check.
+    /// @return True if at least one file is found. False if none.
+    bool zipHasContents(const fslib::Path &zipPath);
 } // namespace fs

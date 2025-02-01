@@ -2,14 +2,20 @@
 #include "colors.hpp"
 #include "input.hpp"
 #include "sdl.hpp"
-#include "stringUtil.hpp"
 #include "strings.hpp"
+#include "stringutil.hpp"
+#include "ui/PopMessageManager.hpp"
 #include "ui/renderFunctions.hpp"
 #include <cmath>
 
 void ProgressState::update(void)
 {
-    if (!m_task.isRunning())
+    if (m_task.isRunning() && input::buttonPressed(HidNpadButton_Plus))
+    {
+        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                           strings::getByName(strings::names::POP_MESSAGES_BACKUP_MENU, 0));
+    }
+    else if (!m_task.isRunning())
     {
         AppState::deactivate();
     }

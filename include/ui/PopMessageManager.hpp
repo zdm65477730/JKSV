@@ -1,5 +1,6 @@
 #pragma once
 #include "system/Timer.hpp"
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -57,5 +58,7 @@ namespace ui
             std::vector<std::pair<int, std::string>> m_messageQueue;
             // Actual vector of messages
             std::vector<ui::PopMessage> m_messages;
+            // Mutex to attempt to make this thread safe.
+            std::mutex m_messageMutex;
     };
 } // namespace ui

@@ -1,7 +1,7 @@
 #include "strings.hpp"
 #include "JSON.hpp"
 #include "fslib.hpp"
-#include "stringUtil.hpp"
+#include "stringutil.hpp"
 #include <map>
 #include <string>
 #include <unordered_map>

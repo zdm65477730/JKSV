@@ -70,7 +70,7 @@ static void unzipReadThreadFunction(unzFile source, int64_t fileSize, std::share
 void fs::copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys::ProgressTask *task)
 {
     fslib::Directory sourceDir(source);
-    if (!sourceDir.isOpen())
+    if (!sourceDir)
     {
         logger::log("Error opening source directory: %s", fslib::getErrorString());
         return;
@@ -88,7 +88,7 @@ void fs::copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys:
             // Open source file.
             fslib::Path fullSource = source / sourceDir[i];
             fslib::File sourceFile(fullSource, FsOpenMode_Read);
-            if (!sourceFile.isOpen())
+            if (!sourceFile)
             {
                 logger::log("Error zipping file: %s", fslib::getErrorString());
                 continue;
@@ -198,8 +198,8 @@ void fs::copyZipToDirectory(unzFile source,
         // Get file information.
         unz_file_info64 currentFileInfo;
         char filename[FS_MAX_PATH] = {0};
-        if (unzGetCurrentFileInfo64(source, &currentFileInfo, filename, FS_MAX_PATH, NULL, 0, NULL, 0) != UNZ_OK ||
-            unzOpenCurrentFile(source) != UNZ_OK)
+        if (unzOpenCurrentFile(source) != UNZ_OK ||
+            unzGetCurrentFileInfo64(source, &currentFileInfo, filename, FS_MAX_PATH, NULL, 0, NULL, 0) != UNZ_OK)
         {
             logger::log("Error opening and getting information for file in zip.");
             continue;
@@ -217,7 +217,7 @@ void fs::copyZipToDirectory(unzFile source,
         }
 
         fslib::File destinationFile(fullDestination, FsOpenMode_Create | FsOpenMode_Write, currentFileInfo.uncompressed_size);
-        if (!destinationFile.isOpen())
+        if (!destinationFile)
         {
             logger::log("Error creating file from zip: %s", fslib::getErrorString());
             continue;
@@ -292,4 +292,22 @@ void fs::copyZipToDirectory(unzFile source,
             logger::log("Error performing final file commit: %s", fslib::getErrorString());
         }
     } while (unzGoToNextFile(source) != UNZ_END_OF_LIST_OF_FILE);
+}
+
+bool fs::zipHasContents(const fslib::Path &zipPath)
+{
+    unzFile testZip = unzOpen(zipPath.cString());
+    if (!testZip)
+    {
+        return false;
+    }
+
+    int zipError = unzGoToFirstFile(testZip);
+    if (zipError != UNZ_OK)
+    {
+        unzClose(testZip);
+        return false;
+    }
+    unzClose(testZip);
+    return true;
 }

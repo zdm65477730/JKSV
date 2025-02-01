@@ -61,7 +61,7 @@ void ui::PopMessageManager::update(void)
         {
             currentMessage.m_y += (currentMessage.m_targetY - currentMessage.m_y) / animationScaling;
         }
-        currentY -= 52;
+        currentY -= 56;
     }
 }
 
@@ -74,7 +74,7 @@ void ui::PopMessageManager::render(void)
     for (auto &popMessage : manager.m_messages)
     {
         // Render a dialog box around it.
-        ui::renderDialogBox(NULL, 20, popMessage.m_y - 4, popMessage.m_width, 48);
+        ui::renderDialogBox(NULL, 20, popMessage.m_y - 6, popMessage.m_width, 52);
         // Render the actual text.
         sdl::text::render(NULL, 36, popMessage.m_y, 32, sdl::text::NO_TEXT_WRAP, colors::WHITE, popMessage.m_message.c_str());
     }
@@ -100,5 +100,6 @@ void ui::PopMessageManager::pushMessage(int displayTicks, const char *format, ..
         return;
     }
     // Push it to the queue.
+    std::scoped_lock<std::mutex> messageLock(manager.m_messageMutex);
     manager.m_messageQueue.push_back(std::make_pair(displayTicks, vaBuffer));
 }

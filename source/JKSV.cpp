@@ -92,6 +92,7 @@ JKSV::JKSV(void)
     sdl::text::addColorCharacter(L'*', colors::RED);
     sdl::text::addColorCharacter(L'<', colors::YELLOW);
     sdl::text::addColorCharacter(L'>', colors::GREEN);
+    sdl::text::addColorCharacter(L'`', colors::BLUE_GREEN);
     sdl::text::addColorCharacter(L'^', colors::PINK);
 
     // This is to check whether the author wanted credit for their work.
@@ -108,6 +109,9 @@ JKSV::JKSV(void)
 
 JKSV::~JKSV()
 {
+    // Try to save config first.
+    config::save();
+
     socketExit();
     setsysExit();
     setExit();
@@ -135,16 +139,7 @@ void JKSV::update(void)
         m_isRunning = false;
     }
 
-    if (!sm_stateVector.empty())
-    {
-        while (!sm_stateVector.back()->isActive())
-        {
-            sm_stateVector.back()->takeFocus();
-            sm_stateVector.pop_back();
-            sm_stateVector.back()->giveFocus();
-        }
-        sm_stateVector.back()->update();
-    }
+    JKSV::updateStateVector();
 
     // Update pop messages.
     ui::PopMessageManager::update();
@@ -198,4 +193,32 @@ void JKSV::pushState(std::shared_ptr<AppState> newState)
     }
     newState->giveFocus();
     sm_stateVector.push_back(newState);
+}
+
+void JKSV::updateStateVector(void)
+{
+    if (sm_stateVector.empty())
+    {
+        return;
+    }
+
+    // Check for and purge deactivated states.
+    for (size_t i = 0; i < sm_stateVector.size(); i++)
+    {
+        if (!sm_stateVector.at(i)->isActive())
+        {
+            // This is a just in case thing. Some states are never actually purged.
+            sm_stateVector.at(i)->takeFocus();
+            sm_stateVector.erase(sm_stateVector.begin() + i);
+        }
+    }
+
+    // Make sure the back has focus.
+    if (!sm_stateVector.back()->hasFocus())
+    {
+        sm_stateVector.back()->giveFocus();
+    }
+
+    // Only update the back most state.
+    sm_stateVector.back()->update();
 }

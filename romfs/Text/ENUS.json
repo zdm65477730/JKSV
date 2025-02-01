@@ -39,10 +39,30 @@
         "Enable trash bin: %s",
         "Animation scaling: %.02f"
     ],
+    "SettingsDescriptions": [
+        "Sets the working directory for JKSV. The default value for this is `sdmc:/JKSV`.",
+        "Allows you to remove titles from the blacklist.",
+        "Includes device, or shared saves, with users.",
+        "Auto-names backups and skips the keyboard.",
+        "Automatically uploads backups to Google Drive or WebDav and deletes them locally.",
+        "Whether or not holding [A] for three seconds is required to delete backups.",
+        "Whether or not holding [A] for three seconds is required to restore backups.",
+        "Whether or not holding [A] for three seconds is required to overwrite backups.",
+        "Only shows save data JKSV can successfully open.",
+        "Shows system saves that have an account ID tied to them.",
+        "Enables restoring system saves and writing to NAND partitions.",
+        "Exports save data to ZIP archives instead of unpacked folders.",
+        "Compression or deflate level used when writing to ZIP. The default value is 6. Lower values are faster, but offer less compression and space savings. Zero is store, or no compression.",
+        "Controls the way titles are sorted and displayed.",
+        "Displays titles as text menus like the original JKSM on 3DS instead of icon grids.",
+        "Forces English to be used as the language instead of the detected system language.",
+        "Moves deleted backups to the _TRASH_ folder instead of permanently deleting them.",
+        "Sets the speed at which transitions and animations occur. Lower is faster."
+    ],
     "ExtrasMenu": [
         "Reload Titles",
         "SD to SD Browser",
-        "BIS: ProfInfoF",
+        "BIS: ProdInfoF",
         "BIS: Safe",
         "BIS: System",
         "BIS: User",
@@ -71,6 +91,7 @@
         "Decompressing #%s# from ZIP..."
     ],
     "BackupMenuConfirmations": [
+        "Are you sure you really want to overwrite #%s#?",
         "Are you sure you really want to restore #%s#?",
         "Are you sure you really want to delete #%s#?"
     ],
@@ -89,10 +110,19 @@
         "Enter how much to expand (in MB)."
     ],
     "UserOptions": [
-        "Dump all for #%s#",
-        "Create Save Data for #%s#",
-        "Create All Save Data for #%s#",
-        "Delete All Save Data for #%s#"
+        "Dump all for `%s`",
+        "Create Save Data for `%s`",
+        "Create All Save Data for `%s`",
+        "Delete All Save Data for `%s`"
+    ],
+    "UserOptionConfirmations": [
+        "Are you sure you want to backup the save data for every title found for `%s`? This can take a while.",
+        "Are you sure you want to create save data for all titles found on your system for `%s`? This can take a while.",
+        "Are you sure you want to delete all of the save data for `%s`? This is *PERMANENT* and can't be undone."
+    ],
+    "UserOptionStatus": [
+        "Creating save data for `%s`...",
+        "Deleting save data for `%s`..."
     ],
     "TitleOptions": [
         "Information",
@@ -102,14 +132,41 @@
         "Delete all save backups",
         "Reset save data.",
         "Delete save data from system",
-        "Extend save data container",
+        "Extend save data",
         "Export SVI file"
     ],
-    "CreatingSaveDataFor": [
-        "Creating save data for #%s#..."
+    "TitleOptionStatus": [
+        "Deleting all backups for #%s#.",
+        "Resetting save data for #%s#."
     ],
-    "PopMessages": [
+    "TitleOptionPops": [
+        "All backups deleted for `%s`!",
+        "Failed to delete all backups!",
+        "Error resetting save data!",
+        "Save data successfully reset!"
+    ],
+    "TitleOptionConfirmations": [
+        "Are you sure you want to add #%s# to you blacklist? Once you do this, it will no longer appear on any title list or selection.",
+        "Are you sure you want to delete #%s#'s save data for #%s#? This will permanently delete it from the system."
+    ],
+    "PopMessagesGeneral": [
+        "Unable to exit JKSV while tasks are running!"
+    ],
+    "PopMessagesBackupMenu": [
         "Save data is empty!",
-        "Backup is empty!"
+        "Backup is empty!",
+        "Error resetting save data!",
+        "Error opening ZIP file for reading!",
+        "Error occurred deleting backup!"
+    ],
+    "PopMessagesSaveCreate": [
+        "Save data created for #%s#!",
+        "Error creating save data!",
+        "Error deleting save data!"
+    ],
+    "PopMessagesTitleOptions": [
+        "Could not sanitize path for use!",
+        "Output folder set to #%s#.",
+        "Error setting new output path!"
     ]
 }

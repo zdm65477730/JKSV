@@ -134,6 +134,15 @@ void ui::Menu::addOption(std::string_view newOption)
     m_options.push_back(newOption.data());
 }
 
+void ui::Menu::editOption(int index, std::string_view newOption)
+{
+    if (index < 0 || index >= static_cast<int>(m_options.size()))
+    {
+        return;
+    }
+    m_options[index] = newOption.data();
+}
+
 int ui::Menu::getSelected(void) const
 {
     return m_selected;

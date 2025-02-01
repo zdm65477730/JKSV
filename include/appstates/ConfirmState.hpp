@@ -50,18 +50,24 @@ class ConfirmState : public AppState
         /// @brief Just updates the ConfirmState.
         void update(void)
         {
-            if (input::buttonPressed(HidNpadButton_A) && !m_hold)
+            // This is to guard against the dialog being triggered right away. To do: Maybe figure out a better way to accomplish this?
+            if (input::buttonPressed(HidNpadButton_A) && !m_triggerGuard)
+            {
+                m_triggerGuard = true;
+            }
+
+            if (m_triggerGuard && input::buttonPressed(HidNpadButton_A) && !m_hold)
             {
                 AppState::deactivate();
                 JKSV::pushState(std::make_shared<StateType>(m_function, m_dataStruct));
             }
-            else if (input::buttonPressed(HidNpadButton_A) && m_hold)
+            else if (m_triggerGuard && input::buttonPressed(HidNpadButton_A) && m_hold)
             {
                 // Get the starting tick count and change the Yes string to the first holding string.
                 m_startingTickCount = SDL_GetTicks64();
                 m_yesString = strings::getByName(strings::names::HOLDING_STRINGS, 0);
             }
-            else if (input::buttonHeld(HidNpadButton_A) && m_hold)
+            else if (m_triggerGuard && input::buttonHeld(HidNpadButton_A) && m_hold)
             {
                 uint64_t TickCount = SDL_GetTicks64() - m_startingTickCount;
 
@@ -112,20 +118,22 @@ class ConfirmState : public AppState
         }
 
     private:
-        // Query string
+        /// @brief String displayed
         std::string m_queryString;
-        // Yes string.
+        /// @brief Yes or [X] [A]
         std::string m_yesString;
-        // X coordinate to render the Yes [A] string to,
+        /// @brief X coordinate to render the Yes [A]
         int m_yesX = 0;
-        // X coordinate to render the No [B] string to.
+        /// @brief Position of No.
         int m_noX = 0;
-        // Whether or not holding is required to confirm.
+        /// @brief This is to prevent the dialog from triggering immediately.
+        bool m_triggerGuard = false;
+        /// @brief Whether or not holding [A] to confirm is required.
         bool m_hold;
-        // For tick counting/holding
+        /// @brief Keep track of the ticks/time needed to confirm.
         uint64_t m_startingTickCount = 0;
-        // Function
+        /// @brief Function to execute if action is confirmed.
         TaskFunction m_function;
-        // Shared ptr to data to send to confirmation function.
+        /// @brief Pointer to data struct passed to ^
         std::shared_ptr<StructType> m_dataStruct;
 };

@@ -1,9 +1,18 @@
 #include "appstates/TaskState.hpp"
 #include "colors.hpp"
+#include "input.hpp"
 #include "sdl.hpp"
+#include "strings.hpp"
+#include "ui/PopMessageManager.hpp"
 
 void TaskState::update(void)
 {
+    if (m_task.isRunning() && input::buttonPressed(HidNpadButton_Plus))
+    {
+        // Throw the message.
+        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                           strings::getByName(strings::names::POP_MESSAGES_GENERAL, 0));
+    }
     if (!m_task.isRunning())
     {
         AppState::deactivate();

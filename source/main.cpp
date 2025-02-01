@@ -10,6 +10,5 @@ int main(void)
         jksv.update();
         jksv.render();
     }
-    config::save();
     return 0;
 }

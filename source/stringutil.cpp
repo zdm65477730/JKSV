@@ -1,4 +1,4 @@
-#include "stringUtil.hpp"
+#include "stringutil.hpp"
 #include <algorithm>
 #include <array>
 #include <cstdarg>

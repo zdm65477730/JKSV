@@ -4,7 +4,7 @@
 #include "data/data.hpp"
 #include "logger.hpp"
 #include "sdl.hpp"
-#include "stringUtil.hpp"
+#include "stringutil.hpp"
 #include <algorithm>
 #include <cstring>
 
@@ -102,9 +102,15 @@ data::User::User(AccountUid accountID, FsSaveDataType saveType) : m_accountID(ac
     accountProfileClose(&profile);
 }
 
-data::User::User(AccountUid accountID, std::string_view pathSafeNickname, std::string_view iconPath, FsSaveDataType saveType)
+data::User::User(AccountUid accountID,
+                 std::string_view nickname,
+                 std::string_view pathSafeNickname,
+                 std::string_view iconPath,
+                 FsSaveDataType saveType)
     : m_accountID(accountID), m_saveType(saveType), m_icon(sdl::TextureManager::createLoadTexture(pathSafeNickname, iconPath.data()))
 {
+    // We're just gonna use this for both.
+    std::memcpy(m_nickname, nickname.data(), nickname.length());
     std::memcpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
 }
 
@@ -113,6 +119,11 @@ void data::User::addData(const FsSaveDataInfo &saveInfo, const PdmPlayStatistics
     uint64_t applicationID = saveInfo.application_id == 0 ? saveInfo.system_save_data_id : saveInfo.application_id;
 
     m_userData.push_back(std::make_pair(applicationID, std::make_pair(saveInfo, playStats)));
+}
+
+void data::User::eraseData(int index)
+{
+    m_userData.erase(m_userData.begin() + index);
 }
 
 void data::User::sortData(void)

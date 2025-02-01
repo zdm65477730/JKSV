@@ -5,8 +5,10 @@ namespace strings
 {
     // Attempts to load strings from file in RomFS.
     bool initialize(void);
+
     // Returns string with name and index. Returns nullptr if string doesn't exist.
     const char *getByName(std::string_view name, int index);
+
     // Names of strings to prevent typos.
     namespace names
     {
@@ -25,7 +27,14 @@ namespace strings
         static constexpr std::string_view DELETING_FILES = "DeletingFiles";
         static constexpr std::string_view KEYBOARD_STRINGS = "KeyboardStrings";
         static constexpr std::string_view USER_OPTIONS = "UserOptions";
-        static constexpr std::string_view CREATING_SAVE_DATA_FOR = "CreatingSaveDataFor";
-        static constexpr std::string_view POP_MESSAGES = "PopMessages";
+        static constexpr std::string_view USER_OPTION_CONFIRMATIONS = "UserOptionConfirmations";
+        static constexpr std::string_view USER_OPTION_STATUS = "UserOptionStatus";
+        static constexpr std::string_view TITLE_OPTIONS = "TitleOptions";
+        static constexpr std::string_view TITLE_OPTION_STATUS = "TitleOptionStatus";
+        static constexpr std::string_view TITLE_OPTION_POPS = "TitleOptionPops";
+        static constexpr std::string_view POP_MESSAGES_GENERAL = "PopMessagesGeneral";
+        static constexpr std::string_view POP_MESSAGES_BACKUP_MENU = "PopMessagesBackupMenu";
+        static constexpr std::string_view POP_MESSAGES_SAVE_CREATE = "PopMessagesSaveCreate";
+        static constexpr std::string_view POP_MESSAGES_TITLE_OPTIONS = "PopMessagesTitleOptions";
     } // namespace names
 } // namespace strings
