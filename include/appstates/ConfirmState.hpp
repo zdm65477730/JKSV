@@ -35,13 +35,17 @@ class ConfirmState : public AppState
         /// @param holdRequired Whether or not confirmation requires holding A for three seconds.
         /// @param function Function executed on confirmation.
         /// @param dataStruct shared_ptr<StructType> that is passed to function. I tried templating this and it was a nightmare.
-        ConfirmState(std::string_view queryString, bool holdRequired, TaskFunction function, std::shared_ptr<StructType> dataStruct)
-            : AppState(false), m_queryString(queryString.data()), m_yesString(strings::getByName(strings::names::YES_NO, 0)),
-              m_hold(holdRequired), m_function(function), m_dataStruct(dataStruct)
+        ConfirmState(std::string_view queryString,
+                     bool holdRequired,
+                     TaskFunction function,
+                     std::shared_ptr<StructType> dataStruct)
+            : AppState(false), m_queryString(queryString.data()),
+              m_yesString(strings::get_by_name(strings::names::YES_NO, 0)), m_hold(holdRequired), m_function(function),
+              m_dataStruct(dataStruct)
         {
             // This is to make centering the Yes [A] string more accurate.
             m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::getWidth(22, m_yesString.c_str()) / 2);
-            m_noX = 820 - (sdl::text::getWidth(22, strings::getByName(strings::names::YES_NO, 1)) / 2);
+            m_noX = 820 - (sdl::text::getWidth(22, strings::get_by_name(strings::names::YES_NO, 1)) / 2);
         }
 
         /// @brief Required even if it does nothing.
@@ -51,23 +55,23 @@ class ConfirmState : public AppState
         void update(void)
         {
             // This is to guard against the dialog being triggered right away. To do: Maybe figure out a better way to accomplish this?
-            if (input::buttonPressed(HidNpadButton_A) && !m_triggerGuard)
+            if (input::button_pressed(HidNpadButton_A) && !m_triggerGuard)
             {
                 m_triggerGuard = true;
             }
 
-            if (m_triggerGuard && input::buttonPressed(HidNpadButton_A) && !m_hold)
+            if (m_triggerGuard && input::button_pressed(HidNpadButton_A) && !m_hold)
             {
                 AppState::deactivate();
-                JKSV::pushState(std::make_shared<StateType>(m_function, m_dataStruct));
+                JKSV::push_state(std::make_shared<StateType>(m_function, m_dataStruct));
             }
-            else if (m_triggerGuard && input::buttonPressed(HidNpadButton_A) && m_hold)
+            else if (m_triggerGuard && input::button_pressed(HidNpadButton_A) && m_hold)
             {
                 // Get the starting tick count and change the Yes string to the first holding string.
                 m_startingTickCount = SDL_GetTicks64();
-                m_yesString = strings::getByName(strings::names::HOLDING_STRINGS, 0);
+                m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 0);
             }
-            else if (m_triggerGuard && input::buttonHeld(HidNpadButton_A) && m_hold)
+            else if (m_triggerGuard && input::button_held(HidNpadButton_A) && m_hold)
             {
                 uint64_t TickCount = SDL_GetTicks64() - m_startingTickCount;
 
@@ -75,25 +79,25 @@ class ConfirmState : public AppState
                 if (TickCount >= 3000)
                 {
                     AppState::deactivate();
-                    JKSV::pushState(std::make_shared<StateType>(m_function, m_dataStruct));
+                    JKSV::push_state(std::make_shared<StateType>(m_function, m_dataStruct));
                 }
                 else if (TickCount >= 2000)
                 {
-                    m_yesString = strings::getByName(strings::names::HOLDING_STRINGS, 2);
+                    m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 2);
                     m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::getWidth(22, m_yesString.c_str()) / 2);
                 }
                 else if (TickCount >= 1000)
                 {
-                    m_yesString = strings::getByName(strings::names::HOLDING_STRINGS, 1);
+                    m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 1);
                     m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::getWidth(22, m_yesString.c_str()) / 2);
                 }
             }
-            else if (input::buttonReleased(HidNpadButton_A))
+            else if (input::button_released(HidNpadButton_A))
             {
-                m_yesString = strings::getByName(strings::names::YES_NO, 0);
+                m_yesString = strings::get_by_name(strings::names::YES_NO, 0);
                 m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::getWidth(22, m_yesString.c_str()) / 2);
             }
-            else if (input::buttonPressed(HidNpadButton_B))
+            else if (input::button_pressed(HidNpadButton_B))
             {
                 // Just deactivate and don't do anything.
                 AppState::deactivate();
@@ -106,7 +110,7 @@ class ConfirmState : public AppState
             // Dim background
             sdl::renderRectFill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
             // Render dialog
-            ui::renderDialogBox(NULL, 280, 262, 720, 256);
+            ui::render_dialog_box(NULL, 280, 262, 720, 256);
             // Text
             sdl::text::render(NULL, 312, 288, 18, 656, colors::WHITE, m_queryString.c_str());
             // Fake buttons. Maybe real later.
@@ -114,7 +118,13 @@ class ConfirmState : public AppState
             sdl::renderLine(NULL, 640, 454, 640, 517, colors::WHITE);
             // To do: Position this better. Currently brought over from old code.
             sdl::text::render(NULL, m_yesX, 476, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_yesString.c_str());
-            sdl::text::render(NULL, m_noX, 476, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, strings::getByName(strings::names::YES_NO, 1));
+            sdl::text::render(NULL,
+                              m_noX,
+                              476,
+                              22,
+                              sdl::text::NO_TEXT_WRAP,
+                              colors::WHITE,
+                              strings::get_by_name(strings::names::YES_NO, 1));
         }
 
     private:

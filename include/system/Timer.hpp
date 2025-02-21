@@ -26,7 +26,7 @@ namespace sys
 
             /// @brief Updates and returns if the timer was triggered.
             /// @return True if timer is triggered. False if it isn't.
-            bool isTriggered(void);
+            bool is_triggered(void);
 
             /// @brief Forces the timer to restart.
             void restart(void);

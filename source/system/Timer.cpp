@@ -18,7 +18,7 @@ void sys::Timer::start(uint64_t triggerTicks)
     m_triggerTicks = triggerTicks;
 }
 
-bool sys::Timer::isTriggered(void)
+bool sys::Timer::is_triggered(void)
 {
     uint64_t currentTicks = SDL_GetTicks64();
 

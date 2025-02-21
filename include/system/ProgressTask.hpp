@@ -21,15 +21,15 @@ namespace sys
 
             /// @brief Updates the current progress.
             /// @param current The current progress value.
-            void updateCurrent(double current);
+            void update_current(double current);
 
             /// @brief Returns the goal value.
             /// @return Goal
-            double getGoal(void) const;
+            double get_goal(void) const;
 
             /// @brief Returns the current progress.
             /// @return Current progress.
-            double getCurrent(void) const;
+            double get_current(void) const;
 
         private:
             // Current value and goal

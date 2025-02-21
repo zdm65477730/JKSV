@@ -32,7 +32,7 @@ namespace
 } // namespace
 
 // This returns the language file to use depending on the system's language.
-static fslib::Path getFilePath(void)
+static fslib::Path get_file_path(void)
 {
     fslib::Path returnPath = "romfs:/Text";
 
@@ -52,32 +52,32 @@ static fslib::Path getFilePath(void)
     return returnPath / s_fileMap.at(language);
 }
 
-static void replaceButtonsInString(std::string &target)
+static void replace_buttons_in_string(std::string &target)
 {
-    stringutil::replaceInString(target, "[A]", "\ue0e0");
-    stringutil::replaceInString(target, "[B]", "\ue0e1");
-    stringutil::replaceInString(target, "[X]", "\ue0e2");
-    stringutil::replaceInString(target, "[Y]", "\ue0e3");
-    stringutil::replaceInString(target, "[L]", "\ue0e4");
-    stringutil::replaceInString(target, "[R]", "\ue0e5");
-    stringutil::replaceInString(target, "[ZL]", "\ue0e6");
-    stringutil::replaceInString(target, "[ZR]", "\ue0e7");
-    stringutil::replaceInString(target, "[SL]", "\ue0e8");
-    stringutil::replaceInString(target, "[SR]", "\ue0e9");
-    stringutil::replaceInString(target, "[DPAD]", "\ue0ea");
-    stringutil::replaceInString(target, "[DUP]", "\ue0eb");
-    stringutil::replaceInString(target, "[DDOWN]", "\ue0ec");
-    stringutil::replaceInString(target, "[DLEFT]", "\ue0ed");
-    stringutil::replaceInString(target, "[DRIGHT]", "\ue0ee");
-    stringutil::replaceInString(target, "[+]", "\ue0ef");
-    stringutil::replaceInString(target, "[-]", "\ue0f0");
+    stringutil::replace_in_string(target, "[A]", "\ue0e0");
+    stringutil::replace_in_string(target, "[B]", "\ue0e1");
+    stringutil::replace_in_string(target, "[X]", "\ue0e2");
+    stringutil::replace_in_string(target, "[Y]", "\ue0e3");
+    stringutil::replace_in_string(target, "[L]", "\ue0e4");
+    stringutil::replace_in_string(target, "[R]", "\ue0e5");
+    stringutil::replace_in_string(target, "[ZL]", "\ue0e6");
+    stringutil::replace_in_string(target, "[ZR]", "\ue0e7");
+    stringutil::replace_in_string(target, "[SL]", "\ue0e8");
+    stringutil::replace_in_string(target, "[SR]", "\ue0e9");
+    stringutil::replace_in_string(target, "[DPAD]", "\ue0ea");
+    stringutil::replace_in_string(target, "[DUP]", "\ue0eb");
+    stringutil::replace_in_string(target, "[DDOWN]", "\ue0ec");
+    stringutil::replace_in_string(target, "[DLEFT]", "\ue0ed");
+    stringutil::replace_in_string(target, "[DRIGHT]", "\ue0ee");
+    stringutil::replace_in_string(target, "[+]", "\ue0ef");
+    stringutil::replace_in_string(target, "[-]", "\ue0f0");
 }
 
 bool strings::initialize()
 {
-    fslib::Path filePath = getFilePath();
+    fslib::Path filePath = get_file_path();
 
-    json::Object stringJSON = json::newObject(json_object_from_file, filePath.cString());
+    json::Object stringJSON = json::new_object(json_object_from_file, filePath.cString());
     if (!stringJSON)
     {
         return false;
@@ -104,13 +104,13 @@ bool strings::initialize()
     // Loop through entire map and replace the buttons.
     for (auto &[key, string] : s_stringMap)
     {
-        replaceButtonsInString(string);
+        replace_buttons_in_string(string);
     }
 
     return true;
 }
 
-const char *strings::getByName(std::string_view name, int index)
+const char *strings::get_by_name(std::string_view name, int index)
 {
     if (s_stringMap.find(std::make_pair(name.data(), index)) == s_stringMap.end())
     {

@@ -21,7 +21,7 @@ class MainMenuState : public AppState
         void render(void);
 
         /// @brief This function allows other states to signal to this one to refresh the views on next call to update();
-        static void refreshViewStates(void);
+        static void refresh_view_states(void);
 
     private:
         /// @brief Render target this state renders to.

@@ -44,15 +44,16 @@ static void readThreadFunction(fslib::File &sourceFile, std::shared_ptr<FileTran
         sharedData->m_bufferCondition.notify_one();
         // Wait for other thread to signal buffer is empty. Lock is released immediately, but it works and that's what matters.
         std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-        sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull == false; });
+        sharedData->m_bufferCondition.wait(m_bufferLock,
+                                           [&sharedData]() { return sharedData->m_bufferIsFull == false; });
     }
 }
 
-void fs::copyFile(const fslib::Path &source,
-                  const fslib::Path &destination,
-                  uint64_t journalSize,
-                  std::string_view commitDevice,
-                  sys::ProgressTask *task)
+void fs::copy_file(const fslib::Path &source,
+                   const fslib::Path &destination,
+                   uint64_t journalSize,
+                   std::string_view commitDevice,
+                   sys::ProgressTask *task)
 {
     fslib::File sourceFile(source, FsOpenMode_Read);
     fslib::File destinationFile(destination, FsOpenMode_Create | FsOpenMode_Write, sourceFile.getSize());
@@ -65,7 +66,7 @@ void fs::copyFile(const fslib::Path &source,
     // Set status if task pointer was passed.
     if (task)
     {
-        task->setStatus(strings::getByName(strings::names::COPYING_FILES, 0), source.cString());
+        task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 0), source.cString());
     }
 
     // Shared struct both threads use
@@ -123,18 +124,18 @@ void fs::copyFile(const fslib::Path &source,
         // Update task if passed.
         if (task)
         {
-            task->updateCurrent(static_cast<double>(writeCount));
+            task->update_current(static_cast<double>(writeCount));
         }
     }
     // Wait for read thread and free it.
     readThread.join();
 }
 
-void fs::copyDirectory(const fslib::Path &source,
-                       const fslib::Path &destination,
-                       uint64_t journalSize,
-                       std::string_view commitDevice,
-                       sys::ProgressTask *task)
+void fs::copy_directory(const fslib::Path &source,
+                        const fslib::Path &destination,
+                        uint64_t journalSize,
+                        std::string_view commitDevice,
+                        sys::ProgressTask *task)
 {
     fslib::Directory sourceDir(source);
     if (!sourceDir)
@@ -156,13 +157,13 @@ void fs::copyDirectory(const fslib::Path &source,
                 continue;
             }
 
-            fs::copyDirectory(newSource, newDestination, journalSize, commitDevice, task);
+            fs::copy_directory(newSource, newDestination, journalSize, commitDevice, task);
         }
         else
         {
             fslib::Path fullSource = source / sourceDir[i];
             fslib::Path fullDestination = destination / sourceDir[i];
-            fs::copyFile(fullSource, fullDestination, journalSize, commitDevice, task);
+            fs::copy_file(fullSource, fullDestination, journalSize, commitDevice, task);
         }
     }
 }

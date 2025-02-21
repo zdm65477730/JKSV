@@ -8,7 +8,7 @@ namespace config
     void initialize(void);
 
     /// @brief Resets config to default values.
-    void resetToDefault(void);
+    void reset_to_default(void);
 
     /// @brief Saves config to file.
     void save(void);
@@ -16,75 +16,75 @@ namespace config
     /// @brief Retrieves the config value according to the key passed.
     /// @param key Key to retrieve. See config::keys
     /// @return Key's value if found. 0 if it is not.
-    uint8_t getByKey(std::string_view key);
+    uint8_t get_by_key(std::string_view key);
 
     /// @brief Toggles the key. This is only for basic true or false settings.
     /// @param key Key to toggle.
-    void toggleByKey(std::string_view key);
+    void toggle_by_key(std::string_view key);
 
     /// @brief Sets the key according
     /// @param key Key to set.
     /// @param value Value to set the key to.
-    void setByKey(std::string_view key, uint8_t value);
+    void set_by_key(std::string_view key, uint8_t value);
 
     /// @brief Retrieves value of config at index.
     /// @param index Index of value to retrieve.
-    uint8_t getByIndex(int index);
+    uint8_t get_by_index(int index);
 
     /// @brief Toggles the key at index from 1 to 0 or vice-versa.
     /// @param index Index of key to toggle.
-    void toggleByIndex(int index);
+    void toggle_by_index(int index);
 
     /// @brief Sets the config value at index to value.
     /// @param index Index of value to set.
     /// @param value Value to set index to.
-    void setByIndex(int index, uint8_t value);
+    void set_by_index(int index, uint8_t value);
 
     /// @brief Returns the working directory.
     /// @return Working directory.
-    fslib::Path getWorkingDirectory(void);
+    fslib::Path get_working_directory(void);
 
     /// @brief Returns the scaling speed of UI transitions and animations.
     /// @return Scaling variable.
-    double getAnimationScaling(void);
+    double get_animation_scaling(void);
 
     /// @brief Sets the UI animation scaling.
     /// @param newScale New value to set the scaling to.
-    void setAnimationScaling(double newScale);
+    void set_animation_scaling(double newScale);
 
     /// @brief Adds or removes a title from the favorites list.
     /// @param applicationID Application ID of title to add or remove.
-    void addRemoveFavorite(uint64_t applicationID);
+    void add_remove_favorite(uint64_t applicationID);
 
     /// @brief Returns if the title is found in the favorites list.
     /// @param applicationID Application ID to search for.
     /// @return True if found. False if not.
-    bool isFavorite(uint64_t applicationID);
+    bool is_favorite(uint64_t applicationID);
 
     /// @brief Adds or removes title from blacklist.
     /// @param applicationID Application ID to add or remove.
-    void addRemoveBlacklist(uint64_t applicationID);
+    void add_remove_blacklist(uint64_t applicationID);
 
     /// @brief Returns if the title is found in the blacklist.
     /// @param applicationID Application ID to search for.
     /// @return True if found. False if not.
-    bool isBlacklisted(uint64_t applicationID);
+    bool is_blacklisted(uint64_t applicationID);
 
     /// @brief Adds a custom output path for the title.
     /// @param applicationID Application ID of title to add a path for.
     /// @param customPath Path to assign to the output.
-    void addCustomPath(uint64_t applicationID, std::string_view customPath);
+    void add_custom_path(uint64_t applicationID, std::string_view customPath);
 
     /// @brief Searches to see if the application ID passed has a custom output path.
     /// @param applicationID Application ID to check.
     /// @return True if it does. False if it doesn't.
-    bool hasCustomPath(uint64_t applicationID);
+    bool has_custom_path(uint64_t applicationID);
 
     /// @brief Gets the custom, defined path for the title.
     /// @param applicationID Application ID of title to get.
     /// @param pathOut Buffer to write the path to.
     /// @param pathOutSize Size of the buffer to write the path to.
-    void getCustomPath(uint64_t applicationID, char *pathOut, size_t pathOutSize);
+    void get_custom_path(uint64_t applicationID, char *pathOut, size_t pathOutSize);
 
     // Names of keys. Note: Not all of these are retrievable with GetByKey. Some of these are purely for config reading and writing.
     namespace keys

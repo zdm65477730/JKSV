@@ -16,7 +16,7 @@ namespace
 void ui::PopMessageManager::update(void)
 {
     // Grab instance.
-    PopMessageManager &manager = PopMessageManager::getInstance();
+    PopMessageManager &manager = PopMessageManager::get_instance();
 
     // Bail if the queue is empty.
     if (!manager.m_messageQueue.empty())
@@ -38,14 +38,14 @@ void ui::PopMessageManager::update(void)
     // Update all the messages.
     // This is the first Y position a message should be displayed at.;
     double currentY = 594.0f;
-    double animationScaling = config::getAnimationScaling();
+    double animationScaling = config::get_animation_scaling();
     for (size_t i = 0; i < manager.m_messages.size(); i++)
     {
         // Save myself a shit load of typing.
         ui::PopMessage &currentMessage = manager.m_messages.at(i);
 
         // Purge it and continue if needed.
-        if (currentMessage.m_timer.isTriggered())
+        if (currentMessage.m_timer.is_triggered())
         {
             manager.m_messages.erase(manager.m_messages.begin() + i);
             continue;
@@ -68,19 +68,25 @@ void ui::PopMessageManager::update(void)
 void ui::PopMessageManager::render(void)
 {
     // Get instance.
-    PopMessageManager &manager = PopMessageManager::getInstance();
+    PopMessageManager &manager = PopMessageManager::get_instance();
 
     // Loop and render.
     for (auto &popMessage : manager.m_messages)
     {
         // Render a dialog box around it.
-        ui::renderDialogBox(NULL, 20, popMessage.m_y - 6, popMessage.m_width, 52);
+        ui::render_dialog_box(NULL, 20, popMessage.m_y - 6, popMessage.m_width, 52);
         // Render the actual text.
-        sdl::text::render(NULL, 36, popMessage.m_y, 32, sdl::text::NO_TEXT_WRAP, colors::WHITE, popMessage.m_message.c_str());
+        sdl::text::render(NULL,
+                          36,
+                          popMessage.m_y,
+                          32,
+                          sdl::text::NO_TEXT_WRAP,
+                          colors::WHITE,
+                          popMessage.m_message.c_str());
     }
 }
 
-void ui::PopMessageManager::pushMessage(int displayTicks, const char *format, ...)
+void ui::PopMessageManager::push_message(int displayTicks, const char *format, ...)
 {
     // VA args.
     char vaBuffer[VA_BUFFER_SIZE] = {0};
@@ -91,7 +97,7 @@ void ui::PopMessageManager::pushMessage(int displayTicks, const char *format, ..
     va_end(vaList);
 
     // Get instance.
-    PopMessageManager &manager = PopMessageManager::getInstance();
+    PopMessageManager &manager = PopMessageManager::get_instance();
 
     // Make sure we're not pushing two of the same message.
     if (!manager.m_messages.empty() && manager.m_messages.back().m_message.compare(vaBuffer) == 0)

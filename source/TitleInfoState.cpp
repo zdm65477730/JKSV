@@ -3,7 +3,8 @@
 #include "input.hpp"
 #include "sdl.hpp"
 
-TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo) : m_user(user), m_titleInfo(titleInfo), m_titleScrollTimer(3000)
+TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo)
+    : m_user(user), m_titleInfo(titleInfo), m_titleScrollTimer(3000)
 {
     if (!sm_initialized)
     {
@@ -13,7 +14,7 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo) : m
     }
 
     // Check if the title is too large to fit within the target.
-    m_titleWidth = sdl::text::getWidth(32, m_titleInfo->getTitle());
+    m_titleWidth = sdl::text::getWidth(32, m_titleInfo->get_title());
     if (m_titleWidth > 480)
     {
         // Just set this to 8 and we'll scroll the title.
@@ -30,17 +31,17 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo) : m
 void TitleInfoState::update(void)
 {
     // Update slide panel.
-    sm_slidePanel->update(AppState::hasFocus());
+    sm_slidePanel->update(AppState::has_focus());
 
-    if (input::buttonPressed(HidNpadButton_B))
+    if (input::button_pressed(HidNpadButton_B))
     {
         sm_slidePanel->close();
     }
-    else if (sm_slidePanel->isClosed())
+    else if (sm_slidePanel->is_closed())
     {
         sm_slidePanel->reset();
     }
-    else if (m_titleScrolling && m_titleScrollTimer.isTriggered())
+    else if (m_titleScrolling && m_titleScrollTimer.is_triggered())
     {
         m_titleX -= 2;
         m_titleScrollTriggered = true;
@@ -60,7 +61,7 @@ void TitleInfoState::update(void)
 void TitleInfoState::render(void)
 {
     // Grab the panel's target and clear it. To do: This how I originally intended to.
-    sm_slidePanel->clearTarget();
+    sm_slidePanel->clear_target();
     // SDL_Texture *panelTarget = sm_slidePanel->get();
 
     // If the title doesn't need to be scrolled, just render it.

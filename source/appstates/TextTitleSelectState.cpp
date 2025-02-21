@@ -14,21 +14,24 @@ namespace
 
 TextTitleSelectState::TextTitleSelectState(data::User *user)
     : TitleSelectCommon(), m_user(user), m_titleSelectMenu(32, 8, 1000, 20, 555),
-      m_renderTarget(sdl::TextureManager::createLoadTexture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
+      m_renderTarget(sdl::TextureManager::createLoadTexture(SECONDARY_TARGET,
+                                                            1080,
+                                                            555,
+                                                            SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
 {
     TextTitleSelectState::refresh();
 }
 
 void TextTitleSelectState::update(void)
 {
-    m_titleSelectMenu.update(AppState::hasFocus());
+    m_titleSelectMenu.update(AppState::has_focus());
 
-    if (input::buttonPressed(HidNpadButton_Y))
+    if (input::button_pressed(HidNpadButton_Y))
     {
-        config::addRemoveFavorite(m_user->getApplicationIDAt(m_titleSelectMenu.getSelected()));
-        MainMenuState::refreshViewStates();
+        config::add_remove_favorite(m_user->get_application_id_at(m_titleSelectMenu.get_selected()));
+        MainMenuState::refresh_view_states();
     }
-    else if (input::buttonPressed(HidNpadButton_B))
+    else if (input::button_pressed(HidNpadButton_B))
     {
         AppState::deactivate();
     }
@@ -37,20 +40,20 @@ void TextTitleSelectState::update(void)
 void TextTitleSelectState::render(void)
 {
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleSelectMenu.render(m_renderTarget->get(), AppState::hasFocus());
-    TitleSelectCommon::renderControlGuide();
+    m_titleSelectMenu.render(m_renderTarget->get(), AppState::has_focus());
+    TitleSelectCommon::render_control_guide();
     m_renderTarget->render(NULL, 201, 91);
 }
 
 void TextTitleSelectState::refresh(void)
 {
     m_titleSelectMenu.reset();
-    for (size_t i = 0; i < m_user->getTotalDataEntries(); i++)
+    for (size_t i = 0; i < m_user->get_total_data_entries(); i++)
     {
         std::string option;
-        uint64_t applicationID = m_user->getApplicationIDAt(i);
-        const char *title = data::getTitleInfoByID(applicationID)->getTitle();
-        if (config::isFavorite(applicationID))
+        uint64_t applicationID = m_user->get_application_id_at(i);
+        const char *title = data::get_title_info_by_id(applicationID)->get_title();
+        if (config::is_favorite(applicationID))
         {
             option = std::string("^\uE017^ ") + title;
         }
@@ -58,6 +61,6 @@ void TextTitleSelectState::refresh(void)
         {
             option = title;
         }
-        m_titleSelectMenu.addOption(option.c_str());
+        m_titleSelectMenu.add_option(option.c_str());
     }
 }

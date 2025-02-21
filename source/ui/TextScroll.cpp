@@ -37,7 +37,7 @@ ui::TextScroll &ui::TextScroll::operator=(const ui::TextScroll &textScroll)
 void ui::TextScroll::update(bool hasFocus)
 {
     // I don't think needs to care about having focus.
-    if (m_textScrolling && m_scrollTimer.isTriggered())
+    if (m_textScrolling && m_scrollTimer.is_triggered())
     {
         m_x -= 2;
         m_textScrollTriggered = true;
@@ -66,6 +66,12 @@ void ui::TextScroll::render(SDL_Texture *target, bool hasFocus)
     {
         // We're going to render text twice so it looks like it's scrolling and doesn't end. Ever.
         sdl::text::render(target, m_x, m_y, m_fontSize, sdl::text::NO_TEXT_WRAP, m_textColor, m_text.c_str());
-        sdl::text::render(target, m_x + m_textWidth + 24, m_y, m_fontSize, sdl::text::NO_TEXT_WRAP, m_textColor, m_text.c_str());
+        sdl::text::render(target,
+                          m_x + m_textWidth + 24,
+                          m_y,
+                          m_fontSize,
+                          sdl::text::NO_TEXT_WRAP,
+                          m_textColor,
+                          m_text.c_str());
     }
 }

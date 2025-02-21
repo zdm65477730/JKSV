@@ -12,7 +12,7 @@ namespace fs
     /// @param source Source file to copy from.
     /// @param destination zipFile to write to.
     /// @param Task Optional. Task to pass to show progress.
-    void copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys::ProgressTask *Task = nullptr);
+    void copy_directory_to_zip(const fslib::Path &source, zipFile destination, sys::ProgressTask *Task = nullptr);
 
     /// @brief Unzips source to destination.
     /// @param source Source zip file to read from.
@@ -20,14 +20,14 @@ namespace fs
     /// @param journalSize Size of journal for committing data. This is used exclusively for save data.
     /// @param commitDevice Device to commit data to.
     /// @param task Optional. Task to update to show progress.
-    void copyZipToDirectory(unzFile source,
-                            const fslib::Path &destination,
-                            uint64_t journalSize,
-                            std::string_view commitDevice,
-                            sys::ProgressTask *Task = nullptr);
+    void copy_zip_to_directory(unzFile source,
+                               const fslib::Path &destination,
+                               uint64_t journalSize,
+                               std::string_view commitDevice,
+                               sys::ProgressTask *Task = nullptr);
 
     /// @brief Returns whether or not zip has files inside.
     /// @param zipPath Path to zip to check.
     /// @return True if at least one file is found. False if none.
-    bool zipHasContents(const fslib::Path &zipPath);
+    bool zip_has_contents(const fslib::Path &zipPath);
 } // namespace fs

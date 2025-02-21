@@ -40,7 +40,7 @@ namespace ui
             /// @param displayTicks Number of ticks for the message to be displayed until it is purged.
             /// @param format Format of message.
             /// @param args Arguments for message.
-            static void pushMessage(int displayTicks, const char *format, ...);
+            static void push_message(int displayTicks, const char *format, ...);
 
             /// @brief The default duration of ticks for messages to be shown.
             static constexpr int DEFAULT_MESSAGE_TICKS = 2500;
@@ -49,7 +49,7 @@ namespace ui
             // Only one instance allowed.
             PopMessageManager(void) = default;
             // Returns the only instance.
-            static PopMessageManager &getInstance(void)
+            static PopMessageManager &get_instance(void)
             {
                 static PopMessageManager manager;
                 return manager;

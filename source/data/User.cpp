@@ -23,21 +23,21 @@ static bool sortUserData(const data::UserDataEntry &entryA, const data::UserData
     auto &[saveInfoB, playStatsB] = dataB;
 
     // Favorites over all.
-    if (config::isFavorite(applicationIDA) != config::isFavorite(applicationIDB))
+    if (config::is_favorite(applicationIDA) != config::is_favorite(applicationIDB))
     {
-        return config::isFavorite(applicationIDA);
+        return config::is_favorite(applicationIDA);
     }
 
-    data::TitleInfo *titleInfoA = data::getTitleInfoByID(applicationIDA);
-    data::TitleInfo *titleInfoB = data::getTitleInfoByID(applicationIDB);
-    switch (config::getByKey(config::keys::TITLE_SORT_TYPE))
+    data::TitleInfo *titleInfoA = data::get_title_info_by_id(applicationIDA);
+    data::TitleInfo *titleInfoB = data::get_title_info_by_id(applicationIDB);
+    switch (config::get_by_key(config::keys::TITLE_SORT_TYPE))
     {
         // Alpha
         case 0:
         {
             // Get titles
-            const char *titleA = titleInfoA->getTitle();
-            const char *titleB = titleInfoB->getTitle();
+            const char *titleA = titleInfoA->get_title();
+            const char *titleB = titleInfoB->get_title();
 
             // Get the shortest of the two.
             size_t titleALength = std::char_traits<char>::length(titleA);
@@ -93,11 +93,11 @@ data::User::User(AccountUid accountID, FsSaveDataType saveType) : m_accountID(ac
     Result profileBaseError = accountProfileGet(&profile, NULL, &profileBase);
     if (R_FAILED(profileError) || R_FAILED(profileBaseError))
     {
-        User::createAccount();
+        User::create_account();
     }
     else
     {
-        User::loadAccount(profile, profileBase);
+        User::load_account(profile, profileBase);
     }
     accountProfileClose(&profile);
 }
@@ -107,56 +107,57 @@ data::User::User(AccountUid accountID,
                  std::string_view pathSafeNickname,
                  std::string_view iconPath,
                  FsSaveDataType saveType)
-    : m_accountID(accountID), m_saveType(saveType), m_icon(sdl::TextureManager::createLoadTexture(pathSafeNickname, iconPath.data()))
+    : m_accountID(accountID), m_saveType(saveType),
+      m_icon(sdl::TextureManager::createLoadTexture(pathSafeNickname, iconPath.data()))
 {
     // We're just gonna use this for both.
     std::memcpy(m_nickname, nickname.data(), nickname.length());
     std::memcpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
 }
 
-void data::User::addData(const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats)
+void data::User::add_data(const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats)
 {
     uint64_t applicationID = saveInfo.application_id == 0 ? saveInfo.system_save_data_id : saveInfo.application_id;
 
     m_userData.push_back(std::make_pair(applicationID, std::make_pair(saveInfo, playStats)));
 }
 
-void data::User::eraseData(int index)
+void data::User::erase_data(int index)
 {
     m_userData.erase(m_userData.begin() + index);
 }
 
-void data::User::sortData(void)
+void data::User::sort_data(void)
 {
     std::sort(m_userData.begin(), m_userData.end(), sortUserData);
 }
 
-AccountUid data::User::getAccountID(void) const
+AccountUid data::User::get_account_id(void) const
 {
     return m_accountID;
 }
 
-FsSaveDataType data::User::getAccountSaveType(void) const
+FsSaveDataType data::User::get_account_save_type(void) const
 {
     return m_saveType;
 }
 
-const char *data::User::getNickname(void) const
+const char *data::User::get_nickname(void) const
 {
     return m_nickname;
 }
 
-const char *data::User::getPathSafeNickname(void) const
+const char *data::User::get_path_safe_nickname(void) const
 {
     return m_pathSafeNickname;
 }
 
-size_t data::User::getTotalDataEntries(void) const
+size_t data::User::get_total_data_entries(void) const
 {
     return m_userData.size();
 }
 
-uint64_t data::User::getApplicationIDAt(int index) const
+uint64_t data::User::get_application_id_at(int index) const
 {
     if (index < 0 || index >= static_cast<int>(m_userData.size()))
     {
@@ -165,7 +166,7 @@ uint64_t data::User::getApplicationIDAt(int index) const
     return m_userData.at(index).first;
 }
 
-FsSaveDataInfo *data::User::getSaveInfoAt(int index)
+FsSaveDataInfo *data::User::get_save_info_at(int index)
 {
     if (index < 0 || index >= static_cast<int>(m_userData.size()))
     {
@@ -174,7 +175,7 @@ FsSaveDataInfo *data::User::getSaveInfoAt(int index)
     return &m_userData.at(index).second.first;
 }
 
-PdmPlayStatistics *data::User::getPlayStatsAt(int index)
+PdmPlayStatistics *data::User::get_play_stats_at(int index)
 {
     if (index < 0 || index >= static_cast<int>(m_userData.size()))
     {
@@ -183,7 +184,7 @@ PdmPlayStatistics *data::User::getPlayStatsAt(int index)
     return &m_userData.at(index).second.second;
 }
 
-FsSaveDataInfo *data::User::getSaveInfoByID(uint64_t applicationID)
+FsSaveDataInfo *data::User::get_save_info_by_id(uint64_t applicationID)
 {
     auto findTitle = std::find_if(m_userData.begin(), m_userData.end(), [applicationID](data::UserDataEntry &entry) {
         return entry.first == applicationID;
@@ -196,7 +197,7 @@ FsSaveDataInfo *data::User::getSaveInfoByID(uint64_t applicationID)
     return &findTitle->second.first;
 }
 
-PdmPlayStatistics *data::User::getPlayStatsByID(uint64_t applicationID)
+PdmPlayStatistics *data::User::get_play_stats_by_id(uint64_t applicationID)
 {
     auto findTitle = std::find_if(m_userData.begin(), m_userData.end(), [applicationID](data::UserDataEntry &entry) {
         return entry.first == applicationID;
@@ -209,17 +210,17 @@ PdmPlayStatistics *data::User::getPlayStatsByID(uint64_t applicationID)
     return &findTitle->second.second;
 }
 
-SDL_Texture *data::User::getIcon(void)
+SDL_Texture *data::User::get_icon(void)
 {
     return m_icon->get();
 }
 
-sdl::SharedTexture data::User::getSharedIcon(void)
+sdl::SharedTexture data::User::get_shared_icon(void)
 {
     return m_icon;
 }
 
-void data::User::loadAccount(AccountProfile &profile, AccountProfileBase &profileBase)
+void data::User::load_account(AccountProfile &profile, AccountProfileBase &profileBase)
 {
     // Try to load icon.
     uint32_t iconSize = 0;
@@ -227,7 +228,7 @@ void data::User::loadAccount(AccountProfile &profile, AccountProfileBase &profil
     if (R_FAILED(accError))
     {
         logger::log("Error getting user icon size: 0x%X.", accError);
-        User::createAccount();
+        User::create_account();
         return;
     }
 
@@ -236,7 +237,7 @@ void data::User::loadAccount(AccountProfile &profile, AccountProfileBase &profil
     if (R_FAILED(accError))
     {
         logger::log("Error loading user icon: 0x%08X.", accError);
-        User::createAccount();
+        User::create_account();
         return;
     }
 
@@ -246,21 +247,24 @@ void data::User::loadAccount(AccountProfile &profile, AccountProfileBase &profil
     // Memcpy the nickname.
     std::memcpy(m_nickname, &profileBase.nickname, 0x20);
 
-    if (!stringutil::sanitizeStringForPath(m_nickname, m_pathSafeNickname, 0x20))
+    if (!stringutil::sanitize_string_for_path(m_nickname, m_pathSafeNickname, 0x20))
     {
-        std::string accountIDString = stringutil::getFormattedString("Account_%08X", m_accountID.uid[0] & 0xFFFFFFFF);
+        std::string accountIDString = stringutil::get_formatted_string("Account_%08X", m_accountID.uid[0] & 0xFFFFFFFF);
         std::memcpy(m_pathSafeNickname, accountIDString.c_str(), accountIDString.length());
     }
 }
 
-void data::User::createAccount(void)
+void data::User::create_account(void)
 {
     // This is needed a lot here.
-    std::string accountIDString = stringutil::getFormattedString("Acc_%08X", m_accountID.uid[0] & 0xFFFFFFFF);
+    std::string accountIDString = stringutil::get_formatted_string("Acc_%08X", m_accountID.uid[0] & 0xFFFFFFFF);
 
     // Create icon
     int textX = 128 - (sdl::text::getWidth(ICON_FONT_SIZE, accountIDString.c_str()) / 2);
-    m_icon = sdl::TextureManager::createLoadTexture(accountIDString, 256, 256, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    m_icon = sdl::TextureManager::createLoadTexture(accountIDString,
+                                                    256,
+                                                    256,
+                                                    SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
     sdl::text::render(m_icon->get(),
                       textX,
                       128 - (ICON_FONT_SIZE / 2),

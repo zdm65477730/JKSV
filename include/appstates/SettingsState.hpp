@@ -27,7 +27,7 @@ class SettingsState : public AppState
         /// @brief X coordinate of the control guide in the bottom right corner.
         int m_controlGuideX = 0;
         /// @brief Runs a routine to update the menu strings for the menu.
-        void updateMenuOptions(void);
+        void update_menu_options(void);
         /// @brief Toggles or executes the code to changed the selected menu option.
-        void toggleOptions(void);
+        void toggle_options(void);
 };

@@ -21,59 +21,64 @@ namespace
 
 TitleSelectState::TitleSelectState(data::User *user)
     : TitleSelectCommon(), m_user(user),
-      m_renderTarget(sdl::TextureManager::createLoadTexture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
+      m_renderTarget(sdl::TextureManager::createLoadTexture(SECONDARY_TARGET,
+                                                            1080,
+                                                            555,
+                                                            SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
       m_titleView(m_user) {};
 
 void TitleSelectState::update(void)
 {
-    m_titleView.update(AppState::hasFocus());
+    m_titleView.update(AppState::has_focus());
 
-    if (input::buttonPressed(HidNpadButton_A))
+    if (input::button_pressed(HidNpadButton_A))
     {
         // Get data needed to mount save.
-        uint64_t applicationID = m_user->getApplicationIDAt(m_titleView.getSelected());
-        FsSaveDataInfo *saveInfo = m_user->getSaveInfoByID(applicationID);
-        data::TitleInfo *titleInfo = data::getTitleInfoByID(applicationID);
+        uint64_t applicationID = m_user->get_application_id_at(m_titleView.get_selected());
+        FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
+        data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
 
         // Path to output to.
-        fslib::Path targetPath = config::getWorkingDirectory() / titleInfo->getPathSafeTitle();
+        fslib::Path targetPath = config::get_working_directory() / titleInfo->get_path_safe_title();
 
         if ((fslib::directoryExists(targetPath) || fslib::createDirectory(targetPath)) &&
             fslib::openSaveFileSystemWithSaveDataInfo(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
         {
-            JKSV::pushState(std::make_shared<BackupMenuState>(m_user, titleInfo, static_cast<FsSaveDataType>(saveInfo->save_data_type)));
+            JKSV::push_state(std::make_shared<BackupMenuState>(m_user,
+                                                               titleInfo,
+                                                               static_cast<FsSaveDataType>(saveInfo->save_data_type)));
         }
         else
         {
             logger::log("%s", fslib::getErrorString());
         }
     }
-    else if (input::buttonPressed(HidNpadButton_X))
+    else if (input::button_pressed(HidNpadButton_X))
     {
-        uint64_t applicationID = m_user->getApplicationIDAt(m_titleView.getSelected());
-        data::TitleInfo *titleInfo = data::getTitleInfoByID(applicationID);
+        uint64_t applicationID = m_user->get_application_id_at(m_titleView.get_selected());
+        data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
 
-        JKSV::pushState(std::make_shared<TitleOptionState>(m_user, titleInfo));
+        JKSV::push_state(std::make_shared<TitleOptionState>(m_user, titleInfo));
     }
-    else if (input::buttonPressed(HidNpadButton_B))
+    else if (input::button_pressed(HidNpadButton_B))
     {
         // This will reset all the tiles so they're 128x128.
         m_titleView.reset();
         AppState::deactivate();
     }
-    else if (input::buttonPressed(HidNpadButton_Y))
+    else if (input::button_pressed(HidNpadButton_Y))
     {
-        config::addRemoveFavorite(m_user->getApplicationIDAt(m_titleView.getSelected()));
+        config::add_remove_favorite(m_user->get_application_id_at(m_titleView.get_selected()));
         // MainMenuState has all the Users and views, so have it refresh.
-        MainMenuState::refreshViewStates();
+        MainMenuState::refresh_view_states();
     }
 }
 
 void TitleSelectState::render(void)
 {
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleView.render(m_renderTarget->get(), AppState::hasFocus());
-    TitleSelectCommon::renderControlGuide();
+    m_titleView.render(m_renderTarget->get(), AppState::has_focus());
+    TitleSelectCommon::render_control_guide();
     m_renderTarget->render(NULL, 201, 91);
 }
 

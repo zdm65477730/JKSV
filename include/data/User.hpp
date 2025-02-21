@@ -33,68 +33,67 @@ namespace data
             /// @brief Pushes data to m_userData
             /// @param saveInfo SaveDataInfo.
             /// @param playStats Play statistics.
-            void addData(const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats);
-
+            void add_data(const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats);
 
             /// @brief Erases data at index.
             /// @param index Index of save data info to erase.
-            void eraseData(int index);
+            void erase_data(int index);
 
             /// @brief Runs the sort algo on the vector.
-            void sortData(void);
+            void sort_data(void);
 
             /// @brief Returns the account ID of the user.
             /// @return AccountID
-            AccountUid getAccountID(void) const;
+            AccountUid get_account_id(void) const;
 
             /// @brief Returns the save data type the account uses.
             /// @return Save data type of the account.
-            FsSaveDataType getAccountSaveType(void) const;
+            FsSaveDataType get_account_save_type(void) const;
 
             /// @brief Returns the account's nickname.
             /// @return Account nickname.
-            const char *getNickname(void) const;
+            const char *get_nickname(void) const;
 
             /// @brief Returns the path safe version of the nickname.
             /// @return Path safe nickname.
-            const char *getPathSafeNickname(void) const;
+            const char *get_path_safe_nickname(void) const;
 
             /// @brief Returns the total number of entries in the data vector.
             /// @return Total number of entries.
-            size_t getTotalDataEntries(void) const;
+            size_t get_total_data_entries(void) const;
 
             /// @brief Returns the application ID of the title at index.
             /// @param index Index of title.
             /// @return Application ID if index is valid. 0 if not.
-            uint64_t getApplicationIDAt(int index) const;
+            uint64_t get_application_id_at(int index) const;
 
             /// @brief Returns a pointer to the save data info at index.
             /// @param index Index of data to fetch.
             /// @return Pointer to info if valid. nullptr if out-of-bounds.
-            FsSaveDataInfo *getSaveInfoAt(int index);
+            FsSaveDataInfo *get_save_info_at(int index);
 
             /// @brief Returns a pointer to the play statistics at index.
             /// @param index Index of play statistics to fetch.
             /// @return Pointer to play statistics if index is value. nullptr if it's out of bounds.
-            PdmPlayStatistics *getPlayStatsAt(int index);
+            PdmPlayStatistics *get_play_stats_at(int index);
 
             /// @brief Returns a pointer to the save info of applicationID.
             /// @param applicationID Application ID to search and fetch for.
             /// @return Pointer to save info if found. nullptr if not.
-            FsSaveDataInfo *getSaveInfoByID(uint64_t applicationID);
+            FsSaveDataInfo *get_save_info_by_id(uint64_t applicationID);
 
             /// @brief Returns a pointer to the play statistics of applicationID
             /// @param applicationID Application ID to search and fetch.
             /// @return Pointer to play statistics if index is valid. nullptr if it isn't.
-            PdmPlayStatistics *getPlayStatsByID(uint64_t applicationID);
+            PdmPlayStatistics *get_play_stats_by_id(uint64_t applicationID);
 
             /// @brief Returns raw SDL_Texture pointer of icon.
             /// @return SDL_Texture of icon.
-            SDL_Texture *getIcon(void);
+            SDL_Texture *get_icon(void);
 
             /// @brief Returns the shared texture of icon. Increasing reference count of it.
             /// @return Shared icon texture.
-            sdl::SharedTexture getSharedIcon(void);
+            sdl::SharedTexture get_shared_icon(void);
 
         private:
             /// @brief Account's ID
@@ -113,9 +112,9 @@ namespace data
             /// @brief Loads account structs from system.
             /// @param profile AccountProfile struct to write to.
             /// @param profileBase AccountProfileBase to write to.
-            void loadAccount(AccountProfile &profile, AccountProfileBase &profileBase);
+            void load_account(AccountProfile &profile, AccountProfileBase &profileBase);
 
             /// @brief Creates a placeholder since something went wrong.
-            void createAccount(void);
+            void create_account(void);
     };
 } // namespace data

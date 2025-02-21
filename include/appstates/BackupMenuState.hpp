@@ -31,7 +31,7 @@ class BackupMenuState : public AppState
         void refresh(void);
 
         /// @brief Allows a spawned task to tell this class that it wrote save data to the system.
-        void saveDataWritten(void);
+        void save_data_written(void);
 
     private:
         /// @brief Pointer to current user.

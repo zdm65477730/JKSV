@@ -13,19 +13,19 @@ namespace data
 
     /// @brief Writes pointers to users to vectorOut
     /// @param vectorOut Vector to push the pointers to.
-    void getUsers(std::vector<data::User *> &vectorOut);
+    void get_users(std::vector<data::User *> &vectorOut);
 
     /// @brief Returns a pointer to the title mapped to applicationID.
     /// @param applicationID ApplicationID of title to retrieve.
     /// @return Pointer to data. nullptr if it's not found.
-    data::TitleInfo *getTitleInfoByID(uint64_t applicationID);
+    data::TitleInfo *get_title_info_by_id(uint64_t applicationID);
 
     /// @brief Returns a reference to the title info map.
     /// @return Reference to TitleInfoMap.
-    std::unordered_map<uint64_t, data::TitleInfo> &getTitleInfoMap(void);
+    std::unordered_map<uint64_t, data::TitleInfo> &get_title_info_map(void);
 
     /// @brief Gets a vector of pointers with all titles with saveType.
     /// @param saveType Save data type to check for.
     /// @param vectorOut Vector to push pointers to.
-    void getTitleInfoByType(FsSaveDataType saveType, std::vector<data::TitleInfo *> &vectorOut);
+    void get_title_info_by_type(FsSaveDataType saveType, std::vector<data::TitleInfo *> &vectorOut);
 } // namespace data

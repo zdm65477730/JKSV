@@ -7,13 +7,13 @@
 
 void TaskState::update(void)
 {
-    if (m_task.isRunning() && input::buttonPressed(HidNpadButton_Plus))
+    if (m_task.is_running() && input::button_pressed(HidNpadButton_Plus))
     {
         // Throw the message.
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                           strings::getByName(strings::names::POP_MESSAGES_GENERAL, 0));
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::POP_MESSAGES_GENERAL, 0));
     }
-    if (!m_task.isRunning())
+    if (!m_task.is_running())
     {
         AppState::deactivate();
     }
@@ -22,7 +22,7 @@ void TaskState::update(void)
 void TaskState::render(void)
 {
     // Grab task string.
-    std::string status = m_task.getStatus();
+    std::string status = m_task.get_status();
     // Center so it looks perty
     int statusX = 640 - (sdl::text::getWidth(24, status.c_str()) / 2);
     // Dim the background states.

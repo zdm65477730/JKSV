@@ -24,7 +24,7 @@ void ui::IconMenu::render(SDL_Texture *target, bool hasFocus)
         {
             if (hasFocus)
             {
-                ui::renderBoundingBox(target, m_x - 8, tempY - 8, 152, 146, m_colorMod);
+                ui::render_bounding_box(target, m_x - 8, tempY - 8, 152, 146, m_colorMod);
             }
             sdl::renderRectFill(m_optionTarget->get(), 0, 0, 4, 130, {0x00FFC5FF});
         }
@@ -34,9 +34,9 @@ void ui::IconMenu::render(SDL_Texture *target, bool hasFocus)
     }
 }
 
-void ui::IconMenu::addOption(sdl::SharedTexture newOption)
+void ui::IconMenu::add_option(sdl::SharedTexture newOption)
 {
     // Parent needs a text option to work correctly.
-    Menu::addOption("ICON");
+    Menu::add_option("ICON");
     m_options.push_back(newOption);
 }

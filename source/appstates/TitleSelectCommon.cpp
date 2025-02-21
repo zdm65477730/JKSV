@@ -7,13 +7,13 @@ TitleSelectCommon::TitleSelectCommon(void)
 {
     if (m_titleControlsX == 0)
     {
-        m_titleControlsX = 1220 - sdl::text::getWidth(22, strings::getByName(strings::names::CONTROL_GUIDES, 1));
+        m_titleControlsX = 1220 - sdl::text::getWidth(22, strings::get_by_name(strings::names::CONTROL_GUIDES, 1));
     }
 }
 
-void TitleSelectCommon::renderControlGuide(void)
+void TitleSelectCommon::render_control_guide(void)
 {
-    if (AppState::hasFocus())
+    if (AppState::has_focus())
     {
         sdl::text::render(NULL,
                           m_titleControlsX,
@@ -21,6 +21,6 @@ void TitleSelectCommon::renderControlGuide(void)
                           22,
                           sdl::text::NO_TEXT_WRAP,
                           colors::WHITE,
-                          strings::getByName(strings::names::CONTROL_GUIDES, 1));
+                          strings::get_by_name(strings::names::CONTROL_GUIDES, 1));
     }
 }

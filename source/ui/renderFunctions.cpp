@@ -7,7 +7,7 @@ namespace
     sdl::SharedTexture s_menuBoundingCorners = nullptr;
 } // namespace
 
-void ui::renderDialogBox(SDL_Texture *target, int x, int y, int width, int height)
+void ui::render_dialog_box(SDL_Texture *target, int x, int y, int width, int height)
 {
     if (!s_dialogCorners)
     {
@@ -26,11 +26,12 @@ void ui::renderDialogBox(SDL_Texture *target, int x, int y, int width, int heigh
     s_dialogCorners->renderPart(NULL, (x + width) - 16, (y + height) - 16, 16, 16, 16, 16);
 }
 
-void ui::renderBoundingBox(SDL_Texture *target, int x, int y, int width, int height, uint8_t colorMod)
+void ui::render_bounding_box(SDL_Texture *target, int x, int y, int width, int height, uint8_t colorMod)
 {
     if (!s_menuBoundingCorners)
     {
-        s_menuBoundingCorners = sdl::TextureManager::createLoadTexture("MenuBoundingCorners", "romfs:/Textures/MenuBounding.png");
+        s_menuBoundingCorners =
+            sdl::TextureManager::createLoadTexture("MenuBoundingCorners", "romfs:/Textures/MenuBounding.png");
     }
 
     // Setup color.

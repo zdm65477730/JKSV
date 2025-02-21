@@ -28,7 +28,7 @@ namespace
         EXPORT_SVI
     };
     // Error string template thingies.
-    const char ERROR_RESETTING_SAVE = "Error resetting save data: %s";
+    static const char *ERROR_RESETTING_SAVE = "Error resetting save data: %s";
 } // namespace
 
 // Struct to send data to functions that require confirmation.
@@ -40,13 +40,14 @@ typedef struct
 
 // Declarations. Definitions after class.
 // I don't like this, but it needs to be like this to be usable with confirmation.
-static void blacklistTitle(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
-static void deleteAllBackupsForTitle(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
-static void resetSaveData(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
-static void deleteSaveDataFromSystem(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
-static void changeOutputPath(data::TitleInfo *targetTitle);
+static void blacklist_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
+static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
+static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
+static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
+static void change_output_path(data::TitleInfo *targetTitle);
 
-TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo) : m_targetUser(user), m_titleInfo(titleInfo)
+TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo)
+    : m_targetUser(user), m_titleInfo(titleInfo)
 {
     // Create panel if needed.
     if (!sm_initialized)
@@ -58,9 +59,9 @@ TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo)
         // Populate menu.
         int stringIndex = 0;
         const char *currentString = nullptr;
-        while ((currentString = strings::getByName(strings::names::TITLE_OPTIONS, stringIndex++)) != nullptr)
+        while ((currentString = strings::get_by_name(strings::names::TITLE_OPTIONS, stringIndex++)) != nullptr)
         {
-            sm_titleOptionMenu->addOption(currentString);
+            sm_titleOptionMenu->add_option(currentString);
         }
         // Only do this once.
         sm_initialized = true;
@@ -70,13 +71,18 @@ TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo)
 void TitleOptionState::update(void)
 {
     // Update panel and menu.
-    sm_slidePanel->update(AppState::hasFocus());
-    sm_titleOptionMenu->update(AppState::hasFocus());
+    sm_slidePanel->update(AppState::has_focus());
+    sm_titleOptionMenu->update(AppState::has_focus());
 
-    if (input::buttonPressed(HidNpadButton_A))
+    if (input::button_pressed(HidNpadButton_A))
     {
-        switch (sm_titleOptionMenu->getSelected())
+        switch (sm_titleOptionMenu->get_selected())
         {
+            case INFORMATION:
+            {
+            }
+            break;
+
             case BLACKLIST:
             {
             }
@@ -84,74 +90,102 @@ void TitleOptionState::update(void)
 
             case CHANGE_OUTPUT:
             {
-                changeOutputPath(m_titleInfo);
+                change_output_path(m_titleInfo);
+            }
+            break;
+
+            case FILE_MODE:
+            {
             }
             break;
 
             case DELETE_ALL_BACKUPS:
             {
             }
+            break;
+
+            case RESET_SAVE_DATA:
+            {
+            }
+            break;
+
+            case DELETE_SAVE_FROM_SYSTEM:
+            {
+            }
+            break;
+
+            case EXTEND_CONTAINER:
+            {
+            }
+            break;
+
+            case EXPORT_SVI:
+            {
+            }
+            break;
         }
     }
-    else if (input::buttonPressed(HidNpadButton_B))
+    else if (input::button_pressed(HidNpadButton_B))
     {
         sm_slidePanel->close();
     }
-    else if (sm_slidePanel->isClosed())
+    else if (sm_slidePanel->is_closed())
     {
         // Reset static members.
         sm_slidePanel->reset();
-        sm_titleOptionMenu->setSelected(0);
+        sm_titleOptionMenu->set_selected(0);
         AppState::deactivate();
     }
 }
 
 void TitleOptionState::render(void)
 {
-    sm_slidePanel->clearTarget();
-    sm_titleOptionMenu->render(sm_slidePanel->get(), AppState::hasFocus());
-    sm_slidePanel->render(NULL, AppState::hasFocus());
+    sm_slidePanel->clear_target();
+    sm_titleOptionMenu->render(sm_slidePanel->get(), AppState::has_focus());
+    sm_slidePanel->render(NULL, AppState::has_focus());
 }
 
-static void blacklistTitle(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void blacklist_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
 {
     // We're not gonna bother with a status for this. It'll flicker, but be barely noticeable.
-    config::addRemoveBlacklist(dataStruct->m_targetTitle->getApplicationID());
+    config::add_remove_blacklist(dataStruct->m_targetTitle->get_application_id());
     task->finished();
 }
 
-static void deleteAllBackupsForTitle(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
 {
     // Get the path.
-    fslib::Path titlePath = config::getWorkingDirectory() / dataStruct->m_targetTitle->getPathSafeTitle();
+    fslib::Path titlePath = config::get_working_directory() / dataStruct->m_targetTitle->get_path_safe_title();
 
     // Set the status.
-    task->setStatus(strings::getByName(strings::names::TITLE_OPTION_STATUS, 0), dataStruct->m_targetTitle->getTitle());
+    task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 0),
+                     dataStruct->m_targetTitle->get_title());
 
     // Just call this and nuke the folder.
     if (!fslib::deleteDirectoryRecursively(titlePath))
     {
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                           strings::getByName(strings::names::TITLE_OPTION_POPS, 1));
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 1));
     }
     else
     {
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                           strings::getByName(strings::names::TITLE_OPTION_POPS, 0),
-                                           dataStruct->m_targetTitle->getTitle());
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 0),
+                                            dataStruct->m_targetTitle->get_title());
     }
     task->finished();
 }
 
-static void resetSaveData(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
 {
     // Attempt to mount save.
-    if (!fslib::openSaveFileSystemWithSaveDataInfo(fs::DEFAULT_SAVE_MOUNT,
-                                                   *dataStruct->m_targetUser->getSaveInfoByID(dataStruct->m_targetTitle->getApplicationID())))
+    if (!fslib::openSaveFileSystemWithSaveDataInfo(
+            fs::DEFAULT_SAVE_MOUNT,
+            *dataStruct->m_targetUser->get_save_info_by_id(dataStruct->m_targetTitle->get_application_id())))
     {
         logger::log(ERROR_RESETTING_SAVE, fslib::getErrorString());
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                           strings::getByName(strings::names::TITLE_OPTION_POPS, 2));
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
         task->finished();
         return;
     }
@@ -161,8 +195,8 @@ static void resetSaveData(sys::Task *task, std::shared_ptr<TargetStruct> dataStr
     {
         fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
         logger::log(ERROR_RESETTING_SAVE, fslib::getErrorString());
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                           strings::getByName(strings::names::TITLE_OPTION_POPS, 2));
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
         task->finished();
         return;
     }
@@ -171,50 +205,54 @@ static void resetSaveData(sys::Task *task, std::shared_ptr<TargetStruct> dataStr
     if (!fslib::commitDataToFileSystem(fs::DEFAULT_SAVE_MOUNT))
     {
         fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
-        logger(ERROR_RESETTING_SAVE, fslib::getErrorString());
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                           strings::getByName(strings::names::TITLE_OPTION_POPS, 2));
+        logger::log(ERROR_RESETTING_SAVE, fslib::getErrorString());
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
         task->finished();
         return;
     }
 
     // Should be good to go.
     fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
-    ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS, strings::getByName(strings::names::TITLE_OPTION_POPS, 3));
+    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 3));
     task->finished();
 }
 
-static void deleteSaveDataFromSystem(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
 {
     // Set status. We're going to borrow this string from the other state's strings.
-    task->setStatus(strings::getByName(strings::names::USER_OPTION_STATUS, 1), dataStruct->m_targetTitle->getTitle());
+    task->set_status(strings::get_by_name(strings::names::USER_OPTION_STATUS, 1),
+                     dataStruct->m_targetTitle->get_title());
 }
 
-static void changeOutputPath(data::TitleInfo *targetTitle)
+static void change_output_path(data::TitleInfo *targetTitle)
 {
     // This is where we're writing the path.
     char pathBuffer[0x200] = {0};
 
     // Header string.
-    std::string headerString = stringutil::getFormattedString(strings::getByName(strings::names::KEYBOARD_STRINGS, 7), targetTitle->getTitle());
+    std::string headerString =
+        stringutil::get_formatted_string(strings::get_by_name(strings::names::KEYBOARD_STRINGS, 7),
+                                         targetTitle->get_title());
 
     // Try to get input.
-    if (!keyboard::getInput(SwkbdType_QWERTY, targetTitle->getPathSafeTitle(), headerString, pathBuffer, 0x200))
+    if (!keyboard::get_input(SwkbdType_QWERTY, targetTitle->get_path_safe_title(), headerString, pathBuffer, 0x200))
     {
         return;
     }
 
     // Try to make sure it will work.
-    if (!stringutil::sanitizeStringForPath(pathBuffer, pathBuffer, 0x200))
+    if (!stringutil::sanitize_string_for_path(pathBuffer, pathBuffer, 0x200))
     {
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                           strings::getByName(strings::names::POP_MESSAGES_TITLE_OPTIONS, 0));
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::POP_MESSAGES_TITLE_OPTIONS, 0));
         return;
     }
 
     // Rename folder to match so there are no issues.
-    fslib::Path oldPath = config::getWorkingDirectory() / targetTitle->getPathSafeTitle();
-    fslib::Path newPath = config::getWorkingDirectory() / pathBuffer;
+    fslib::Path oldPath = config::get_working_directory() / targetTitle->get_path_safe_title();
+    fslib::Path newPath = config::get_working_directory() / pathBuffer;
     if (fslib::directoryExists(oldPath) && !fslib::renameDirectory(oldPath, newPath))
     {
         // Bail if this fails, because something is really wrong.
@@ -223,11 +261,11 @@ static void changeOutputPath(data::TitleInfo *targetTitle)
     }
 
     // Add it to config and set target title to use it.
-    targetTitle->setPathSafeTitle(pathBuffer, std::strlen(pathBuffer));
-    config::addCustomPath(targetTitle->getApplicationID(), pathBuffer);
+    targetTitle->set_path_safe_title(pathBuffer, std::strlen(pathBuffer));
+    config::add_custom_path(targetTitle->get_application_id(), pathBuffer);
 
     // Pop so we know stuff happened.
-    ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                       strings::getByName(strings::names::POP_MESSAGES_TITLE_OPTIONS, 1),
-                                       pathBuffer);
+    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                        strings::get_by_name(strings::names::POP_MESSAGES_TITLE_OPTIONS, 1),
+                                        pathBuffer);
 }

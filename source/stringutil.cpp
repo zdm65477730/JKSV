@@ -15,7 +15,7 @@ namespace
         {L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®'};
 } // namespace
 
-std::string stringutil::getFormattedString(const char *format, ...)
+std::string stringutil::get_formatted_string(const char *format, ...)
 {
     char vaBuffer[VA_BUFFER_SIZE] = {0};
 
@@ -27,7 +27,7 @@ std::string stringutil::getFormattedString(const char *format, ...)
     return std::string(vaBuffer);
 }
 
-void stringutil::replaceInString(std::string &target, std::string_view find, std::string_view replace)
+void stringutil::replace_in_string(std::string &target, std::string_view find, std::string_view replace)
 {
     size_t stringPosition = 0;
     while ((stringPosition = target.find(find, stringPosition)) != target.npos)
@@ -36,7 +36,7 @@ void stringutil::replaceInString(std::string &target, std::string_view find, std
     }
 }
 
-bool stringutil::sanitizeStringForPath(const char *stringIn, char *stringOut, size_t stringOutSize)
+bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut, size_t stringOutSize)
 {
     uint32_t codepoint = 0;
     size_t stringLength = std::strlen(stringIn);
@@ -55,7 +55,8 @@ bool stringutil::sanitizeStringForPath(const char *stringIn, char *stringOut, si
         }
 
         // replace forbidden with spaces.
-        if (std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) != FORBIDDEN_PATH_CHARACTERS.end())
+        if (std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) !=
+            FORBIDDEN_PATH_CHARACTERS.end())
         {
             stringOut[stringOutOffset++] = 0x20;
         }
@@ -81,7 +82,7 @@ bool stringutil::sanitizeStringForPath(const char *stringIn, char *stringOut, si
     return true;
 }
 
-std::string stringutil::getDateString(stringutil::DateFormat format)
+std::string stringutil::get_date_string(stringutil::DateFormat format)
 {
     char stringBuffer[0x80] = {0};
 

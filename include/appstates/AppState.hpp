@@ -26,21 +26,21 @@ class AppState
 
         /// @brief Returns if the state is still active.
         /// @return Whether state is still active or can be purged.
-        bool isActive(void) const;
+        bool is_active(void) const;
 
         /// @brief Tells the state it's at the back of the vector and has focus.
-        void giveFocus(void);
+        void give_focus(void);
 
         /// @brief Takes the focus away and tells the state it's no long back();
-        void takeFocus(void);
+        void take_focus(void);
 
         /// @brief Allows the state to know whether it has focus.
         /// @return Whether state has focus or not.
-        bool hasFocus(void) const;
+        bool has_focus(void) const;
 
         /// @brief Returns whether or not JKSV should allow closing while state is active.
         /// @return True if closable. False if not.
-        bool isClosable(void) const;
+        bool is_closable(void) const;
 
     private:
         /// @brief Stores whether or not the state is currently active.

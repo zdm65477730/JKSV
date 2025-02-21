@@ -6,14 +6,16 @@
 #include <cmath>
 
 ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
-    : m_x(x), m_y(y), m_optionHeight(std::ceil(static_cast<double>(fontSize) * 1.8f)), m_originalY(y), m_targetY(y), m_width(width),
-      m_fontSize(fontSize), m_renderTargetHeight(renderTargetHeight)
+    : m_x(x), m_y(y), m_optionHeight(std::ceil(static_cast<double>(fontSize) * 1.8f)), m_originalY(y), m_targetY(y),
+      m_width(width), m_fontSize(fontSize), m_renderTargetHeight(renderTargetHeight)
 {
     // Create render target for options
     static int MENU_ID = 0;
     std::string menuTargetName = "MENU_" + std::to_string(MENU_ID++);
-    m_optionTarget =
-        sdl::TextureManager::createLoadTexture(menuTargetName, m_width, m_optionHeight, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    m_optionTarget = sdl::TextureManager::createLoadTexture(menuTargetName,
+                                                            m_width,
+                                                            m_optionHeight,
+                                                            SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
 
     // Calculate around how many options can be shown on the render target at once.
     m_maxDisplayOptions = (renderTargetHeight - m_originalY) / m_optionHeight;
@@ -29,27 +31,27 @@ void ui::Menu::update(bool hasFocus)
     }
 
     int optionsSize = m_options.size();
-    if (input::buttonPressed(HidNpadButton_AnyUp) && --m_selected < 0)
+    if (input::button_pressed(HidNpadButton_AnyUp) && --m_selected < 0)
     {
         m_selected = optionsSize - 1;
     }
-    else if (input::buttonPressed(HidNpadButton_AnyDown) && ++m_selected >= optionsSize)
+    else if (input::button_pressed(HidNpadButton_AnyDown) && ++m_selected >= optionsSize)
     {
         m_selected = 0;
     }
-    else if (input::buttonPressed(HidNpadButton_AnyLeft) && (m_selected -= m_scrollLength) < 0)
+    else if (input::button_pressed(HidNpadButton_AnyLeft) && (m_selected -= m_scrollLength) < 0)
     {
         m_selected = 0;
     }
-    else if (input::buttonPressed(HidNpadButton_AnyRight) && (m_selected += m_scrollLength) >= optionsSize)
+    else if (input::button_pressed(HidNpadButton_AnyRight) && (m_selected += m_scrollLength) >= optionsSize)
     {
         m_selected = optionsSize - 1;
     }
-    else if (input::buttonPressed(HidNpadButton_L) && (m_selected -= m_scrollLength * 3) < 0)
+    else if (input::button_pressed(HidNpadButton_L) && (m_selected -= m_scrollLength * 3) < 0)
     {
         m_selected = 0;
     }
-    else if (input::buttonPressed(HidNpadButton_R) && (m_selected += m_scrollLength * 3) >= optionsSize)
+    else if (input::button_pressed(HidNpadButton_R) && (m_selected += m_scrollLength * 3) >= optionsSize)
     {
         m_selected = optionsSize - 1;
     }
@@ -75,7 +77,7 @@ void ui::Menu::update(bool hasFocus)
 
     if (m_y != m_targetY)
     {
-        m_y += std::ceil((m_targetY - m_y) / config::getAnimationScaling());
+        m_y += std::ceil((m_targetY - m_y) / config::get_animation_scaling());
     }
 }
 
@@ -111,7 +113,7 @@ void ui::Menu::render(SDL_Texture *target, bool hasFocus)
             if (hasFocus)
             {
                 // render the bounding box
-                ui::renderBoundingBox(target, m_x - 4, tempY - 4, m_width + 8, m_optionHeight + 8, m_colorMod);
+                ui::render_bounding_box(target, m_x - 4, tempY - 4, m_width + 8, m_optionHeight + 8, m_colorMod);
             }
             // render the little rectangle.
             sdl::renderRectFill(m_optionTarget->get(), 8, 8, 4, m_optionHeight - 16, colors::BLUE_GREEN);
@@ -129,12 +131,12 @@ void ui::Menu::render(SDL_Texture *target, bool hasFocus)
     }
 }
 
-void ui::Menu::addOption(std::string_view newOption)
+void ui::Menu::add_option(std::string_view newOption)
 {
     m_options.push_back(newOption.data());
 }
 
-void ui::Menu::editOption(int index, std::string_view newOption)
+void ui::Menu::edit_option(int index, std::string_view newOption)
 {
     if (index < 0 || index >= static_cast<int>(m_options.size()))
     {
@@ -143,17 +145,17 @@ void ui::Menu::editOption(int index, std::string_view newOption)
     m_options[index] = newOption.data();
 }
 
-int ui::Menu::getSelected(void) const
+int ui::Menu::get_selected(void) const
 {
     return m_selected;
 }
 
-void ui::Menu::setSelected(int selected)
+void ui::Menu::set_selected(int selected)
 {
     m_selected = selected;
 }
 
-void ui::Menu::setWidth(int width)
+void ui::Menu::set_width(int width)
 {
     m_width = width;
 }

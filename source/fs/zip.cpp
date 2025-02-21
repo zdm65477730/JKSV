@@ -45,7 +45,8 @@ static void zipReadThreadFunction(fslib::File &source, std::shared_ptr<ZipIOStru
         sharedData->m_bufferCondition.notify_one();
         // Wait for other thread to release lock on buffer so this thread can read again.
         std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-        sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull == false; });
+        sharedData->m_bufferCondition.wait(m_bufferLock,
+                                           [&sharedData]() { return sharedData->m_bufferIsFull == false; });
     }
 }
 
@@ -63,11 +64,12 @@ static void unzipReadThreadFunction(unzFile source, int64_t fileSize, std::share
         sharedData->m_bufferCondition.notify_one();
 
         std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-        sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull == false; });
+        sharedData->m_bufferCondition.wait(m_bufferLock,
+                                           [&sharedData]() { return sharedData->m_bufferIsFull == false; });
     }
 }
 
-void fs::copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys::ProgressTask *task)
+void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, sys::ProgressTask *task)
 {
     fslib::Directory sourceDir(source);
     if (!sourceDir)
@@ -81,7 +83,7 @@ void fs::copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys:
         if (sourceDir.isDirectory(i))
         {
             fslib::Path newSource = source / sourceDir[i];
-            fs::copyDirectoryToZip(newSource, destination, task);
+            fs::copy_directory_to_zip(newSource, destination, task);
         }
         else
         {
@@ -119,7 +121,7 @@ void fs::copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys:
                                                  0,
                                                  NULL,
                                                  Z_DEFLATED,
-                                                 config::getByKey(config::keys::ZIP_COMPRESSION_LEVEL),
+                                                 config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL),
                                                  1);
             if (zipError != ZIP_OK)
             {
@@ -137,7 +139,7 @@ void fs::copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys:
             // Update task if passed.
             if (task)
             {
-                task->setStatus(strings::getByName(strings::names::COPYING_FILES, 1), fullSource.cString());
+                task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 1), fullSource.cString());
                 task->reset(static_cast<double>(sourceFile.getSize()));
             }
 
@@ -149,7 +151,8 @@ void fs::copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys:
                 {
                     // Wait for buffer signal
                     std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-                    sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull; });
+                    sharedData->m_bufferCondition.wait(m_bufferLock,
+                                                       [&sharedData]() { return sharedData->m_bufferIsFull; });
 
                     // Save read count, copy shared to local.
                     readCount = sharedData->m_readCount;
@@ -169,7 +172,7 @@ void fs::copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys:
                 writeCount += readCount;
                 if (task)
                 {
-                    task->updateCurrent(static_cast<double>(writeCount));
+                    task->update_current(static_cast<double>(writeCount));
                 }
             }
             // Wait for thread
@@ -180,11 +183,11 @@ void fs::copyDirectoryToZip(const fslib::Path &source, zipFile destination, sys:
     }
 }
 
-void fs::copyZipToDirectory(unzFile source,
-                            const fslib::Path &destination,
-                            uint64_t journalSize,
-                            std::string_view commitDevice,
-                            sys::ProgressTask *task)
+void fs::copy_zip_to_directory(unzFile source,
+                               const fslib::Path &destination,
+                               uint64_t journalSize,
+                               std::string_view commitDevice,
+                               sys::ProgressTask *task)
 {
     int zipError = unzGoToFirstFile(source);
     if (zipError != UNZ_OK)
@@ -216,7 +219,9 @@ void fs::copyZipToDirectory(unzFile source,
             continue;
         }
 
-        fslib::File destinationFile(fullDestination, FsOpenMode_Create | FsOpenMode_Write, currentFileInfo.uncompressed_size);
+        fslib::File destinationFile(fullDestination,
+                                    FsOpenMode_Create | FsOpenMode_Write,
+                                    currentFileInfo.uncompressed_size);
         if (!destinationFile)
         {
             logger::log("Error creating file from zip: %s", fslib::getErrorString());
@@ -236,16 +241,18 @@ void fs::copyZipToDirectory(unzFile source,
         // Set status
         if (task)
         {
-            task->setStatus(strings::getByName(strings::names::COPYING_FILES, 3), filename);
+            task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 3), filename);
             task->reset(static_cast<double>(currentFileInfo.uncompressed_size));
         }
 
-        for (int64_t writeCount = 0, readCount = 0, journalCount = 0; writeCount < static_cast<int64_t>(currentFileInfo.uncompressed_size);)
+        for (int64_t writeCount = 0, readCount = 0, journalCount = 0;
+             writeCount < static_cast<int64_t>(currentFileInfo.uncompressed_size);)
         {
             {
                 // Wait for buffer.
                 std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-                sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull; });
+                sharedData->m_bufferCondition.wait(m_bufferLock,
+                                                   [&sharedData]() { return sharedData->m_bufferIsFull; });
 
                 // Save read count for later
                 readCount = sharedData->m_readCount;
@@ -282,7 +289,7 @@ void fs::copyZipToDirectory(unzFile source,
             // Update status
             if (task)
             {
-                task->updateCurrent(writeCount);
+                task->update_current(writeCount);
             }
         }
         // Close file and commit again just for good measure.
@@ -294,7 +301,7 @@ void fs::copyZipToDirectory(unzFile source,
     } while (unzGoToNextFile(source) != UNZ_END_OF_LIST_OF_FILE);
 }
 
-bool fs::zipHasContents(const fslib::Path &zipPath)
+bool fs::zip_has_contents(const fslib::Path &zipPath)
 {
     unzFile testZip = unzOpen(zipPath.cString());
     if (!testZip)

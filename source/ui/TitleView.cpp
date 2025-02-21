@@ -31,32 +31,32 @@ void ui::TitleView::update(bool hasFocus)
 
     // Input.
     int totalTiles = m_titleTiles.size() - 1;
-    if (input::buttonPressed(HidNpadButton_AnyUp) && (m_selected -= ICON_ROW_SIZE) < 0)
+    if (input::button_pressed(HidNpadButton_AnyUp) && (m_selected -= ICON_ROW_SIZE) < 0)
     {
         m_selected = 0;
     }
-    else if (input::buttonPressed(HidNpadButton_AnyDown) && (m_selected += ICON_ROW_SIZE) > totalTiles)
+    else if (input::button_pressed(HidNpadButton_AnyDown) && (m_selected += ICON_ROW_SIZE) > totalTiles)
     {
         m_selected = totalTiles;
     }
-    else if (input::buttonPressed(HidNpadButton_AnyLeft) && m_selected > 0)
+    else if (input::button_pressed(HidNpadButton_AnyLeft) && m_selected > 0)
     {
         --m_selected;
     }
-    else if (input::buttonPressed(HidNpadButton_AnyRight) && m_selected < totalTiles)
+    else if (input::button_pressed(HidNpadButton_AnyRight) && m_selected < totalTiles)
     {
         ++m_selected;
     }
-    else if (input::buttonPressed(HidNpadButton_L) && (m_selected -= 21) < 0)
+    else if (input::button_pressed(HidNpadButton_L) && (m_selected -= 21) < 0)
     {
         m_selected = 0;
     }
-    else if (input::buttonPressed(HidNpadButton_R) && (m_selected += 21) > totalTiles)
+    else if (input::button_pressed(HidNpadButton_R) && (m_selected += 21) > totalTiles)
     {
         m_selected = totalTiles;
     }
 
-    double scaling = config::getAnimationScaling();
+    double scaling = config::get_animation_scaling();
     if (m_selectedY > 388.0f)
     {
         m_y += std::ceil((388.0f - m_selectedY) / scaling);
@@ -104,12 +104,12 @@ void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
     if (hasFocus)
     {
         sdl::renderRectFill(target, m_selectedX - 23, m_selectedY - 23, 174, 174, colors::CLEAR_COLOR);
-        ui::renderBoundingBox(target, m_selectedX - 24, m_selectedY - 24, 176, 176, m_colorMod);
+        ui::render_bounding_box(target, m_selectedX - 24, m_selectedY - 24, 176, 176, m_colorMod);
     }
     m_titleTiles.at(m_selected).render(target, m_selectedX, m_selectedY);
 }
 
-int ui::TitleView::getSelected(void) const
+int ui::TitleView::get_selected(void) const
 {
     return m_selected;
 }
@@ -117,12 +117,12 @@ int ui::TitleView::getSelected(void) const
 void ui::TitleView::refresh(void)
 {
     m_titleTiles.clear();
-    for (size_t i = 0; i < m_user->getTotalDataEntries(); i++)
+    for (size_t i = 0; i < m_user->get_total_data_entries(); i++)
     {
         // Get pointer to data from user save index I.
-        data::TitleInfo *currentTitleInfo = data::getTitleInfoByID(m_user->getApplicationIDAt(i));
+        data::TitleInfo *currentTitleInfo = data::get_title_info_by_id(m_user->get_application_id_at(i));
         // Emplace is faster than push
-        m_titleTiles.emplace_back(config::isFavorite(m_user->getApplicationIDAt(i)), currentTitleInfo->getIcon());
+        m_titleTiles.emplace_back(config::is_favorite(m_user->get_application_id_at(i)), currentTitleInfo->get_icon());
     }
 }
 

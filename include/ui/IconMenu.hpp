@@ -36,7 +36,7 @@ namespace ui
 
             /// @brief Adds a new icon to the menu.
             /// @param newOption Icon to add.
-            void addOption(sdl::SharedTexture newOption);
+            void add_option(sdl::SharedTexture newOption);
 
         private:
             /// @brief Vector of shared texture pointers to textures used.

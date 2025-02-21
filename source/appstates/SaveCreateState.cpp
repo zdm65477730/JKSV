@@ -14,10 +14,10 @@
 #include <vector>
 
 // This sorts the vector alphabetically so stuff is easier to find
-static bool compareInfo(data::TitleInfo *infoA, data::TitleInfo *infoB)
+static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB)
 {
-    const char *titleA = infoA->getTitle();
-    const char *titleB = infoB->getTitle();
+    const char *titleA = infoA->get_title();
+    const char *titleB = infoB->get_title();
 
     size_t titleALength = std::char_traits<char>::length(titleA);
     size_t titleBLength = std::char_traits<char>::length(titleB);
@@ -48,7 +48,7 @@ static bool compareInfo(data::TitleInfo *infoA, data::TitleInfo *infoB)
 }
 
 // Declarations here. Definitions under class.
-static void createSaveData(sys::Task *task, data::User *targetUser, data::TitleInfo *titleInfo);
+static void create_save_data(sys::Task *task, data::User *targetUser, data::TitleInfo *titleInfo);
 
 SaveCreateState::SaveCreateState(data::User *targetUser, TitleSelectCommon *titleSelect)
     : m_user(targetUser), m_titleSelect(titleSelect), m_saveMenu(8, 8, 624, 22, 720)
@@ -61,32 +61,32 @@ SaveCreateState::SaveCreateState(data::User *targetUser, TitleSelectCommon *titl
     }
 
     // Get title info vector and copy titles to menu.
-    data::getTitleInfoByType(m_user->getAccountSaveType(), m_titleInfoVector);
+    data::get_title_info_by_type(m_user->get_account_save_type(), m_titleInfoVector);
 
     // Sort it by alpha
-    std::sort(m_titleInfoVector.begin(), m_titleInfoVector.end(), compareInfo);
+    std::sort(m_titleInfoVector.begin(), m_titleInfoVector.end(), compare_info);
 
     for (size_t i = 0; i < m_titleInfoVector.size(); i++)
     {
-        m_saveMenu.addOption(m_titleInfoVector.at(i)->getTitle());
+        m_saveMenu.add_option(m_titleInfoVector.at(i)->get_title());
     }
 }
 
 void SaveCreateState::update(void)
 {
-    m_saveMenu.update(AppState::hasFocus());
-    sm_slidePanel->update(AppState::hasFocus());
+    m_saveMenu.update(AppState::has_focus());
+    sm_slidePanel->update(AppState::has_focus());
 
-    if (input::buttonPressed(HidNpadButton_A))
+    if (input::button_pressed(HidNpadButton_A))
     {
-        data::TitleInfo *targetTitle = m_titleInfoVector.at(m_saveMenu.getSelected());
-        JKSV::pushState(std::make_shared<TaskState>(createSaveData, m_user, targetTitle));
+        data::TitleInfo *targetTitle = m_titleInfoVector.at(m_saveMenu.get_selected());
+        JKSV::push_state(std::make_shared<TaskState>(create_save_data, m_user, targetTitle));
     }
-    else if (input::buttonPressed(HidNpadButton_B))
+    else if (input::button_pressed(HidNpadButton_B))
     {
         sm_slidePanel->close();
     }
-    else if (sm_slidePanel->isClosed())
+    else if (sm_slidePanel->is_closed())
     {
         sm_slidePanel->reset();
         AppState::deactivate();
@@ -96,26 +96,26 @@ void SaveCreateState::update(void)
 void SaveCreateState::render(void)
 {
     // Clear slide target, render menu, render slide to frame buffer.
-    sm_slidePanel->clearTarget();
-    m_saveMenu.render(sm_slidePanel->get(), AppState::hasFocus());
-    sm_slidePanel->render(NULL, AppState::hasFocus());
+    sm_slidePanel->clear_target();
+    m_saveMenu.render(sm_slidePanel->get(), AppState::has_focus());
+    sm_slidePanel->render(NULL, AppState::has_focus());
 }
 
-static void createSaveData(sys::Task *task, data::User *targetUser, data::TitleInfo *titleInfo)
+static void create_save_data(sys::Task *task, data::User *targetUser, data::TitleInfo *titleInfo)
 {
     // Set status. We'll just borrow the string from the other group.
-    task->setStatus(strings::getByName(strings::names::USER_OPTION_STATUS, 0), titleInfo->getTitle());
+    task->set_status(strings::get_by_name(strings::names::USER_OPTION_STATUS, 0), titleInfo->get_title());
 
-    if (fs::createSaveDataFor(targetUser, titleInfo))
+    if (fs::create_save_data_for(targetUser, titleInfo))
     {
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                           strings::getByName(strings::names::POP_MESSAGES_SAVE_CREATE, 0),
-                                           titleInfo->getTitle());
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::POP_MESSAGES_SAVE_CREATE, 0),
+                                            titleInfo->get_title());
     }
     else
     {
-        ui::PopMessageManager::pushMessage(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                           strings::getByName(strings::names::POP_MESSAGES_SAVE_CREATE, 1));
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::POP_MESSAGES_SAVE_CREATE, 1));
     }
     task->finished();
 }

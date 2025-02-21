@@ -1,6 +1,6 @@
 #include "fs/directoryFunctions.hpp"
 
-uint64_t fs::getDirectoryTotalSize(const fslib::Path &targetPath)
+uint64_t fs::get_directory_total_size(const fslib::Path &targetPath)
 {
     fslib::Directory targetDir(targetPath);
     if (!targetDir)
@@ -14,7 +14,7 @@ uint64_t fs::getDirectoryTotalSize(const fslib::Path &targetPath)
         if (targetDir.isDirectory(i))
         {
             fslib::Path newTarget = targetPath / targetDir[i];
-            directorySize += getDirectoryTotalSize(newTarget);
+            directorySize += get_directory_total_size(newTarget);
         }
         else
         {
@@ -24,7 +24,7 @@ uint64_t fs::getDirectoryTotalSize(const fslib::Path &targetPath)
     return directorySize;
 }
 
-bool fs::directoryHasContents(const fslib::Path &directoryPath)
+bool fs::directory_has_contents(const fslib::Path &directoryPath)
 {
     fslib::Directory testDir(directoryPath);
     if (!testDir)

@@ -27,11 +27,11 @@ namespace ui
 
             /// @brief Returns the render width in pixels.
             /// @return Render width.
-            int getWidth(void) const;
+            int get_width(void) const;
 
             /// @brief Returns the render height in pixels.
             /// @return Render height.
-            int getHeight(void) const;
+            int get_height(void) const;
 
         private:
             /// @brief Width in pixels to render icon at.

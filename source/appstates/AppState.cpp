@@ -27,27 +27,27 @@ void AppState::reactivate(void)
     m_isActive = true;
 }
 
-bool AppState::isActive(void) const
+bool AppState::is_active(void) const
 {
     return m_isActive;
 }
 
-void AppState::giveFocus(void)
+void AppState::give_focus(void)
 {
     m_hasFocus = true;
 }
 
-void AppState::takeFocus(void)
+void AppState::take_focus()
 {
     m_hasFocus = false;
 }
 
-bool AppState::hasFocus(void) const
+bool AppState::has_focus(void) const
 {
     return m_hasFocus;
 }
 
-bool AppState::isClosable(void) const
+bool AppState::is_closable(void) const
 {
     return m_isClosable;
 }

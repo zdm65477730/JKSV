@@ -36,12 +36,12 @@ void ui::TitleTile::reset(void)
     m_renderHeight = 128;
 }
 
-int ui::TitleTile::getWidth(void) const
+int ui::TitleTile::get_width(void) const
 {
     return m_renderWidth;
 }
 
-int ui::TitleTile::getHeight(void) const
+int ui::TitleTile::get_height(void) const
 {
     return m_renderHeight;
 }

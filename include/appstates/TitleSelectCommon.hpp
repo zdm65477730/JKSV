@@ -21,7 +21,7 @@ class TitleSelectCommon : public AppState
         virtual void refresh(void) = 0;
 
         /// @brief Renders the control guide string to the bottom right corner.
-        void renderControlGuide(void);
+        void render_control_guide(void);
 
     private:
         /// @brief X coordinate the control guide is rendered at.

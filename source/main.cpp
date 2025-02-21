@@ -5,7 +5,7 @@
 int main(void)
 {
     JKSV jksv{};
-    while (appletMainLoop() && jksv.isRunning())
+    while (appletMainLoop() && jksv.is_running())
     {
         jksv.update();
         jksv.render();

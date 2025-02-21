@@ -33,23 +33,23 @@ namespace ui
 
             /// @brief Adds and option to the menu.
             /// @param newOption Option to add to menu.
-            void addOption(std::string_view newOption);
+            void add_option(std::string_view newOption);
 
             /// @brief Allows updating and editing the option.
             /// @param newOption Option to change text to.
-            void editOption(int index, std::string_view newOption);
+            void edit_option(int index, std::string_view newOption);
 
             /// @brief Returns the index of the currently selected menu option.
             /// @return Index of currently selected option.
-            int getSelected(void) const;
+            int get_selected(void) const;
 
             /// @brief Sets the selected item.
             /// @param selected Value to set selected to.
-            void setSelected(int selected);
+            void set_selected(int selected);
 
             /// @brief This is a workaround function until I find something better.
             /// @param width New width of the menu in pixels.
-            void setWidth(int width);
+            void set_width(int width);
 
             /// @brief Resets the menu and returns it to an empty, default state.
             void reset(void);

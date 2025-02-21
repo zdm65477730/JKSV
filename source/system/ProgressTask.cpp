@@ -6,17 +6,17 @@ void sys::ProgressTask::reset(double goal)
     m_goal = goal;
 }
 
-void sys::ProgressTask::updateCurrent(double current)
+void sys::ProgressTask::update_current(double current)
 {
     m_current = current;
 }
 
-double sys::ProgressTask::getGoal(void) const
+double sys::ProgressTask::get_goal(void) const
 {
     return m_goal;
 }
 
-double sys::ProgressTask::getCurrent(void) const
+double sys::ProgressTask::get_current(void) const
 {
     return m_current / m_goal;
 }

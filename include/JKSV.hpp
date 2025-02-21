@@ -16,7 +16,7 @@ class JKSV
 
         /// @brief Returns if initializing was successful and JKSV is running.
         /// @return True or false.
-        bool isRunning(void) const;
+        bool is_running(void) const;
 
         /// @brief Runs JKSV's update routine.
         void update(void);
@@ -26,7 +26,7 @@ class JKSV
 
         /// @brief Pushes a new state to JKSV's state vector.
         /// @param newState State to push to vector.
-        static void pushState(std::shared_ptr<AppState> newState);
+        static void push_state(std::shared_ptr<AppState> newState);
 
     private:
         /// @brief Whether or not initialization was successful and JKSV is still running.
@@ -38,5 +38,5 @@ class JKSV
         /// @brief Vector of states to update and render.
         static inline std::vector<std::shared_ptr<AppState>> sm_stateVector;
         /// @brief Purges and updates states in sm_stateVector.
-        static void updateStateVector(void);
+        static void update_state_vector(void);
 };

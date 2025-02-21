@@ -11,5 +11,9 @@ namespace keyboard
     /// @param stringOut Pointer to buffer to write to.
     /// @param stringLength Size of the buffer to write too.
     /// @return True if input was successful and valid. False if it wasn't.
-    bool getInput(SwkbdType keyboardType, std::string_view defaultText, std::string_view header, char *stringOut, size_t stringLength);
+    bool get_input(SwkbdType keyboardType,
+                   std::string_view defaultText,
+                   std::string_view header,
+                   char *stringOut,
+                   size_t stringLength);
 } // namespace keyboard

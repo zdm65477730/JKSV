@@ -10,7 +10,7 @@ namespace ui
     /// @param y Y coordinate to render to.
     /// @param width Width of dialog box in pixels.
     /// @param height Height of dialog box in pixels.
-    void renderDialogBox(SDL_Texture *target, int x, int y, int width, int height);
+    void render_dialog_box(SDL_Texture *target, int x, int y, int width, int height);
 
     /// @brief Renders a bounding box.
     /// @param target Target to render to.
@@ -19,5 +19,5 @@ namespace ui
     /// @param width Width of dialog box in pixels.
     /// @param height Height of dialog box in pixels.
     /// @param colorMod Color to multiply in rendering.
-    void renderBoundingBox(SDL_Texture *target, int x, int y, int width, int height, uint8_t colorMod);
+    void render_bounding_box(SDL_Texture *target, int x, int y, int width, int height, uint8_t colorMod);
 } // namespace ui

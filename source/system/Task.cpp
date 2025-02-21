@@ -12,7 +12,7 @@ sys::Task::~Task()
     m_thread.join();
 }
 
-bool sys::Task::isRunning(void) const
+bool sys::Task::is_running(void) const
 {
     return m_isRunning;
 }
@@ -22,7 +22,7 @@ void sys::Task::finished(void)
     m_isRunning = false;
 }
 
-void sys::Task::setStatus(const char *format, ...)
+void sys::Task::set_status(const char *format, ...)
 {
     char vaBuffer[VA_BUFFER_SIZE] = {0};
 
@@ -35,7 +35,7 @@ void sys::Task::setStatus(const char *format, ...)
     m_status = vaBuffer;
 }
 
-std::string sys::Task::getStatus(void)
+std::string sys::Task::get_status(void)
 {
     std::scoped_lock<std::mutex> StatusLock(m_statusLock);
     return m_status;
