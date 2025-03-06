@@ -21,10 +21,10 @@ namespace
 
 TitleSelectState::TitleSelectState(data::User *user)
     : TitleSelectCommon(), m_user(user),
-      m_renderTarget(sdl::TextureManager::createLoadTexture(SECONDARY_TARGET,
-                                                            1080,
-                                                            555,
-                                                            SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
+      m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
+                                                              1080,
+                                                              555,
+                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
       m_titleView(m_user) {};
 
 void TitleSelectState::update(void)
@@ -41,8 +41,8 @@ void TitleSelectState::update(void)
         // Path to output to.
         fslib::Path targetPath = config::get_working_directory() / titleInfo->get_path_safe_title();
 
-        if ((fslib::directoryExists(targetPath) || fslib::createDirectory(targetPath)) &&
-            fslib::openSaveFileSystemWithSaveDataInfo(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
+        if ((fslib::directory_exists(targetPath) || fslib::create_directory(targetPath)) &&
+            fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
         {
             JKSV::push_state(std::make_shared<BackupMenuState>(m_user,
                                                                titleInfo,
@@ -50,7 +50,7 @@ void TitleSelectState::update(void)
         }
         else
         {
-            logger::log("%s", fslib::getErrorString());
+            logger::log("%s", fslib::get_error_string());
         }
     }
     else if (input::button_pressed(HidNpadButton_X))

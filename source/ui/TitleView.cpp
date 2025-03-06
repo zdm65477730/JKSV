@@ -3,7 +3,7 @@
 #include "config.hpp"
 #include "input.hpp"
 #include "logger.hpp"
-#include "ui/renderFunctions.hpp"
+#include "ui/render_functions.hpp"
 #include <cmath>
 
 namespace
@@ -103,7 +103,7 @@ void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
     // Now render the selected title.
     if (hasFocus)
     {
-        sdl::renderRectFill(target, m_selectedX - 23, m_selectedY - 23, 174, 174, colors::CLEAR_COLOR);
+        sdl::render_rect_fill(target, m_selectedX - 23, m_selectedY - 23, 174, 174, colors::CLEAR_COLOR);
         ui::render_bounding_box(target, m_selectedX - 24, m_selectedY - 24, 176, 176, m_colorMod);
     }
     m_titleTiles.at(m_selected).render(target, m_selectedX, m_selectedY);

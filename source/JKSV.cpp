@@ -48,7 +48,7 @@ JKSV::JKSV(void)
     ABORT_ON_FAILURE(initialize_service(romfsInit, "RomFS"));
 
     // Let FsLib take care of calls to SDMC instead of fs_dev
-    ABORT_ON_FAILURE(fslib::dev::initializeSDMC());
+    ABORT_ON_FAILURE(fslib::dev::initialize_sdmc());
 
     // SDL
     ABORT_ON_FAILURE(sdl::initialize("JKSV", 1280, 720));
@@ -73,9 +73,9 @@ JKSV::JKSV(void)
 
     // Get and create working directory. There isn't much of an FS anymore.
     fslib::Path workingDirectory = config::get_working_directory();
-    if (!fslib::directoryExists(workingDirectory) && !fslib::createDirectoriesRecursively(workingDirectory))
+    if (!fslib::directory_exists(workingDirectory) && !fslib::create_directories_recursively(workingDirectory))
     {
-        logger::log("Error creating working directory: %s", fslib::getErrorString());
+        logger::log("Error creating working directory: %s", fslib::get_error_string());
         return;
     }
 
@@ -88,19 +88,19 @@ JKSV::JKSV(void)
     }
 
     // Install/setup our color changing characters.
-    sdl::text::addColorCharacter(L'#', colors::BLUE);
-    sdl::text::addColorCharacter(L'*', colors::RED);
-    sdl::text::addColorCharacter(L'<', colors::YELLOW);
-    sdl::text::addColorCharacter(L'>', colors::GREEN);
-    sdl::text::addColorCharacter(L'`', colors::BLUE_GREEN);
-    sdl::text::addColorCharacter(L'^', colors::PINK);
+    sdl::text::add_color_character(L'#', colors::BLUE);
+    sdl::text::add_color_character(L'*', colors::RED);
+    sdl::text::add_color_character(L'<', colors::YELLOW);
+    sdl::text::add_color_character(L'>', colors::GREEN);
+    sdl::text::add_color_character(L'`', colors::BLUE_GREEN);
+    sdl::text::add_color_character(L'^', colors::PINK);
 
     // This is to check whether the author wanted credit for their work.
     m_showTranslationInfo =
         std::char_traits<char>::compare(strings::get_by_name(strings::names::TRANSLATION_INFO, 1), "NULL", 4) != 0;
 
     // This can't be in an initializer list because it needs SDL initialized.
-    m_headerIcon = sdl::TextureManager::createLoadTexture("HeaderIcon", "romfs:/Textures/HeaderIcon.png");
+    m_headerIcon = sdl::TextureManager::create_load_texture("HeaderIcon", "romfs:/Textures/HeaderIcon.png");
 
     // Push initial main menu state.
     JKSV::push_state(std::make_shared<MainMenuState>());
@@ -148,10 +148,10 @@ void JKSV::update(void)
 
 void JKSV::render(void)
 {
-    sdl::frameBegin(colors::CLEAR_COLOR);
+    sdl::frame_begin(colors::CLEAR_COLOR);
     // Top and bottom divider lines.
-    sdl::renderLine(NULL, 30, 88, 1250, 88, colors::WHITE);
-    sdl::renderLine(NULL, 30, 648, 1250, 648, colors::WHITE);
+    sdl::render_line(NULL, 30, 88, 1250, 88, colors::WHITE);
+    sdl::render_line(NULL, 30, 648, 1250, 648, colors::WHITE);
     // Icon
     m_headerIcon->render(NULL, 66, 27);
     // "JKSV"
@@ -192,7 +192,7 @@ void JKSV::render(void)
     // Render messages.
     ui::PopMessageManager::render();
 
-    sdl::frameEnd();
+    sdl::frame_end();
 }
 
 void JKSV::push_state(std::shared_ptr<AppState> newState)

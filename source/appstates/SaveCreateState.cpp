@@ -16,6 +16,7 @@
 // This sorts the vector alphabetically so stuff is easier to find
 static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB)
 {
+    // Get pointers to both titles.
     const char *titleA = infoA->get_title();
     const char *titleB = infoB->get_title();
 

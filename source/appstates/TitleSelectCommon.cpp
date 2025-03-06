@@ -7,7 +7,7 @@ TitleSelectCommon::TitleSelectCommon(void)
 {
     if (m_titleControlsX == 0)
     {
-        m_titleControlsX = 1220 - sdl::text::getWidth(22, strings::get_by_name(strings::names::CONTROL_GUIDES, 1));
+        m_titleControlsX = 1220 - sdl::text::get_width(22, strings::get_by_name(strings::names::CONTROL_GUIDES, 1));
     }
 }
 

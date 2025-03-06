@@ -5,7 +5,7 @@
 #include "strings.hpp"
 #include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
-#include "ui/renderFunctions.hpp"
+#include "ui/render_functions.hpp"
 #include <cmath>
 
 void ProgressState::update(void)
@@ -23,19 +23,19 @@ void ProgressState::update(void)
     m_progressBarWidth = std::ceil(656.0f * m_task.get_current());
     m_progress = std::ceil(m_task.get_current() * 100);
     m_percentageString = stringutil::get_formatted_string("%u", m_progress);
-    m_percentageX = 640 - (sdl::text::getWidth(18, m_percentageString.c_str()));
+    m_percentageX = 640 - (sdl::text::get_width(18, m_percentageString.c_str()));
 }
 
 void ProgressState::render(void)
 {
     // This will dim the background.
-    sdl::renderRectFill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
+    sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
 
     // Render the dialog and little loading bar thingy.
     ui::render_dialog_box(NULL, 280, 262, 720, 256);
     sdl::text::render(NULL, 312, 288, 18, 648, colors::WHITE, m_task.get_status().c_str());
-    sdl::renderRectFill(NULL, 312, 462, 656, 32, colors::BLACK);
-    sdl::renderRectFill(NULL, 312, 462, m_progressBarWidth, 32, colors::GREEN);
+    sdl::render_rect_fill(NULL, 312, 462, 656, 32, colors::BLACK);
+    sdl::render_rect_fill(NULL, 312, 462, m_progressBarWidth, 32, colors::GREEN);
     sdl::text::render(NULL,
                       m_percentageX,
                       468,

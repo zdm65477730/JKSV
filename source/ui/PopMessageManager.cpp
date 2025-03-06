@@ -3,7 +3,7 @@
 #include "config.hpp"
 #include "logger.hpp"
 #include "sdl.hpp"
-#include "ui/renderFunctions.hpp"
+#include "ui/render_functions.hpp"
 #include <cstdarg>
 
 namespace
@@ -27,7 +27,7 @@ void ui::PopMessageManager::update(void)
             // New message.
             manager.m_messages.push_back({.m_y = 720,
                                           .m_targetY = 720,
-                                          .m_width = sdl::text::getWidth(32, currentMessage.c_str()) + 32,
+                                          .m_width = sdl::text::get_width(32, currentMessage.c_str()) + 32,
                                           .m_message = currentMessage,
                                           .m_timer = sys::Timer(displayTicks)});
         }

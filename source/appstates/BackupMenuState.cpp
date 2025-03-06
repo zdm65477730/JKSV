@@ -52,15 +52,15 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
 {
     if (!sm_isInitialized)
     {
-        sm_panelWidth = sdl::text::getWidth(22, strings::get_by_name(strings::names::CONTROL_GUIDES, 2)) + 64;
+        sm_panelWidth = sdl::text::get_width(22, strings::get_by_name(strings::names::CONTROL_GUIDES, 2)) + 64;
         // To do: Give classes an alternate so they don't have to be constructed.
         sm_backupMenu = std::make_shared<ui::Menu>(8, 8, sm_panelWidth - 14, 24, 600);
         sm_slidePanel = std::make_unique<ui::SlideOutPanel>(sm_panelWidth, ui::SlideOutPanel::Side::Right);
         sm_menuRenderTarget =
-            sdl::TextureManager::createLoadTexture("backupMenuTarget",
-                                                   sm_panelWidth,
-                                                   600,
-                                                   SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+            sdl::TextureManager::create_load_texture("backupMenuTarget",
+                                                     sm_panelWidth,
+                                                     600,
+                                                     SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
         sm_isInitialized = true;
     }
 
@@ -73,7 +73,7 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
 
 
     fslib::Directory saveCheck(fs::DEFAULT_SAVE_PATH);
-    m_saveHasData = saveCheck.getCount() > 0;
+    m_saveHasData = saveCheck.get_count() > 0;
 
     BackupMenuState::refresh();
 }
@@ -113,8 +113,8 @@ void BackupMenuState::update(void)
             std::strcat(backupName, ".zip");
         }
         else if (!config::get_by_key(config::keys::EXPORT_TO_ZIP) && !std::strstr(backupName, ".zip") &&
-                 !fslib::directoryExists(m_directoryPath / backupName) &&
-                 !fslib::createDirectory(m_directoryPath / backupName))
+                 !fslib::directory_exists(m_directoryPath / backupName) &&
+                 !fslib::create_directory(m_directoryPath / backupName))
         {
             return;
         }
@@ -162,13 +162,13 @@ void BackupMenuState::update(void)
         fslib::Path targetPath = m_directoryPath / m_directoryListing[selected];
 
         // This is a quick check to avoid restoring blanks.
-        if (fslib::directoryExists(targetPath) && !fs::directory_has_contents(targetPath))
+        if (fslib::directory_exists(targetPath) && !fs::directory_has_contents(targetPath))
         {
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                                 strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 1));
             return;
         }
-        else if (fslib::fileExists(targetPath) && std::strcmp("zip", targetPath.getExtension()) == 0 &&
+        else if (fslib::file_exists(targetPath) && std::strcmp("zip", targetPath.get_extension()) == 0 &&
                  !fs::zip_has_contents(targetPath))
         {
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
@@ -215,7 +215,7 @@ void BackupMenuState::update(void)
     }
     else if (input::button_pressed(HidNpadButton_B))
     {
-        fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
+        fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
         sm_slidePanel->close();
     }
     else if (sm_slidePanel->is_closed())
@@ -237,8 +237,8 @@ void BackupMenuState::render(void)
     // Grab the render target.
     SDL_Texture *slideTarget = sm_slidePanel->get();
 
-    sdl::renderLine(slideTarget, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
-    sdl::renderLine(slideTarget, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
+    sdl::render_line(slideTarget, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
+    sdl::render_line(slideTarget, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
     sdl::text::render(slideTarget,
                       32,
                       673,
@@ -267,7 +267,7 @@ void BackupMenuState::refresh(void)
 
     sm_backupMenu->reset();
     sm_backupMenu->add_option(strings::get_by_name(strings::names::BACKUP_MENU, 0));
-    for (int64_t i = 0; i < m_directoryListing.getCount(); i++)
+    for (int64_t i = 0; i < m_directoryListing.get_count(); i++)
     {
         sm_backupMenu->add_option(m_directoryListing[i]);
     }
@@ -304,9 +304,9 @@ static void create_new_backup(sys::ProgressTask *task,
                                  .m_totalSaveSize = fs::get_directory_total_size(fs::DEFAULT_SAVE_PATH)};
 
     // This extension search is lazy and needs to be revised.
-    if (config::get_by_key(config::keys::EXPORT_TO_ZIP) || std::strcmp("zip", targetPath.getExtension()) == 0)
+    if (config::get_by_key(config::keys::EXPORT_TO_ZIP) || std::strstr(targetPath.c_string(), "zip"))
     {
-        zipFile newBackup = zipOpen64(targetPath.cString(), APPEND_STATUS_CREATE);
+        zipFile newBackup = zipOpen64(targetPath.c_string(), APPEND_STATUS_CREATE);
         if (!newBackup)
         {
             // To do: Pop up.
@@ -314,10 +314,13 @@ static void create_new_backup(sys::ProgressTask *task,
             return;
         }
 
+        // Data for save meta.
+        zip_fileinfo saveMetaInfo = fs::create_zip_fileinfo();
+
         // Write meta to zip.
         int zipError = zipOpenNewFileInZip64(newBackup,
                                              ".jksv_save_meta.bin",
-                                             NULL,
+                                             &saveMetaInfo,
                                              NULL,
                                              0,
                                              NULL,
@@ -338,7 +341,6 @@ static void create_new_backup(sys::ProgressTask *task,
     else
     {
         {
-            // Write save meta quick.
             fslib::Path saveMetaPath = targetPath / ".jksv_save_meta.bin";
             fslib::File saveMetaOut(targetPath, FsOpenMode_Create | FsOpenMode_Write, sizeof(fs::SaveMetaData));
             if (saveMetaOut)
@@ -346,7 +348,6 @@ static void create_new_backup(sys::ProgressTask *task,
                 saveMetaOut.write(&saveMeta, sizeof(fs::SaveMetaData));
             }
         }
-
         fs::copy_directory(fs::DEFAULT_SAVE_PATH, targetPath, 0, {}, task);
     }
     spawningState->refresh();
@@ -355,30 +356,30 @@ static void create_new_backup(sys::ProgressTask *task,
 
 static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct)
 {
-    // DirectoryExists can also be used to check if the target is a directory.
-    if (fslib::directoryExists(dataStruct->m_targetPath) &&
-        !fslib::deleteDirectoryRecursively(dataStruct->m_targetPath))
+    // directory_exists can also be used to check if the target is a directory.
+    if (fslib::directory_exists(dataStruct->m_targetPath) &&
+        !fslib::delete_directory_recursively(dataStruct->m_targetPath))
     {
-        logger::log("Error overwriting backup: %s", fslib::getErrorString());
+        logger::log("Error overwriting backup: %s", fslib::get_error_string());
         task->finished();
         return;
     } // This has an added check for the zip extension so it can't try to overwrite files that aren't supposed to be zip.
-    else if (fslib::fileExists(dataStruct->m_targetPath) &&
-             std::strcmp("zip", dataStruct->m_targetPath.getExtension()) == 0 &&
-             !fslib::deleteFile(dataStruct->m_targetPath))
+    else if (fslib::file_exists(dataStruct->m_targetPath) &&
+             std::strcmp("zip", dataStruct->m_targetPath.get_extension()) == 0 &&
+             !fslib::delete_file(dataStruct->m_targetPath))
     {
-        logger::log("Error overwriting backup: %s", fslib::getErrorString());
+        logger::log("Error overwriting backup: %s", fslib::get_error_string());
         task->finished();
         return;
     }
 
-    if (std::strcmp("zip", dataStruct->m_targetPath.getExtension()))
+    if (std::strcmp("zip", dataStruct->m_targetPath.get_extension()))
     {
-        zipFile backupZip = zipOpen64(dataStruct->m_targetPath.cString(), APPEND_STATUS_CREATE);
+        zipFile backupZip = zipOpen64(dataStruct->m_targetPath.c_string(), APPEND_STATUS_CREATE);
         fs::copy_directory_to_zip(fs::DEFAULT_SAVE_PATH, backupZip, task);
         zipClose(backupZip, NULL);
     } // I hope this check works for making sure this is a folder
-    else if (dataStruct->m_targetPath.getExtension() == nullptr && fslib::createDirectory(dataStruct->m_targetPath))
+    else if (dataStruct->m_targetPath.get_extension() == nullptr && fslib::create_directory(dataStruct->m_targetPath))
     {
         fs::copy_directory(fs::DEFAULT_SAVE_PATH, dataStruct->m_targetPath, 0, {}, task);
     }
@@ -388,16 +389,16 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStru
 static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct)
 {
     // Wipe the save root first.
-    if (!fslib::deleteDirectoryRecursively(fs::DEFAULT_SAVE_PATH))
+    if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_PATH))
     {
-        logger::log("Error restoring save: %s", fslib::getErrorString());
+        logger::log("Error restoring save: %s", fslib::get_error_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 2));
         task->finished();
         return;
     }
 
-    if (fslib::directoryExists(dataStruct->m_targetPath))
+    if (fslib::directory_exists(dataStruct->m_targetPath))
     {
         fs::copy_directory(dataStruct->m_targetPath,
                            fs::DEFAULT_SAVE_PATH,
@@ -405,9 +406,9 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct
                            fs::DEFAULT_SAVE_MOUNT,
                            task);
     }
-    else if (std::strstr(dataStruct->m_targetPath.cString(), ".zip") != NULL)
+    else if (std::strstr(dataStruct->m_targetPath.c_string(), ".zip") != NULL)
     {
-        unzFile targetZip = unzOpen64(dataStruct->m_targetPath.cString());
+        unzFile targetZip = unzOpen64(dataStruct->m_targetPath.c_string());
         if (!targetZip)
         {
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
@@ -442,19 +443,19 @@ static void delete_backup(sys::Task *task, std::shared_ptr<TargetStruct> dataStr
 {
     if (task)
     {
-        task->set_status(strings::get_by_name(strings::names::DELETING_FILES, 0), dataStruct->m_targetPath.cString());
+        task->set_status(strings::get_by_name(strings::names::DELETING_FILES, 0), dataStruct->m_targetPath.c_string());
     }
 
-    if (fslib::directoryExists(dataStruct->m_targetPath) &&
-        !fslib::deleteDirectoryRecursively(dataStruct->m_targetPath))
+    if (fslib::directory_exists(dataStruct->m_targetPath) &&
+        !fslib::delete_directory_recursively(dataStruct->m_targetPath))
     {
-        logger::log("Error deleting folder backup: %s", fslib::getErrorString());
+        logger::log("Error deleting folder backup: %s", fslib::get_error_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 4));
     }
-    else if (!fslib::deleteFile(dataStruct->m_targetPath))
+    else if (fslib::file_exists(dataStruct->m_targetPath) && !fslib::delete_file(dataStruct->m_targetPath))
     {
-        logger::log("Error deleting backup: %s", fslib::getErrorString());
+        logger::log("Error deleting backup: %s", fslib::get_error_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 4));
     }

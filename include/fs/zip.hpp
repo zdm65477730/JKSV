@@ -26,6 +26,10 @@ namespace fs
                                std::string_view commitDevice,
                                sys::ProgressTask *Task = nullptr);
 
+    /// @brief Writes data to infoOut to help clean up somes stuff.
+    /// @return Filled, complete zip_fileinfo struct.
+    zip_fileinfo create_zip_fileinfo(void);
+
     /// @brief Returns whether or not zip has files inside.
     /// @param zipPath Path to zip to check.
     /// @return True if at least one file is found. False if none.

@@ -20,11 +20,11 @@ static const char *get_sort_type_text(uint8_t value);
 
 SettingsState::SettingsState(void)
     : m_settingsMenu(32, 8, 1000, 24, 555),
-      m_renderTarget(sdl::TextureManager::createLoadTexture(SECONDARY_TARGET,
-                                                            1080,
-                                                            555,
-                                                            SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
-      m_controlGuideX(1220 - sdl::text::getWidth(22, strings::get_by_name(strings::names::CONTROL_GUIDES, 3)))
+      m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
+                                                              1080,
+                                                              555,
+                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
+      m_controlGuideX(1220 - sdl::text::get_width(22, strings::get_by_name(strings::names::CONTROL_GUIDES, 3)))
 {
     // Loop and allocation the strings and menu options.
     int currentString = 0;

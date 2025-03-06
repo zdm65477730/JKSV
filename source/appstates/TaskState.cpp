@@ -24,9 +24,9 @@ void TaskState::render(void)
     // Grab task string.
     std::string status = m_task.get_status();
     // Center so it looks perty
-    int statusX = 640 - (sdl::text::getWidth(24, status.c_str()) / 2);
+    int statusX = 640 - (sdl::text::get_width(24, status.c_str()) / 2);
     // Dim the background states.
-    sdl::renderRectFill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
+    sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
     // Render the status.
     sdl::text::render(NULL, statusX, 351, 24, sdl::text::NO_TEXT_WRAP, colors::WHITE, status.c_str());
 }

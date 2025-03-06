@@ -1,6 +1,6 @@
 #include "ui/IconMenu.hpp"
 #include "colors.hpp"
-#include "ui/renderFunctions.hpp"
+#include "ui/render_functions.hpp"
 
 ui::IconMenu::IconMenu(int x, int y, int rendertargetHeight) : Menu(x, y, 152, 80, rendertargetHeight) {};
 
@@ -26,10 +26,10 @@ void ui::IconMenu::render(SDL_Texture *target, bool hasFocus)
             {
                 ui::render_bounding_box(target, m_x - 8, tempY - 8, 152, 146, m_colorMod);
             }
-            sdl::renderRectFill(m_optionTarget->get(), 0, 0, 4, 130, {0x00FFC5FF});
+            sdl::render_rect_fill(m_optionTarget->get(), 0, 0, 4, 130, {0x00FFC5FF});
         }
         //m_options.at(i)->render(m_optiontarget->Get(), 0, 0);
-        m_options.at(i)->renderStretched(m_optionTarget->get(), 8, 1, 128, 128);
+        m_options.at(i)->render_stretched(m_optionTarget->get(), 8, 1, 128, 128);
         m_optionTarget->render(target, m_x, tempY);
     }
 }

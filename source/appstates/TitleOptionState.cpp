@@ -162,7 +162,7 @@ static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<Target
                      dataStruct->m_targetTitle->get_title());
 
     // Just call this and nuke the folder.
-    if (!fslib::deleteDirectoryRecursively(titlePath))
+    if (!fslib::delete_directory_recursively(titlePath))
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLE_OPTION_POPS, 1));
@@ -179,11 +179,11 @@ static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<Target
 static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
 {
     // Attempt to mount save.
-    if (!fslib::openSaveFileSystemWithSaveDataInfo(
+    if (!fslib::open_save_data_with_save_info(
             fs::DEFAULT_SAVE_MOUNT,
             *dataStruct->m_targetUser->get_save_info_by_id(dataStruct->m_targetTitle->get_application_id())))
     {
-        logger::log(ERROR_RESETTING_SAVE, fslib::getErrorString());
+        logger::log(ERROR_RESETTING_SAVE, fslib::get_error_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
         task->finished();
@@ -191,10 +191,10 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataS
     }
 
     // Wipe the root.
-    if (!fslib::deleteDirectoryRecursively(fs::DEFAULT_SAVE_PATH))
+    if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_PATH))
     {
-        fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
-        logger::log(ERROR_RESETTING_SAVE, fslib::getErrorString());
+        fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
+        logger::log(ERROR_RESETTING_SAVE, fslib::get_error_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
         task->finished();
@@ -202,10 +202,10 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataS
     }
 
     // Attempt commit.
-    if (!fslib::commitDataToFileSystem(fs::DEFAULT_SAVE_MOUNT))
+    if (!fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT))
     {
-        fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
-        logger::log(ERROR_RESETTING_SAVE, fslib::getErrorString());
+        fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
+        logger::log(ERROR_RESETTING_SAVE, fslib::get_error_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
         task->finished();
@@ -213,7 +213,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataS
     }
 
     // Should be good to go.
-    fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
+    fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                         strings::get_by_name(strings::names::TITLE_OPTION_POPS, 3));
     task->finished();
@@ -253,10 +253,10 @@ static void change_output_path(data::TitleInfo *targetTitle)
     // Rename folder to match so there are no issues.
     fslib::Path oldPath = config::get_working_directory() / targetTitle->get_path_safe_title();
     fslib::Path newPath = config::get_working_directory() / pathBuffer;
-    if (fslib::directoryExists(oldPath) && !fslib::renameDirectory(oldPath, newPath))
+    if (fslib::directory_exists(oldPath) && !fslib::rename_directory(oldPath, newPath))
     {
         // Bail if this fails, because something is really wrong.
-        logger::log("Error setting new output path: %s", fslib::getErrorString());
+        logger::log("Error setting new output path: %s", fslib::get_error_string());
         return;
     }
 

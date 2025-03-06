@@ -108,7 +108,7 @@ data::User::User(AccountUid accountID,
                  std::string_view iconPath,
                  FsSaveDataType saveType)
     : m_accountID(accountID), m_saveType(saveType),
-      m_icon(sdl::TextureManager::createLoadTexture(pathSafeNickname, iconPath.data()))
+      m_icon(sdl::TextureManager::create_load_texture(pathSafeNickname, iconPath.data()))
 {
     // We're just gonna use this for both.
     std::memcpy(m_nickname, nickname.data(), nickname.length());
@@ -242,7 +242,7 @@ void data::User::load_account(AccountProfile &profile, AccountProfileBase &profi
     }
 
     // We should be good at this point.
-    m_icon = sdl::TextureManager::createLoadTexture(profileBase.nickname, iconBuffer.get(), iconSize);
+    m_icon = sdl::TextureManager::create_load_texture(profileBase.nickname, iconBuffer.get(), iconSize);
 
     // Memcpy the nickname.
     std::memcpy(m_nickname, &profileBase.nickname, 0x20);
@@ -260,11 +260,11 @@ void data::User::create_account(void)
     std::string accountIDString = stringutil::get_formatted_string("Acc_%08X", m_accountID.uid[0] & 0xFFFFFFFF);
 
     // Create icon
-    int textX = 128 - (sdl::text::getWidth(ICON_FONT_SIZE, accountIDString.c_str()) / 2);
-    m_icon = sdl::TextureManager::createLoadTexture(accountIDString,
-                                                    256,
-                                                    256,
-                                                    SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    int textX = 128 - (sdl::text::get_width(ICON_FONT_SIZE, accountIDString.c_str()) / 2);
+    m_icon = sdl::TextureManager::create_load_texture(accountIDString,
+                                                      256,
+                                                      256,
+                                                      SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
     sdl::text::render(m_icon->get(),
                       textX,
                       128 - (ICON_FONT_SIZE / 2),

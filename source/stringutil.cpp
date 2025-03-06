@@ -36,6 +36,15 @@ void stringutil::replace_in_string(std::string &target, std::string_view find, s
     }
 }
 
+void stringutil::strip_character(char c, std::string &target)
+{
+    size_t charPosition = 0;
+    while ((charPosition = target.find_first_of(c, charPosition)) != target.npos)
+    {
+        target.erase(target.begin() + charPosition);
+    }
+}
+
 bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut, size_t stringOutSize)
 {
     uint32_t codepoint = 0;

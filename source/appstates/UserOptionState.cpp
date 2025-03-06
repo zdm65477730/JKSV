@@ -176,24 +176,24 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStr
 
         // Try to create target game folder.
         fslib::Path gameFolder = config::get_working_directory() / currentTitle->get_path_safe_title();
-        if (!fslib::directoryExists(gameFolder) && !fslib::createDirectory(gameFolder))
+        if (!fslib::directory_exists(gameFolder) && !fslib::create_directory(gameFolder))
         {
             continue;
         }
 
         // Try to mount save data.
         bool saveMounted =
-            fslib::openSaveFileSystemWithSaveDataInfo(fs::DEFAULT_SAVE_MOUNT, *targetUser->get_save_info_at(i));
+            fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *targetUser->get_save_info_at(i));
 
         // Check to make sure the save actually has data to avoid blanks.
         {
             fslib::Directory saveCheck(fs::DEFAULT_SAVE_PATH);
-            if (saveMounted && saveCheck.getCount() <= 0)
+            if (saveMounted && saveCheck.get_count() <= 0)
             {
                 // Gonna borrow these messages. No point in repeating them.
                 ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                                     strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 0));
-                fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
+                fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
                 continue;
             }
         }
@@ -204,10 +204,10 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStr
                                          targetUser->get_path_safe_nickname() +
                                      " - " + stringutil::get_date_string() + ".zip";
 
-            zipFile targetZip = zipOpen64(targetPath.cString(), APPEND_STATUS_CREATE);
+            zipFile targetZip = zipOpen64(targetPath.c_string(), APPEND_STATUS_CREATE);
             if (!targetZip)
             {
-                logger::log("Error creating zip: %s", fslib::getErrorString());
+                logger::log("Error creating zip: %s", fslib::get_error_string());
                 continue;
             }
             fs::copy_directory_to_zip(fs::DEFAULT_SAVE_PATH, targetZip, task);
@@ -219,9 +219,9 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStr
                                          targetUser->get_path_safe_nickname() +
                                      " - " + stringutil::get_date_string();
 
-            if (!fslib::createDirectory(targetPath))
+            if (!fslib::create_directory(targetPath))
             {
-                logger::log("Error creating backup directory: %s", fslib::getErrorString());
+                logger::log("Error creating backup directory: %s", fslib::get_error_string());
                 continue;
             }
             fs::copy_directory(fs::DEFAULT_SAVE_PATH, targetPath, 0, {}, task);
@@ -229,7 +229,7 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStr
 
         if (saveMounted)
         {
-            fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
+            fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
         }
     }
     task->finished();

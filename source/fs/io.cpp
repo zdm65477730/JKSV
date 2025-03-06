@@ -32,7 +32,7 @@ typedef struct
 // This function Reads into the buffer. The other thread writes.
 static void readThreadFunction(fslib::File &sourceFile, std::shared_ptr<FileTransferStruct> sharedData)
 {
-    int64_t fileSize = sourceFile.getSize();
+    int64_t fileSize = sourceFile.get_size();
     for (int64_t readCount = 0; readCount < fileSize;)
     {
         // Read data to shared buffer.
@@ -56,17 +56,17 @@ void fs::copy_file(const fslib::Path &source,
                    sys::ProgressTask *task)
 {
     fslib::File sourceFile(source, FsOpenMode_Read);
-    fslib::File destinationFile(destination, FsOpenMode_Create | FsOpenMode_Write, sourceFile.getSize());
+    fslib::File destinationFile(destination, FsOpenMode_Create | FsOpenMode_Write, sourceFile.get_size());
     if (!sourceFile || !destinationFile)
     {
-        logger::log("Error opening one of the files: %s", fslib::getErrorString());
+        logger::log("Error opening one of the files: %s", fslib::get_error_string());
         return;
     }
 
     // Set status if task pointer was passed.
     if (task)
     {
-        task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 0), source.cString());
+        task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 0), source.c_string());
     }
 
     // Shared struct both threads use
@@ -80,7 +80,7 @@ void fs::copy_file(const fslib::Path &source,
     std::unique_ptr<unsigned char[]> localBuffer(new unsigned char[FILE_BUFFER_SIZE]);
 
     // Get file size for loop and set goal.
-    int64_t fileSize = sourceFile.getSize();
+    int64_t fileSize = sourceFile.get_size();
     if (task)
     {
         task->reset(static_cast<double>(fileSize));
@@ -111,10 +111,10 @@ void fs::copy_file(const fslib::Path &source,
             journalCount = 0;
             // Close destination file, commit.
             destinationFile.close();
-            fslib::commitDataToFileSystem(commitDevice);
+            fslib::commit_data_to_file_system(commitDevice);
             // Reopen and seek to previous position since we created it with a size earlier.
             destinationFile.open(destination, FsOpenMode_Write);
-            destinationFile.seek(writeCount, destinationFile.beginning);
+            destinationFile.seek(writeCount, destinationFile.BEGINNING);
         }
         // Write to destination
         destinationFile.write(localBuffer.get(), readCount);
@@ -140,20 +140,20 @@ void fs::copy_directory(const fslib::Path &source,
     fslib::Directory sourceDir(source);
     if (!sourceDir)
     {
-        logger::log("Error opening directory for reading: %s", fslib::getErrorString());
+        logger::log("Error opening directory for reading: %s", fslib::get_error_string());
         return;
     }
 
-    for (int64_t i = 0; i < sourceDir.getCount(); i++)
+    for (int64_t i = 0; i < sourceDir.get_count(); i++)
     {
-        if (sourceDir.isDirectory(i))
+        if (sourceDir.is_directory(i))
         {
             fslib::Path newSource = source / sourceDir[i];
             fslib::Path newDestination = destination / sourceDir[i];
             // Try to create new destination folder and continue loop on failure.
-            if (!fslib::directoryExists(newDestination) && !fslib::createDirectory(newDestination))
+            if (!fslib::directory_exists(newDestination) && !fslib::create_directory(newDestination))
             {
-                logger::log("Error creating new destination directory: %s", fslib::getErrorString());
+                logger::log("Error creating new destination directory: %s", fslib::get_error_string());
                 continue;
             }
 

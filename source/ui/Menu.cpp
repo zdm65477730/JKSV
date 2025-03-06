@@ -2,7 +2,7 @@
 #include "colors.hpp"
 #include "config.hpp"
 #include "input.hpp"
-#include "ui/renderFunctions.hpp"
+#include "ui/render_functions.hpp"
 #include <cmath>
 
 ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
@@ -12,10 +12,10 @@ ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     // Create render target for options
     static int MENU_ID = 0;
     std::string menuTargetName = "MENU_" + std::to_string(MENU_ID++);
-    m_optionTarget = sdl::TextureManager::createLoadTexture(menuTargetName,
-                                                            m_width,
-                                                            m_optionHeight,
-                                                            SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    m_optionTarget = sdl::TextureManager::create_load_texture(menuTargetName,
+                                                              m_width,
+                                                              m_optionHeight,
+                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
 
     // Calculate around how many options can be shown on the render target at once.
     m_maxDisplayOptions = (renderTargetHeight - m_originalY) / m_optionHeight;
@@ -116,7 +116,7 @@ void ui::Menu::render(SDL_Texture *target, bool hasFocus)
                 ui::render_bounding_box(target, m_x - 4, tempY - 4, m_width + 8, m_optionHeight + 8, m_colorMod);
             }
             // render the little rectangle.
-            sdl::renderRectFill(m_optionTarget->get(), 8, 8, 4, m_optionHeight - 16, colors::BLUE_GREEN);
+            sdl::render_rect_fill(m_optionTarget->get(), 8, 8, 4, m_optionHeight - 16, colors::BLUE_GREEN);
         }
         // render text to target.
         sdl::text::render(m_optionTarget->get(),

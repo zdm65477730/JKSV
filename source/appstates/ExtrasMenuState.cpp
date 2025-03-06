@@ -12,10 +12,10 @@ namespace
 
 ExtrasMenuState::ExtrasMenuState(void)
     : m_extrasMenu(32, 8, 1000, 24, 555),
-      m_renderTarget(sdl::TextureManager::createLoadTexture(SECONDARY_TARGET,
-                                                            1080,
-                                                            555,
-                                                            SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
+      m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
+                                                              1080,
+                                                              555,
+                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
 {
     const char *extrasString = nullptr;
     int currentString = 0;

@@ -8,7 +8,7 @@
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "system/Task.hpp"
-#include "ui/renderFunctions.hpp"
+#include "ui/render_functions.hpp"
 #include <memory>
 #include <string>
 #include <switch.h>
@@ -44,8 +44,8 @@ class ConfirmState : public AppState
               m_dataStruct(dataStruct)
         {
             // This is to make centering the Yes [A] string more accurate.
-            m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::getWidth(22, m_yesString.c_str()) / 2);
-            m_noX = 820 - (sdl::text::getWidth(22, strings::get_by_name(strings::names::YES_NO, 1)) / 2);
+            m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
+            m_noX = 820 - (sdl::text::get_width(22, strings::get_by_name(strings::names::YES_NO, 1)) / 2);
         }
 
         /// @brief Required even if it does nothing.
@@ -84,18 +84,18 @@ class ConfirmState : public AppState
                 else if (TickCount >= 2000)
                 {
                     m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 2);
-                    m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::getWidth(22, m_yesString.c_str()) / 2);
+                    m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
                 }
                 else if (TickCount >= 1000)
                 {
                     m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 1);
-                    m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::getWidth(22, m_yesString.c_str()) / 2);
+                    m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
                 }
             }
             else if (input::button_released(HidNpadButton_A))
             {
                 m_yesString = strings::get_by_name(strings::names::YES_NO, 0);
-                m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::getWidth(22, m_yesString.c_str()) / 2);
+                m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
             }
             else if (input::button_pressed(HidNpadButton_B))
             {
@@ -108,14 +108,14 @@ class ConfirmState : public AppState
         void render(void)
         {
             // Dim background
-            sdl::renderRectFill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
+            sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
             // Render dialog
             ui::render_dialog_box(NULL, 280, 262, 720, 256);
             // Text
             sdl::text::render(NULL, 312, 288, 18, 656, colors::WHITE, m_queryString.c_str());
             // Fake buttons. Maybe real later.
-            sdl::renderLine(NULL, 280, 454, 999, 454, colors::WHITE);
-            sdl::renderLine(NULL, 640, 454, 640, 517, colors::WHITE);
+            sdl::render_line(NULL, 280, 454, 999, 454, colors::WHITE);
+            sdl::render_line(NULL, 640, 454, 640, 517, colors::WHITE);
             // To do: Position this better. Currently brought over from old code.
             sdl::text::render(NULL, m_yesX, 476, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_yesString.c_str());
             sdl::text::render(NULL,

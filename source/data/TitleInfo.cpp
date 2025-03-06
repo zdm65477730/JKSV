@@ -41,11 +41,11 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) : m_applicationID(application
         }
 
         // Create a place holder icon.
-        int textX = 128 - (sdl::text::getWidth(48, applicationIDHex.c_str()) / 2);
-        m_icon = sdl::TextureManager::createLoadTexture(applicationIDHex,
-                                                        256,
-                                                        256,
-                                                        SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+        int textX = 128 - (sdl::text::get_width(48, applicationIDHex.c_str()) / 2);
+        m_icon = sdl::TextureManager::create_load_texture(applicationIDHex,
+                                                          256,
+                                                          256,
+                                                          SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
         m_icon->clear(colors::DIALOG_BOX);
         sdl::text::render(m_icon->get(),
                           textX,
@@ -72,9 +72,9 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) : m_applicationID(application
         }
 
         // Load the icon.
-        m_icon = sdl::TextureManager::createLoadTexture(languageEntry->name,
-                                                        nsControlData.icon,
-                                                        nsAppControlSize - sizeof(NacpStruct));
+        m_icon = sdl::TextureManager::create_load_texture(languageEntry->name,
+                                                          nsControlData.icon,
+                                                          nsAppControlSize - sizeof(NacpStruct));
     }
 }
 

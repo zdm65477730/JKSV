@@ -9,10 +9,10 @@ ui::SlideOutPanel::SlideOutPanel(int width, Side side)
 {
     static int slidePanelTargetID = 0;
     std::string panelTargetName = "PanelTarget_" + std::to_string(slidePanelTargetID++);
-    m_renderTarget = sdl::TextureManager::createLoadTexture(panelTargetName,
-                                                            width,
-                                                            720,
-                                                            SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    m_renderTarget = sdl::TextureManager::create_load_texture(panelTargetName,
+                                                              width,
+                                                              720,
+                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
 }
 
 void ui::SlideOutPanel::update(bool hasFocus)

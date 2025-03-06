@@ -5,7 +5,7 @@ ui::TextScroll::TextScroll(std::string_view text, int fontSize, int availableWid
     : m_text(text.data()), m_y(y), m_fontSize(fontSize), m_textColor(color), m_scrollTimer(3000)
 {
     // Grab text width first.
-    m_textWidth = sdl::text::getWidth(m_fontSize, m_text.c_str());
+    m_textWidth = sdl::text::get_width(m_fontSize, m_text.c_str());
 
     // Check if text needs scrolling for width provided.
     if (m_textWidth > availableWidth)

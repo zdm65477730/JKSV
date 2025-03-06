@@ -23,7 +23,7 @@ void ui::TitleTile::render(SDL_Texture *target, int x, int y)
     int renderX = x - ((m_renderWidth - 128) / 2);
     int renderY = y - ((m_renderHeight - 128) / 2);
 
-    m_icon->renderStretched(target, renderX, renderY, m_renderWidth, m_renderHeight);
+    m_icon->render_stretched(target, renderX, renderY, m_renderWidth, m_renderHeight);
     if (m_isFavorite)
     {
         sdl::text::render(target, renderX + 4, renderY + 2, 28, sdl::text::NO_TEXT_WRAP, colors::PINK, "\uE017");

@@ -96,7 +96,7 @@ bool data::initialize(void)
         fslib::SaveInfoReader saveInfoReader(SAVE_DATA_SPACE_ORDER[i]);
         if (!saveInfoReader)
         {
-            logger::log(fslib::getErrorString());
+            logger::log(fslib::get_error_string());
             continue;
         }
 
@@ -141,12 +141,12 @@ bool data::initialize(void)
             }
 
             if (config::get_by_key(config::keys::ONLY_LIST_MOUNTABLE) &&
-                !fslib::openSaveFileSystemWithSaveDataInfo(fs::DEFAULT_SAVE_MOUNT, saveInfo))
+                !fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, saveInfo))
             {
                 // Continue the loop since mounting failed.
                 continue;
             }
-            fslib::closeFileSystem(fs::DEFAULT_SAVE_MOUNT);
+            fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
 
             // Find the user with the ID.
             auto findUser =

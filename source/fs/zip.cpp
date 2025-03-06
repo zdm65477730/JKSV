@@ -33,7 +33,7 @@ typedef struct
 // Function for reading files for Zipping.
 static void zipReadThreadFunction(fslib::File &source, std::shared_ptr<ZipIOStruct> sharedData)
 {
-    int64_t fileSize = source.getSize();
+    int64_t fileSize = source.get_size();
     for (int64_t readCount = 0; readCount < fileSize;)
     {
         // Read into shared buffer.
@@ -74,13 +74,13 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
     fslib::Directory sourceDir(source);
     if (!sourceDir)
     {
-        logger::log("Error opening source directory: %s", fslib::getErrorString());
+        logger::log("Error opening source directory: %s", fslib::get_error_string());
         return;
     }
 
-    for (int64_t i = 0; i < sourceDir.getCount(); i++)
+    for (int64_t i = 0; i < sourceDir.get_count(); i++)
     {
-        if (sourceDir.isDirectory(i))
+        if (sourceDir.is_directory(i))
         {
             fslib::Path newSource = source / sourceDir[i];
             fs::copy_directory_to_zip(newSource, destination, task);
@@ -92,29 +92,18 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
             fslib::File sourceFile(fullSource, FsOpenMode_Read);
             if (!sourceFile)
             {
-                logger::log("Error zipping file: %s", fslib::getErrorString());
+                logger::log("Error zipping file: %s", fslib::get_error_string());
                 continue;
             }
 
-            // Date for file(s)
-            std::time_t timer;
-            std::time(&timer);
-            std::tm *localTime = std::localtime(&timer);
-            zip_fileinfo FileInfo = {.tmz_date = {.tm_sec = localTime->tm_sec,
-                                                  .tm_min = localTime->tm_min,
-                                                  .tm_hour = localTime->tm_hour,
-                                                  .tm_mday = localTime->tm_mday,
-                                                  .tm_mon = localTime->tm_mon,
-                                                  .tm_year = localTime->tm_year + 1900},
-                                     .dosDate = 0,
-                                     .internal_fa = 0,
-                                     .external_fa = 0};
+            // Zip info
+            zip_fileinfo fileInfo = fs::create_zip_fileinfo();
 
             // Create new file in zip
-            const char *zipNameBegin = std::strchr(fullSource.getPath(), '/') + 1;
+            const char *zipNameBegin = std::strchr(fullSource.get_path(), '/') + 1;
             int zipError = zipOpenNewFileInZip64(destination,
                                                  zipNameBegin,
-                                                 &FileInfo,
+                                                 &fileInfo,
                                                  NULL,
                                                  0,
                                                  NULL,
@@ -139,13 +128,13 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
             // Update task if passed.
             if (task)
             {
-                task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 1), fullSource.cString());
-                task->reset(static_cast<double>(sourceFile.getSize()));
+                task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 1), fullSource.c_string());
+                task->reset(static_cast<double>(sourceFile.get_size()));
             }
 
             std::thread readThread(zipReadThreadFunction, std::ref(sourceFile), sharedData);
 
-            int64_t fileSize = sourceFile.getSize();
+            int64_t fileSize = sourceFile.get_size();
             for (int64_t writeCount = 0, readCount = 0; writeCount < fileSize;)
             {
                 {
@@ -211,11 +200,11 @@ void fs::copy_zip_to_directory(unzFile source,
         // Create full path to item, make sure directories are created if needed.
         fslib::Path fullDestination = destination / filename;
 
-        fslib::Path directories = fullDestination.subPath(fullDestination.findLastOf('/') - 1);
+        fslib::Path directories = fullDestination.sub_path(fullDestination.find_last_of('/') - 1);
         // To do: Make FsLib handle this correctly. First condition is a workaround for now...
-        if (directories.isValid() && !fslib::createDirectoriesRecursively(directories))
+        if (directories.is_valid() && !fslib::create_directories_recursively(directories))
         {
-            logger::log("Error creating zip file path \"%s\": %s", directories.cString(), fslib::getErrorString());
+            logger::log("Error creating zip file path \"%s\": %s", directories.c_string(), fslib::get_error_string());
             continue;
         }
 
@@ -224,7 +213,7 @@ void fs::copy_zip_to_directory(unzFile source,
                                     currentFileInfo.uncompressed_size);
         if (!destinationFile)
         {
-            logger::log("Error creating file from zip: %s", fslib::getErrorString());
+            logger::log("Error creating file from zip: %s", fslib::get_error_string());
             continue;
         }
 
@@ -271,13 +260,13 @@ void fs::copy_zip_to_directory(unzFile source,
                 // Close.
                 destinationFile.close();
                 // Commit
-                if (!fslib::commitDataToFileSystem(commitDevice))
+                if (!fslib::commit_data_to_file_system(commitDevice))
                 {
-                    logger::log("Error committing data to save: %s", fslib::getErrorString());
+                    logger::log("Error committing data to save: %s", fslib::get_error_string());
                 }
                 // Reopen, seek to previous position.
                 destinationFile.open(fullDestination, FsOpenMode_Write);
-                destinationFile.seek(writeCount, destinationFile.beginning);
+                destinationFile.seek(writeCount, destinationFile.BEGINNING);
                 // Reset journal
                 journalCount = 0;
             }
@@ -294,16 +283,37 @@ void fs::copy_zip_to_directory(unzFile source,
         }
         // Close file and commit again just for good measure.
         destinationFile.close();
-        if (!fslib::commitDataToFileSystem(commitDevice))
+        if (!fslib::commit_data_to_file_system(commitDevice))
         {
-            logger::log("Error performing final file commit: %s", fslib::getErrorString());
+            logger::log("Error performing final file commit: %s", fslib::get_error_string());
         }
     } while (unzGoToNextFile(source) != UNZ_END_OF_LIST_OF_FILE);
 }
 
+zip_fileinfo fs::create_zip_fileinfo(void)
+{
+    // Grab the current time.
+    std::time_t currentTime = std::time(NULL);
+
+    // Get the local time.
+    std::tm *localTime = std::localtime(&currentTime);
+
+    // Create struct to return.
+    zip_fileinfo fileInfo = {.tmz_date = {.tm_sec = localTime->tm_sec,
+                                          .tm_min = localTime->tm_min,
+                                          .tm_hour = localTime->tm_hour,
+                                          .tm_mday = localTime->tm_mday,
+                                          .tm_mon = localTime->tm_mon,
+                                          .tm_year = localTime->tm_year + 1900},
+                             .dosDate = 0,
+                             .internal_fa = 0,
+                             .external_fa = 0};
+    return fileInfo;
+}
+
 bool fs::zip_has_contents(const fslib::Path &zipPath)
 {
-    unzFile testZip = unzOpen(zipPath.cString());
+    unzFile testZip = unzOpen(zipPath.c_string());
     if (!testZip)
     {
         return false;

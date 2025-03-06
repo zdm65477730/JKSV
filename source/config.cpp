@@ -52,9 +52,9 @@ static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *arr
 
 void config::initialize(void)
 {
-    if (!fslib::directoryExists(CONFIG_FOLDER) && !fslib::createDirectoriesRecursively(CONFIG_FOLDER))
+    if (!fslib::directory_exists(CONFIG_FOLDER) && !fslib::create_directories_recursively(CONFIG_FOLDER))
     {
-        logger::log("Error creating config folder: %s.", fslib::getErrorString());
+        logger::log("Error creating config folder: %s.", fslib::get_error_string());
         config::reset_to_default();
         return;
     }
@@ -62,7 +62,7 @@ void config::initialize(void)
     json::Object configJSON = json::new_object(json_object_from_file, CONFIG_PATH);
     if (!configJSON)
     {
-        logger::log("Error opening config for reading: %s", fslib::getErrorString());
+        logger::log("Error opening config for reading: %s", fslib::get_error_string());
         config::reset_to_default();
         return;
     }
@@ -99,7 +99,7 @@ void config::initialize(void)
     }
 
     // Load custom output paths.
-    if (!fslib::fileExists(PATHS_PATH))
+    if (!fslib::file_exists(PATHS_PATH))
     {
         // Just bail.
         return;
@@ -154,7 +154,7 @@ void config::save(void)
         json::Object configJSON = json::new_object(json_object_new_object);
 
         // Add working directory first.
-        json_object *workingDirectory = json_object_new_string(s_workingDirectory.cString());
+        json_object *workingDirectory = json_object_new_string(s_workingDirectory.c_string());
         json_object_object_add(configJSON.get(), config::keys::WORKING_DIRECTORY.data(), workingDirectory);
 
         // Loop through map and add it.

@@ -14,7 +14,7 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo)
     }
 
     // Check if the title is too large to fit within the target.
-    m_titleWidth = sdl::text::getWidth(32, m_titleInfo->get_title());
+    m_titleWidth = sdl::text::get_width(32, m_titleInfo->get_title());
     if (m_titleWidth > 480)
     {
         // Just set this to 8 and we'll scroll the title.
@@ -67,5 +67,5 @@ void TitleInfoState::render(void)
     // If the title doesn't need to be scrolled, just render it.
 
 
-    sdl::renderLine(sm_slidePanel->get(), 10, 42, 460, 42, colors::WHITE);
+    sdl::render_line(sm_slidePanel->get(), 10, 42, 460, 42, colors::WHITE);
 }

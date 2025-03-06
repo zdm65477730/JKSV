@@ -22,6 +22,11 @@ namespace stringutil
     /// @param replace What to replace the sequence with.
     void replace_in_string(std::string &target, std::string_view find, std::string_view replace);
 
+    /// @brief Strips a character from the target string.
+    /// @param c Character to strip.
+    /// @param target Target to strip the character from.
+    void strip_character(char c, std::string &target);
+
     /// @brief Attempts to sanitize the string for use with the SD card.
     /// @param stringIn String to attempt to sanitize.
     /// @param stringOut Buffer to write result to.
