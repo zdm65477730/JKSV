@@ -7,6 +7,16 @@ namespace
     constexpr size_t SIZE_UPLOAD_BUFFER = 0x10000;
 } // namespace
 
+bool curl::initialize(void)
+{
+    return curl_global_init(CURL_GLOBAL_ALL) == CURLE_OK;
+}
+
+void curl::exit(void)
+{
+    curl_global_cleanup();
+}
+
 size_t curl::read_data_from_file(char *buffer, size_t size, size_t count, fslib::File *target)
 {
     // This should be good enough.
