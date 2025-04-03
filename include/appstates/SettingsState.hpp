@@ -14,20 +14,24 @@ class SettingsState : public AppState
         ~SettingsState() {};
 
         /// @brief Runs the update routine.
-        void update(void);
+        void update(void) override;
 
         /// @brief Runs the render routine.
-        void render(void);
+        void render(void) override;
 
     private:
         /// @brief Menu for selecting and toggling settings.
         ui::Menu m_settingsMenu;
+
         /// @brief Render target to render to.
         sdl::SharedTexture m_renderTarget = nullptr;
+
         /// @brief X coordinate of the control guide in the bottom right corner.
         int m_controlGuideX = 0;
+
         /// @brief Runs a routine to update the menu strings for the menu.
         void update_menu_options(void);
+
         /// @brief Toggles or executes the code to changed the selected menu option.
         void toggle_options(void);
 };

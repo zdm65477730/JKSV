@@ -22,10 +22,10 @@ class BackupMenuState : public AppState
         ~BackupMenuState();
 
         /// @brief Required. Inherited virtual function from AppState.
-        void update(void);
+        void update(void) override;
 
         /// @brief Required. Inherited virtual function from AppState.
-        void render(void);
+        void render(void) override;
 
         /// @brief Refreshes the directory listing and menu.
         void refresh(void);
@@ -36,25 +36,34 @@ class BackupMenuState : public AppState
     private:
         /// @brief Pointer to current user.
         data::User *m_user = nullptr;
+
         /// @brief Pointer to data for selected title.
         data::TitleInfo *m_titleInfo = nullptr;
+
         /// @brief Save data type we're working with.
         FsSaveDataType m_saveType;
+
         /// @brief Path to the target directory of the title.
         fslib::Path m_directoryPath;
+
         /// @brief Directory listing of the above.
         fslib::Directory m_directoryListing;
+
         /// @brief Variable that saves whether or not the filesystem has data in it.
         bool m_saveHasData = false;
 
         /// @brief Whether or not anything beyond this point needs to be init'd. Everything here is static and shared by all instances.
         static inline bool sm_isInitialized = false;
+
         /// @brief The menu used by all instances of BackupMenuState.
         static inline std::shared_ptr<ui::Menu> sm_backupMenu = nullptr;
+
         /// @brief The slide out panel used by all instances of BackupMenuState.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel = nullptr;
+
         /// @brief Inner render target so the menu only renders to a certain area.
         static inline sdl::SharedTexture sm_menuRenderTarget = nullptr;
+
         /// @brief The width of the panels. This is set according to the control guide text.
         static inline int sm_panelWidth = 0;
 };

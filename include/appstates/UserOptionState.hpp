@@ -19,18 +19,21 @@ class UserOptionState : public AppState
         ~UserOptionState() {};
 
         /// @brief Runs the render routine.
-        void update(void);
+        void update(void) override;
 
         /// @brief Runs the render routine.
-        void render(void);
+        void render(void) override;
 
     private:
         /// @brief Pointer to the target user.
         data::User *m_user;
+
         /// @brief Pointer to the selection view.
         TitleSelectCommon *m_titleSelect;
+
         /// @brief Menu that displays the options available.
         ui::Menu m_userOptionMenu;
+
         /// @brief Slide panel all instances shared.
         static inline std::unique_ptr<ui::SlideOutPanel> m_menuPanel = nullptr;
 };

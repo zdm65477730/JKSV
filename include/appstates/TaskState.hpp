@@ -12,17 +12,18 @@ class TaskState : public AppState
         /// @param args Variadic templated arguments to forward.
         /// @note All functions passed must follow this signature: void function(sys::Task *, <arguments>)
         template <typename... Args>
-        TaskState(void (*function)(sys::Task *, Args...), Args... args) : AppState(false), m_task(function, std::forward<Args>(args)...){};
+        TaskState(void (*function)(sys::Task *, Args...), Args... args)
+            : AppState(false), m_task(function, std::forward<Args>(args)...){};
 
         /// @brief Required destructor.
         ~TaskState() {};
 
         /// @brief Runs update routine. Waits for thread function to signal finish and deactivates.
-        void update(void);
+        void update(void) override;
 
         /// @brief Run render routine. Prints m_task's status string to screen, basically.
         /// @param
-        void render(void);
+        void render(void) override;
 
     private:
         /// @brief Underlying task.

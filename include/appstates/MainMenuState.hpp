@@ -15,10 +15,10 @@ class MainMenuState : public AppState
         ~MainMenuState() {};
 
         /// @brief Runs update routine.
-        void update(void);
+        void update(void) override;
 
         /// @brief Renders menu to screen.
-        void render(void);
+        void render(void) override;
 
         /// @brief This function allows other states to signal to this one to refresh the views on next call to update();
         static void refresh_view_states(void);

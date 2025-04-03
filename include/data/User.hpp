@@ -98,14 +98,19 @@ namespace data
         private:
             /// @brief Account's ID
             AccountUid m_accountID;
+
             /// @brief Type of save data account uses.
             FsSaveDataType m_saveType;
+
             /// @brief User's nickname.
             char m_nickname[0x20] = {0};
+
             /// @brief Path safe version of nickname.
             char m_pathSafeNickname[0x20] = {0};
+
             /// @brief User's icon.
             sdl::SharedTexture m_icon = nullptr;
+
             /// @brief Vector containing save info and play statistics.
             std::vector<UserDataEntry> m_userData;
 

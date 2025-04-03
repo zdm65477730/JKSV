@@ -16,19 +16,21 @@ class TitleSelectState : public TitleSelectCommon
         ~TitleSelectState() {};
 
         /// @brief Runs the update routine.
-        void update(void);
+        void update(void) override;
 
         /// @brief Runs the render routine.
-        void render(void);
+        void render(void) override;
 
         /// @brief Refreshes the view.
-        void refresh(void);
+        void refresh(void) override;
 
     private:
         /// @brief Pointer to the user the view belongs to.
         data::User *m_user = nullptr;
+
         /// @brief Target to render to.
         sdl::SharedTexture m_renderTarget = nullptr;
+
         /// @brief Tiled title selection view.
         ui::TitleView m_titleView;
 };

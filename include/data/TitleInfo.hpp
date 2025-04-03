@@ -70,10 +70,13 @@ namespace data
         private:
             /// @brief Stores application ID for easier grabbing since JKSV is all pointers.
             uint64_t m_applicationID = 0;
+
             /// @brief This is where all the good stuff is. All the data for the title.
             NacpStruct m_nacp;
+
             /// @brief This is the path safe version of the title.
             char m_pathSafeTitle[0x200] = {0};
+
             /// @brief Shared icon texture.
             sdl::SharedTexture m_icon = nullptr;
     };

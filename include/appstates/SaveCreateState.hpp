@@ -19,20 +19,24 @@ class SaveCreateState : public AppState
         ~SaveCreateState() {};
 
         /// @brief Runs the update routine.
-        void update(void);
+        void update(void) override;
 
         /// @brief Runs the render routine.
-        void render(void);
+        void render(void) override;
 
     private:
         /// @brief Pointer to target user.
         data::User *m_user;
+
         /// @brief Pointer to title selection view for the current user.
         TitleSelectCommon *m_titleSelect;
+
         /// @brief Menu populated with every title found on the system.
         ui::Menu m_saveMenu;
+
         /// @brief Vector of pointers to the title info. This allows sorting them alphabetically and other things.
         std::vector<data::TitleInfo *> m_titleInfoVector;
+
         /// @brief Shared slide panel all instances use. There's no point in allocating a new one every time.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel = nullptr;
 };

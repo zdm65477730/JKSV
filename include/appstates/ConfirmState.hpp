@@ -52,7 +52,7 @@ class ConfirmState : public AppState
         ~ConfirmState() {};
 
         /// @brief Just updates the ConfirmState.
-        void update(void)
+        void update(void) override
         {
             // This is to guard against the dialog being triggered right away. To do: Maybe figure out a better way to accomplish this?
             if (input::button_pressed(HidNpadButton_A) && !m_triggerGuard)
@@ -105,7 +105,7 @@ class ConfirmState : public AppState
         }
 
         /// @brief Renders the state to screen.
-        void render(void)
+        void render(void) override
         {
             // Dim background
             sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
@@ -130,20 +130,28 @@ class ConfirmState : public AppState
     private:
         /// @brief String displayed
         std::string m_queryString;
+
         /// @brief Yes or [X] [A]
         std::string m_yesString;
+
         /// @brief X coordinate to render the Yes [A]
         int m_yesX = 0;
+
         /// @brief Position of No.
         int m_noX = 0;
+
         /// @brief This is to prevent the dialog from triggering immediately.
         bool m_triggerGuard = false;
+
         /// @brief Whether or not holding [A] to confirm is required.
         bool m_hold;
+
         /// @brief Keep track of the ticks/time needed to confirm.
         uint64_t m_startingTickCount = 0;
+
         /// @brief Function to execute if action is confirmed.
         TaskFunction m_function;
+
         /// @brief Pointer to data struct passed to ^
         std::shared_ptr<StructType> m_dataStruct;
 };

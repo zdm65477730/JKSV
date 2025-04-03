@@ -14,14 +14,15 @@ class ExtrasMenuState : public AppState
         ~ExtrasMenuState() {};
 
         /// @brief Updates the menu.
-        void update(void);
+        void update(void) override;
 
         /// @brief Renders the menu to screen.
-        void render(void);
+        void render(void) override;
 
     private:
         /// @brief Menu
         ui::Menu m_extrasMenu;
+
         /// @brief Render target for menu.
         sdl::SharedTexture m_renderTarget;
 };

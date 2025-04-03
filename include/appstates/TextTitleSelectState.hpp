@@ -16,19 +16,21 @@ class TextTitleSelectState : public TitleSelectCommon
         ~TextTitleSelectState() {};
 
         /// @brief Runs update routine.
-        void update(void);
+        void update(void) override;
 
         /// @brief Runs render routine.
-        void render(void);
+        void render(void) override;
 
         /// @brief Refreshes view for changes.
-        void refresh(void);
+        void refresh(void) override;
 
     private:
         /// @brief Pointer to user view "belongs" to.
         data::User *m_user;
+
         /// @brief Menu to display titles to select from.
         ui::Menu m_titleSelectMenu;
+
         /// @brief Target to render to.
         sdl::SharedTexture m_renderTarget;
 };

@@ -45,8 +45,10 @@ class AppState
     private:
         /// @brief Stores whether or not the state is currently active.
         bool m_isActive = true;
+
         /// @brief Stores whether or not the state has focus.
         bool m_hasFocus = false;
+
         /// @brief Stores whether or not the state allows closing.
         bool m_isClosable = true;
 };

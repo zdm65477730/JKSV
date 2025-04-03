@@ -1,94 +1,130 @@
 #pragma once
 #include "fslib.hpp"
-#include <condition_variable>
+#include "logger.hpp"
 #include <curl/curl.h>
 #include <memory>
-#include <mutex>
+#include <string>
 #include <vector>
 
+/// @brief This namespace contains various wrapped libcurl functions and data.
 namespace curl
 {
-
-    /// @brief Universal user agent string used by JKSV for everything.
+    /// @brief JKSV's user agent string.
     static constexpr std::string_view USER_AGENT_STRING = "JKSV";
 
-    /// @brief Used to store headers when needed.
+    /// @brief Self cleaning curl handle.
+    using Handle = std::unique_ptr<CURL, decltype(&curl_easy_cleanup)>;
+
+    /// @brief Self cleaning curl header/slist.
+    using HeaderList = std::unique_ptr<curl_slist, decltype(&curl_slist_free_all)>;
+
+    /// @brief Definition for a vector containing headers received from libcurl.
     using HeaderArray = std::vector<std::string>;
 
-    /// @brief Download buffer declaration.
-    using DownloadBuffer = std::vector<unsigned char>;
+    /// @brief Initializes lib curl.
+    /// @return True on success. False on failure.
+    bool initialize(void);
 
-    /// @brief This is the struct used for threaded downloads from drive.
-    typedef struct
+    /// @brief Exits libcurl
+    void exit(void);
+
+    /// @brief Inline function that returns a self cleaning curl handle.
+    /// @return Curl handle.
+    static inline curl::Handle new_handle(void)
     {
-            /// @brief Conditional used for mutex.
-            std::condition_variable m_condition;
-            /// @brief Buffer mutex.
-            std::mutex m_bufferLock;
-            /// @brief Buffer both threads share.
-            std::unique_ptr<unsigned char[]> m_sharedBuffer;
-            /// @brief Path the to file to write to.
-            fslib::Path m_filePath;
-            /// @brief Size of the file being downloaded.
-            uint64_t m_fileSize;
-            /// @brief Current offset of the downloaded file.
-            uint64_t m_offset;
-    } DownloadStruct;
+        return curl::Handle(curl_easy_init(), curl_easy_cleanup);
+    }
 
-    /// @brief This makes some stuff slightly easier to read. Also, I don't need to type as much.
-    using SharedDownloadStruct = std::shared_ptr<DownloadStruct>;
+    /// @brief Inline wrapper function for curl_easy_reset.
+    /// @param curl curl::Handle to reset.
+    static inline void reset_handle(curl::Handle &curl)
+    {
+        curl_easy_reset(curl.get());
+    }
 
-    /// @brief Reads data from the target file to upload it.
-    /// @param buffer Incoming buffer from curl.
+    /// @brief Logged inline wrapper function for curl_easy_perform.
+    /// @param curl Handle to perform.
+    /// @return True on success. False on failure.
+    static inline bool perform(curl::Handle &curl)
+    {
+        // CURLCode is just an int anyway.
+        CURLcode error = curl_easy_perform(curl.get());
+        if (error != CURLE_OK)
+        {
+            logger::log("Error performing curl: %i.", error);
+            return false;
+        }
+        return true;
+    }
+
+    /// @brief Inline templated function to wrap curl_easy_setopt and make using curl::Handle slightly easier.
+    /// @tparam Option Templated type of the option. This is a headache so let the compiler figure it out.
+    /// @tparam Value Templated type of the value to set the option too. See above.
+    /// @param handle curl::Handle the option is being set for.
+    /// @param option CURLOPT to set.
+    /// @param value Value to set the CURLOPT to.
+    /// @return CURLcode returned from curl_easy_setopt.
+    template <typename Option, typename Value>
+    static inline CURLcode set_option(curl::Handle &handle, Option option, Value value)
+    {
+        return curl_easy_setopt(handle.get(), option, value);
+    }
+
+    /// @brief Inline wrapper function to make adding to HeaderList simpler.
+    /// @param headerList Header list to append to.
+    /// @param header Header to append.
+    static inline void append_header(curl::HeaderList &headerList, std::string_view header)
+    {
+        // Release the current list and save the pointer to the head of it.
+        curl_slist *list = headerList.release();
+
+        // Append to it.
+        curl_slist_append(list, header.data());
+
+        // Reassign the unique_ptr to the new head.
+        headerList.reset(list);
+    }
+
+    /// @brief Curl callback function for reading data from a file.
+    /// @param buffer Incoming buffer from curl to read to.
     /// @param size Element size.
     /// @param count Element count.
     /// @param target Target file to read from.
-    /// @return Number of bytes read.
-    size_t read_from_file(char *buffer, size_t size, size_t count, fslib::File *target);
+    /// @return Number of bytes read so curl thinks everything went OK.
+    size_t read_data_from_file(char *buffer, size_t size, size_t count, fslib::File *target);
 
-    /// @brief Curl callback function that stores headers to a vector (curl::HeaderArray)
+    /// @brief Curl callback function that writes incoming headers to a vector/array.
     /// @param buffer Incoming buffer from curl.
-    /// @param size Size of the elements.
-    /// @param count Element count.
-    /// @param headerArray Vector to write to.
-    /// @return Number of bytes in the buffer.
-    size_t write_headers_array(const char *buffer, size_t size, size_t count, curl::HeaderArray *headerArray);
-
-    /// @brief Curl callback function to write the response to a C++ string.
-    /// @param buffer Buffer from curl
     /// @param size Element size.
     /// @param count Element count.
-    /// @param string String to write to.
-    /// @return Size written to string.
+    /// @param array Array to write the header to.
+    /// @return size * count so curl thinks everything is fine, because it usually is.
+    size_t write_header_array(const char *buffer, size_t size, size_t count, curl::HeaderArray *array);
+
+    /// @brief Curl callback function that writes the response data to a C++ string.
+    /// @param buffer Incoming buffer from curl.
+    /// @param size Element size.
+    /// @param count Element count.
+    /// @param string String to write the response to.
+    /// @return size * count so curl thinks everything is fine.
     size_t write_response_string(const char *buffer, size_t size, size_t count, std::string *string);
 
-    /// @brief Writes the response to a download buffer (std::vector<unsigned char>).
-    /// @param buffer Buffer from curl.
-    /// @param size Element size.
-    /// @param count Element count.
-    /// @param bufferOut Buffer to write data to.
-    /// @return Size written to buffer.
-    size_t write_response_buffer(const char *buffer, size_t size, size_t count, curl::DownloadBuffer *bufferOut);
-
-    /// @brief Extracts the value of a header from the vector passed.
-    /// @param headerArray Vector of headers to search for the value in.
-    /// @param header Header to find and get the value of.
+    /// @brief Gets the value of a header from an array of headers.
+    /// @param array Array of headers to search.
+    /// @param header Header to search for.
     /// @param valueOut String to write the value to.
-    /// @return True if the value was found. False if it wasn't.
-    bool extract_value_from_headers(const curl::HeaderArray &headerArray,
-                                    std::string_view header,
-                                    std::string &valueOut);
+    /// @return True if the header was found and the value was successfully extracted.
+    bool get_header_value(const curl::HeaderArray &array, std::string_view header, std::string &valueOut);
 
-    /// @brief Quick shortcut function for a get request that writes the response to a C++ string.
-    /// @param url Url to GET.
-    /// @param stringOut String to write response to.
-    /// @return True on success. False on failure.
-    bool download_to_string(std::string_view url, std::string &stringOut);
+    /// @brief Prepares the curl handle passed for a get request.
+    /// @param curl Handle to prepare for a get request.
+    void prepare_get(curl::Handle &curl);
 
-    /// @brief Quick shortcut function to get and download something to a buffer.
-    /// @param url URL to get and download.
-    /// @param buffer Buffer to write response to.
-    /// @return True on success. False on failure.
-    bool download_to_buffer(std::string_view url, curl::DownloadBuffer &bufferOut);
+    /// @brief Prepares the curl handle for a post request.
+    /// @param curl Handle prepare for a post request.
+    void prepare_post(curl::Handle &curl);
 
+    /// @brief Prepares the curl handle for an upload.
+    /// @param curl Handle to reset and prepare for an upload.
+    void prepare_upload(curl::Handle &curl);
 } // namespace curl

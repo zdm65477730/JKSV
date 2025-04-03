@@ -20,20 +20,24 @@ class ProgressState : public AppState
         ~ProgressState() {};
 
         /// @brief Checks if the thread is finished and deactivates this state.
-        void update(void);
+        void update(void) override;
 
         /// @brief Renders the current progress to screen.
-        void render(void);
+        void render(void) override;
 
     private:
         /// @brief Underlying task that has extra methods for tracking the progress of a task.
         sys::ProgressTask m_task;
+
         /// @brief Progress which is saved as a rounded whole number.
         size_t m_progress = 0;
+
         /// @brief Width of the green bar in pixels.
         size_t m_progressBarWidth = 0;
+
         /// @brief X coordinate of the percentage string.
         int m_percentageX = 0;
+
         /// @brief Percentage as a string for printing to screen.
         std::string m_percentageString;
 };

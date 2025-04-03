@@ -1,124 +1,92 @@
 #include "curl.hpp"
-#include "logger.hpp"
 #include "stringutil.hpp"
 
-// Declarations here. Definitions later.
-// Wraps a curl handle in a self freeing unique_ptr
-using CurlHandle = std::unique_ptr<CURL, decltype(&curl_easy_cleanup)>;
-
-// Creates a new curl handle.
-static CurlHandle new_curl_handle(void);
-// This function prepares the base of a get request so I don't have to type so much.
-static void prepare_get_request(CURL *curl);
-
-size_t curl::read_from_file(char *buffer, size_t size, size_t count, fslib::File *target)
+namespace
 {
-    // This just needs to read and return what it already returns.
+    /// @brief Size of the buffer used for uploading files.
+    constexpr size_t SIZE_UPLOAD_BUFFER = 0x10000;
+} // namespace
+
+size_t curl::read_data_from_file(char *buffer, size_t size, size_t count, fslib::File *target)
+{
+    // This should be good enough.
     return target->read(buffer, size * count);
 }
 
-size_t curl::write_headers_array(const char *buffer, size_t size, size_t count, curl::HeaderArray *headerArray)
+size_t curl::write_header_array(const char *buffer, size_t size, size_t count, curl::HeaderArray *array)
 {
-    // Just push the header back.
-    headerArray->emplace_back(buffer);
-    // Return this so curl thinks it worked cause it probably totally did.
+    array->emplace_back(buffer, buffer + (size * count));
     return size * count;
 }
 
-size_t curl::write_response_string(const char *buffer, size_t size, size_t count, std::string *string)
+size_t curl::write_response_string(const char *buffer, size_t, size_t count, std::string *string)
 {
-    // Append the buffer to the string.
-    string->append(buffer);
-    // Return success
+    string->append(buffer, buffer + (size * count));
     return size * count;
 }
 
-size_t curl::write_response_buffer(const char *buffer, size_t size, size_t count, curl::DownloadBuffer *bufferOut)
+bool curl::get_header_value(const curl::HeaderArray &array, std::string_view header, std::string &valueOut)
 {
-    // Insert the data to the end of the vector.
-    bufferOut->insert(bufferOut->end(), reinterpret_cast<unsigned char *>(buffer), size * count);
-    // Return success.
-    return size * count;
-}
-
-bool curl::download_to_string(std::string_view url, std::string &stringOut)
-{
-    // Curl handle.
-    CurlHandle curlHandle = new_curl_handle();
-
-    // Setup get request.
-    prepare_get_request(curlHandle.get());
-    curl_easy_setopt(curlHandle.get(), CURLOPT_URL, url.data());
-    curl_easy_setopt(curlHandle.get(), CURLOPT_WRITEFUNCTION, write_response_string);
-    curl_easy_setopt(curlHandle.get(), CURLOPT_WRITEDATA, &stringOut);
-
-    // Clear the string first just in case.
-    stringOut.clear();
-
-    if (curl_easy_perform(curlHandle.get()) != CURLE_OK)
+    for (const std::string &currentHeader : array)
     {
-        logger::log("Error getting %s.", url.data());
-        return false;
-    }
-
-    return true;
-}
-
-bool curl::download_to_buffer(std::string_view url, curl::DownloadBuffer &bufferOut)
-{
-    CurlHandle curlHandle = new_curl_handle();
-
-    prepare_get_request(curlHandle.get());
-    curl_easy_setopt(curlHandle.get(), CURLOPT_URL, url.data());
-    curl_easy_setopt(curlHandle.get(), CURLOPT_WRITEFUNCTION, write_response_buffer);
-    curl_easy_setopt(curlHandle.get(), CURLOPT_WRITEDATA, &bufferOut);
-
-    // Clear the vector first.
-    bufferOut.clear();
-
-    if (curl_easy_perform(curlHandle.get()) != CURLE_OK)
-    {
-        logger::log("Error downloading %s.", url.data());
-        return false;
-    }
-
-    return true;
-}
-
-bool curl::extract_value_from_headers(const curl::HeaderArray &headerArray,
-                                      std::string_view header,
-                                      std::string &valueOut)
-{
-    for (const auto &currentHeader : headerArray)
-    {
-        // Check if the current header matches what we need.
-        if (currentHeader.find(header.data()) != currentHeader.end())
+        size_t colonPos = currentHeader.find_first_of(':');
+        if (colonPos == currentHeader.npos)
         {
-            // It does. Find the ':'.
-            size_t headerEnd = currentHeader.find_first_of(':') + 2;
-
-            // This should get what's after the ':'.
-            valueOut = currentHeader.substr(headerEnd, -1);
-
-            // Strip and newline chars.
-            stringutil::strip_character('\n', valueOut);
-            stringutil::strip_character('\r', valueOut);
-
-            return true;
+            continue;
         }
+
+        // Get the substr.
+        std::string headerName = currentHeader.substr(0, colonPos);
+        if (headerName != header)
+        {
+            continue;
+        }
+
+        // Find the first thing after that isn't a space.
+        size_t valueBegin = currentHeader.find_first_not_of(' ', colonPos + 1);
+        if (valueBegin == currentHeader.npos)
+        {
+            // There was no value found?
+            continue;
+        }
+
+        // Set value out and return true. Npos should auto to the end. Strip new lines if there are any.
+        valueOut = currentHeader.substr(valueBegin, currentHeader.npos);
+        stringutil::strip_character('\n', valueOut);
+        stringutil::strip_character('\r', valueOut);
+
+        return true;
     }
     return false;
 }
 
-static CurlHandle new_curl_handle(void)
+void curl::prepare_get(curl::Handle &curl)
 {
-    return CurlHandle(curl_easy_init, curl_easy_cleanup);
+    // Reset handle. This is faster than making duplicates over and over.
+    curl_easy_reset(curl.get());
+
+    // Setup basic request.
+    curl::set_option(curl, CURLOPT_HTTPGET, 1L);
+    curl::set_option(curl, CURLOPT_USERAGENT, curl::USER_AGENT_STRING.data());
+    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "") // I think this is how you set the defaults for this?
 }
 
-static void prepare_get_request(CURL *curl)
+void curl::prepare_post(curl::Handle &curl)
 {
-    // This is just the basics. The other functions fill in the rest.
-    curl_easy_setopt(curl, CURLOPT_HTTPGET, 1L);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, curl::USER_AGENT_STRING.data());
-    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+    curl_easy_reset(curl.get());
+
+    curl::set_option(curl, CURLOPT_POST, 1L);
+    curl::set_option(curl, CURLOPT_USERAGENT, curl::USER_AGENT_STRING.data());
+    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
 }
+
+void curl::prepare_upload(curl::Handle &curl)
+{
+    curl_easy_reset(curl.get());
+
+    curl::set_option(curl, CURLOPT_UPLOAD, 1L);
+    curl::set_option(curl, CURLOPT_USERAGENT, curl::USER_AGENT_STRING.data());
+    curl::set_option(curl, CURLOPT_UPLOAD_BUFFERSIZE, SIZE_UPLOAD_BUFFER);
+    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "") // Not really sure this will have any affect here...
+}
+`

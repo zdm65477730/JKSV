@@ -17,28 +17,36 @@ class TitleInfoState : public AppState
         ~TitleInfoState() {};
 
         /// @brief Runs update routine.
-        void update(void);
+        void update(void) override;
 
         /// @brief Runs render routine.
-        void render(void);
+        void render(void) override;
 
     private:
         /// @brief Pointer to user.
         data::User *m_user;
+
         /// @brief Pointer to title info.
         data::TitleInfo *m_titleInfo;
+
         /// @brief Width of titles in pixels.
         int m_titleWidth = 0;
+
         /// @brief X coordinate of title text.
         int m_titleX = 0;
+
         /// @brief Whether or not the title is too long to fit in the panel and needs to be scrolled.
         bool m_titleScrolling = false;
+
         /// @brief Whether or not a scroll has been triggered.
         bool m_titleScrollTriggered = false;
+
         /// @brief Timer to scroll title if needed.
         sys::Timer m_titleScrollTimer;
+
         /// @brief Bool to tell whether or not static members are initialized.
         static inline bool sm_initialized = false;
+
         /// @brief Slide panel.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel = nullptr;
 };
