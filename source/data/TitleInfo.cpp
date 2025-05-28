@@ -68,6 +68,9 @@ data::TitleInfo::TitleInfo(NsApplicationControlData &controlData)
         std::snprintf(entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
     }
 
+    // Oops. Need this.
+    TitleInfo::get_create_path_safe_title();
+
     // Load the icon to a texture. We're going to be lazy with the size here since it works anyway.
     m_icon = sdl::TextureManager::create_load_texture(entry->name, m_data.icon, sizeof(m_data.icon));
 }
