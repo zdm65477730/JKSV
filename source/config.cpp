@@ -13,14 +13,17 @@ namespace
 {
     // Makes stuff slightly easier to read.
     using ConfigPair = std::pair<std::string, uint8_t>;
+
     // Folder path.
-    const char *CONFIG_FOLDER = "sdmc:/config/JKSV";
+    constexpr std::string_view PATH_CONFIG_FOLDER = "sdmc:/config/JKSV";
     // Actual config path.
-    const char *CONFIG_PATH = "sdmc:/config/JKSV/JKSV.json";
-    // Paths file. Sweet name too.
-    const char *PATHS_PATH = "sdmc:/config/JKSV/Paths.json";
+    constexpr std::string_view PATH_CONFIG_FILE = "sdmc:/config/JKSV/JKSV.json";
+    // Paths file. Funny name too.
+    constexpr std::string_view PATH_PATHS_PATH = "sdmc:/config/JKSV/Paths.json";
+
     // Vector to preserve order now.
     std::vector<ConfigPair> s_configVector;
+
     // Working directory
     fslib::Path s_workingDirectory;
     // UI animation scaling.
@@ -29,6 +32,7 @@ namespace
     std::vector<uint64_t> s_favorites;
     // Vector of titles to ignore.
     std::vector<uint64_t> s_blacklist;
+
     // Map of paths.
     std::unordered_map<uint64_t, std::string> s_pathMap;
 } // namespace
@@ -52,14 +56,14 @@ static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *arr
 
 void config::initialize(void)
 {
-    if (!fslib::directory_exists(CONFIG_FOLDER) && !fslib::create_directories_recursively(CONFIG_FOLDER))
+    if (!fslib::directory_exists(PATH_CONFIG_FOLDER) && !fslib::create_directories_recursively(PATH_CONFIG_FOLDER))
     {
         logger::log("Error creating config folder: %s.", fslib::get_error_string());
         config::reset_to_default();
         return;
     }
 
-    json::Object configJSON = json::new_object(json_object_from_file, CONFIG_PATH);
+    json::Object configJSON = json::new_object(json_object_from_file, PATH_CONFIG_FILE.data());
     if (!configJSON)
     {
         logger::log("Error opening config for reading: %s", fslib::get_error_string());
@@ -99,13 +103,13 @@ void config::initialize(void)
     }
 
     // Load custom output paths.
-    if (!fslib::file_exists(PATHS_PATH))
+    if (!fslib::file_exists(PATH_PATHS_PATH))
     {
         // Just bail.
         return;
     }
 
-    json::Object pathsJSON = json::new_object(json_object_from_file, PATHS_PATH);
+    json::Object pathsJSON = json::new_object(json_object_from_file, PATH_PATHS_PATH.data());
     if (!pathsJSON)
     {
         return;
@@ -155,18 +159,18 @@ void config::save(void)
 
         // Add working directory first.
         json_object *workingDirectory = json_object_new_string(s_workingDirectory.c_string());
-        json_object_object_add(configJSON.get(), config::keys::WORKING_DIRECTORY.data(), workingDirectory);
+        json::add_object(configJSON, config::keys::WORKING_DIRECTORY.data(), workingDirectory);
 
         // Loop through map and add it.
         for (auto &[key, value] : s_configVector)
         {
             json_object *jsonValue = json_object_new_uint64(value);
-            json_object_object_add(configJSON.get(), key.c_str(), jsonValue);
+            json::add_object(configJSON, key.c_str(), jsonValue);
         }
 
         // Add UI scaling.
         json_object *scaling = json_object_new_double(s_uiAnimationScaling);
-        json_object_object_add(configJSON.get(), config::keys::UI_ANIMATION_SCALE.data(), scaling);
+        json::add_object(configJSON, config::keys::UI_ANIMATION_SCALE.data(), scaling);
 
         // Favorites
         json_object *favoritesArray = json_object_new_array();
@@ -177,7 +181,7 @@ void config::save(void)
                 json_object_new_string(stringutil::get_formatted_string("%016lX", titleID).c_str());
             json_object_array_add(favoritesArray, newFavorite);
         }
-        json_object_object_add(configJSON.get(), config::keys::FAVORITES.data(), favoritesArray);
+        json::add_object(configJSON, config::keys::FAVORITES.data(), favoritesArray);
 
         // Same but blacklist
         json_object *blacklistArray = json_object_new_array();
@@ -187,10 +191,10 @@ void config::save(void)
                 json_object_new_string(stringutil::get_formatted_string("%016lX", titleID).c_str());
             json_object_array_add(blacklistArray, newBlacklist);
         }
-        json_object_object_add(configJSON.get(), config::keys::BLACKLIST.data(), blacklistArray);
+        json::add_object(configJSON, config::keys::BLACKLIST.data(), blacklistArray);
 
         // Write config file
-        fslib::File configFile(CONFIG_PATH,
+        fslib::File configFile(PATH_CONFIG_FILE,
                                FsOpenMode_Create | FsOpenMode_Write,
                                std::strlen(json_object_get_string(configJSON.get())));
         if (configFile)
@@ -212,10 +216,10 @@ void config::save(void)
             json_object *pathObject = json_object_new_string(path.c_str());
 
             // Add to pathsJSON object.
-            json_object_object_add(pathsJSON.get(), idHex.c_str(), pathObject);
+            json::add_object(pathsJSON, idHex.c_str(), pathObject);
         }
         // Write it.
-        fslib::File pathsFile(PATHS_PATH,
+        fslib::File pathsFile(PATH_PATHS_PATH,
                               FsOpenMode_Create | FsOpenMode_Write,
                               std::strlen(json_object_get_string(pathsJSON.get())));
         if (pathsFile)

@@ -27,7 +27,6 @@ namespace data
             User(AccountUid accountID,
                  std::string_view nickname,
                  std::string_view pathSafeNickname,
-                 std::string_view iconPath,
                  FsSaveDataType saveType);
 
             /// @brief Pushes data to m_userData

@@ -36,5 +36,6 @@ namespace strings
         static constexpr std::string_view POP_MESSAGES_BACKUP_MENU = "PopMessagesBackupMenu";
         static constexpr std::string_view POP_MESSAGES_SAVE_CREATE = "PopMessagesSaveCreate";
         static constexpr std::string_view POP_MESSAGES_TITLE_OPTIONS = "PopMessagesTitleOptions";
+        static constexpr std::string_view GOOGLE_DRIVE_STRINGS = "GoogleDriveStrings";
     } // namespace names
 } // namespace strings

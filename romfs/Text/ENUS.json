@@ -168,5 +168,10 @@
         "Could not sanitize path for use!",
         "Output folder set to #%s#.",
         "Error setting new output path!"
+    ],
+    "GoogleDriveStrings": [
+        "In order to use Google Drive, please go to #%s# on your phone or PC and type in the code >%s>.",
+        "Successfully signed in to Google Drive!",
+        "Google Drive sign in failed!"
     ]
 }

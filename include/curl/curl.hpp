@@ -35,11 +35,21 @@ namespace curl
         return curl::Handle(curl_easy_init(), curl_easy_cleanup);
     }
 
+    /// @brief Inline function that returns a nullptr'd self cleaning curl_list.
+    /// @return Self cleaning curl_slist.
+    static inline curl::HeaderList new_header_list(void)
+    {
+        return curl::HeaderList(nullptr, curl_slist_free_all);
+    }
+
     /// @brief Inline wrapper function for curl_easy_reset.
     /// @param curl curl::Handle to reset.
     static inline void reset_handle(curl::Handle &curl)
     {
+        // Reset the handle.
         curl_easy_reset(curl.get());
+        // Set the user agent since basically everything needs it.
+        curl::set_option(curl, CURLOPT_USERAGENT, curl::USER_AGENT_STRING.data());
     }
 
     /// @brief Logged inline wrapper function for curl_easy_perform.
@@ -108,6 +118,14 @@ namespace curl
     /// @param string String to write the response to.
     /// @return size * count so curl thinks everything is fine.
     size_t write_response_string(const char *buffer, size_t size, size_t count, std::string *string);
+
+    /// @brief Curl callback function that writes data directly to an fslib::File pointer.
+    /// @param buffer Incoming buffer from CURL.
+    /// @param size Element size.
+    /// @param count Element count.
+    /// @param target File to write the data to.
+    /// @return Number of bytes written to the file.
+    size_t write_data_to_file(const char *buffer, size_t size, size_t count, fslib::File &target);
 
     /// @brief Gets the value of a header from an array of headers.
     /// @param array Array of headers to search.

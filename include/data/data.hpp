@@ -7,13 +7,16 @@
 
 namespace data
 {
+    /// @brief Declaration for user list/user pointer vector.
+    using UserList = std::vector<data::User *>;
+
     /// @brief Loads users, applications, and save info from the system.
     /// @return True if everything goes fine. False if something goes horribly wrong.
     bool initialize(void);
 
     /// @brief Writes pointers to users to vectorOut
-    /// @param vectorOut Vector to push the pointers to.
-    void get_users(std::vector<data::User *> &vectorOut);
+    /// @param userList List to push the pointers to.
+    void get_users(data::UserList &userList);
 
     /// @brief Returns a pointer to the title mapped to applicationID.
     /// @param applicationID ApplicationID of title to retrieve.

@@ -1,6 +1,8 @@
 #pragma once
+#include "curl/curl.hpp"
 #include "fslib.hpp"
 #include "remote/Item.hpp"
+#include <ctime>
 #include <string>
 #include <vector>
 
@@ -57,15 +59,21 @@ namespace remote
             virtual bool delete_directory(std::string_view name) = 0;
 
             /// @brief Virtual function to upload a file to remote storage.
-            /// @param source fslib::File to use as the source to upload.
+            /// @param source fslib::Path of the source file to upload.
             /// @return True on success. False on failure.
-            virtual bool upload_file(fslib::File &source) = 0;
+            virtual bool upload_file(const fslib::Path &source) = 0;
 
             /// @brief Virtual function to patch or update a file.
             /// @param name Name or ID of the file to update.
-            /// @param source Source file to use for the patch.
+            /// @param source Source path to upload from.
             /// @return True on success. False on failure.
-            virtual bool patch_file(std::string_view name, fslib::File &source) = 0;
+            virtual bool patch_file(std::string_view name, const fslib::Path &source) = 0;
+
+            /// @brief Virtual function for downloading a file.
+            /// @param name Name or ID of the file.
+            /// @param destination fslib::Path containing the destination path.
+            /// @return True on success. False on failure.
+            virtual bool download_file(std::string_view name, const fslib::Path &destination) = 0;
 
             /// @brief Virtual function to delete a file from the remote storage.
             /// @param name Name or ID of the file to delete.
@@ -84,6 +92,9 @@ namespace remote
 
             /// @brief Current storage listing.
             Storage::List m_list;
+
+            /// @brief CURL handle.
+            curl::Handle m_curl;
 
             /// @brief Searches for a directory in the current parent directory.
             /// @param name Name of the directory to search for.

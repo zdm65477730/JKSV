@@ -1,6 +1,7 @@
 #pragma once
 #include "sdl.hpp"
 #include <cstdint>
+#include <memory>
 #include <switch.h>
 
 namespace data
@@ -13,9 +14,21 @@ namespace data
             /// @param applicationID Application ID of title to load.
             TitleInfo(uint64_t applicationID);
 
+            /// @brief Initializes a TitleInfo instance using external (cached) NsApplicationControlData
+            /// @param controlData Reference to the control data to init from.
+            TitleInfo(NsApplicationControlData &controlData);
+
             /// @brief Returns the application ID of the title.
             /// @return Title's application ID.
             uint64_t get_application_id(void) const;
+
+            /// @brief Returns a pointer to the control data for the title.
+            /// @return Pointer to control data.
+            NsApplicationControlData *get_control_data(void);
+
+            /// @brief Returns whether or not the title has control data.
+            /// @return Whether or not the title has control data.
+            bool has_control_data(void) const;
 
             /// @brief Returns the title of the title?
             /// @return Title directly from the NACP.
@@ -24,11 +37,6 @@ namespace data
             /// @brief Returns the path safe version of the title for file system usage.
             /// @return Path safe version of the title.
             const char *get_path_safe_title(void);
-
-            /// @brief Allows the path safe title to be set to a new path.
-            /// @param newPathSafe Buffer containing the new safe path to use.
-            /// @param newPathLength Size of the buffer passed.
-            void set_path_safe_title(const char *newPathSafe, size_t newPathLength);
 
             /// @brief Returns the publisher of the title.
             /// @return Publisher string from NACP.
@@ -67,17 +75,31 @@ namespace data
             /// @return Icon
             sdl::SharedTexture get_icon(void) const;
 
+            /// @brief Allows the path safe title to be set to a new path.
+            /// @param newPathSafe Buffer containing the new safe path to use.
+            /// @param newPathLength Size of the buffer passed.
+            void set_path_safe_title(const char *newPathSafe, size_t newPathLength);
+
         private:
+            /// @brief This defines how long the buffer is for the path safe version of the title.
+            static inline constexpr size_t SIZE_PATH_SAFE = 0x200;
+
             /// @brief Stores application ID for easier grabbing since JKSV is all pointers.
             uint64_t m_applicationID = 0;
 
-            /// @brief This is where all the good stuff is. All the data for the title.
-            NacpStruct m_nacp;
+            /// @brief This contains the NACP and the icon.
+            NsApplicationControlData m_data = {0};
+
+            /// @brief Saves whether or not the title has control data.
+            bool m_hasData = false;
 
             /// @brief This is the path safe version of the title.
-            char m_pathSafeTitle[0x200] = {0};
+            char m_pathSafeTitle[TitleInfo::SIZE_PATH_SAFE] = {0};
 
             /// @brief Shared icon texture.
             sdl::SharedTexture m_icon = nullptr;
+
+            /// @brief Private function to get/create the path safe title.
+            void get_create_path_safe_title(void);
     };
 } // namespace data

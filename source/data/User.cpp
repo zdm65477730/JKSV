@@ -2,6 +2,7 @@
 #include "colors.hpp"
 #include "config.hpp"
 #include "data/data.hpp"
+#include "gfxutil.hpp"
 #include "logger.hpp"
 #include "sdl.hpp"
 #include "stringutil.hpp"
@@ -11,7 +12,7 @@
 namespace
 {
     /// @brief Font size for rendering text to icons.
-    constexpr int ICON_FONT_SIZE = 50;
+    constexpr int SIZE_ICON_FONT = 50;
 } // namespace
 
 // Function used to sort user data.
@@ -105,11 +106,12 @@ data::User::User(AccountUid accountID, FsSaveDataType saveType) : m_accountID(ac
 data::User::User(AccountUid accountID,
                  std::string_view nickname,
                  std::string_view pathSafeNickname,
-                 std::string_view iconPath,
                  FsSaveDataType saveType)
-    : m_accountID(accountID), m_saveType(saveType),
-      m_icon(sdl::TextureManager::create_load_texture(pathSafeNickname, iconPath.data()))
+    : m_accountID(accountID), m_saveType(saveType)
 {
+    // Generate icon.
+    m_icon = gfxutil::create_generic_icon(nickname, 48, colors::DIALOG_BOX, colors::WHITE);
+
     // We're just gonna use this for both.
     std::memcpy(m_nickname, nickname.data(), nickname.length());
     std::memcpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
@@ -260,18 +262,7 @@ void data::User::create_account(void)
     std::string accountIDString = stringutil::get_formatted_string("Acc_%08X", m_accountID.uid[0] & 0xFFFFFFFF);
 
     // Create icon
-    int textX = 128 - (sdl::text::get_width(ICON_FONT_SIZE, accountIDString.c_str()) / 2);
-    m_icon = sdl::TextureManager::create_load_texture(accountIDString,
-                                                      256,
-                                                      256,
-                                                      SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
-    sdl::text::render(m_icon->get(),
-                      textX,
-                      128 - (ICON_FONT_SIZE / 2),
-                      ICON_FONT_SIZE,
-                      sdl::text::NO_TEXT_WRAP,
-                      colors::WHITE,
-                      accountIDString.c_str());
+    m_icon = gfxutil::create_generic_icon(accountIDString, SIZE_ICON_FONT, colors::DIALOG_BOX, colors::WHITE);
 
     // Memcpy the id string for both nicknames
     std::memcpy(m_nickname, accountIDString.c_str(), accountIDString.length());

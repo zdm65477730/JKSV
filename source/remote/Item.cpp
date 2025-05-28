@@ -18,6 +18,11 @@ std::string_view remote::Item::get_parent_id(void) const
     return m_parent;
 }
 
+size_t remote::Item::get_size(void) const
+{
+    return m_size;
+}
+
 bool remote::Item::is_directory(void) const
 {
     return m_isDirectory;
@@ -36,6 +41,11 @@ void remote::Item::set_id(std::string_view id)
 void remote::Item::set_parent_id(std::string_view parent)
 {
     m_parent = parent;
+}
+
+void remote::Item::set_size(size_t size)
+{
+    m_size = size;
 }
 
 void remote::Item::set_is_directory(bool directory)

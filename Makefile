@@ -32,7 +32,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	JKSV
 BUILD		:=	build
-SOURCES		:=	source source/appstates source/ui source/data source/system source/fs source/remote
+SOURCES		:=	source source/appstates source/ui source/data source/system source/fs
 DATA		:=	data
 INCLUDES	:=	include ./Libraries/FsLib/Switch/FsLib/include ./Libraries/SDLLib/SDL/include
 EXEFS_SRC	:=	exefs_src
@@ -48,7 +48,7 @@ ICON		:=	icon.jpg
 ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	$(INCLUDE) -D__SWITCH__ `sdl2-config --cflags` `freetype-config --cflags` \
-			`curl-config --cflags` -g -Wall -O2 -ffunction-sections -ffast-math \
+			`curl-config --cflags` -g -Wall -O2 -ffunction-sections -ffast-math -fmax-errors=1 \
 			$(ARCH) $(DEFINES)
 
 CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++23
