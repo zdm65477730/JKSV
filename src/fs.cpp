@@ -1,8 +1,8 @@
-#include <switch.h>
 #include <string>
+#include <switch.h>
 
-#include "fs.h"
 #include "cfg.h"
+#include "fs.h"
 #include "util.h"
 
 static std::string wd = "sdmc:/JKSV/";
@@ -22,65 +22,65 @@ void fs::init()
     fs::logOpen();
 }
 
-bool fs::mountSave(const FsSaveDataInfo& _m)
+bool fs::mountSave(const FsSaveDataInfo &_m)
 {
     Result svOpen;
     FsSaveDataAttribute attr = {0};
-    switch(_m.save_data_type)
+    switch (_m.save_data_type)
     {
         case FsSaveDataType_System:
         case FsSaveDataType_SystemBcat:
-            {
-                attr.uid = _m.uid;
-                attr.system_save_data_id = _m.system_save_data_id;
-                attr.save_data_type = _m.save_data_type;
-                svOpen = fsOpenSaveDataFileSystemBySystemSaveDataId(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
-            }
-            break;
+        {
+            attr.uid = _m.uid;
+            attr.system_save_data_id = _m.system_save_data_id;
+            attr.save_data_type = _m.save_data_type;
+            svOpen = fsOpenSaveDataFileSystemBySystemSaveDataId(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+        }
+        break;
 
         case FsSaveDataType_Account:
-            {
-                attr.uid = _m.uid;
-                attr.application_id = _m.application_id;
-                attr.save_data_type = _m.save_data_type;
-                attr.save_data_rank = _m.save_data_rank;
-                attr.save_data_index = _m.save_data_index;
-                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
-            }
-            break;
+        {
+            attr.uid = _m.uid;
+            attr.application_id = _m.application_id;
+            attr.save_data_type = _m.save_data_type;
+            attr.save_data_rank = _m.save_data_rank;
+            attr.save_data_index = _m.save_data_index;
+            svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+        }
+        break;
 
         case FsSaveDataType_Device:
-            {
-                attr.application_id = _m.application_id;
-                attr.save_data_type = FsSaveDataType_Device;
-                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
-            }
-            break;
+        {
+            attr.application_id = _m.application_id;
+            attr.save_data_type = FsSaveDataType_Device;
+            svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+        }
+        break;
 
         case FsSaveDataType_Bcat:
-            {
-                attr.application_id = _m.application_id;
-                attr.save_data_type = FsSaveDataType_Bcat;
-                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
-            }
-            break;
+        {
+            attr.application_id = _m.application_id;
+            attr.save_data_type = FsSaveDataType_Bcat;
+            svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+        }
+        break;
 
         case FsSaveDataType_Cache:
-            {
-                attr.application_id = _m.application_id;
-                attr.save_data_type = FsSaveDataType_Cache;
-                attr.save_data_index = _m.save_data_index;
-                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
-            }
-            break;
+        {
+            attr.application_id = _m.application_id;
+            attr.save_data_type = FsSaveDataType_Cache;
+            attr.save_data_index = _m.save_data_index;
+            svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+        }
+        break;
 
         case FsSaveDataType_Temporary:
-            {
-                attr.application_id = _m.application_id;
-                attr.save_data_type = _m.save_data_type;
-                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
-            }
-            break;
+        {
+            attr.application_id = _m.application_id;
+            attr.save_data_type = _m.save_data_type;
+            svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+        }
+        break;
 
         default:
             svOpen = 1;
@@ -90,11 +90,11 @@ bool fs::mountSave(const FsSaveDataInfo& _m)
     return R_SUCCEEDED(svOpen) && fsdevMountDevice("sv", sv) != -1;
 }
 
-bool fs::commitToDevice(const std::string& dev)
+bool fs::commitToDevice(const std::string &dev)
 {
     bool ret = true;
     Result res = fsdevCommitDevice(dev.c_str());
-    if(R_FAILED(res))
+    if (R_FAILED(res))
     {
         fs::logWrite("Error committing file to device -> 0x%X\n", res);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popErrorCommittingFile", 0));
@@ -103,31 +103,37 @@ bool fs::commitToDevice(const std::string& dev)
     return ret;
 }
 
-std::string fs::getWorkDir() { return wd; }
+std::string fs::getWorkDir()
+{
+    return wd;
+}
 
-void fs::setWorkDir(const std::string& _w) { wd = _w; }
+void fs::setWorkDir(const std::string &_w)
+{
+    wd = _w;
+}
 
 
-void fs::loadPathFilters(const uint64_t& tid)
+void fs::loadPathFilters(uint64_t tid)
 {
     char path[256];
     sprintf(path, "sdmc:/config/JKSV/0x%016lX_filter.txt", tid);
-    if(fs::fileExists(path))
+    if (fs::fileExists(path))
     {
         fs::dataFile filter(path);
-        while(filter.readNextLine(false))
+        while (filter.readNextLine(false))
             pathFilter.push_back(filter.getLine());
     }
 }
 
-bool fs::pathIsFiltered(const std::string& _path)
+bool fs::pathIsFiltered(const std::string &_path)
 {
-    if(pathFilter.empty())
+    if (pathFilter.empty())
         return false;
 
-    for(std::string& _p : pathFilter)
+    for (std::string &_p : pathFilter)
     {
-        if(_path == _p)
+        if (_path == _p)
             return true;
     }
 
@@ -142,16 +148,18 @@ void fs::freePathFilters()
 void fs::createSaveData(FsSaveDataType _type, uint64_t _tid, AccountUid _uid, threadInfo *t)
 {
     data::titleInfo *tinfo = data::getTitleInfoByTID(_tid);
-    if(t)
+    if (t)
         t->status->setStatus(ui::getUICString("threadStatusCreatingSaveData", 0), tinfo->title.c_str());
 
     uint16_t cacheIndex = 0;
     std::string indexStr;
-    if(_type == FsSaveDataType_Cache && !(indexStr = util::getStringInput(SwkbdType_NumPad, "0", ui::getUIString("swkbdSaveIndex", 0), 2, 0, NULL)).empty())
+    if (_type == FsSaveDataType_Cache &&
+        !(indexStr = util::getStringInput(SwkbdType_NumPad, "0", ui::getUIString("swkbdSaveIndex", 0), 2, 0, NULL))
+             .empty())
         cacheIndex = strtoul(indexStr.c_str(), NULL, 10);
-    else if(_type == FsSaveDataType_Cache && indexStr.empty())
+    else if (_type == FsSaveDataType_Cache && indexStr.empty())
     {
-        if(t)
+        if (t)
             t->finished = true;
         return;
     }
@@ -168,54 +176,72 @@ void fs::createSaveData(FsSaveDataType _type, uint64_t _tid, AccountUid _uid, th
     FsSaveDataCreationInfo crt;
     memset(&crt, 0, sizeof(FsSaveDataCreationInfo));
     int64_t saveSize = 0, journalSize = 0;
-    switch(_type)
+
+    // Grab a pointer to the nacp of the title data.
+    NacpStruct *nacp = &tinfo->data.nacp;
+
+    switch (_type)
     {
         case FsSaveDataType_Account:
-            saveSize = tinfo->nacp.user_account_save_data_size;
-            journalSize = tinfo->nacp.user_account_save_data_journal_size;
-            break;
+        {
+            saveSize = nacp->user_account_save_data_size;
+            journalSize = nacp->user_account_save_data_journal_size;
+        }
+        break;
 
         case FsSaveDataType_Device:
-            saveSize = tinfo->nacp.device_save_data_size;
-            journalSize = tinfo->nacp.device_save_data_journal_size;
-            break;
+        {
+            saveSize = nacp->device_save_data_size;
+            journalSize = nacp->device_save_data_journal_size;
+        }
+        break;
 
         case FsSaveDataType_Bcat:
-            saveSize = tinfo->nacp.bcat_delivery_cache_storage_size;
-            journalSize = tinfo->nacp.bcat_delivery_cache_storage_size;
-            break;
+        {
+            saveSize = nacp->bcat_delivery_cache_storage_size;
+            journalSize = nacp->bcat_delivery_cache_storage_size;
+        }
+        break;
 
         case FsSaveDataType_Cache:
+        {
             saveSize = 32 * 1024 * 1024;
-            if(tinfo->nacp.cache_storage_journal_size > tinfo->nacp.cache_storage_data_and_journal_size_max)
-                journalSize = tinfo->nacp.cache_storage_journal_size;
+            if (nacp->cache_storage_journal_size > nacp->cache_storage_data_and_journal_size_max)
+            {
+                journalSize = nacp->cache_storage_journal_size;
+            }
             else
-                journalSize = tinfo->nacp.cache_storage_data_and_journal_size_max;
-            break;
+            {
+                journalSize = nacp->cache_storage_data_and_journal_size_max;
+            }
+        }
+        break;
 
         default:
-            if(t)
+        {
+            if (t)
                 t->finished = true;
             return;
-            break;
+        }
+        break;
     }
     crt.save_data_size = saveSize;
     crt.journal_size = journalSize;
     crt.available_size = 0x4000;
-    crt.owner_id = _type == FsSaveDataType_Bcat ? 0x010000000000000C : tinfo->nacp.save_data_owner_id;
+    crt.owner_id = _type == FsSaveDataType_Bcat ? 0x010000000000000C : nacp->save_data_owner_id;
     crt.flags = 0;
     crt.save_data_space_id = FsSaveDataSpaceId_User;
 
     FsSaveDataMetaInfo meta;
     memset(&meta, 0, sizeof(FsSaveDataMetaInfo));
-    if(_type != FsSaveDataType_Bcat)
+    if (_type != FsSaveDataType_Bcat)
     {
         meta.size = 0x40060;
         meta.type = FsSaveDataMetaType_Thumbnail;
     }
 
     Result res = 0;
-    if(R_SUCCEEDED(res = fsCreateSaveDataFileSystem(&attr, &crt, &meta)))
+    if (R_SUCCEEDED(res = fsCreateSaveDataFileSystem(&attr, &crt, &meta)))
     {
         util::createTitleDirectoryByTID(_tid);
         data::loadUsersTitles(false);
@@ -248,14 +274,15 @@ void fs::createSaveDataThreaded(FsSaveDataType _type, uint64_t _tid, AccountUid 
 
 bool fs::extendSaveData(const data::userTitleInfo *tinfo, uint64_t extSize, threadInfo *t)
 {
-    if(t)
-        t->status->setStatus(ui::getUICString("threadStatusExtendingSaveData", 0), data::getTitleNameByTID(tinfo->tid).c_str());
+    if (t)
+        t->status->setStatus(ui::getUICString("threadStatusExtendingSaveData", 0),
+                             data::getTitleNameByTID(tinfo->tid).c_str());
 
     uint64_t journal = fs::getJournalSizeMax(tinfo);
-    uint64_t saveID  = tinfo->saveInfo.save_data_id;
+    uint64_t saveID = tinfo->saveInfo.save_data_id;
     FsSaveDataSpaceId space = (FsSaveDataSpaceId)tinfo->saveInfo.save_data_space_id;
     Result res = 0;
-    if(R_FAILED((res = fsExtendSaveDataFileSystem(space, saveID, extSize, journal))))
+    if (R_FAILED((res = fsExtendSaveDataFileSystem(space, saveID, extSize, journal))))
     {
         int64_t totalSize = 0;
         fs::mountSave(tinfo->saveInfo);
@@ -290,30 +317,48 @@ uint64_t fs::getJournalSize(const data::userTitleInfo *tinfo)
 {
     uint64_t ret = 0;
     data::titleInfo *t = data::getTitleInfoByTID(tinfo->tid);
-    switch(tinfo->saveInfo.save_data_type)
+
+    // NACP pointer.
+    NacpStruct *nacp = &t->data.nacp;
+
+    switch (tinfo->saveInfo.save_data_type)
     {
         case FsSaveDataType_Account:
-            ret = t->nacp.user_account_save_data_journal_size;
-            break;
+        {
+            ret = nacp->user_account_save_data_journal_size;
+        }
+        break;
 
         case FsSaveDataType_Device:
-            ret = t->nacp.device_save_data_journal_size;
-            break;
+        {
+            ret = nacp->device_save_data_journal_size;
+        }
+        break;
 
         case FsSaveDataType_Bcat:
-            ret = t->nacp.bcat_delivery_cache_storage_size;
-            break;
+        {
+            ret = nacp->bcat_delivery_cache_storage_size;
+        }
+        break;
 
         case FsSaveDataType_Cache:
-            if(t->nacp.cache_storage_journal_size > 0)
-                ret = t->nacp.cache_storage_journal_size;
+        {
+            if (nacp->cache_storage_journal_size > 0)
+            {
+                ret = nacp->cache_storage_journal_size;
+            }
             else
-                ret = t->nacp.cache_storage_data_and_journal_size_max;
-            break;
+            {
+                ret = nacp->cache_storage_data_and_journal_size_max;
+            }
+        }
+        break;
 
         default:
+        {
             ret = BUFF_SIZE;
-            break;
+        }
+        break;
     }
     return ret;
 }
@@ -322,37 +367,51 @@ uint64_t fs::getJournalSizeMax(const data::userTitleInfo *tinfo)
 {
     uint64_t ret = 0;
     data::titleInfo *extend = data::getTitleInfoByTID(tinfo->tid);
-    switch(tinfo->saveInfo.save_data_type)
+
+    // NACP pointer
+    NacpStruct *nacp = &extend->data.nacp;
+
+    switch (tinfo->saveInfo.save_data_type)
     {
         case FsSaveDataType_Account:
-            if(extend->nacp.user_account_save_data_journal_size_max > extend->nacp.user_account_save_data_journal_size)
-                ret = extend->nacp.user_account_save_data_journal_size_max;
+        {
+            if (nacp->user_account_save_data_journal_size_max > nacp->user_account_save_data_journal_size)
+                ret = nacp->user_account_save_data_journal_size_max;
             else
-                ret = extend->nacp.user_account_save_data_journal_size;
-            break;
+                ret = nacp->user_account_save_data_journal_size;
+        }
+        break;
 
         case FsSaveDataType_Bcat:
-            ret = extend->nacp.bcat_delivery_cache_storage_size;
-            break;
+        {
+            ret = nacp->bcat_delivery_cache_storage_size;
+        }
+        break;
 
         case FsSaveDataType_Cache:
-            if(extend->nacp.cache_storage_data_and_journal_size_max > extend->nacp.cache_storage_journal_size)
-                ret = extend->nacp.cache_storage_data_and_journal_size_max;
+        {
+            if (nacp->cache_storage_data_and_journal_size_max > nacp->cache_storage_journal_size)
+                ret = nacp->cache_storage_data_and_journal_size_max;
             else
-                ret = extend->nacp.cache_storage_journal_size;
-            break;
+                ret = nacp->cache_storage_journal_size;
+        }
+        break;
 
         case FsSaveDataType_Device:
-            if(extend->nacp.device_save_data_journal_size_max > extend->nacp.device_save_data_journal_size)
-                ret = extend->nacp.device_save_data_journal_size_max;
+        {
+            if (nacp->device_save_data_journal_size_max > nacp->device_save_data_journal_size)
+                ret = nacp->device_save_data_journal_size_max;
             else
-                ret = extend->nacp.device_save_data_journal_size;
-            break;
+                ret = nacp->device_save_data_journal_size;
+        }
+        break;
 
         default:
+        {
             //will just fail
             ret = 0;
-            break;
+        }
+        break;
     }
     return ret;
 }
@@ -373,7 +432,7 @@ void fs::wipeSave()
 
 void fs::createNewBackup(void *a)
 {
-    if(!fs::dirNotEmpty("sv:/"))
+    if (!fs::dirNotEmpty("sv:/"))
     {
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popSaveIsEmpty", 0));
         return;
@@ -387,43 +446,39 @@ void fs::createNewBackup(void *a)
 
     std::string out;
 
-    if(held & HidNpadButton_R || cfg::config["autoName"])
+    if (held & HidNpadButton_R || cfg::config["autoName"])
         out = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
-    else if(held & HidNpadButton_L)
+    else if (held & HidNpadButton_L)
         out = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
-    else if(held & HidNpadButton_ZL)
+    else if (held & HidNpadButton_ZL)
         out = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
     else
     {
-        const std::string dict[] =
-        {
-            util::getDateTime(util::DATE_FMT_YMD),
-            util::getDateTime(util::DATE_FMT_YDM),
-            util::getDateTime(util::DATE_FMT_HOYSTE),
-            util::getDateTime(util::DATE_FMT_JHK),
-            util::getDateTime(util::DATE_FMT_ASC),
-            u->getUsernameSafe(),
-            t->safeTitle,
-            util::generateAbbrev(d->tid),
-            ".zip"
-        };
+        const std::string dict[] = {util::getDateTime(util::DATE_FMT_YMD),
+                                    util::getDateTime(util::DATE_FMT_YDM),
+                                    util::getDateTime(util::DATE_FMT_HOYSTE),
+                                    util::getDateTime(util::DATE_FMT_JHK),
+                                    util::getDateTime(util::DATE_FMT_ASC),
+                                    u->getUsernameSafe(),
+                                    t->safeTitle,
+                                    util::generateAbbrev(d->tid),
+                                    ".zip"};
         std::string defaultText = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
         out = util::getStringInput(SwkbdType_QWERTY, defaultText, ui::getUIString("swkbdEnterName", 0), 64, 9, dict);
         out = util::safeString(out);
     }
 
-    if(!out.empty())
+    if (!out.empty())
     {
         std::string ext = util::getExtensionFromString(out);
         std::string path = util::generatePathByTID(d->tid) + out;
-        if(cfg::config["zip"] || ext == "zip")
+        if (cfg::config["zip"] || ext == "zip")
         {
-            if(ext != "zip")//data::zip is on but extension is not zip
+            if (ext != "zip") //data::zip is on but extension is not zip
                 path += ".zip";
 
             zipFile zip = zipOpen64(path.c_str(), 0);
             fs::copyDirToZipThreaded("sv:/", zip, false, 0);
-
         }
         else
         {
@@ -440,14 +495,14 @@ void fs::overwriteBackup(void *a)
     threadInfo *t = (threadInfo *)a;
     std::string *dst = (std::string *)t->argPtr;
     bool saveHasFiles = fs::dirNotEmpty("sv:/");
-    if(fs::isDir(*dst) && saveHasFiles)
+    if (fs::isDir(*dst) && saveHasFiles)
     {
         fs::delDir(*dst);
         fs::mkDir(*dst);
         dst->append("/");
         fs::copyDirToDirThreaded("sv:/", *dst);
     }
-    else if(!fs::isDir(*dst) && util::getExtensionFromString(*dst) == "zip" && saveHasFiles)
+    else if (!fs::isDir(*dst) && util::getExtensionFromString(*dst) == "zip" && saveHasFiles)
     {
         fs::delfile(*dst);
         zipFile zip = zipOpen64(dst->c_str(), 0);
@@ -463,34 +518,36 @@ void fs::restoreBackup(void *a)
     std::string *restore = (std::string *)t->argPtr;
     data::user *u = data::getCurrentUser();
     data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    if((utinfo->saveInfo.save_data_type != FsSaveDataType_System || cfg::config["sysSaveWrite"]))
+    if ((utinfo->saveInfo.save_data_type != FsSaveDataType_System || cfg::config["sysSaveWrite"]))
     {
         bool saveHasFiles = fs::dirNotEmpty("sv:/");
-        if(cfg::config["autoBack"] && cfg::config["zip"] && saveHasFiles)
+        if (cfg::config["autoBack"] && cfg::config["zip"] && saveHasFiles)
         {
-            std::string autoZip = util::generatePathByTID(utinfo->tid) + "/AUTO " + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+            std::string autoZip = util::generatePathByTID(utinfo->tid) + "/AUTO " + u->getUsernameSafe() + " - " +
+                                  util::getDateTime(util::DATE_FMT_YMD) + ".zip";
             zipFile zip = zipOpen64(autoZip.c_str(), 0);
             fs::copyDirToZipThreaded("sv:/", zip, false, 0);
         }
-        else if(cfg::config["autoBack"] && saveHasFiles)
+        else if (cfg::config["autoBack"] && saveHasFiles)
         {
-            std::string autoFolder = util::generatePathByTID(utinfo->tid) + "/AUTO - " + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+            std::string autoFolder = util::generatePathByTID(utinfo->tid) + "/AUTO - " + u->getUsernameSafe() + " - " +
+                                     util::getDateTime(util::DATE_FMT_YMD) + "/";
             fs::mkDir(autoFolder.substr(0, autoFolder.length() - 1));
             fs::copyDirToDirThreaded("sv:/", autoFolder);
         }
 
-        if(fs::isDir(*restore))
+        if (fs::isDir(*restore))
         {
             restore->append("/");
-            if(fs::dirNotEmpty(*restore))
+            if (fs::dirNotEmpty(*restore))
             {
                 t->status->setStatus(ui::getUICString("threadStatusCalculatingSaveSize", 0));
                 unsigned dirCount = 0, fileCount = 0;
                 uint64_t saveSize = 0;
-                int64_t  availSize = 0;
+                int64_t availSize = 0;
                 fs::getDirProps(*restore, dirCount, fileCount, saveSize);
                 fsFsGetTotalSpace(fsdevGetDeviceFileSystem("sv"), "/", &availSize);
-                if((int)saveSize > availSize)
+                if ((int)saveSize > availSize)
                 {
                     data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
                     fs::unmountSave();
@@ -504,16 +561,16 @@ void fs::restoreBackup(void *a)
             else
                 ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popFolderIsEmpty", 0));
         }
-        else if(!fs::isDir(*restore) && util::getExtensionFromString(*restore) == "zip")
+        else if (!fs::isDir(*restore) && util::getExtensionFromString(*restore) == "zip")
         {
             unzFile unz = unzOpen64(restore->c_str());
-            if(unz && fs::zipNotEmpty(unz))
+            if (unz && fs::zipNotEmpty(unz))
             {
                 t->status->setStatus(ui::getUICString("threadStatusCalculatingSaveSize", 0));
                 uint64_t saveSize = fs::getZipTotalSize(unz);
-                int64_t  availSize  = 0;
+                int64_t availSize = 0;
                 fsFsGetTotalSpace(fsdevGetDeviceFileSystem("sv"), "/", &availSize);
-                if((int)saveSize > availSize)
+                if ((int)saveSize > availSize)
                 {
                     data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
                     fs::unmountSave();
@@ -536,7 +593,7 @@ void fs::restoreBackup(void *a)
             fs::copyFileCommitThreaded(*restore, dstPath, "sv");
         }
     }
-    if(cfg::config["autoBack"])
+    if (cfg::config["autoBack"])
         ui::fldRefreshMenu();
 
     delete restore;
@@ -551,7 +608,7 @@ void fs::deleteBackup(void *a)
 
     t->status->setStatus(ui::getUICString("threadStatusDeletingFile", 0));
     data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    if(cfg::config["trashBin"])
+    if (cfg::config["trashBin"])
     {
         std::string oldPath = *deletePath;
         std::string trashPath = wd + "_TRASH_/" + data::getTitleSafeNameByTID(utinfo->tid);
@@ -561,7 +618,7 @@ void fs::deleteBackup(void *a)
         rename(oldPath.c_str(), trashPath.c_str());
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataBackupMovedToTrash", 0), backupName.c_str());
     }
-    else if(fs::isDir(*deletePath))
+    else if (fs::isDir(*deletePath))
     {
         *deletePath += "/";
         fs::delDir(*deletePath);
@@ -584,23 +641,25 @@ void fs::dumpAllUserSaves(void *a)
     t->argPtr = c;
     data::user *u = data::getCurrentUser();
 
-    for(unsigned i = 0; i < u->titleInfo.size(); i++)
+    for (unsigned i = 0; i < u->titleInfo.size(); i++)
     {
         bool saveMounted = fs::mountSave(u->titleInfo[i].saveInfo);
         util::createTitleDirectoryByTID(u->titleInfo[i].tid);
-        if(saveMounted && fs::dirNotEmpty("sv:/") && cfg::config["zip"])
+        if (saveMounted && fs::dirNotEmpty("sv:/") && cfg::config["zip"])
         {
             fs::loadPathFilters(u->titleInfo[i].tid);
-            std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+            std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " +
+                              util::getDateTime(util::DATE_FMT_YMD) + ".zip";
             zipFile zip = zipOpen64(dst.c_str(), 0);
             fs::copyDirToZip("sv:/", zip, false, 0, t);
             zipClose(zip, NULL);
             fs::freePathFilters();
         }
-        else if(saveMounted && fs::dirNotEmpty("sv:/"))
+        else if (saveMounted && fs::dirNotEmpty("sv:/"))
         {
             fs::loadPathFilters(u->titleInfo[i].tid);
-            std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+            std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " +
+                              util::getDateTime(util::DATE_FMT_YMD) + "/";
             fs::mkDir(dst.substr(0, dst.length() - 1));
             fs::copyDirToDir("sv:/", dst, t);
             fs::freePathFilters();
@@ -617,26 +676,28 @@ void fs::dumpAllUsersAllSaves(void *a)
     fs::copyArgs *c = fs::copyArgsCreate("", "", "", NULL, NULL, false, false, 0);
     t->argPtr = c;
     unsigned curUser = 0;
-    while(data::users[curUser].getUID128() != 2)
+    while (data::users[curUser].getUID128() != 2)
     {
         data::user *u = &data::users[curUser++];
-        for(unsigned i = 0; i < u->titleInfo.size(); i++)
+        for (unsigned i = 0; i < u->titleInfo.size(); i++)
         {
             bool saveMounted = fs::mountSave(u->titleInfo[i].saveInfo);
             util::createTitleDirectoryByTID(u->titleInfo[i].tid);
-            if(saveMounted && fs::dirNotEmpty("sv:/") && cfg::config["zip"])
+            if (saveMounted && fs::dirNotEmpty("sv:/") && cfg::config["zip"])
             {
                 fs::loadPathFilters(u->titleInfo[i].tid);
-                std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+                std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " +
+                                  util::getDateTime(util::DATE_FMT_YMD) + ".zip";
                 zipFile zip = zipOpen64(dst.c_str(), 0);
                 fs::copyDirToZip("sv:/", zip, false, 0, t);
                 zipClose(zip, NULL);
                 fs::freePathFilters();
             }
-            else if(saveMounted && fs::dirNotEmpty("sv:/"))
+            else if (saveMounted && fs::dirNotEmpty("sv:/"))
             {
                 fs::loadPathFilters(u->titleInfo[i].tid);
-                std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+                std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " +
+                                  util::getDateTime(util::DATE_FMT_YMD) + "/";
                 fs::mkDir(dst.substr(0, dst.length() - 1));
                 fs::copyDirToDir("sv:/", dst, t);
                 fs::freePathFilters();
@@ -667,4 +728,3 @@ void fs::logWrite(const char *fmt, ...)
     fsfwrite(tmp, 1, strlen(tmp), debLog);
     fsfclose(debLog);
 }
-

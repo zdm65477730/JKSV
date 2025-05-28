@@ -2,6 +2,7 @@ build/
 .vscode/
 *.cbp
 *.layout
+.editorconfig
 
 .idea/
 cmake-build-debug/

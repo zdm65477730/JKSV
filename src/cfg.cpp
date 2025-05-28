@@ -1,14 +1,14 @@
-#include <switch.h>
-#include <string>
-#include <unordered_map>
 #include <json-c/json.h>
+#include <string>
+#include <switch.h>
+#include <unordered_map>
 
 #include "cfg.h"
 #include "data.h"
 #include "file.h"
+#include "type.h"
 #include "ui.h"
 #include "util.h"
-#include "type.h"
 
 std::unordered_map<std::string, bool> cfg::config;
 std::vector<uint64_t> cfg::blacklist;
@@ -19,21 +19,38 @@ std::string cfg::driveClientID, cfg::driveClientSecret, cfg::driveRefreshToken;
 std::string cfg::webdavOrigin, cfg::webdavBasePath, cfg::webdavUser, cfg::webdavPassword;
 
 
-const char *cfgPath = "sdmc:/config/JKSV/JKSV.cfg", *titleDefPath = "sdmc:/config/JKSV/titleDefs.txt", *workDirLegacy = "sdmc:/switch/jksv_dir.txt";
-static std::unordered_map<std::string, unsigned> cfgStrings =
-{
-    {"workDir", 0}, {"includeDeviceSaves", 1}, {"autoBackup", 2}, {"overclock", 3}, {"holdToDelete", 4}, {"holdToRestore", 5},
-    {"holdToOverwrite", 6}, {"forceMount", 7}, {"accountSystemSaves", 8}, {"allowSystemSaveWrite", 9}, {"directFSCommands", 10},
-    {"exportToZIP", 11}, {"languageOverride", 12}, {"enableTrashBin", 13}, {"titleSortType", 14}, {"animationScale", 15},
-    {"favorite", 16}, {"blacklist", 17}, {"autoName", 18}, {"driveRefreshToken", 19},
+const char *cfgPath = "sdmc:/config/JKSV/JKSV.cfg", *titleDefPath = "sdmc:/config/JKSV/titleDefs.txt",
+           *workDirLegacy = "sdmc:/switch/jksv_dir.txt";
+static std::unordered_map<std::string, unsigned> cfgStrings = {
+    {"workDir", 0},
+    {"includeDeviceSaves", 1},
+    {"autoBackup", 2},
+    {"overclock", 3},
+    {"holdToDelete", 4},
+    {"holdToRestore", 5},
+    {"holdToOverwrite", 6},
+    {"forceMount", 7},
+    {"accountSystemSaves", 8},
+    {"allowSystemSaveWrite", 9},
+    {"directFSCommands", 10},
+    {"exportToZIP", 11},
+    {"languageOverride", 12},
+    {"enableTrashBin", 13},
+    {"titleSortType", 14},
+    {"animationScale", 15},
+    {"favorite", 16},
+    {"blacklist", 17},
+    {"autoName", 18},
+    {"driveRefreshToken", 19},
 };
 
 const std::string _true_ = "true", _false_ = "false";
 
-bool cfg::isBlacklisted(const uint64_t& tid)
+bool cfg::isBlacklisted(uint64_t tid)
 {
-    for(uint64_t& bid : cfg::blacklist)
-        if(tid == bid) return true;
+    for (uint64_t &bid : cfg::blacklist)
+        if (tid == bid)
+            return true;
 
     return false;
 }
@@ -45,21 +62,22 @@ void cfg::addTitleToBlacklist(void *a)
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
     uint64_t tid = d->tid;
     cfg::blacklist.push_back(tid);
-    for(data::user& u : data::users)
+    for (data::user &u : data::users)
     {
-        for(unsigned i = 0; i < u.titleInfo.size(); i++)
-            if(u.titleInfo[i].tid == tid) u.titleInfo.erase(u.titleInfo.begin() + i);
+        for (unsigned i = 0; i < u.titleInfo.size(); i++)
+            if (u.titleInfo[i].tid == tid)
+                u.titleInfo.erase(u.titleInfo.begin() + i);
     }
     ui::ttlRefresh();
     cfg::saveConfig();
     t->finished = true;
 }
 
-void cfg::removeTitleFromBlacklist(const uint64_t& tid)
+void cfg::removeTitleFromBlacklist(uint64_t tid)
 {
-    for(unsigned i = 0; i < cfg::blacklist.size(); i++)
+    for (unsigned i = 0; i < cfg::blacklist.size(); i++)
     {
-        if(cfg::blacklist[i] == tid)
+        if (cfg::blacklist[i] == tid)
             cfg::blacklist.erase(cfg::blacklist.begin() + i);
     }
     data::loadUsersTitles(false);
@@ -67,27 +85,28 @@ void cfg::removeTitleFromBlacklist(const uint64_t& tid)
     cfg::saveConfig();
 }
 
-bool cfg::isFavorite(const uint64_t& tid)
+bool cfg::isFavorite(uint64_t tid)
 {
-    for(uint64_t& fid : cfg::favorites)
-        if(tid == fid) return true;
+    for (uint64_t &fid : cfg::favorites)
+        if (tid == fid)
+            return true;
 
     return false;
 }
 
-static int getFavoriteIndex(const uint64_t& tid)
+static int getFavoriteIndex(uint64_t tid)
 {
-    for(unsigned i = 0; i < cfg::favorites.size(); i++)
+    for (unsigned i = 0; i < cfg::favorites.size(); i++)
     {
-        if(tid == cfg::favorites[i])
+        if (tid == cfg::favorites[i])
             return i;
     }
     return -1;
 }
 
-void cfg::addTitleToFavorites(const uint64_t& tid)
+void cfg::addTitleToFavorites(uint64_t tid)
 {
-    if(cfg::isFavorite(tid))
+    if (cfg::isFavorite(tid))
     {
         int rem = getFavoriteIndex(tid);
         cfg::favorites.erase(cfg::favorites.begin() + rem);
@@ -100,20 +119,21 @@ void cfg::addTitleToFavorites(const uint64_t& tid)
     cfg::saveConfig();
 }
 
-bool cfg::isDefined(const uint64_t& tid)
+bool cfg::isDefined(uint64_t tid)
 {
-    for(auto& def : pathDefs)
-        if(def.first == tid) return true;
+    for (auto &def : pathDefs)
+        if (def.first == tid)
+            return true;
 
     return false;
 }
 
-void cfg::pathDefAdd(const uint64_t& tid, const std::string& newPath)
+void cfg::pathDefAdd(uint64_t tid, const std::string &newPath)
 {
     data::titleInfo *t = data::getTitleInfoByTID(tid);
     std::string oldSafe = t->safeTitle;
     std::string tmp = util::safeString(newPath);
-    if(!tmp.empty())
+    if (!tmp.empty())
     {
         pathDefs[tid] = tmp;
         t->safeTitle = tmp;
@@ -122,18 +142,21 @@ void cfg::pathDefAdd(const uint64_t& tid, const std::string& newPath)
         std::string newOutput = fs::getWorkDir() + tmp;
         rename(oldOutput.c_str(), newOutput.c_str());
 
-        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popChangeOutputFolder", 0), oldSafe.c_str(), tmp.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT,
+                           ui::getUICString("popChangeOutputFolder", 0),
+                           oldSafe.c_str(),
+                           tmp.c_str());
     }
     else
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popChangeOutputError", 0), newPath.c_str());
 }
 
-std::string cfg::getPathDefinition(const uint64_t& tid)
+std::string cfg::getPathDefinition(uint64_t tid)
 {
     return pathDefs[tid];
 }
 
-void cfg::addPathToFilter(const uint64_t& tid, const std::string& _p)
+void cfg::addPathToFilter(uint64_t tid, const std::string &_p)
 {
     char outpath[128];
     sprintf(outpath, "sdmc:/config/JKSV/0x%016lX_filter.txt", tid);
@@ -163,7 +186,7 @@ void cfg::resetConfig()
     cfg::config["autoUpload"] = false;
 }
 
-static inline bool textToBool(const std::string& _txt)
+static inline bool textToBool(const std::string &_txt)
 {
     return _txt == _true_ ? true : false;
 }
@@ -175,7 +198,7 @@ static inline std::string boolToText(bool _b)
 
 static inline std::string sortTypeText()
 {
-    switch(cfg::sortType)
+    switch (cfg::sortType)
     {
         case cfg::ALPHA:
             return "ALPHA";
@@ -194,7 +217,7 @@ static inline std::string sortTypeText()
 
 static void loadWorkDirLegacy()
 {
-    if(fs::fileExists(workDirLegacy))
+    if (fs::fileExists(workDirLegacy))
     {
         char tmp[256];
         memset(tmp, 0, 256);
@@ -213,14 +236,14 @@ static void loadWorkDirLegacy()
 static void loadConfigLegacy()
 {
     std::string legacyCfgPath = fs::getWorkDir() + "cfg.bin";
-    if(fs::fileExists(legacyCfgPath))
+    if (fs::fileExists(legacyCfgPath))
     {
         FILE *oldCfg = fopen(legacyCfgPath.c_str(), "rb");
         uint64_t cfgIn = 0;
         fread(&cfgIn, sizeof(uint64_t), 1, oldCfg);
         fread(&cfg::sortType, 1, 1, oldCfg);
         fread(&ui::animScale, sizeof(float), 1, oldCfg);
-        if(ui::animScale == 0)
+        if (ui::animScale == 0)
             ui::animScale = 3.0f;
         fclose(oldCfg);
 
@@ -244,10 +267,10 @@ static void loadConfigLegacy()
 static void loadFavoritesLegacy()
 {
     std::string legacyFavPath = fs::getWorkDir() + "favorites.txt";
-    if(fs::fileExists(legacyFavPath))
+    if (fs::fileExists(legacyFavPath))
     {
         fs::dataFile fav(legacyFavPath);
-        while(fav.readNextLine(false))
+        while (fav.readNextLine(false))
             cfg::favorites.push_back(strtoul(fav.getLine().c_str(), NULL, 16));
         fav.close();
         fs::delfile(legacyFavPath);
@@ -257,10 +280,10 @@ static void loadFavoritesLegacy()
 static void loadBlacklistLegacy()
 {
     std::string legacyBlPath = fs::getWorkDir() + "blacklist.txt";
-    if(fs::fileExists(legacyBlPath))
+    if (fs::fileExists(legacyBlPath))
     {
         fs::dataFile bl(legacyBlPath);
-        while(bl.readNextLine(false))
+        while (bl.readNextLine(false))
             cfg::blacklist.push_back(strtoul(bl.getLine().c_str(), NULL, 16));
         bl.close();
         fs::delfile(legacyBlPath);
@@ -270,10 +293,10 @@ static void loadBlacklistLegacy()
 static void loadTitleDefsLegacy()
 {
     std::string titleDefLegacy = fs::getWorkDir() + "titleDefs.txt";
-    if(fs::fileExists(titleDefLegacy))
+    if (fs::fileExists(titleDefLegacy))
     {
         fs::dataFile getPaths(titleDefLegacy);
-        while(getPaths.readNextLine(true))
+        while (getPaths.readNextLine(true))
         {
             uint64_t tid = strtoul(getPaths.getName().c_str(), NULL, 16);
             pathDefs[tid] = getPaths.getNextValueStr();
@@ -286,10 +309,10 @@ static void loadTitleDefsLegacy()
 //Oops
 static void loadTitleDefs()
 {
-    if(fs::fileExists(titleDefPath))
+    if (fs::fileExists(titleDefPath))
     {
         fs::dataFile getPaths(titleDefPath);
-        while(getPaths.readNextLine(true))
+        while (getPaths.readNextLine(true))
         {
             uint64_t tid = strtoul(getPaths.getName().c_str(), NULL, 16);
             pathDefs[tid] = getPaths.getNextValueStr();
@@ -302,25 +325,25 @@ static void loadDriveConfig()
     // Start Google Drive
     fs::dirList cfgList("/config/JKSV/", true);
     std::string clientSecretPath;
-    for(unsigned i = 0; i < cfgList.getCount(); i++)
+    for (unsigned i = 0; i < cfgList.getCount(); i++)
     {
         std::string itemName = cfgList.getItem(i);
-        if(itemName.find("client_secret") != itemName.npos)
+        if (itemName.find("client_secret") != itemName.npos)
         {
             clientSecretPath = "/config/JKSV/" + cfgList.getItem(i);
             break;
         }
     }
 
-    if(!clientSecretPath.empty())
+    if (!clientSecretPath.empty())
     {
         json_object *installed, *clientID, *clientSecret, *driveJSON = json_object_from_file(clientSecretPath.c_str());
-        if (driveJSON) 
+        if (driveJSON)
         {
-            if(json_object_object_get_ex(driveJSON, "installed", &installed))
+            if (json_object_object_get_ex(driveJSON, "installed", &installed))
             {
-                if(json_object_object_get_ex(installed, "client_id", &clientID) 
-                    && json_object_object_get_ex(installed, "client_secret", &clientSecret))
+                if (json_object_object_get_ex(installed, "client_id", &clientID) &&
+                    json_object_object_get_ex(installed, "client_secret", &clientSecret))
                 {
                     cfg::driveClientID = json_object_get_string(clientID);
                     cfg::driveClientSecret = json_object_get_string(clientSecret);
@@ -336,16 +359,20 @@ static void loadDriveConfig()
     json_object *origin, *basepath, *username, *password;
     if (webdavJSON)
     {
-        if (json_object_object_get_ex(webdavJSON, "origin", &origin)) {
+        if (json_object_object_get_ex(webdavJSON, "origin", &origin))
+        {
             cfg::webdavOrigin = json_object_get_string(origin);
         }
-        if (json_object_object_get_ex(webdavJSON, "basepath", &basepath)) {
+        if (json_object_object_get_ex(webdavJSON, "basepath", &basepath))
+        {
             cfg::webdavBasePath = json_object_get_string(basepath);
         }
-        if (json_object_object_get_ex(webdavJSON, "username", &username)) {
+        if (json_object_object_get_ex(webdavJSON, "username", &username))
+        {
             cfg::webdavUser = json_object_get_string(username);
         }
-        if (json_object_object_get_ex(webdavJSON, "password", &password)) {
+        if (json_object_object_get_ex(webdavJSON, "password", &password))
+        {
             cfg::webdavPassword = json_object_get_string(password);
         }
         json_object_put(webdavJSON);
@@ -362,15 +389,15 @@ void cfg::loadConfig()
     loadTitleDefsLegacy();
     loadTitleDefs();
 
-    if(fs::fileExists(cfgPath))
+    if (fs::fileExists(cfgPath))
     {
         fs::dataFile cfgRead(cfgPath);
-        while(cfgRead.readNextLine(true))
+        while (cfgRead.readNextLine(true))
         {
             std::string varName = cfgRead.getName();
-            if(cfgStrings.find(varName) != cfgStrings.end())
+            if (cfgStrings.find(varName) != cfgStrings.end())
             {
-                switch(cfgStrings[varName])
+                switch (cfgStrings[varName])
                 {
                     case 0:
                         fs::setWorkDir(cfgRead.getNextValueStr());
@@ -429,37 +456,37 @@ void cfg::loadConfig()
                         break;
 
                     case 14:
-                        {
-                            std::string getSort = cfgRead.getNextValueStr();
-                            if(getSort == "ALPHA")
-                                cfg::sortType = cfg::ALPHA;
-                            else if(getSort == "MOST_PLAYED")
-                                cfg::sortType = cfg::MOST_PLAYED;
-                            else
-                                cfg::sortType = cfg::LAST_PLAYED;
-                        }
-                        break;
+                    {
+                        std::string getSort = cfgRead.getNextValueStr();
+                        if (getSort == "ALPHA")
+                            cfg::sortType = cfg::ALPHA;
+                        else if (getSort == "MOST_PLAYED")
+                            cfg::sortType = cfg::MOST_PLAYED;
+                        else
+                            cfg::sortType = cfg::LAST_PLAYED;
+                    }
+                    break;
 
                     case 15:
-                        {
-                            std::string animFloat = cfgRead.getNextValueStr();
-                            ui::animScale = strtof(animFloat.c_str(), NULL);
-                        }
-                        break;
+                    {
+                        std::string animFloat = cfgRead.getNextValueStr();
+                        ui::animScale = strtof(animFloat.c_str(), NULL);
+                    }
+                    break;
 
                     case 16:
-                        {
-                            std::string tid = cfgRead.getNextValueStr();
-                            cfg::favorites.push_back(strtoul(tid.c_str(), NULL, 16));
-                        }
-                        break;
+                    {
+                        std::string tid = cfgRead.getNextValueStr();
+                        cfg::favorites.push_back(strtoul(tid.c_str(), NULL, 16));
+                    }
+                    break;
 
                     case 17:
-                        {
-                            std::string tid = cfgRead.getNextValueStr();
-                            cfg::blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
-                        }
-                        break;
+                    {
+                        std::string tid = cfgRead.getNextValueStr();
+                        cfg::blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
+                    }
+                    break;
 
                     case 18:
                         cfg::config["autoName"] = textToBool(cfgRead.getNextValueStr());
@@ -485,7 +512,7 @@ void cfg::loadConfig()
 static void savePathDefs()
 {
     FILE *pathOut = fopen(titleDefPath, "w");
-    for(auto& p : pathDefs)
+    for (auto &p : pathDefs)
         fprintf(pathOut, "0x%016lX = \"%s\"\n", p.first, p.second.c_str());
     fclose(pathOut);
 }
@@ -511,24 +538,24 @@ void cfg::saveConfig()
     fprintf(cfgOut, "titleSortType = %s\n", sortTypeText().c_str());
     fprintf(cfgOut, "animationScale = %f\n", ui::animScale);
 
-    if(!cfg::driveRefreshToken.empty())
+    if (!cfg::driveRefreshToken.empty())
         fprintf(cfgOut, "driveRefreshToken = %s\n", cfg::driveRefreshToken.c_str());
 
-    if(!cfg::favorites.empty())
+    if (!cfg::favorites.empty())
     {
         fprintf(cfgOut, "\n#favorites\n");
-        for(uint64_t& f : cfg::favorites)
+        for (uint64_t &f : cfg::favorites)
             fprintf(cfgOut, "favorite = 0x%016lX\n", f);
     }
 
-    if(!cfg::blacklist.empty())
+    if (!cfg::blacklist.empty())
     {
         fprintf(cfgOut, "\n#blacklist\n");
-        for(uint64_t& b : cfg::blacklist)
+        for (uint64_t &b : cfg::blacklist)
             fprintf(cfgOut, "blacklist = 0x%016lX\n", b);
     }
     fclose(cfgOut);
 
-    if(!pathDefs.empty())
+    if (!pathDefs.empty())
         savePathDefs();
 }

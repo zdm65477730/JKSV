@@ -1,8 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace cfg
 {
@@ -17,18 +18,18 @@ namespace cfg
     void loadConfig();
     void saveConfig();
 
-    bool isBlacklisted(const uint64_t& tid);
+    bool isBlacklisted(uint64_t tid);
     void addTitleToBlacklist(void *a);
-    void removeTitleFromBlacklist(const uint64_t& tid);
+    void removeTitleFromBlacklist(uint64_t tid);
 
-    bool isFavorite(const uint64_t& tid);
-    void addTitleToFavorites(const uint64_t& tid);
+    bool isFavorite(uint64_t tid);
+    void addTitleToFavorites(uint64_t tid);
 
-    bool isDefined(const uint64_t& tid);
-    void pathDefAdd(const uint64_t& tid, const std::string& newPath);
-    std::string getPathDefinition(const uint64_t& tid);
+    bool isDefined(uint64_t tid);
+    void pathDefAdd(uint64_t tid, const std::string &newPath);
+    std::string getPathDefinition(uint64_t tid);
 
-    void addPathToFilter(const uint64_t& tid, const std::string& _p);
+    void addPathToFilter(uint64_t tid, const std::string &_p);
 
     extern std::unordered_map<std::string, bool> config;
     extern std::vector<uint64_t> blacklist;
@@ -36,4 +37,4 @@ namespace cfg
     extern uint8_t sortType;
     extern std::string driveClientID, driveClientSecret, driveRefreshToken;
     extern std::string webdavOrigin, webdavBasePath, webdavUser, webdavPassword;
-}
+} // namespace cfg

@@ -1,87 +1,115 @@
 #pragma once
 #include <switch.h>
 
-#include <vector>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "gfx.h"
 
-#define BLD_MON 11
-#define BLD_DAY 5
-#define BLD_YEAR 2024
+#define BLD_MON 5
+#define BLD_DAY 28
+#define BLD_YEAR 2025
 
 namespace data
 {
-    //Loads user + title info
+    // Loads user + title info
     void init();
     void exit();
     bool loadUsersTitles(bool clearUsers);
     void sortUserTitles();
 
-    //Draws some stats to the upper left corner
+    // Draws some stats to the upper left corner
     void dispStats();
 
-    //Global stuff for all titles/saves
+    // Global stuff for all titles/saves
     typedef struct
     {
-        NacpStruct nacp;
-        std::string title, safeTitle, author;//Shortcuts sorta.
-        SDL_Texture *icon = NULL;
-        bool fav;
+            /// @brief Control data.
+            NsApplicationControlData data;
+
+            /// @brief Saves whether or not the title has valid control data.
+            bool hasControlData = false;
+
+            std::string title, safeTitle, author;
+            SDL_Texture *icon = NULL;
+            bool fav;
     } titleInfo;
 
-    //Holds stuff specific to user's titles/saves
+    // Holds stuff specific to user's titles/saves
     typedef struct
     {
-        //Makes it easier to grab id
-        uint64_t tid;
-        FsSaveDataInfo saveInfo;
-        PdmPlayStatistics playStats;
+            // Makes it easier to grab id
+            uint64_t tid;
+            FsSaveDataInfo saveInfo;
+            PdmPlayStatistics playStats;
     } userTitleInfo;
 
-    //Class to store user info + titles
+    // Class to store user info + titles
     class user
     {
         public:
             user() = default;
-            user(const AccountUid& _id, const std::string& _backupName, const std::string& _safeBackupName);
-            user(const AccountUid& _id, const std::string& _backupName, const std::string& _safeBackupName, SDL_Texture *img);
+            user(AccountUid _id, const std::string &_backupName, const std::string &_safeBackupName);
+            user(AccountUid _id, const std::string &_backupName, const std::string &_safeBackupName, SDL_Texture *img);
 
-            //Sets ID
-            void setUID(const AccountUid& _id);
+            // Sets ID
+            void setUID(AccountUid _id);
 
-            //Assigns icon
-            void assignIcon(SDL_Texture *_icn) { userIcon = _icn; }
+            // Assigns icon
+            void assignIcon(SDL_Texture *_icn)
+            {
+                userIcon = _icn;
+            }
 
-            //Returns user ID
-            AccountUid getUID() const { return userID; }
-            u128 getUID128() const { return uID128; }
+            // Returns user ID
+            AccountUid getUID() const
+            {
+                return userID;
+            }
+            u128 getUID128() const
+            {
+                return uID128;
+            }
 
-            //Returns username
-            std::string getUsername() const { return username; }
-            std::string getUsernameSafe() const { return userSafe; }
+            // Returns username
+            std::string getUsername() const
+            {
+                return username;
+            }
+            std::string getUsernameSafe() const
+            {
+                return userSafe;
+            }
 
-            SDL_Texture *getUserIcon(){ return userIcon; }
-            void delIcon(){ SDL_DestroyTexture(userIcon); }
+            SDL_Texture *getUserIcon()
+            {
+                return userIcon;
+            }
+            void delIcon()
+            {
+                SDL_DestroyTexture(userIcon);
+            }
 
             std::vector<data::userTitleInfo> titleInfo;
-            void addUserTitleInfo(const uint64_t& _tid, const FsSaveDataInfo *_saveInfo, const PdmPlayStatistics *_stats);
+            void addUserTitleInfo(const uint64_t &_tid,
+                                  const FsSaveDataInfo *_saveInfo,
+                                  const PdmPlayStatistics *_stats);
 
         private:
             AccountUid userID;
             u128 uID128;
             std::string username, userSafe;
-            //User icon
+            // User icon
             SDL_Texture *userIcon;
     };
 
-    //User vector
+    // User vector
     extern std::vector<user> users;
-    //Title data/info map
+    // Title data/info map
     extern std::unordered_map<uint64_t, data::titleInfo> titles;
 
-    //Sets/Retrieves current user/title
+    // Sets/Retrieves current user/title
     void setUserIndex(unsigned _sUser);
     data::user *getCurrentUser();
     unsigned getCurrentUserIndex();
@@ -90,14 +118,14 @@ namespace data
     data::userTitleInfo *getCurrentUserTitleInfo();
     unsigned getCurrentUserTitleInfoIndex();
 
-    //Gets pointer to info that also has title + nacp
-    data::titleInfo *getTitleInfoByTID(const uint64_t& tid);
+    // Gets pointer to info that also has title + nacp
+    data::titleInfo *getTitleInfoByTID(const uint64_t &tid);
 
-    //More shortcut functions
-    std::string getTitleNameByTID(const uint64_t& tid);
-    std::string getTitleSafeNameByTID(const uint64_t& tid);
-    SDL_Texture *getTitleIconByTID(const uint64_t& tid);
-    int getTitleIndexInUser(const data::user& u, const uint64_t& tid);
+    // More shortcut functions
+    std::string getTitleNameByTID(const uint64_t &tid);
+    std::string getTitleSafeNameByTID(const uint64_t &tid);
+    SDL_Texture *getTitleIconByTID(const uint64_t &tid);
+    int getTitleIndexInUser(const data::user &u, const uint64_t &tid);
     extern SetLanguage sysLang;
-    
-}
+
+} // namespace data
