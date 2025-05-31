@@ -15,74 +15,8 @@ namespace
     constexpr int SIZE_ICON_FONT = 50;
 } // namespace
 
-// Function used to sort user data.
-static bool sortUserData(const data::UserDataEntry &entryA, const data::UserDataEntry &entryB)
-{
-    auto &[applicationIDA, dataA] = entryA;
-    auto &[applicationIDB, dataB] = entryB;
-    auto &[saveInfoA, playStatsA] = dataA;
-    auto &[saveInfoB, playStatsB] = dataB;
-
-    // Favorites over all.
-    if (config::is_favorite(applicationIDA) != config::is_favorite(applicationIDB))
-    {
-        return config::is_favorite(applicationIDA);
-    }
-
-    data::TitleInfo *titleInfoA = data::get_title_info_by_id(applicationIDA);
-    data::TitleInfo *titleInfoB = data::get_title_info_by_id(applicationIDB);
-    switch (config::get_by_key(config::keys::TITLE_SORT_TYPE))
-    {
-        // Alpha
-        case 0:
-        {
-            // Get titles
-            const char *titleA = titleInfoA->get_title();
-            const char *titleB = titleInfoB->get_title();
-
-            // Get the shortest of the two.
-            size_t titleALength = std::char_traits<char>::length(titleA);
-            size_t titleBLength = std::char_traits<char>::length(titleB);
-            size_t shortestTitle = titleALength < titleBLength ? titleALength : titleBLength;
-            // Loop and compare codepoints.
-            for (size_t i = 0, j = 0; i < shortestTitle;)
-            {
-                // Decode UTF-8
-                uint32_t codepointA = 0;
-                uint32_t codepointB = 0;
-                ssize_t unitCountA = decode_utf8(&codepointA, reinterpret_cast<const uint8_t *>(&titleA[i]));
-                ssize_t unitCountB = decode_utf8(&codepointB, reinterpret_cast<const uint8_t *>(&titleB[j]));
-
-                // Lower so case doesn't screw with it.
-                int charA = std::tolower(codepointA);
-                int charB = std::tolower(codepointB);
-                if (charA != charB)
-                {
-                    return charA < charB;
-                }
-
-                i += unitCountA;
-                j += unitCountB;
-            }
-        }
-        break;
-
-        // Most played.
-        case 1:
-        {
-            return playStatsA.playtime > playStatsB.playtime;
-        }
-        break;
-
-        // Last played.
-        case 2:
-        {
-            return playStatsA.last_timestamp_user > playStatsB.last_timestamp_user;
-        }
-        break;
-    }
-    return false;
-}
+// Function used to sort user data. Definition at the bottom.
+static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDataEntry &entryB);
 
 data::User::User(AccountUid accountID, FsSaveDataType saveType) : m_accountID(accountID), m_saveType(saveType)
 {
@@ -124,6 +58,11 @@ void data::User::add_data(const FsSaveDataInfo &saveInfo, const PdmPlayStatistic
     m_userData.push_back(std::make_pair(applicationID, std::make_pair(saveInfo, playStats)));
 }
 
+void data::User::clear_save_info(void)
+{
+    m_userData.clear();
+}
+
 void data::User::erase_data(int index)
 {
     m_userData.erase(m_userData.begin() + index);
@@ -131,7 +70,7 @@ void data::User::erase_data(int index)
 
 void data::User::sort_data(void)
 {
-    std::sort(m_userData.begin(), m_userData.end(), sortUserData);
+    std::sort(m_userData.begin(), m_userData.end(), sort_user_data);
 }
 
 AccountUid data::User::get_account_id(void) const
@@ -197,6 +136,11 @@ FsSaveDataInfo *data::User::get_save_info_by_id(uint64_t applicationID)
         return nullptr;
     }
     return &findTitle->second.first;
+}
+
+data::UserSaveInfoList &data::User::get_user_save_info_list(void)
+{
+    return m_userData;
 }
 
 PdmPlayStatistics *data::User::get_play_stats_by_id(uint64_t applicationID)
@@ -267,4 +211,73 @@ void data::User::create_account(void)
     // Memcpy the id string for both nicknames
     std::memcpy(m_nickname, accountIDString.c_str(), accountIDString.length());
     std::memcpy(m_pathSafeNickname, accountIDString.c_str(), accountIDString.length());
+}
+
+static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDataEntry &entryB)
+{
+    // Structured bindings to make this slightly more readable.
+    auto &[applicationIDA, dataA] = entryA;
+    auto &[applicationIDB, dataB] = entryB;
+    auto &[saveInfoA, playStatsA] = dataA;
+    auto &[saveInfoB, playStatsB] = dataB;
+
+    // Favorites over all.
+    if (config::is_favorite(applicationIDA) != config::is_favorite(applicationIDB))
+    {
+        return config::is_favorite(applicationIDA);
+    }
+
+    data::TitleInfo *titleInfoA = data::get_title_info_by_id(applicationIDA);
+    data::TitleInfo *titleInfoB = data::get_title_info_by_id(applicationIDB);
+    switch (config::get_by_key(config::keys::TITLE_SORT_TYPE))
+    {
+        // Alpha
+        case 0:
+        {
+            // Get titles
+            const char *titleA = titleInfoA->get_title();
+            const char *titleB = titleInfoB->get_title();
+
+            // Get the shortest of the two.
+            size_t titleALength = std::char_traits<char>::length(titleA);
+            size_t titleBLength = std::char_traits<char>::length(titleB);
+            size_t shortestTitle = titleALength < titleBLength ? titleALength : titleBLength;
+            // Loop and compare codepoints.
+            for (size_t i = 0, j = 0; i < shortestTitle;)
+            {
+                // Decode UTF-8
+                uint32_t codepointA = 0;
+                uint32_t codepointB = 0;
+                ssize_t unitCountA = decode_utf8(&codepointA, reinterpret_cast<const uint8_t *>(&titleA[i]));
+                ssize_t unitCountB = decode_utf8(&codepointB, reinterpret_cast<const uint8_t *>(&titleB[j]));
+
+                // Lower so case doesn't screw with it.
+                int charA = std::tolower(codepointA);
+                int charB = std::tolower(codepointB);
+                if (charA != charB)
+                {
+                    return charA < charB;
+                }
+
+                i += unitCountA;
+                j += unitCountB;
+            }
+        }
+        break;
+
+        // Most played.
+        case 1:
+        {
+            return playStatsA.playtime > playStatsB.playtime;
+        }
+        break;
+
+        // Last played.
+        case 2:
+        {
+            return playStatsA.last_timestamp_user > playStatsB.last_timestamp_user;
+        }
+        break;
+    }
+    return false;
 }

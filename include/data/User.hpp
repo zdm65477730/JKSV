@@ -10,6 +10,9 @@ namespace data
     /// @brief Type used to store save info and play statistics in the vector. Vector is used to preserve the order since I can't use a map without having to extra heap allocate it.
     using UserDataEntry = std::pair<uint64_t, std::pair<FsSaveDataInfo, PdmPlayStatistics>>;
 
+    /// @brief Type definition for the user save info/play stats vector.
+    using UserSaveInfoList = std::vector<UserDataEntry>;
+
     /// @brief Class that stores data for the user.
     class User
     {
@@ -33,6 +36,9 @@ namespace data
             /// @param saveInfo SaveDataInfo.
             /// @param playStats Play statistics.
             void add_data(const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats);
+
+            /// @brief Clears the user save info vector.
+            void clear_save_info(void);
 
             /// @brief Erases data at index.
             /// @param index Index of save data info to erase.
@@ -81,6 +87,10 @@ namespace data
             /// @return Pointer to save info if found. nullptr if not.
             FsSaveDataInfo *get_save_info_by_id(uint64_t applicationID);
 
+            /// @brief Returns a reference to the user save data info vector.
+            /// @return Reference to the user save info vector.
+            data::UserSaveInfoList &get_user_save_info_list(void);
+
             /// @brief Returns a pointer to the play statistics of applicationID
             /// @param applicationID Application ID to search and fetch.
             /// @return Pointer to play statistics if index is valid. nullptr if it isn't.
@@ -111,7 +121,7 @@ namespace data
             sdl::SharedTexture m_icon = nullptr;
 
             /// @brief Vector containing save info and play statistics.
-            std::vector<UserDataEntry> m_userData;
+            data::UserSaveInfoList m_userData;
 
             /// @brief Loads account structs from system.
             /// @param profile AccountProfile struct to write to.

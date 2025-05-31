@@ -40,6 +40,12 @@ namespace
                                                                         FsSaveDataSpaceId_SdUser,
                                                                         FsSaveDataSpaceId_ProperSystem,
                                                                         FsSaveDataSpaceId_SafeMode};
+
+    // These are the ID's used for system type users.
+    constexpr AccountUid ID_SYSTEM_USER = {FsSaveDataType_System};
+    constexpr AccountUid ID_BCAT_USER = {FsSaveDataType_Bcat};
+    constexpr AccountUid ID_DEVICE_USER = {FsSaveDataType_Device};
+    constexpr AccountUid ID_CACHE_USER = {FsSaveDataType_Cache};
 } // namespace
 
 // Declarations here. Definitions at bottom. These should appear in the order called.
@@ -59,18 +65,43 @@ static bool read_cache_file(void);
 /// @brief Creates the cache file on the SD card.
 static void create_cache_file(void);
 
-bool data::initialize(void)
+/// @brief Searches for and returns a user according to the AccountUid provided.
+/// @param id AccountUid to use to search with.
+/// @return Iterator to user on success. s_userVector.end() on failure.
+static inline std::vector<UserIDPair>::iterator find_user_by_id(AccountUid id);
+
+bool data::initialize(bool clearCache)
 {
-    // Load user accounts if not done previously. Bail if the load fails.
+    // Convert this to an fslib::Path right off the bat so we don't call the path constructor twice.
+    fslib::Path cachePath = PATH_CACHE_PATH;
+
+    // Nuke the cache file if we're supposed to.
+    if (clearCache && fslib::file_exists(cachePath) && !fslib::delete_file(cachePath))
+    {
+        // I don't really think this should be fatal. It's not good that it happens, but not fatal.
+        logger::log("data::initialize failed to remove existing cache file from SD: %s", fslib::get_error_string());
+    }
+
+    // Load user accounts if not done previously. Bail if the load fails cause that is fatal.
     if (s_userVector.empty() && !load_create_user_accounts())
     {
         return false;
     }
 
-    // Attempt to read the cache file from SD. If not, load application records and create the cache.
-    if (!read_cache_file())
+    // If the cacheWas nuked, the map is empty or we fail to read the cache file...
+    if ((clearCache || s_titleInfoMap.empty()) && !read_cache_file())
     {
+        // Clear the map out first.
+        s_titleInfoMap.clear();
+        // Load the application records.
         load_application_records();
+    }
+
+    // I'm just going to assume this is implied since we're reloading everything.
+    // Loop through the users and clear their save data info.
+    for (auto &[accountID, user] : s_userVector)
+    {
+        user.clear_save_info();
     }
 
     // Load the save data.
@@ -130,10 +161,10 @@ void data::get_title_info_by_type(FsSaveDataType saveType, std::vector<data::Tit
 static bool load_create_user_accounts(void)
 {
     // These are the IDs used for system type account users.
-    constexpr AccountUid deviceID = {FsSaveDataType_Device};
-    constexpr AccountUid bcatID = {FsSaveDataType_Bcat};
-    constexpr AccountUid cacheID = {FsSaveDataType_Cache};
-    constexpr AccountUid systemID = {FsSaveDataType_System};
+    static constexpr AccountUid deviceID = {FsSaveDataType_Device};
+    static constexpr AccountUid bcatID = {FsSaveDataType_Bcat};
+    static constexpr AccountUid cacheID = {FsSaveDataType_Cache};
+    static constexpr AccountUid systemID = {FsSaveDataType_System};
 
     // For saving total accounts found.
     int total = 0;
@@ -233,38 +264,51 @@ static void load_save_data_info(void)
             {
                 case FsSaveDataType_Bcat:
                 {
-                    accountID = {FsSaveDataType_Bcat};
+                    accountID = ID_BCAT_USER;
                 }
                 break;
 
                 case FsSaveDataType_Device:
                 {
-                    accountID = {FsSaveDataType_Device};
+                    accountID = ID_DEVICE_USER;
                 }
                 break;
 
                 case FsSaveDataType_Cache:
                 {
-                    accountID = {FsSaveDataType_Cache};
+                    accountID = ID_CACHE_USER;
                 }
                 break;
 
                 default:
                 {
+                    // Default is just the ID in the save info struct.
                     accountID = saveInfo.uid;
                 }
                 break;
             }
 
             // Find the user with the ID we have now.
-            auto user = std::find_if(s_userVector.begin(), s_userVector.end(), [accountID](const UserIDPair &pair) {
-                return accountID == pair.second.get_account_id();
-            });
+            auto user = find_user_by_id(accountID);
 
             // To do: Handle this like old JKSV did. Here we're just being quitters.
             if (user == s_userVector.end())
             {
-                continue;
+                // We're going to do this since we don't have much of a choice here.
+                // Just use the lowest 16 bits here.
+                char idHex[32] = {0};
+                std::snprintf(idHex, 32, "%04X", static_cast<uint16_t>(saveInfo.uid.uid[0]));
+
+                // Create a new user using the id and hex name.
+                s_userVector.push_back(std::make_pair(
+                    saveInfo.uid,
+                    data::User(accountID, idHex, idHex, static_cast<FsSaveDataType>(saveInfo.save_data_type))));
+
+                // To do: Maybe check this and continue on failure? I hate nested ifs hard.
+                if ((user = find_user_by_id(accountID)) == s_userVector.end())
+                {
+                    continue;
+                }
             }
 
             // System saves have no application ID.
@@ -295,6 +339,33 @@ static void load_save_data_info(void)
 
             // Finally push it over to the user.
             user->second.add_data(saveInfo, stats);
+        }
+    }
+
+    // If the include device save option is toggled.
+    if (config::get_by_key(config::keys::INCLUDE_DEVICE_SAVES))
+    {
+        // Grab the device user.
+        auto deviceUser = find_user_by_id(ID_DEVICE_USER);
+        // Grab a reference to the vector.
+        data::UserSaveInfoList &deviceList = deviceUser->second.get_user_save_info_list();
+
+        for (auto &[accountID, user] : s_userVector)
+        {
+            // Break at the device user. It should be the first that's a system type user.
+            if (accountID == ID_DEVICE_USER)
+            {
+                break;
+            }
+
+            // Loop through the device list and add it to the target user.
+            for (data::UserDataEntry &entry : deviceList)
+            {
+                // To do: Final decision on this. It's easier to read than second.first...
+                auto &[saveInfo, playStats] = entry.second;
+
+                user.add_data(saveInfo, playStats);
+            }
         }
     }
 
@@ -388,4 +459,12 @@ static void create_cache_file(void)
 
     // Write the count.
     cache.write(&titleCount, sizeof(unsigned int));
+    // fslib::File cleans up on destruction.
+}
+
+static inline std::vector<UserIDPair>::iterator find_user_by_id(AccountUid id)
+{
+    return std::find_if(s_userVector.begin(), s_userVector.end(), [id](const UserIDPair &pair) {
+        return pair.second.get_account_id() == id;
+    });
 }

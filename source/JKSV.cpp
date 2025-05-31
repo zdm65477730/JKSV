@@ -19,8 +19,8 @@
 
 namespace
 {
-    constexpr uint8_t BUILD_MON = 1;
-    constexpr uint8_t BUILD_DAY = 6;
+    constexpr uint8_t BUILD_MON = 5;
+    constexpr uint8_t BUILD_DAY = 31;
     constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace
 
@@ -82,7 +82,7 @@ JKSV::JKSV(void)
     // JKSV also has no internal strings anymore. This is FATAL now.
     ABORT_ON_FAILURE(strings::initialize());
 
-    if (!data::initialize())
+    if (!data::initialize(false))
     {
         return;
     }

@@ -10,9 +10,10 @@ namespace data
     /// @brief Declaration for user list/user pointer vector.
     using UserList = std::vector<data::User *>;
 
-    /// @brief Loads users, applications, and save info from the system.
-    /// @return True if everything goes fine. False if something goes horribly wrong.
-    bool initialize(void);
+    /// @brief Initializes data. Loads user accounts from system and save data info.
+    /// @param clearCache Whether or not the current cache file should be deleted from the SD card first.
+    /// @return True on success. False on failure.
+    bool initialize(bool clearCache);
 
     /// @brief Writes pointers to users to vectorOut
     /// @param userList List to push the pointers to.
