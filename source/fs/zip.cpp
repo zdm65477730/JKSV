@@ -148,6 +148,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
                 task->reset(static_cast<double>(sourceFile.get_size()));
             }
 
+            // To do: Thread pool to avoid spawning threads like this.
             std::thread readThread(zipReadThreadFunction, std::ref(sourceFile), sharedData);
 
             int64_t fileSize = sourceFile.get_size();
@@ -255,7 +256,7 @@ void fs::copy_zip_to_directory(unzFile source,
         // Set status
         if (task)
         {
-            task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 3), filename);
+            task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 2), filename);
             task->reset(static_cast<double>(currentFileInfo.uncompressed_size));
         }
 

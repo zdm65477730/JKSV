@@ -1,4 +1,5 @@
 #include "appstates/TitleOptionState.hpp"
+#include "appstates/ConfirmState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
 #include "fs/fs.hpp"
@@ -27,6 +28,7 @@ namespace
         EXTEND_CONTAINER,
         EXPORT_SVI
     };
+
     // Error string template thingies.
     static const char *ERROR_RESETTING_SAVE = "Error resetting save data: %s";
 } // namespace
@@ -38,8 +40,7 @@ typedef struct
         data::TitleInfo *m_targetTitle;
 } TargetStruct;
 
-// Declarations. Definitions after class.
-// I don't like this, but it needs to be like this to be usable with confirmation.
+// Declarations. Definitions after class. Some of these are only here to be compatible with confirmations.
 static void blacklist_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
 static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
 static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
@@ -85,6 +86,24 @@ void TitleOptionState::update(void)
 
             case BLACKLIST:
             {
+                // Get the string.
+                std::string confirmString = stringutil::get_formatted_string(
+                    strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 0),
+                    m_titleInfo->get_title());
+
+                // Data to send
+                std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
+                data->m_targetTitle = m_titleInfo;
+
+                // The actual state.
+                std::shared_ptr<ConfirmState<sys::Task, TaskState, TargetStruct>> confirm =
+                    std::make_shared<ConfirmState<sys::Task, TaskState, TargetStruct>>(confirmString,
+                                                                                       false,
+                                                                                       blacklist_title,
+                                                                                       data);
+
+                // Push
+                JKSV::push_state(confirm);
             }
             break;
 

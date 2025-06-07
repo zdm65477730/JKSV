@@ -250,7 +250,8 @@ static void load_save_data_info(void)
 
             // This will filter out account system saves if desired and unmountable titles.
             if ((!showAccountSystemSaves && saveInfo.save_data_type == FsSaveDataType_System && saveInfo.uid != 0) ||
-                (onlyListMountable && !fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, saveInfo)))
+                (onlyListMountable && !fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, saveInfo)) ||
+                config::is_blacklisted(saveInfo.application_id))
             {
                 continue;
             }

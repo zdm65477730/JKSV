@@ -116,7 +116,7 @@ void BackupMenuState::update(void)
         if (config::get_by_key(config::keys::EXPORT_TO_ZIP) && std::strstr(backupName, ".zip") == NULL)
         {
             // I guess this is a safer way to accomplish this?
-            std::snprintf(backupName, SIZE_BACKUP_NAME_LENGTH, "%s.zip", backupName);
+            std::strncat(backupName, ".zip", SIZE_BACKUP_NAME_LENGTH);
         }
         else if (!config::get_by_key(config::keys::EXPORT_TO_ZIP) && !std::strstr(backupName, ".zip") &&
                  !fslib::directory_exists(m_directoryPath / backupName) &&
