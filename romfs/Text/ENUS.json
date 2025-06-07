@@ -137,7 +137,8 @@
     ],
     "TitleOptionStatus": [
         "Deleting all backups for #%s#.",
-        "Resetting save data for #%s#."
+        "Resetting save data for #%s#.",
+        "Deleting #%s#'s save data for #%s#..."
     ],
     "TitleOptionPops": [
         "All backups deleted for `%s`!",

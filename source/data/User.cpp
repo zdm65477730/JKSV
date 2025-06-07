@@ -166,6 +166,22 @@ sdl::SharedTexture data::User::get_shared_icon(void)
     return m_icon;
 }
 
+void data::User::erase_save_info_by_id(uint64_t applicationID)
+{
+    auto targetEntry =
+        std::find_if(m_userData.begin(), m_userData.end(), [applicationID](const data::UserDataEntry &entry) {
+            return entry.second.first.application_id == applicationID;
+        });
+
+    if (targetEntry == m_userData.end())
+    {
+        // Do not pass go. Do not collect $200.
+        return;
+    }
+
+    m_userData.erase(targetEntry);
+}
+
 void data::User::load_account(AccountProfile &profile, AccountProfileBase &profileBase)
 {
     // Try to load icon.

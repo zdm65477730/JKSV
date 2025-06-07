@@ -104,6 +104,10 @@ namespace data
             /// @return Shared icon texture.
             sdl::SharedTexture get_shared_icon(void);
 
+            /// @brief Erases a UserDataEntry according to the application ID passed.
+            /// @param applicationID ID of the save to erase.
+            void erase_save_info_by_id(uint64_t applicationID);
+
         private:
             /// @brief Account's ID
             AccountUid m_accountID;
