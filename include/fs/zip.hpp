@@ -26,12 +26,24 @@ namespace fs
                                std::string_view commitDevice,
                                sys::ProgressTask *Task = nullptr);
 
-    /// @brief Writes data to infoOut to help clean up somes stuff.
-    /// @return Filled, complete zip_fileinfo struct.
-    zip_fileinfo create_zip_fileinfo(void);
+    /// @brief Gets a filled zip_fileinfo struct.
+    /// @param info Reference to the info struct to fill.
+    void create_zip_fileinfo(zip_fileinfo &info);
 
     /// @brief Returns whether or not zip has files inside.
     /// @param zipPath Path to zip to check.
     /// @return True if at least one file is found. False if none.
     bool zip_has_contents(const fslib::Path &zipPath);
+
+    /// @brief Attempts to locate a file in a zip file. If it's found, the current file is set to it.
+    /// @param zip Zip file to search.
+    /// @param name
+    /// @return True if the file is found. False if it's not.
+    bool locate_file_in_zip(unzFile zip, std::string_view name);
+
+    /// @brief Gets the total uncompressed size of the files inside the zip file.
+    /// @param zip Zip file to get the total size of.
+    /// @return Total size of the zip file passed.
+    /// @note unzFile passed is set to the first file afterwards.
+    uint64_t get_zip_total_size(unzFile zip);
 } // namespace fs

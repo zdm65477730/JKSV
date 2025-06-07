@@ -17,6 +17,12 @@
 #include "ui/TextScroll.hpp"
 #include <cstring>
 
+namespace
+{
+    /// @brief This is the length allotted for naming backups.
+    constexpr size_t SIZE_BACKUP_NAME_LENGTH = 0x80;
+} // namespace
+
 // This struct is used to pass data to Restore, Delete, and upload.
 struct TargetStruct
 {
@@ -72,7 +78,7 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
     sm_slidePanel->push_new_element(std::make_shared<ui::TextScroll>(panelString, 22, sm_panelWidth, 8, colors::WHITE));
 
 
-    fslib::Directory saveCheck(fs::DEFAULT_SAVE_PATH);
+    fslib::Directory saveCheck(fs::DEFAULT_SAVE_ROOT);
     m_saveHasData = saveCheck.get_count() > 0;
 
     BackupMenuState::refresh();
@@ -88,11 +94,11 @@ void BackupMenuState::update(void)
     if (input::button_pressed(HidNpadButton_A) && sm_backupMenu->get_selected() == 0 && m_saveHasData)
     {
         // get name for backup.
-        char backupName[0x81] = {0};
+        char backupName[SIZE_BACKUP_NAME_LENGTH + 1] = {0};
 
         // Set backup to default.
         std::snprintf(backupName,
-                      0x80,
+                      SIZE_BACKUP_NAME_LENGTH,
                       "%s - %s",
                       m_user->get_path_safe_nickname(),
                       stringutil::get_date_string().c_str());
@@ -102,15 +108,15 @@ void BackupMenuState::update(void)
                                  backupName,
                                  strings::get_by_name(strings::names::KEYBOARD_STRINGS, 0),
                                  backupName,
-                                 0x80))
+                                 SIZE_BACKUP_NAME_LENGTH))
         {
             return;
         }
         // To do: This isn't a good way to check for this... Check to make sure zip has zip extension.
         if (config::get_by_key(config::keys::EXPORT_TO_ZIP) && std::strstr(backupName, ".zip") == NULL)
         {
-            // To do: I should check this.
-            std::strcat(backupName, ".zip");
+            // I guess this is a safer way to accomplish this?
+            std::snprintf(backupName, SIZE_BACKUP_NAME_LENGTH, "%s.zip", backupName);
         }
         else if (!config::get_by_key(config::keys::EXPORT_TO_ZIP) && !std::strstr(backupName, ".zip") &&
                  !fslib::directory_exists(m_directoryPath / backupName) &&
@@ -127,6 +133,7 @@ void BackupMenuState::update(void)
     }
     else if (input::button_pressed(HidNpadButton_A) && sm_backupMenu->get_selected() == 0 && !m_saveHasData)
     {
+        // This just makes the little no save data found pop up.
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 0));
     }
@@ -290,18 +297,16 @@ static void create_new_backup(sys::ProgressTask *task,
 {
     // SaveMeta
     FsSaveDataInfo *saveInfo = user->get_save_info_by_id(titleInfo->get_application_id());
+    if (!saveInfo)
+    {
+        logger::log("Error retrieving save data information for %016lX.", titleInfo->get_application_id());
+        task->finished();
+        return;
+    }
 
     // I got tired of typing out the cast.
-    fs::SaveMetaData saveMeta = {.m_magic = fs::SAVE_META_MAGIC,
-                                 .m_applicationID = titleInfo->get_application_id(),
-                                 .m_saveType = saveInfo->save_data_type,
-                                 .m_saveRank = saveInfo->save_data_rank,
-                                 .m_saveSpaceID = saveInfo->save_data_space_id,
-                                 .m_saveDataSize = titleInfo->get_save_data_size(saveInfo->save_data_type),
-                                 .m_saveDataSizeMax = titleInfo->get_save_data_size_max(saveInfo->save_data_type),
-                                 .m_journalSize = titleInfo->get_journal_size(saveInfo->save_data_type),
-                                 .m_journalSizeMax = titleInfo->get_journal_size_max(saveInfo->save_data_type),
-                                 .m_totalSaveSize = fs::get_directory_total_size(fs::DEFAULT_SAVE_PATH)};
+    fs::SaveMetaData saveMeta;
+    fs::create_save_meta_data(titleInfo, saveInfo, saveMeta);
 
     // This extension search is lazy and needs to be revised.
     if (config::get_by_key(config::keys::EXPORT_TO_ZIP) || std::strstr(targetPath.c_string(), "zip"))
@@ -315,11 +320,12 @@ static void create_new_backup(sys::ProgressTask *task,
         }
 
         // Data for save meta.
-        zip_fileinfo saveMetaInfo = fs::create_zip_fileinfo();
+        zip_fileinfo saveMetaInfo;
+        fs::create_zip_fileinfo(saveMetaInfo);
 
         // Write meta to zip.
         int zipError = zipOpenNewFileInZip64(newBackup,
-                                             ".jksv_save_meta.bin",
+                                             fs::NAME_SAVE_META.data(),
                                              &saveMetaInfo,
                                              NULL,
                                              0,
@@ -335,20 +341,20 @@ static void create_new_backup(sys::ProgressTask *task,
             zipCloseFileInZip(newBackup);
         }
 
-        fs::copy_directory_to_zip(fs::DEFAULT_SAVE_PATH, newBackup, task);
+        fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, newBackup, task);
         zipClose(newBackup, NULL);
     }
     else
     {
         {
-            fslib::Path saveMetaPath = targetPath / ".jksv_save_meta.bin";
-            fslib::File saveMetaOut(targetPath, FsOpenMode_Create | FsOpenMode_Write, sizeof(fs::SaveMetaData));
+            fslib::Path saveMetaPath = targetPath / fs::NAME_SAVE_META;
+            fslib::File saveMetaOut(saveMetaPath, FsOpenMode_Create | FsOpenMode_Write, sizeof(fs::SaveMetaData));
             if (saveMetaOut)
             {
                 saveMetaOut.write(&saveMeta, sizeof(fs::SaveMetaData));
             }
         }
-        fs::copy_directory(fs::DEFAULT_SAVE_PATH, targetPath, 0, {}, task);
+        fs::copy_directory(fs::DEFAULT_SAVE_ROOT, targetPath, 0, {}, task);
     }
     spawningState->refresh();
     task->finished();
@@ -356,6 +362,9 @@ static void create_new_backup(sys::ProgressTask *task,
 
 static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct)
 {
+    // Might need this later.
+    FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(dataStruct->m_titleInfo->get_application_id());
+
     // directory_exists can also be used to check if the target is a directory.
     if (fslib::directory_exists(dataStruct->m_targetPath) &&
         !fslib::delete_directory_recursively(dataStruct->m_targetPath))
@@ -373,23 +382,60 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStru
         return;
     }
 
+    // Gonna need a new save meta.
+    fs::SaveMetaData meta;
+    fs::create_save_meta_data(dataStruct->m_titleInfo, saveInfo, meta);
+
     if (std::strcmp("zip", dataStruct->m_targetPath.get_extension()))
     {
         zipFile backupZip = zipOpen64(dataStruct->m_targetPath.c_string(), APPEND_STATUS_CREATE);
-        fs::copy_directory_to_zip(fs::DEFAULT_SAVE_PATH, backupZip, task);
+
+        // Need the zip info for the meta.
+        zip_fileinfo saveMetaInfo;
+        fs::create_zip_fileinfo(saveMetaInfo);
+
+        int zipError = zipOpenNewFileInZip64(backupZip,
+                                             fs::NAME_SAVE_META.data(),
+                                             &saveMetaInfo,
+                                             NULL,
+                                             0,
+                                             NULL,
+                                             0,
+                                             NULL,
+                                             Z_DEFLATED,
+                                             config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL),
+                                             0);
+        if (zipError == ZIP_OK)
+        {
+            zipWriteInFileInZip(backupZip, &meta, sizeof(fs::SaveMetaData));
+            zipCloseFileInZip(backupZip);
+        }
+
+        fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, backupZip, task);
         zipClose(backupZip, NULL);
     } // I hope this check works for making sure this is a folder
     else if (dataStruct->m_targetPath.get_extension() == nullptr && fslib::create_directory(dataStruct->m_targetPath))
     {
-        fs::copy_directory(fs::DEFAULT_SAVE_PATH, dataStruct->m_targetPath, 0, {}, task);
+        // Write this quick.
+        {
+            fslib::Path metaPath = dataStruct->m_targetPath / fs::NAME_SAVE_META;
+            fslib::File metaFile(metaPath, FsOpenMode_Create | FsOpenMode_Write, sizeof(fs::SaveMetaData));
+            if (metaFile)
+            {
+                metaFile.write(&meta, sizeof(fs::SaveMetaData));
+            }
+        }
+
+        fs::copy_directory(fs::DEFAULT_SAVE_ROOT, dataStruct->m_targetPath, 0, {}, task);
     }
     task->finished();
 }
 
 static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct)
 {
-    // Wipe the save root first.
-    if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_PATH))
+    // Wipe the save root first. Forgot to commit the changes before. Oops.
+    if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT) ||
+        !fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT))
     {
         logger::log("Error restoring save: %s", fslib::get_error_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
@@ -401,7 +447,7 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct
     if (fslib::directory_exists(dataStruct->m_targetPath))
     {
         fs::copy_directory(dataStruct->m_targetPath,
-                           fs::DEFAULT_SAVE_PATH,
+                           fs::DEFAULT_SAVE_ROOT,
                            dataStruct->m_journalSize,
                            fs::DEFAULT_SAVE_MOUNT,
                            task);
@@ -409,6 +455,7 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct
     else if (std::strstr(dataStruct->m_targetPath.c_string(), ".zip") != NULL)
     {
         unzFile targetZip = unzOpen64(dataStruct->m_targetPath.c_string());
+        logger::log("targetZip");
         if (!targetZip)
         {
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
@@ -418,7 +465,7 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct
             return;
         }
         fs::copy_zip_to_directory(targetZip,
-                                  fs::DEFAULT_SAVE_PATH,
+                                  fs::DEFAULT_SAVE_ROOT,
                                   dataStruct->m_journalSize,
                                   fs::DEFAULT_SAVE_MOUNT,
                                   task);
@@ -427,7 +474,7 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct
     else
     {
         fs::copy_file(dataStruct->m_targetPath,
-                      fs::DEFAULT_SAVE_PATH,
+                      fs::DEFAULT_SAVE_ROOT,
                       dataStruct->m_journalSize,
                       fs::DEFAULT_SAVE_MOUNT,
                       task);

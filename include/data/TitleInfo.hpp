@@ -15,8 +15,9 @@ namespace data
             TitleInfo(uint64_t applicationID);
 
             /// @brief Initializes a TitleInfo instance using external (cached) NsApplicationControlData
+            /// @param applicationID Application ID of the title loaded from cache.
             /// @param controlData Reference to the control data to init from.
-            TitleInfo(NsApplicationControlData &controlData);
+            TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData);
 
             /// @brief Returns the application ID of the title.
             /// @return Title's application ID.
@@ -88,7 +89,7 @@ namespace data
             uint64_t m_applicationID = 0;
 
             /// @brief This contains the NACP and the icon.
-            NsApplicationControlData m_data = {0};
+            NsApplicationControlData m_data;
 
             /// @brief Saves whether or not the title has control data.
             bool m_hasData = false;

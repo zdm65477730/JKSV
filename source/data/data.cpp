@@ -16,7 +16,7 @@ namespace
     // This is easer to read imo
     using UserIDPair = std::pair<AccountUid, data::User>;
 
-    /// @brief This is the struct used for caching title info for 20.0+.
+    /// @brief Struct used for reading the cache from file.
     typedef struct
     {
             uint64_t m_applicationID;
@@ -160,12 +160,6 @@ void data::get_title_info_by_type(FsSaveDataType saveType, std::vector<data::Tit
 
 static bool load_create_user_accounts(void)
 {
-    // These are the IDs used for system type account users.
-    static constexpr AccountUid deviceID = {FsSaveDataType_Device};
-    static constexpr AccountUid bcatID = {FsSaveDataType_Bcat};
-    static constexpr AccountUid cacheID = {FsSaveDataType_Cache};
-    static constexpr AccountUid systemID = {FsSaveDataType_System};
-
     // For saving total accounts found.
     int total = 0;
     // The Switch can only have up to eight user accounts.
@@ -187,19 +181,23 @@ static bool load_create_user_accounts(void)
 
     // Create and push the system type users. Path safe names are hard coded to English for these.
     // Clang-format makes these hard to read.
-    s_userVector.push_back(std::make_pair(deviceID,
-                                          data::User(deviceID,
+    s_userVector.push_back(std::make_pair(ID_DEVICE_USER,
+                                          data::User(ID_DEVICE_USER,
                                                      strings::get_by_name(strings::names::SAVE_DATA_TYPES, 3),
                                                      "Device",
                                                      FsSaveDataType_Device)));
-    s_userVector.push_back(std::make_pair(
-        bcatID,
-        data::User(bcatID, strings::get_by_name(strings::names::SAVE_DATA_TYPES, 2), "BCAT", FsSaveDataType_Bcat)));
-    s_userVector.push_back(std::make_pair(
-        cacheID,
-        data::User(cacheID, strings::get_by_name(strings::names::SAVE_DATA_TYPES, 5), "Cache", FsSaveDataType_Cache)));
-    s_userVector.push_back(std::make_pair(systemID,
-                                          data::User(systemID,
+    s_userVector.push_back(std::make_pair(ID_BCAT_USER,
+                                          data::User(ID_BCAT_USER,
+                                                     strings::get_by_name(strings::names::SAVE_DATA_TYPES, 2),
+                                                     "BCAT",
+                                                     FsSaveDataType_Bcat)));
+    s_userVector.push_back(std::make_pair(ID_CACHE_USER,
+                                          data::User(ID_CACHE_USER,
+                                                     strings::get_by_name(strings::names::SAVE_DATA_TYPES, 5),
+                                                     "Cache",
+                                                     FsSaveDataType_Cache)));
+    s_userVector.push_back(std::make_pair(ID_SYSTEM_USER,
+                                          data::User(ID_SYSTEM_USER,
                                                      strings::get_by_name(strings::names::SAVE_DATA_TYPES, 0),
                                                      "System",
                                                      FsSaveDataType_System)));
@@ -220,7 +218,8 @@ static void load_application_records(void)
     // Loop and read the records into the map.
     while (R_SUCCEEDED(nsListApplicationRecord(&record, 1, offset++, &count)) && count > 0)
     {
-        s_titleInfoMap.emplace(std::make_pair(record.application_id, data::TitleInfo(record.application_id)));
+        // s_titleInfoMap.emplace(record.application_id, data::TitleInfo(record.application_id));
+        s_titleInfoMap.emplace(record.application_id, record.application_id);
     }
 }
 
@@ -320,7 +319,7 @@ static void load_save_data_info(void)
             // Search the map just to be sure it was loaded previously. This can happen.
             if (s_titleInfoMap.find(applicationID) == s_titleInfoMap.end())
             {
-                s_titleInfoMap.emplace(std::make_pair(applicationID, data::TitleInfo(applicationID)));
+                s_titleInfoMap.emplace(applicationID, applicationID);
             }
 
             // Grab a reference to the Title info so we don't try to load stats for titles that don't really exist.
@@ -391,27 +390,25 @@ static bool read_cache_file(void)
     // Read it
     cache.read(&titleCount, sizeof(unsigned int));
 
-    // This should be the size of the cached control data.
-    ssize_t cacheSize = titleCount * sizeof(CacheEntry);
-
-    // Allocate array to read into.
-    std::unique_ptr<CacheEntry[]> dataBuffer = std::make_unique<CacheEntry[]>(titleCount);
-
-    // Read off the entire file in one shot.
-    ssize_t readSize = cache.read(dataBuffer.get(), cacheSize);
-    if (readSize != cacheSize)
+    // Allocate buffer for reading the rest.
+    std::unique_ptr<CacheEntry[]> entryBuffer = std::make_unique<CacheEntry[]>(titleCount);
+    if (!entryBuffer)
     {
-        logger::log("Cache size/read error!");
+        logger::log("Error allocating memory to read cache!");
+        return false;
+    }
+
+    if (cache.read(entryBuffer.get(), sizeof(CacheEntry) * titleCount) != sizeof(CacheEntry) * titleCount)
+    {
+        logger::log("Error reading cache file! Size mismatch!");
         return false;
     }
 
     // Loop through the cache entries and emplace them to the map.
     for (unsigned int i = 0; i < titleCount; i++)
     {
-        // Grab a pointer to make this easier to read.
-        CacheEntry *currentEntry = &dataBuffer[i];
-
-        s_titleInfoMap.emplace(std::make_pair(currentEntry->m_applicationID, data::TitleInfo(currentEntry->m_data)));
+        s_titleInfoMap.emplace(entryBuffer[i].m_applicationID,
+                               std::move(data::TitleInfo(entryBuffer[i].m_applicationID, entryBuffer[i].m_data)));
     }
 
     return true;

@@ -191,7 +191,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataS
     }
 
     // Wipe the root.
-    if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_PATH))
+    if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT))
     {
         fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
         logger::log(ERROR_RESETTING_SAVE, fslib::get_error_string());

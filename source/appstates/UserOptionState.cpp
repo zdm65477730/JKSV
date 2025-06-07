@@ -187,7 +187,7 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStr
 
         // Check to make sure the save actually has data to avoid blanks.
         {
-            fslib::Directory saveCheck(fs::DEFAULT_SAVE_PATH);
+            fslib::Directory saveCheck(fs::DEFAULT_SAVE_ROOT);
             if (saveMounted && saveCheck.get_count() <= 0)
             {
                 // Gonna borrow these messages. No point in repeating them.
@@ -210,7 +210,7 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStr
                 logger::log("Error creating zip: %s", fslib::get_error_string());
                 continue;
             }
-            fs::copy_directory_to_zip(fs::DEFAULT_SAVE_PATH, targetZip, task);
+            fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, targetZip, task);
             zipClose(targetZip, NULL);
         }
         else if (currentTitle && saveMounted)
@@ -224,7 +224,7 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStr
                 logger::log("Error creating backup directory: %s", fslib::get_error_string());
                 continue;
             }
-            fs::copy_directory(fs::DEFAULT_SAVE_PATH, targetPath, 0, {}, task);
+            fs::copy_directory(fs::DEFAULT_SAVE_ROOT, targetPath, 0, {}, task);
         }
 
         if (saveMounted)

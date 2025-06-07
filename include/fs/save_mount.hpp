@@ -8,5 +8,5 @@ namespace fs
     static constexpr std::string_view DEFAULT_SAVE_MOUNT = "save";
 
     /// @brief Same as above, but as a root directory.
-    static constexpr std::string_view DEFAULT_SAVE_PATH = "save:/";
+    static constexpr std::string_view DEFAULT_SAVE_ROOT = "save:/";
 } // namespace fs

@@ -11,6 +11,7 @@
 #include "ui/PopMessageManager.hpp"
 #include <switch.h>
 
+// Normally I try to avoid C macros in C++, but this cleans stuff up nicely.
 #define ABORT_ON_FAILURE(x)                                                                                            \
     if (!x)                                                                                                            \
     {                                                                                                                  \
@@ -19,8 +20,13 @@
 
 namespace
 {
+    /// @brief Build month.
     constexpr uint8_t BUILD_MON = 5;
+
+    /// @brief Build day.
     constexpr uint8_t BUILD_DAY = 31;
+
+    /// @brief Year.
     constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace
 
@@ -44,7 +50,7 @@ JKSV::JKSV(void)
     // This doesn't rely on stdio or anything.
     logger::initialize();
 
-    // Need to init RomFS here for now until I update FsLib to take care of this.
+    // Need to init RomFS here for now until I update FsLib to take care of this. Never mind. That isn't going to happen.
     ABORT_ON_FAILURE(initialize_service(romfsInit, "RomFS"));
 
     // Let FsLib take care of calls to SDMC instead of fs_dev
@@ -55,7 +61,7 @@ JKSV::JKSV(void)
     ABORT_ON_FAILURE(sdl::text::initialize());
 
     // Services.
-    // Using administrator so JKSV can still run in Applet mode.
+    // Using administrator so JKSV can still run in Applet mode, barely.
     ABORT_ON_FAILURE(initialize_service(accountInitialize, "Account", AccountServiceType_Administrator));
     ABORT_ON_FAILURE(initialize_service(nsInitialize, "NS"));
     ABORT_ON_FAILURE(initialize_service(pdmqryInitialize, "PDMQry"));

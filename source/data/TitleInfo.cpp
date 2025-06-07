@@ -55,9 +55,10 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) : m_applicationID(application
 }
 
 // To do: Make this safer...
-data::TitleInfo::TitleInfo(NsApplicationControlData &controlData)
+data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData)
+    : m_applicationID(applicationID)
 {
-    // Start by memcpying the thing.
+    // Start by making a copy of this.
     std::memcpy(&m_data, &controlData, sizeof(NsApplicationControlData));
 
     // Grab the language entry for the texture name.
