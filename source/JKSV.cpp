@@ -71,6 +71,12 @@ JKSV::JKSV(void)
     ABORT_ON_FAILURE(initialize_service(setsysInitialize, "SetSys"));
     ABORT_ON_FAILURE(initialize_service(socketInitializeDefault, "Socket"));
 
+    // JKSV doesn't really need the full GPU going so.
+    if (R_FAILED(appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad)))
+    {
+        logger::log("Error setting CPU boost mode!");
+    }
+
     // Input doesn't have anything to return.
     input::initialize();
 
@@ -119,6 +125,8 @@ JKSV::~JKSV()
     // Try to save config first.
     config::save();
 
+    // Not sure if this one is really needed, but just in case.
+    appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
     socketExit();
     setsysExit();
     setExit();
