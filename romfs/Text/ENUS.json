@@ -147,6 +147,7 @@
     ],
     "TitleOptionConfirmations": [
         "Are you sure you want to add #%s# to you blacklist? Once you do this, it will no longer appear on any title list or selection.",
+        "Are you sure you would like to delete all of the current save backups for #%s#? This cannot be undone!",
         "Are you sure you want to delete #%s#'s save data for #%s#? This will permanently delete it from the system."
     ],
     "PopMessagesGeneral": [

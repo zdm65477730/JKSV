@@ -120,6 +120,23 @@ void TitleOptionState::update(void)
 
             case DELETE_ALL_BACKUPS:
             {
+                // String
+                std::string confirmString = stringutil::get_formatted_string(
+                    strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 1),
+                    m_titleInfo->get_title());
+
+                // Data
+                std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
+                data->m_targetTitle = m_titleInfo;
+
+                // State. This always requires holding because I hate people complaining to me about how it's my fault they don't read things first.
+                std::shared_ptr<ConfirmState<sys::Task, TaskState, TargetStruct>> confirm =
+                    std::make_shared<ConfirmState<sys::Task, TaskState, TargetStruct>>(confirmString,
+                                                                                       true,
+                                                                                       delete_all_backups_for_title,
+                                                                                       data);
+
+                JKSV::push_state(confirm);
             }
             break;
 

@@ -255,7 +255,7 @@ static void load_save_data_info(void)
             {
                 continue;
             }
-            // If it made it here, we need to close the file system before we forget.
+            // If it made it here, we need to close the file system before we, I mean I forget.
             fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
 
             // JKSV uses fake placeholder accounts for system type saves.
@@ -328,6 +328,7 @@ static void load_save_data_info(void)
 
             // I feel weird allcating space for this even if it's not used, but whatever.
             PdmPlayStatistics stats = {0};
+
             // This should be an OKish way to filter out system titles...
             if (titleInfo.has_control_data() &&
                 R_FAILED(
