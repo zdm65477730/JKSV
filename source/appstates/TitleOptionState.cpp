@@ -142,6 +142,23 @@ void TitleOptionState::update(void)
 
             case RESET_SAVE_DATA:
             {
+                // String
+                std::string confirmString = stringutil::get_formatted_string(
+                    strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 2),
+                    m_titleInfo->get_title());
+
+                // Data
+                std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
+                data->m_targetUser = m_targetUser;
+                data->m_targetTitle = m_titleInfo;
+
+                std::shared_ptr<ConfirmState<sys::Task, TaskState, TargetStruct>> confirm =
+                    std::make_shared<ConfirmState<sys::Task, TaskState, TargetStruct>>(confirmString,
+                                                                                       true,
+                                                                                       reset_save_data,
+                                                                                       data);
+
+                JKSV::push_state(confirm);
             }
             break;
 
@@ -214,6 +231,7 @@ static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<Target
 
 static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
 {
+    // To do: Make this not as hard to read.
     // Attempt to mount save.
     if (!fslib::open_save_data_with_save_info(
             fs::DEFAULT_SAVE_MOUNT,
