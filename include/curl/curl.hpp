@@ -28,6 +28,19 @@ namespace curl
     /// @brief Exits libcurl
     void exit(void);
 
+    /// @brief Inline templated function to wrap curl_easy_setopt and make using curl::Handle slightly easier.
+    /// @tparam Option Templated type of the option. This is a headache so let the compiler figure it out.
+    /// @tparam Value Templated type of the value to set the option too. See above.
+    /// @param handle curl::Handle the option is being set for.
+    /// @param option CURLOPT to set.
+    /// @param value Value to set the CURLOPT to.
+    /// @return CURLcode returned from curl_easy_setopt.
+    template <typename Option, typename Value>
+    static inline CURLcode set_option(curl::Handle &handle, Option option, Value value)
+    {
+        return curl_easy_setopt(handle.get(), option, value);
+    }
+
     /// @brief Inline function that returns a self cleaning curl handle.
     /// @return Curl handle.
     static inline curl::Handle new_handle(void)
@@ -65,19 +78,6 @@ namespace curl
             return false;
         }
         return true;
-    }
-
-    /// @brief Inline templated function to wrap curl_easy_setopt and make using curl::Handle slightly easier.
-    /// @tparam Option Templated type of the option. This is a headache so let the compiler figure it out.
-    /// @tparam Value Templated type of the value to set the option too. See above.
-    /// @param handle curl::Handle the option is being set for.
-    /// @param option CURLOPT to set.
-    /// @param value Value to set the CURLOPT to.
-    /// @return CURLcode returned from curl_easy_setopt.
-    template <typename Option, typename Value>
-    static inline CURLcode set_option(curl::Handle &handle, Option option, Value value)
-    {
-        return curl_easy_setopt(handle.get(), option, value);
     }
 
     /// @brief Inline wrapper function to make adding to HeaderList simpler.
@@ -125,7 +125,7 @@ namespace curl
     /// @param count Element count.
     /// @param target File to write the data to.
     /// @return Number of bytes written to the file.
-    size_t write_data_to_file(const char *buffer, size_t size, size_t count, fslib::File &target);
+    size_t write_data_to_file(const char *buffer, size_t size, size_t count, fslib::File *target);
 
     /// @brief Gets the value of a header from an array of headers.
     /// @param array Array of headers to search.

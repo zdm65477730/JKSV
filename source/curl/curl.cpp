@@ -1,4 +1,4 @@
-#include "curl.hpp"
+#include "curl/curl.hpp"
 #include "stringutil.hpp"
 
 namespace
@@ -82,7 +82,7 @@ void curl::prepare_get(curl::Handle &curl)
 
     // Setup basic request.
     curl::set_option(curl, CURLOPT_HTTPGET, 1L);
-    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "") // I think this is how you set the defaults for this?
+    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, ""); // I think this is how you set the defaults for this?
 }
 
 void curl::prepare_post(curl::Handle &curl)
@@ -99,6 +99,5 @@ void curl::prepare_upload(curl::Handle &curl)
 
     curl::set_option(curl, CURLOPT_UPLOAD, 1L);
     curl::set_option(curl, CURLOPT_UPLOAD_BUFFERSIZE, SIZE_UPLOAD_BUFFER);
-    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "") // Not really sure this will have any affect here...
+    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, ""); // Not really sure this will have any affect here...
 }
-`

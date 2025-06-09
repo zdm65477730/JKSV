@@ -2,6 +2,7 @@
 #include "appstates/MainMenuState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
+#include "curl/curl.hpp"
 #include "data/data.hpp"
 #include "fslib.hpp"
 #include "input.hpp"
@@ -22,10 +23,8 @@ namespace
 {
     /// @brief Build month.
     constexpr uint8_t BUILD_MON = 5;
-
     /// @brief Build day.
     constexpr uint8_t BUILD_DAY = 31;
-
     /// @brief Year.
     constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace
@@ -70,6 +69,7 @@ JKSV::JKSV(void)
     ABORT_ON_FAILURE(initialize_service(setInitialize, "Set"));
     ABORT_ON_FAILURE(initialize_service(setsysInitialize, "SetSys"));
     ABORT_ON_FAILURE(initialize_service(socketInitializeDefault, "Socket"));
+    ABORT_ON_FAILURE(curl::initialize());
 
     // Input doesn't have anything to return.
     input::initialize();
@@ -127,6 +127,7 @@ JKSV::~JKSV()
     // Try to save config first.
     config::save();
 
+    curl::exit();
     socketExit();
     setsysExit();
     setExit();

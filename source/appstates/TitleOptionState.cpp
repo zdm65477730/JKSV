@@ -144,6 +144,15 @@ void TitleOptionState::update(void)
 
             case RESET_SAVE_DATA:
             {
+                // Need to check this first. For safety.
+                FsSaveDataInfo *saveInfo = m_targetUser->get_save_info_by_id(m_titleInfo->get_application_id());
+                if (!config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM) || fs::is_system_save_data(saveInfo))
+                {
+                    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 6));
+                    return;
+                }
+
                 // String
                 std::string confirmString = stringutil::get_formatted_string(
                     strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 2),
@@ -166,6 +175,14 @@ void TitleOptionState::update(void)
 
             case DELETE_SAVE_FROM_SYSTEM:
             {
+                FsSaveDataInfo *saveInfo = m_targetUser->get_save_info_by_id(m_titleInfo->get_application_id());
+                if (!config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM) || fs::is_system_save_data(saveInfo))
+                {
+                    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 6));
+                    return;
+                }
+
                 // String
                 std::string confirmString = stringutil::get_formatted_string(
                     strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 3),
@@ -190,6 +207,14 @@ void TitleOptionState::update(void)
 
             case EXTEND_CONTAINER:
             {
+                FsSaveDataInfo *saveInfo = m_targetUser->get_save_info_by_id(m_titleInfo->get_application_id());
+                if (!config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM) || fs::is_system_save_data(saveInfo))
+                {
+                    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 6));
+                    return;
+                }
+
                 // Data
                 std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
                 data->m_targetUser = m_targetUser;
@@ -202,6 +227,12 @@ void TitleOptionState::update(void)
 
             case EXPORT_SVI:
             {
+                // This type of save data can't have this exported anyway.
+                FsSaveDataInfo *saveInfo = m_targetUser->get_save_info_by_id(m_titleInfo->get_application_id());
+                if (fs::is_system_save_data(saveInfo))
+                {
+                    return;
+                }
                 export_svi_file(m_titleInfo);
             }
             break;
@@ -458,4 +489,11 @@ static void export_svi_file(data::TitleInfo *titleInfo)
     // Show this so we know things happened.jpg
     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                         strings::get_by_name(strings::names::TITLE_OPTION_POPS, 4));
+}
+
+static bool is_system_save_data(const FsSaveDataInfo *saveInfo)
+{
+    // The config setting will override this
+    return config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM) ||
+           saveInfo->save_data_type == FsSaveDataType_System || saveInfo->save_data_type == FsSaveDataType_SystemBcat;
 }

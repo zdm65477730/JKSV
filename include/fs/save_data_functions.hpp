@@ -21,4 +21,10 @@ namespace fs
     /// @param journalSize Size of the journaling space.
     /// @return True on success. False on failure.
     bool extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t journalSize);
+
+    /// @brief Returns whether or not the saveInfo passed is system type.
+    /// @param saveInfo FsSaveDataInfo to check.
+    /// @return True if it is. False if it isn't.
+    /// @note The config setting overrides this.
+    bool is_system_save_data(const FsSaveDataInfo *saveInfo);
 } // namespace fs

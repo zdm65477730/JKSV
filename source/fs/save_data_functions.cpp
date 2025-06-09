@@ -75,3 +75,8 @@ bool fs::extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t 
     }
     return true;
 }
+
+bool fs::is_system_save_data(const FsSaveDataInfo *saveInfo)
+{
+    return saveInfo->save_data_type == FsSaveDataType_System || saveInfo->save_data_type == FsSaveDataType_SystemBcat;
+}

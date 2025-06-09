@@ -147,7 +147,8 @@
         "Error resetting save data!",
         "Save data successfully reset!",
         "SVI file exported successfully!",
-        "Error exporting SVI file!"
+        "Error exporting SVI file!",
+        "This option is unavailable for system saves!"
     ],
     "TitleOptionConfirmations": [
         "Are you sure you want to add #%s# to your blacklist? Once you do this, it will no longer appear on any title list or selection.",
