@@ -46,7 +46,8 @@ static void change_output_path(data::TitleInfo *targetTitle);
 static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
 static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
 static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
-static void extend_container(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
+static void extend_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
+static void export_svi_file(data::TitleInfo *titleInfo);
 
 TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo)
     : m_targetUser(user), m_titleInfo(titleInfo)
@@ -189,11 +190,19 @@ void TitleOptionState::update(void)
 
             case EXTEND_CONTAINER:
             {
+                // Data
+                std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
+                data->m_targetUser = m_targetUser;
+                data->m_targetTitle = m_titleInfo;
+
+                // State.
+                JKSV::push_state(std::make_shared<TaskState>(extend_save_data, data));
             }
             break;
 
             case EXPORT_SVI:
             {
+                export_svi_file(m_titleInfo);
             }
             break;
         }
@@ -354,7 +363,7 @@ static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<Target
         return;
     }
 
-    if (!fs::delete_save_data(*saveInfo))
+    if (!fs::delete_save_data(saveInfo))
     {
         // Just cleanup, I guess?
         task->finished();
@@ -368,6 +377,85 @@ static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<Target
     task->finished();
 }
 
-static void extend_container(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void extend_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
 {
+    // This is just to make stuff easier to read.
+    data::TitleInfo *titleInfo = dataStruct->m_targetTitle;
+    FsSaveDataInfo *saveInfo = dataStruct->m_targetUser->get_save_info_by_id(titleInfo->get_application_id());
+    if (!saveInfo)
+    {
+        logger::log("Error retrieving save data info to extend!");
+        task->finished();
+        return;
+    }
+
+
+    // Set the status.
+    task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 3),
+                     dataStruct->m_targetUser->get_nickname(),
+                     dataStruct->m_targetTitle->get_title());
+
+    // This is the header string.
+    std::string_view keyboardString = strings::get_by_name(strings::names::KEYBOARD_STRINGS, 8);
+
+    // Get how much to extend.
+    char buffer[5] = {0};
+    // No default. Maybe change this later?
+    if (!keyboard::get_input(SwkbdType_NumPad, {}, keyboardString, buffer, 4))
+    {
+        task->finished();
+        return;
+    }
+
+    // Convert input to number and multiply it by 1MB. To do: Check if this is valid before continuing?
+    int64_t size = std::strtoll(buffer, NULL, 10) * 0x100000;
+
+    // Grab the journal size. Going max is probably a good idea here in case games increase it.
+    int64_t journalSize = titleInfo->get_journal_size_max(saveInfo->save_data_type);
+
+    // To do: Check this and toast message.
+    fs::extend_save_data(saveInfo, size, journalSize);
+
+    task->finished();
+}
+
+static void export_svi_file(data::TitleInfo *titleInfo)
+{
+    // This is to allow the files to be create with a starting size. This cuts down on FS calls with fslib.
+    constexpr size_t SIZE_SVI_FILE = sizeof(uint64_t) + sizeof(NsApplicationControlData);
+
+    // Export path.
+    fslib::Path sviPath = config::get_working_directory() / "svi" /
+                          stringutil::get_formatted_string("%016llX.svi", titleInfo->get_application_id());
+
+    // Check if it already exists.
+    if (fslib::file_exists(sviPath))
+    {
+        logger::log("SVI for %016llX already exists!", titleInfo->get_application_id());
+        // Just show this and bail.
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 5));
+        return;
+    }
+
+    // File
+    fslib::File sviFile(sviPath, FsOpenMode_Create | FsOpenMode_Write, SIZE_SVI_FILE);
+    if (!sviFile)
+    {
+        logger::log("Error exporting SVI file: %s", fslib::get_error_string());
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 5));
+    }
+
+    // Ok. Letsa go~
+    // This is needed like this.
+    uint64_t applicationID = titleInfo->get_application_id();
+
+    // Write the stuff we need.
+    sviFile.write(&applicationID, sizeof(uint64_t));
+    sviFile.write(titleInfo->get_control_data(), sizeof(NsApplicationControlData));
+
+    // Show this so we know things happened.jpg
+    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 4));
 }

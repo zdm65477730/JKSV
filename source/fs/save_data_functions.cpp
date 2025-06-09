@@ -34,29 +34,43 @@ bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo
     return true;
 }
 
-bool fs::delete_save_data(const FsSaveDataInfo &saveInfo)
+bool fs::delete_save_data(const FsSaveDataInfo *saveInfo)
 {
     // I'm not allowing this at all.
-    if (saveInfo.save_data_type == FsSaveDataType_System || saveInfo.save_data_type == FsSaveDataType_SystemBcat)
+    if (saveInfo->save_data_type == FsSaveDataType_System || saveInfo->save_data_type == FsSaveDataType_SystemBcat)
     {
         logger::log("Error deleting save data: Deleting system save data is not allowed.");
         return false;
     }
 
     // Save attributes.
-    FsSaveDataAttribute saveAttributes = {.application_id = saveInfo.application_id,
-                                          .uid = saveInfo.uid,
-                                          .system_save_data_id = saveInfo.system_save_data_id,
-                                          .save_data_type = saveInfo.save_data_type,
-                                          .save_data_rank = saveInfo.save_data_rank,
-                                          .save_data_index = saveInfo.save_data_index};
+    FsSaveDataAttribute saveAttributes = {.application_id = saveInfo->application_id,
+                                          .uid = saveInfo->uid,
+                                          .system_save_data_id = saveInfo->system_save_data_id,
+                                          .save_data_type = saveInfo->save_data_type,
+                                          .save_data_rank = saveInfo->save_data_rank,
+                                          .save_data_index = saveInfo->save_data_index};
 
     Result fsError =
-        fsDeleteSaveDataFileSystemBySaveDataAttribute(static_cast<FsSaveDataSpaceId>(saveInfo.save_data_space_id),
+        fsDeleteSaveDataFileSystemBySaveDataAttribute(static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id),
                                                       &saveAttributes);
     if (R_FAILED(fsError))
     {
         logger::log("Error deleting save data: 0x%X.", fsError);
+        return false;
+    }
+    return true;
+}
+
+bool fs::extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t journalSize)
+{
+    Result fsError = fsExtendSaveDataFileSystem(static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id),
+                                                saveInfo->save_data_id,
+                                                size,
+                                                journalSize);
+    if (R_FAILED(fsError))
+    {
+        logger::log("Error extending save data: 0x%0X.", fsError);
         return false;
     }
     return true;

@@ -51,11 +51,11 @@ data::User::User(AccountUid accountID,
     std::memcpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
 }
 
-void data::User::add_data(const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats)
+void data::User::add_data(const FsSaveDataInfo *saveInfo, const PdmPlayStatistics *playStats)
 {
-    uint64_t applicationID = saveInfo.application_id == 0 ? saveInfo.system_save_data_id : saveInfo.application_id;
+    uint64_t applicationID = saveInfo->application_id == 0 ? saveInfo->system_save_data_id : saveInfo->application_id;
 
-    m_userData.push_back(std::make_pair(applicationID, std::make_pair(saveInfo, playStats)));
+    m_userData.push_back(std::make_pair(applicationID, std::make_pair(*saveInfo, *playStats)));
 }
 
 void data::User::clear_save_info(void)

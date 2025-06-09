@@ -9,8 +9,7 @@ bool keyboard::get_input(SwkbdType keyboardType,
 {
     // Setup keyboard.
     SwkbdConfig keyboard;
-    swkbdCreate(&keyboard,
-                0); // Old JKSV actually used dictionary words, but I don't feel like implementing them again.
+    swkbdCreate(&keyboard, 0);
     swkbdConfigSetBlurBackground(&keyboard, true);
     swkbdConfigSetInitialText(&keyboard, defaultText.data());
     swkbdConfigSetHeaderText(&keyboard, header.data());

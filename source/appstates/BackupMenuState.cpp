@@ -356,7 +356,10 @@ static void create_new_backup(sys::ProgressTask *task,
         }
         fs::copy_directory(fs::DEFAULT_SAVE_ROOT, targetPath, 0, {}, task);
     }
+
+    // Refresh.
     spawningState->refresh();
+
     task->finished();
 }
 
@@ -455,7 +458,6 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct
     else if (std::strstr(dataStruct->m_targetPath.c_string(), ".zip") != NULL)
     {
         unzFile targetZip = unzOpen64(dataStruct->m_targetPath.c_string());
-        logger::log("targetZip");
         if (!targetZip)
         {
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,

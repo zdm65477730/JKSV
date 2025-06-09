@@ -275,7 +275,7 @@ static void delete_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserS
         // Update thread task.
         task->set_status(strings::get_by_name(strings::names::USER_OPTION_STATUS, 1), target_title);
 
-        if (!fs::delete_save_data(*targetUser->get_save_info_at(i)))
+        if (!fs::delete_save_data(targetUser->get_save_info_at(i)))
         {
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                                 strings::get_by_name(strings::names::POP_MESSAGES_SAVE_CREATE, 2));

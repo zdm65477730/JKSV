@@ -14,6 +14,8 @@ namespace
     // Makes stuff slightly easier to read.
     using ConfigPair = std::pair<std::string, uint8_t>;
 
+    /// @brief This is the default working directory path.
+    constexpr std::string_view PATH_DEFAULT_WORK_DIR = "sdmc:/JKSV";
     // Folder path.
     constexpr std::string_view PATH_CONFIG_FOLDER = "sdmc:/config/JKSV";
     // Actual config path.
@@ -132,7 +134,7 @@ void config::initialize(void)
 
 void config::reset_to_default(void)
 {
-    s_workingDirectory = "sdmc:/JKSV";
+    s_workingDirectory = PATH_DEFAULT_WORK_DIR;
     s_configVector.push_back(std::make_pair(config::keys::INCLUDE_DEVICE_SAVES.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::AUTO_BACKUP_ON_RESTORE.data(), 1));
     s_configVector.push_back(std::make_pair(config::keys::AUTO_NAME_BACKUPS.data(), 1));
@@ -144,7 +146,6 @@ void config::reset_to_default(void)
     s_configVector.push_back(std::make_pair(config::keys::LIST_ACCOUNT_SYS_SAVES.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::ALLOW_WRITING_TO_SYSTEM.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::EXPORT_TO_ZIP.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::ZIP_COMPRESSION_LEVEL.data(), 6));
     s_configVector.push_back(std::make_pair(config::keys::TITLE_SORT_TYPE.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::JKSM_TEXT_MODE.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::FORCE_ENGLISH.data(), 0));
@@ -231,13 +232,18 @@ void config::save(void)
 
 uint8_t config::get_by_key(std::string_view key)
 {
+    // See if the key can be found.
     auto findKey = std::find_if(s_configVector.begin(), s_configVector.end(), [key](const auto &configPair) {
         return key == configPair.first;
     });
+
+    // Bail.
     if (findKey == s_configVector.end())
     {
         return 0;
     }
+
+    // Return the value.
     return findKey->second;
 }
 
@@ -247,10 +253,12 @@ void config::toggle_by_key(std::string_view key)
     auto findKey = std::find_if(s_configVector.begin(), s_configVector.end(), [key](const auto &configPair) {
         return key == configPair.first;
     });
+
     if (findKey == s_configVector.end())
     {
         return;
     }
+
     findKey->second = findKey->second ? 0 : 1;
 }
 
@@ -273,6 +281,7 @@ uint8_t config::get_by_index(int index)
     {
         return 0;
     }
+
     return s_configVector.at(index).second;
 }
 
@@ -282,6 +291,7 @@ void config::toggle_by_index(int index)
     {
         return;
     }
+
     s_configVector[index].second = s_configVector[index].second ? 0 : 1;
 }
 
@@ -291,6 +301,7 @@ void config::set_by_index(int index, uint8_t value)
     {
         return;
     }
+
     s_configVector[index].second = value;
 }
 
@@ -328,6 +339,7 @@ bool config::is_favorite(uint64_t applicationID)
     {
         return false;
     }
+
     return true;
 }
 
@@ -350,6 +362,7 @@ bool config::is_blacklisted(uint64_t applicationID)
     {
         return false;
     }
+
     return true;
 }
 
@@ -364,6 +377,7 @@ bool config::has_custom_path(uint64_t applicationID)
     {
         return false;
     }
+
     return true;
 }
 
@@ -373,5 +387,6 @@ void config::get_custom_path(uint64_t applicationID, char *pathOut, size_t pathO
     {
         return;
     }
+
     std::memcpy(pathOut, s_pathMap[applicationID].c_str(), s_pathMap[applicationID].length());
 }

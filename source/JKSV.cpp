@@ -71,12 +71,6 @@ JKSV::JKSV(void)
     ABORT_ON_FAILURE(initialize_service(setsysInitialize, "SetSys"));
     ABORT_ON_FAILURE(initialize_service(socketInitializeDefault, "Socket"));
 
-    // JKSV doesn't really need the full GPU going so.
-    if (R_FAILED(appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad)))
-    {
-        logger::log("Error setting CPU boost mode!");
-    }
-
     // Input doesn't have anything to return.
     input::initialize();
 
@@ -89,6 +83,14 @@ JKSV::JKSV(void)
     {
         logger::log("Error creating working directory: %s", fslib::get_error_string());
         return;
+    }
+
+    // I'd rather this be here than checked every time one is exported.
+    fslib::Path sviDir = config::get_working_directory() / "svi";
+    if (!fslib::directory_exists(sviDir) && !fslib::create_directories_recursively(sviDir))
+    {
+        // This one isn't fatal, but it can be super fatal later if this fails.
+        logger::log("Error creating svi directory: %s", fslib::get_error_string());
     }
 
     // JKSV also has no internal strings anymore. This is FATAL now.
@@ -125,8 +127,6 @@ JKSV::~JKSV()
     // Try to save config first.
     config::save();
 
-    // Not sure if this one is really needed, but just in case.
-    appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
     socketExit();
     setsysExit();
     setExit();

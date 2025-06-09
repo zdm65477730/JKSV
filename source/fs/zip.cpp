@@ -168,12 +168,14 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
                     sharedData->m_bufferIsFull = false;
                     sharedData->m_bufferCondition.notify_one();
                 }
+
                 // Write
                 zipError = zipWriteInFileInZip(destination, localBuffer.get(), readCount);
                 if (zipError != ZIP_OK)
                 {
                     logger::log("Error writing data to zip: %i.", zipError);
                 }
+
                 // Update count and status
                 writeCount += readCount;
                 if (task)
@@ -317,6 +319,7 @@ void fs::copy_zip_to_directory(unzFile source,
 
         // Close file and commit again just for good measure.
         destinationFile.close();
+
         if (!fslib::commit_data_to_file_system(commitDevice))
         {
             logger::log("Error performing final file commit: %s", fslib::get_error_string());

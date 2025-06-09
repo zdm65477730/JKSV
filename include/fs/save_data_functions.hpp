@@ -13,5 +13,12 @@ namespace fs
     /// @brief Deletes the save data of the FsSaveDataInfo passed.
     /// @param saveInfo Save data to delete.
     /// @return True on success. False on failure.
-    bool delete_save_data(const FsSaveDataInfo &saveInfo);
+    bool delete_save_data(const FsSaveDataInfo *saveInfo);
+
+    /// @brief Extends the save data of the FsSaveDataInfo struct passed.
+    /// @param saveInfo Pointer to the FsSaveDataInfo struct of the save to extend.
+    /// @param size Size (in MB) to extend the save data to.
+    /// @param journalSize Size of the journaling space.
+    /// @return True on success. False on failure.
+    bool extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t journalSize);
 } // namespace fs

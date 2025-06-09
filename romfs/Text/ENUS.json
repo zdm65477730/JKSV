@@ -33,6 +33,7 @@
         "Enable writing to system saves and NAND: %s",
         "Export saves to ZIP: %s",
         "Zip compression level: %u",
+        "Enable CPU Boost: %s",
         "Title sort type: %s",
         "Text menu (JKSM) mode: %s",
         "Force English: %s",
@@ -53,6 +54,7 @@
         "Enables restoring system saves and writing to NAND partitions.",
         "Exports save data to ZIP archives instead of unpacked folders.",
         "Compression or deflate level used when writing to ZIP. The default value is 6. Lower values are faster, but offer less compression and space savings. Zero is store, or no compression.",
+        "Enables CPU boost when exporting save data.",
         "Controls the way titles are sorted and displayed.",
         "Displays titles as text menus like the original JKSM on 3DS instead of icon grids.",
         "Forces English to be used as the language instead of the detected system language.",
@@ -138,13 +140,16 @@
     "TitleOptionStatus": [
         "Deleting all backups for #%s#.",
         "Resetting save data for #%s#.",
-        "Deleting #%s#'s save data for #%s#..."
+        "Deleting #%s#'s save data for #%s#...",
+        "Extending #%s#'s save data for #%s#..."
     ],
     "TitleOptionPops": [
         "All backups deleted for `%s`!",
         "Failed to delete all backups!",
         "Error resetting save data!",
-        "Save data successfully reset!"
+        "Save data successfully reset!",
+        "SVI file exported successfully!",
+        "Error exporting SVI file!"
     ],
     "TitleOptionConfirmations": [
         "Are you sure you want to add #%s# to you blacklist? Once you do this, it will no longer appear on any title list or selection.",

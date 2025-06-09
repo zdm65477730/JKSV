@@ -55,6 +55,9 @@ static bool load_create_user_accounts(void);
 /// @brief Loads the application records from NS.
 static void load_application_records(void);
 
+/// @brief Imports external SVI(Control Data) files.
+static void import_svi_files(void);
+
 /// @brief Loads the save data info available from the system.
 static void load_save_data_info(void);
 
@@ -96,6 +99,9 @@ bool data::initialize(bool clearCache)
         // Load the application records.
         load_application_records();
     }
+
+    // Load these now if needed.
+    import_svi_files();
 
     // I'm just going to assume this is implied since we're reloading everything.
     // Loop through the users and clear their save data info.
@@ -223,6 +229,54 @@ static void load_application_records(void)
     }
 }
 
+static void import_svi_files(void)
+{
+    // Path.
+    fslib::Path sviPath = config::get_working_directory() / "svi";
+
+    // Try opening it.
+    fslib::Directory sviDir(sviPath);
+    if (!sviDir)
+    {
+        return;
+    }
+
+    // Loop through the directory and load these things.
+    for (int64_t i = 0; i < sviDir.get_count(); i++)
+    {
+        // Full path.
+        fslib::Path fullPath = sviPath / sviDir[i];
+
+        // Try opening it.
+        fslib::File sviFile(fullPath, FsOpenMode_Read);
+        if (!sviFile || sviFile.get_size() != sizeof(uint64_t) + sizeof(NsApplicationControlData))
+        {
+            logger::log("Error importing \"%s\": File couldn't be opened or is invalid!");
+            continue;
+        }
+
+        // First read the ID so we can check if it's even worth bothering with the rest.
+        // To do. This could be accomplished with just the file name when I have time.
+        uint64_t applicationID = 0;
+        if (sviFile.read(&applicationID, sizeof(uint64_t)) != sizeof(uint64_t) ||
+            s_titleInfoMap.find(applicationID) != s_titleInfoMap.end())
+        {
+            // Not worth continuing with this because it was already loaded somewhere else.
+            continue;
+        }
+
+        // Good to go and read this now.
+        NsApplicationControlData controlData = {0};
+        if (sviFile.read(&controlData, sizeof(NsApplicationControlData)) != sizeof(NsApplicationControlData))
+        {
+            logger::log("Error reading SVI file!");
+            continue;
+        }
+
+        s_titleInfoMap.emplace(applicationID, std::move(data::TitleInfo(applicationID, controlData)));
+    }
+}
+
 static void load_save_data_info(void)
 {
     // Grab these here so I don't call the config functions every loop. Config uses a vector instead of map so the calls
@@ -248,10 +302,16 @@ static void load_save_data_info(void)
             // Grab a reference to the current SaveDataInfo struct.
             FsSaveDataInfo &saveInfo = saveReader.get();
 
+            // System saves have no application ID.
+            uint64_t applicationID = (saveInfo.save_data_type == FsSaveDataType_System ||
+                                      saveInfo.save_data_type == FsSaveDataType_SystemBcat)
+                                         ? saveInfo.system_save_data_id
+                                         : saveInfo.application_id;
+
             // This will filter out account system saves if desired and unmountable titles.
             if ((!showAccountSystemSaves && saveInfo.save_data_type == FsSaveDataType_System && saveInfo.uid != 0) ||
                 (onlyListMountable && !fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, saveInfo)) ||
-                config::is_blacklisted(saveInfo.application_id))
+                config::is_blacklisted(applicationID))
             {
                 continue;
             }
@@ -311,12 +371,6 @@ static void load_save_data_info(void)
                 }
             }
 
-            // System saves have no application ID.
-            uint64_t applicationID = (saveInfo.save_data_type == FsSaveDataType_System ||
-                                      saveInfo.save_data_type == FsSaveDataType_SystemBcat)
-                                         ? saveInfo.system_save_data_id
-                                         : saveInfo.application_id;
-
             // Search the map just to be sure it was loaded previously. This can happen.
             if (s_titleInfoMap.find(applicationID) == s_titleInfoMap.end())
             {
@@ -328,7 +382,6 @@ static void load_save_data_info(void)
 
             // I feel weird allcating space for this even if it's not used, but whatever.
             PdmPlayStatistics stats = {0};
-
             // This should be an OKish way to filter out system titles...
             if (titleInfo.has_control_data() &&
                 R_FAILED(
@@ -339,7 +392,7 @@ static void load_save_data_info(void)
             }
 
             // Finally push it over to the user.
-            user->second.add_data(saveInfo, stats);
+            user->second.add_data(&saveInfo, &stats);
         }
     }
 
@@ -365,7 +418,7 @@ static void load_save_data_info(void)
                 // To do: Final decision on this. It's easier to read than second.first...
                 auto &[saveInfo, playStats] = entry.second;
 
-                user.add_data(saveInfo, playStats);
+                user.add_data(&saveInfo, &playStats);
             }
         }
     }
@@ -400,7 +453,8 @@ static bool read_cache_file(void)
         return false;
     }
 
-    if (cache.read(entryBuffer.get(), sizeof(CacheEntry) * titleCount) != sizeof(CacheEntry) * titleCount)
+    if (cache.read(entryBuffer.get(), sizeof(CacheEntry) * titleCount) !=
+        static_cast<ssize_t>(sizeof(CacheEntry) * titleCount))
     {
         logger::log("Error reading cache file! Size mismatch!");
         return false;
