@@ -24,7 +24,7 @@ class TitleOptionState : public AppState
 
     private:
         /// @brief This is just in case the option should only apply to the current user.
-        data::User *m_targetUser = nullptr;
+        data::User *m_user = nullptr;
 
         /// @brief This is the target title.
         data::TitleInfo *m_titleInfo = nullptr;

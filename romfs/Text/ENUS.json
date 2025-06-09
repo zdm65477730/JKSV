@@ -95,6 +95,9 @@
         "Are you sure you really want to restore #%s#?",
         "Are you sure you really want to delete #%s#?"
     ],
+    "BackupMenuPops": [
+        "System save data cannot be restored to the system!"
+    ],
     "DeletingFiles": [
         "Deleting #%s#..."
     ],

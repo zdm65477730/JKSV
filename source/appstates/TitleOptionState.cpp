@@ -1,5 +1,6 @@
 #include "appstates/TitleOptionState.hpp"
 #include "appstates/ConfirmState.hpp"
+#include "appstates/TitleInfoState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
 #include "fs/fs.hpp"
@@ -36,7 +37,7 @@ namespace
 // Struct to send data to functions that require confirmation.
 typedef struct
 {
-        data::User *m_targetUser;
+        data::User *m_user;
         data::TitleInfo *m_targetTitle;
 } TargetStruct;
 
@@ -49,8 +50,7 @@ static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<Target
 static void extend_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
 static void export_svi_file(data::TitleInfo *titleInfo);
 
-TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo)
-    : m_targetUser(user), m_titleInfo(titleInfo)
+TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo) : m_user(user), m_titleInfo(titleInfo)
 {
     // Create panel if needed.
     if (!sm_initialized)
@@ -66,6 +66,7 @@ TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo)
         {
             sm_titleOptionMenu->add_option(currentString);
         }
+
         // Only do this once.
         sm_initialized = true;
     }
@@ -83,6 +84,8 @@ void TitleOptionState::update(void)
         {
             case INFORMATION:
             {
+                // Just push the state.
+                JKSV::push_state(std::make_shared<TitleInfoState>(m_user, m_titleInfo));
             }
             break;
 
@@ -145,8 +148,8 @@ void TitleOptionState::update(void)
             case RESET_SAVE_DATA:
             {
                 // Need to check this first. For safety.
-                FsSaveDataInfo *saveInfo = m_targetUser->get_save_info_by_id(m_titleInfo->get_application_id());
-                if (!config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM) || fs::is_system_save_data(saveInfo))
+                FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(m_titleInfo->get_application_id());
+                if (fs::is_system_save_data(saveInfo) && !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
                 {
                     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                                         strings::get_by_name(strings::names::TITLE_OPTION_POPS, 6));
@@ -160,7 +163,7 @@ void TitleOptionState::update(void)
 
                 // Data
                 std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
-                data->m_targetUser = m_targetUser;
+                data->m_user = m_user;
                 data->m_targetTitle = m_titleInfo;
 
                 std::shared_ptr<ConfirmState<sys::Task, TaskState, TargetStruct>> confirm =
@@ -175,8 +178,8 @@ void TitleOptionState::update(void)
 
             case DELETE_SAVE_FROM_SYSTEM:
             {
-                FsSaveDataInfo *saveInfo = m_targetUser->get_save_info_by_id(m_titleInfo->get_application_id());
-                if (!config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM) || fs::is_system_save_data(saveInfo))
+                FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(m_titleInfo->get_application_id());
+                if (fs::is_system_save_data(saveInfo) && !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
                 {
                     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                                         strings::get_by_name(strings::names::TITLE_OPTION_POPS, 6));
@@ -186,12 +189,12 @@ void TitleOptionState::update(void)
                 // String
                 std::string confirmString = stringutil::get_formatted_string(
                     strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 3),
-                    m_targetUser->get_nickname(),
+                    m_user->get_nickname(),
                     m_titleInfo->get_title());
 
                 // Data
                 std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
-                data->m_targetUser = m_targetUser;
+                data->m_user = m_user;
                 data->m_targetTitle = m_titleInfo;
 
                 // Confirmation.
@@ -207,8 +210,8 @@ void TitleOptionState::update(void)
 
             case EXTEND_CONTAINER:
             {
-                FsSaveDataInfo *saveInfo = m_targetUser->get_save_info_by_id(m_titleInfo->get_application_id());
-                if (!config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM) || fs::is_system_save_data(saveInfo))
+                FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(m_titleInfo->get_application_id());
+                if (fs::is_system_save_data(saveInfo) && !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
                 {
                     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                                         strings::get_by_name(strings::names::TITLE_OPTION_POPS, 6));
@@ -217,7 +220,7 @@ void TitleOptionState::update(void)
 
                 // Data
                 std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
-                data->m_targetUser = m_targetUser;
+                data->m_user = m_user;
                 data->m_targetTitle = m_titleInfo;
 
                 // State.
@@ -228,7 +231,7 @@ void TitleOptionState::update(void)
             case EXPORT_SVI:
             {
                 // This type of save data can't have this exported anyway.
-                FsSaveDataInfo *saveInfo = m_targetUser->get_save_info_by_id(m_titleInfo->get_application_id());
+                FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(m_titleInfo->get_application_id());
                 if (fs::is_system_save_data(saveInfo))
                 {
                     return;
@@ -254,7 +257,7 @@ void TitleOptionState::update(void)
 void TitleOptionState::render(void)
 {
     sm_slidePanel->clear_target();
-    sm_titleOptionMenu->render(sm_slidePanel->get(), AppState::has_focus());
+    sm_titleOptionMenu->render(sm_slidePanel->get_target(), AppState::has_focus());
     sm_slidePanel->render(NULL, AppState::has_focus());
 }
 
@@ -339,7 +342,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataS
     // Attempt to mount save.
     if (!fslib::open_save_data_with_save_info(
             fs::DEFAULT_SAVE_MOUNT,
-            *dataStruct->m_targetUser->get_save_info_by_id(dataStruct->m_targetTitle->get_application_id())))
+            *dataStruct->m_user->get_save_info_by_id(dataStruct->m_targetTitle->get_application_id())))
     {
         logger::log(ERROR_RESETTING_SAVE, fslib::get_error_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
@@ -381,12 +384,12 @@ static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<Target
 {
     // Set the status in case this takes a little while.
     task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 2),
-                     dataStruct->m_targetUser->get_nickname(),
+                     dataStruct->m_user->get_nickname(),
                      dataStruct->m_targetTitle->get_title());
 
     // Grab the save data info pointer.
     uint64_t applicationID = dataStruct->m_targetTitle->get_application_id();
-    FsSaveDataInfo *saveInfo = dataStruct->m_targetUser->get_save_info_by_id(applicationID);
+    FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(applicationID);
     if (saveInfo == nullptr)
     {
         logger::log("Error deleting save data for user. Target save data null?");
@@ -402,7 +405,7 @@ static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<Target
     }
 
     // Erase the info from the user since it should have been deleted.
-    dataStruct->m_targetUser->erase_save_info_by_id(applicationID);
+    dataStruct->m_user->erase_save_info_by_id(applicationID);
 
     // Done?
     task->finished();
@@ -412,7 +415,7 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TargetStruct> data
 {
     // This is just to make stuff easier to read.
     data::TitleInfo *titleInfo = dataStruct->m_targetTitle;
-    FsSaveDataInfo *saveInfo = dataStruct->m_targetUser->get_save_info_by_id(titleInfo->get_application_id());
+    FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(titleInfo->get_application_id());
     if (!saveInfo)
     {
         logger::log("Error retrieving save data info to extend!");
@@ -423,7 +426,7 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TargetStruct> data
 
     // Set the status.
     task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 3),
-                     dataStruct->m_targetUser->get_nickname(),
+                     dataStruct->m_user->get_nickname(),
                      dataStruct->m_targetTitle->get_title());
 
     // This is the header string.
@@ -489,11 +492,4 @@ static void export_svi_file(data::TitleInfo *titleInfo)
     // Show this so we know things happened.jpg
     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                         strings::get_by_name(strings::names::TITLE_OPTION_POPS, 4));
-}
-
-static bool is_system_save_data(const FsSaveDataInfo *saveInfo)
-{
-    // The config setting will override this
-    return config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM) ||
-           saveInfo->save_data_type == FsSaveDataType_System || saveInfo->save_data_type == FsSaveDataType_SystemBcat;
 }

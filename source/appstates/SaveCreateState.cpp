@@ -98,7 +98,7 @@ void SaveCreateState::render(void)
 {
     // Clear slide target, render menu, render slide to frame buffer.
     sm_slidePanel->clear_target();
-    m_saveMenu.render(sm_slidePanel->get(), AppState::has_focus());
+    m_saveMenu.render(sm_slidePanel->get_target(), AppState::has_focus());
     sm_slidePanel->render(NULL, AppState::has_focus());
 }
 

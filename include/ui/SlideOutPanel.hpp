@@ -58,23 +58,30 @@ namespace ui
 
             /// @brief Returns a pointer to the render target of the panel.
             /// @return Raw SDL_Texture pointer to target.
-            SDL_Texture *get(void);
+            SDL_Texture *get_target(void);
 
         private:
             /// @brief Bool for whether panel is fully open or not.
             bool m_isOpen = false;
+
             /// @brief Whether or not to close panel.
             bool m_closePanel = false;
+
             /// @brief Current X coordinate to render to. Panels are always 720 pixels in height so no Y is required.
             double m_x;
+
             /// @brief Width of the panel in pixels.
             int m_width;
+
             /// @brief Target X position of panel.
             double m_targetX;
+
             /// @brief Which side the panel is on.
             SlideOutPanel::Side m_side;
+
             /// @brief Render target if panel.
             sdl::SharedTexture m_renderTarget;
+
             /// @brief Vector of elements.
             std::vector<std::shared_ptr<ui::Element>> m_elements;
     };

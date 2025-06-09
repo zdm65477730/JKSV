@@ -96,7 +96,7 @@ void ui::SlideOutPanel::clear_elements(void)
     m_elements.clear();
 }
 
-SDL_Texture *ui::SlideOutPanel::get(void)
+SDL_Texture *ui::SlideOutPanel::get_target(void)
 {
     return m_renderTarget->get();
 }

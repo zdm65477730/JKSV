@@ -3,29 +3,32 @@
 #include "input.hpp"
 #include "sdl.hpp"
 
-TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo)
-    : m_user(user), m_titleInfo(titleInfo), m_titleScrollTimer(3000)
+namespace
 {
+    /// @brief This is the width of the panel in pixels.
+    constexpr int SIZE_PANEL_WIDTH = 480;
+} // namespace
+
+TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo)
+    : m_user(user), m_titleInfo(titleInfo), m_icon(m_titleInfo->get_icon())
+{
+    // This needs to be checked. All title information panels share these members.
     if (!sm_initialized)
     {
         // This is the slide panel everything is rendered to.
-        sm_slidePanel = std::make_unique<ui::SlideOutPanel>(480, ui::SlideOutPanel::Side::Right);
+        sm_slidePanel = std::make_unique<ui::SlideOutPanel>(SIZE_PANEL_WIDTH, ui::SlideOutPanel::Side::Right);
+        sm_titleTarget = sdl::TextureManager::create_load_texture("infoTitleTarget",
+                                                                  SIZE_PANEL_WIDTH - 32,
+                                                                  32,
+                                                                  SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
         sm_initialized = true;
     }
+}
 
-    // Check if the title is too large to fit within the target.
-    m_titleWidth = sdl::text::get_width(32, m_titleInfo->get_title());
-    if (m_titleWidth > 480)
-    {
-        // Just set this to 8 and we'll scroll the title.
-        m_titleX = 8;
-        m_titleScrolling = true;
-    }
-    else
-    {
-        // Just center it.
-        m_titleX = 240 - (m_titleWidth / 2);
-    }
+TitleInfoState::~TitleInfoState()
+{
+    // Clear this so the next time it's called, the vector is cleared.
+    sm_slidePanel->clear_elements();
 }
 
 void TitleInfoState::update(void)
@@ -40,21 +43,7 @@ void TitleInfoState::update(void)
     else if (sm_slidePanel->is_closed())
     {
         sm_slidePanel->reset();
-    }
-    else if (m_titleScrolling && m_titleScrollTimer.is_triggered())
-    {
-        m_titleX -= 2;
-        m_titleScrollTriggered = true;
-    }
-    else if (m_titleScrollTriggered && m_titleX > 8 - m_titleWidth)
-    {
-        m_titleX -= 2;
-    }
-    else if (m_titleScrollTriggered && m_titleX <= 8 - m_titleWidth)
-    {
-        m_titleX = 8;
-        m_titleScrollTriggered = false;
-        m_titleScrollTimer.restart();
+        AppState::deactivate();
     }
 }
 
@@ -62,10 +51,16 @@ void TitleInfoState::render(void)
 {
     // Grab the panel's target and clear it. To do: This how I originally intended to.
     sm_slidePanel->clear_target();
-    // SDL_Texture *panelTarget = sm_slidePanel->get();
 
-    // If the title doesn't need to be scrolled, just render it.
+    // Grab the panel target for rendering to.
+    SDL_Texture *panelTarget = sm_slidePanel->get_target();
+
+    // Start by rendering the icon.
+    m_icon->render(panelTarget, 112, 24);
+
+    // Clear the title target and render the text scroll to it.
+    sm_titleTarget->clear(colors::DIALOG_BOX);
 
 
-    sdl::render_line(sm_slidePanel->get(), 10, 42, 460, 42, colors::WHITE);
+    sm_slidePanel->render(NULL, AppState::has_focus());
 }

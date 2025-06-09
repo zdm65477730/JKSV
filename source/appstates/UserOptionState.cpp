@@ -30,7 +30,7 @@ namespace
 // Struct to pass data to functions that require it.
 typedef struct
 {
-        data::User *m_targetUser;
+        data::User *m_user;
 } UserStruct;
 
 // Declarations here. Defintions after class.
@@ -75,7 +75,7 @@ void UserOptionState::update(void)
 
                 // Data to send if confirmed.
                 std::shared_ptr<UserStruct> dataStruct(new UserStruct);
-                dataStruct->m_targetUser = m_user;
+                dataStruct->m_user = m_user;
 
                 // State to push
                 auto confirmBackupAll =
@@ -102,7 +102,7 @@ void UserOptionState::update(void)
                                                      m_user->get_nickname());
 
                 std::shared_ptr<UserStruct> dataStruct(new UserStruct);
-                dataStruct->m_targetUser = m_user;
+                dataStruct->m_user = m_user;
 
                 auto confirmCreateAll =
                     std::make_shared<ConfirmState<sys::Task, TaskState, UserStruct>>(queryString,
@@ -122,7 +122,7 @@ void UserOptionState::update(void)
                                                      m_user->get_nickname());
 
                 std::shared_ptr<UserStruct> dataStruct(new UserStruct);
-                dataStruct->m_targetUser = m_user;
+                dataStruct->m_user = m_user;
 
                 auto confirmDeleteAll =
                     std::make_shared<ConfirmState<sys::Task, TaskState, UserStruct>>(queryString,
@@ -155,13 +155,13 @@ void UserOptionState::render(void)
 
     // Render panel.
     m_menuPanel->clear_target();
-    m_userOptionMenu.render(m_menuPanel->get(), AppState::has_focus());
+    m_userOptionMenu.render(m_menuPanel->get_target(), AppState::has_focus());
     m_menuPanel->render(NULL, AppState::has_focus());
 }
 
 static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStruct> dataStruct)
 {
-    data::User *targetUser = dataStruct->m_targetUser;
+    data::User *targetUser = dataStruct->m_user;
 
     for (size_t i = 0; i < targetUser->get_total_data_entries(); i++)
     {
@@ -237,7 +237,7 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStr
 
 static void create_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserStruct> dataStruct)
 {
-    data::User *targetUser = dataStruct->m_targetUser;
+    data::User *targetUser = dataStruct->m_user;
 
     // Get title info map.
     auto &titleInfoMap = data::get_title_info_map();
@@ -265,7 +265,7 @@ static void create_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserS
 
 static void delete_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserStruct> dataStruct)
 {
-    data::User *targetUser = dataStruct->m_targetUser;
+    data::User *targetUser = dataStruct->m_user;
 
     for (size_t i = 0; i < targetUser->get_total_data_entries(); i++)
     {

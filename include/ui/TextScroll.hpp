@@ -37,20 +37,28 @@ namespace ui
         private:
             /// @brief Text to display.
             std::string m_text;
+
             /// @brief X coordinate to render text at.
             int m_x;
+
             /// @brief Y coordinate to render text at.
             int m_y;
+
             /// @brief Font size used to calculate and render text.
             int m_fontSize = 0;
+
             /// @brief Color used to render the text.
             sdl::Color m_textColor;
+
             /// @brief Width of text in pixels.
             int m_textWidth = 0;
+
             /// @brief Whether or not text is too wide to fit into the availableWidth passed to the constructor.
             bool m_textScrolling = false;
+
             /// @brief Whether or not a scroll was triggered.
             bool m_textScrollTriggered = false;
+
             /// @brief Timer for scrolling text.
             sys::Timer m_scrollTimer;
     };

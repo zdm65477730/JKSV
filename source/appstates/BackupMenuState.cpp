@@ -77,7 +77,6 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
     // This needs sm_panelWidth or it'd be in the initializer list.
     sm_slidePanel->push_new_element(std::make_shared<ui::TextScroll>(panelString, 22, sm_panelWidth, 8, colors::WHITE));
 
-
     fslib::Directory saveCheck(fs::DEFAULT_SAVE_ROOT);
     m_saveHasData = saveCheck.get_count() > 0;
 
@@ -230,6 +229,7 @@ void BackupMenuState::update(void)
         sm_slidePanel->reset();
         AppState::deactivate();
     }
+
     // Update panel.
     sm_slidePanel->update(AppState::has_focus());
     // This state bypasses the Slideout panel's normal behavior because it kind of has to.
@@ -242,7 +242,7 @@ void BackupMenuState::render(void)
     sm_slidePanel->clear_target();
 
     // Grab the render target.
-    SDL_Texture *slideTarget = sm_slidePanel->get();
+    SDL_Texture *slideTarget = sm_slidePanel->get_target();
 
     sdl::render_line(slideTarget, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
     sdl::render_line(slideTarget, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
@@ -259,7 +259,7 @@ void BackupMenuState::render(void)
     // render menu to it.
     sm_backupMenu->render(sm_menuRenderTarget->get(), AppState::has_focus());
     // render it to panel target.
-    sm_menuRenderTarget->render(sm_slidePanel->get(), 0, 43);
+    sm_menuRenderTarget->render(slideTarget, 0, 43);
 
     sm_slidePanel->render(NULL, AppState::has_focus());
 }
