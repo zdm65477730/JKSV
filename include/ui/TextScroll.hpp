@@ -12,18 +12,26 @@ namespace ui
             /// @brief This is only here so I can get around the backup menu having static members.
             TextScroll(void) = default;
 
-            /// @brief Constructs a new TextScroll.
-            /// @param text Text to be scrolled.
-            /// @param availableWidth Maximum width. If this is not exceeded,text is just rendered centered according to it.
-            TextScroll(std::string_view text, int fontSize, int availableWidth, int y, sdl::Color color);
+            /// @brief Constructor for TextScroll.
+            /// @param text Text to create the textscroll with.
+            /// @param fontSize Size of the font in pixels to use.
+            /// @param availableWidth Available width of the render target.
+            /// @param y Y coordinate to render to.
+            /// @param center Whether or not text should be centered if it's not wide enough for scrolling.
+            /// @param color Color to use to render the text.
+            TextScroll(std::string_view text, int fontSize, int availableWidth, int y, bool center, sdl::Color color);
 
             /// @brief Required destructor.
             ~TextScroll() {};
 
-            /// @brief Same as the default constructor. To do: Figure this out better sometime.
-            /// @param textScroll TextScroll to copy.
-            /// @return Reference to itself?
-            TextScroll &operator=(const TextScroll &textScroll);
+            /// @brief Creates/sets the text and parameters for TextScroll.
+            /// @param text Text to display/scroll.
+            /// @param fontSize Font size to use when rendering.
+            /// @param availableWidth Available width of the target buffer.
+            /// @param y Y coordinate used to render text.
+            /// @param center Whether or not text should be centered if it's not wide enough for scrolling.
+            /// @param color Color to use to render text.
+            void create(std::string_view text, int fontSize, int availableWidth, int y, bool center, sdl::Color color);
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.

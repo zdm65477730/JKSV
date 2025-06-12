@@ -34,11 +34,35 @@ class TitleInfoState : public AppState
         /// @brief This is a pointer to the title's icon.
         sdl::SharedTexture m_icon;
 
+        /// @brief This is the scrolling text for the title.
+        ui::TextScroll m_titleScroll;
+
+        /// @brief This is the scrolling text for the publisher.
+        ui::TextScroll m_publisherScroll;
+
+        /// @brief This string holds the application ID.
+        std::string m_applicationID;
+
+        /// @brief This holds the hex save data id of the file on nand.
+        std::string m_saveDataID;
+
+        /// @brief This holds the play time string.
+        std::string m_playTime;
+
+        /// @brief This holds the total launches string.
+        std::string m_totalLaunches;
+
+        /// @brief This holds the save data type string.
+        std::string m_saveDataType;
+
         /// @brief Bool to tell whether or not static members are initialized.
         static inline bool sm_initialized = false;
 
         /// @brief This is the render target for the title text just in case it needs scrolling.
         static inline sdl::SharedTexture sm_titleTarget = nullptr;
+
+        /// @brief This is the render target for the publisher string.
+        static inline sdl::SharedTexture sm_publisherTarget = nullptr;
 
         /// @brief Slide panel.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel = nullptr;

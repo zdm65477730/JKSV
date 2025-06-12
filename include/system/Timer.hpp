@@ -15,11 +15,6 @@ namespace sys
             /// @param triggerTicks Number of ticks the timer is triggered at.
             Timer(uint64_t triggerTicks);
 
-            /// @brief Copy operator.
-            /// @param timer Timer to copy.
-            /// @return Reference to copied timer.
-            Timer &operator=(const Timer &timer);
-
             /// @brief Starts the timer.
             /// @param triggerTicks Number of ticks to trigger at.
             void start(uint64_t triggerTicks);

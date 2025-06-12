@@ -33,6 +33,7 @@ namespace strings
         static constexpr std::string_view TITLE_OPTION_STATUS = "TitleOptionStatus";
         static constexpr std::string_view TITLE_OPTION_POPS = "TitleOptionPops";
         static constexpr std::string_view TITLE_OPTION_CONFIRMATIONS = "TitleOptionConfirmations";
+        static constexpr std::string_view TITLE_INFO_STRINGS = "TitleInfo";
         static constexpr std::string_view POP_MESSAGES_GENERAL = "PopMessagesGeneral";
         static constexpr std::string_view POP_MESSAGES_BACKUP_MENU = "PopMessagesBackupMenu";
         static constexpr std::string_view POP_MESSAGES_SAVE_CREATE = "PopMessagesSaveCreate";

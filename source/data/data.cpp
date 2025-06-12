@@ -342,7 +342,7 @@ static void load_save_data_info(void)
 
                 default:
                 {
-                    // Default is just the ID in the save info struct.
+                    // Default is just the ID in the save info struct. This should be fine for system saves too.
                     accountID = saveInfo.uid;
                 }
                 break;
@@ -383,9 +383,10 @@ static void load_save_data_info(void)
             // I feel weird allcating space for this even if it's not used, but whatever.
             PdmPlayStatistics stats = {0};
             // This should be an OKish way to filter out system titles...
-            if (titleInfo.has_control_data() &&
-                R_FAILED(
-                    pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(applicationID, accountID, false, &stats)))
+            if (R_FAILED(pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(applicationID,
+                                                                                  saveInfo.uid,
+                                                                                  false,
+                                                                                  &stats)))
             {
                 // This isn't fatal.
                 logger::log("Error getting play stats for title %016llX!", applicationID);

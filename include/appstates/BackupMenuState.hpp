@@ -6,6 +6,7 @@
 #include "system/Timer.hpp"
 #include "ui/Menu.hpp"
 #include "ui/SlideOutPanel.hpp"
+#include "ui/TextScroll.hpp"
 #include <memory>
 
 /// @brief This is the state where the user can backup and restore saves.
@@ -48,6 +49,9 @@ class BackupMenuState : public AppState
 
         /// @brief Directory listing of the above.
         fslib::Directory m_directoryListing;
+
+        /// @brief This is the scrolling text at the top.
+        ui::TextScroll m_titleScroll;
 
         /// @brief Variable that saves whether or not the filesystem has data in it.
         bool m_saveHasData = false;

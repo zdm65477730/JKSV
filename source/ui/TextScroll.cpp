@@ -1,37 +1,59 @@
 #include "ui/TextScroll.hpp"
 #include "sdl.hpp"
 
-ui::TextScroll::TextScroll(std::string_view text, int fontSize, int availableWidth, int y, sdl::Color color)
-    : m_text(text.data()), m_y(y), m_fontSize(fontSize), m_textColor(color), m_scrollTimer(3000)
-{
-    // Grab text width first.
-    m_textWidth = sdl::text::get_width(m_fontSize, m_text.c_str());
+#include "logger.hpp"
 
-    // Check if text needs scrolling for width provided.
+namespace
+{
+    /// @brief This is the number of ticks needed before the text starts scrolling.
+    constexpr uint64_t TICKS_SCROLL_TRIGGER = 3000;
+} // namespace
+
+ui::TextScroll::TextScroll(std::string_view text,
+                           int fontSize,
+                           int availableWidth,
+                           int y,
+                           bool center,
+                           sdl::Color color)
+{
+    TextScroll::create(text, fontSize, availableWidth, y, center, color);
+}
+
+void ui::TextScroll::create(std::string_view text,
+                            int fontSize,
+                            int availableWidth,
+                            int y,
+                            bool center,
+                            sdl::Color color)
+{
+    // Copy the text and stuff.
+    m_text = text;
+    m_y = y;
+    m_fontSize = fontSize;
+    m_textColor = color;
+    m_scrollTimer.start(TICKS_SCROLL_TRIGGER);
+
+    // Get the width and calculate X.
+    m_textWidth = sdl::text::get_width(m_fontSize, m_text.c_str());
     if (m_textWidth > availableWidth)
     {
+        // Set the X coordinate to 8 and make sure this knows it needs to scroll.
         m_x = 8;
         m_textScrolling = true;
+        logger::log("Scrolling needed?");
     }
-    else
+    else if (center)
     {
         // Just center it.
         m_x = (availableWidth / 2) - (m_textWidth / 2);
+        logger::log("Centered.");
     }
-}
-
-ui::TextScroll &ui::TextScroll::operator=(const ui::TextScroll &textScroll)
-{
-    m_text = textScroll.m_text;
-    m_x = textScroll.m_x;
-    m_y = textScroll.m_y;
-    m_fontSize = textScroll.m_fontSize;
-    m_textColor = textScroll.m_textColor;
-    m_textWidth = textScroll.m_textWidth;
-    m_textScrolling = textScroll.m_textScrolling;
-    m_textScrollTriggered = textScroll.m_textScrollTriggered;
-    m_scrollTimer = textScroll.m_scrollTimer;
-    return *this;
+    else
+    {
+        // Just set this to 8. To do: Figure out how to make this cleaner.
+        m_x = 8;
+        logger::log("Aligned.");
+    }
 }
 
 void ui::TextScroll::update(bool hasFocus)
@@ -39,6 +61,7 @@ void ui::TextScroll::update(bool hasFocus)
     // I don't think needs to care about having focus.
     if (m_textScrolling && m_scrollTimer.is_triggered())
     {
+        logger::log("Text scroll triggered?");
         m_x -= 2;
         m_textScrollTriggered = true;
     }

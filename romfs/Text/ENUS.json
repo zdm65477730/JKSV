@@ -159,6 +159,13 @@
         "Are you sure you would like to reset the save data for #%s#? *This will delete the current save data for the title as if it were never run!*",
         "Are you sure you want to delete `%s`'s save data for #%s#? This will permanently delete it from the system."
     ],
+    "TitleInfo": [
+        "App ID: %016lX",
+        "Save ID: %016lx",
+        "Play Time: %02d:%02d:%02d",
+        "Launches: %i",
+        "Save Type: %s"
+    ],
     "PopMessagesGeneral": [
         "Unable to exit JKSV while tasks are running!"
     ],

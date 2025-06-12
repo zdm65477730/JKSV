@@ -1,21 +1,20 @@
 #include "system/Timer.hpp"
+#include <SDL2/SDL.h>
+
+#include "logger.hpp"
 
 sys::Timer::Timer(uint64_t triggerTicks)
 {
     Timer::start(triggerTicks);
 }
 
-sys::Timer &sys::Timer::operator=(const sys::Timer &timer)
-{
-    m_startingTicks = timer.m_startingTicks;
-    m_triggerTicks = timer.m_triggerTicks;
-    return *this;
-}
-
 void sys::Timer::start(uint64_t triggerTicks)
 {
-    m_startingTicks = SDL_GetTicks64();
+    // Start by recording trigger ticks.
     m_triggerTicks = triggerTicks;
+
+    // Get the current tick count.
+    m_startingTicks = SDL_GetTicks64();
 }
 
 bool sys::Timer::is_triggered(void)
@@ -27,8 +26,10 @@ bool sys::Timer::is_triggered(void)
     {
         return false;
     }
+
     // Reset starting ticks.
     m_startingTicks = currentTicks;
+
     // Trigger me timbers~
     return true;
 }

@@ -75,7 +75,7 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
         stringutil::get_formatted_string("`%s` - %s", m_user->get_nickname(), m_titleInfo->get_title());
 
     // This needs sm_panelWidth or it'd be in the initializer list.
-    sm_slidePanel->push_new_element(std::make_shared<ui::TextScroll>(panelString, 22, sm_panelWidth, 8, colors::WHITE));
+    m_titleScroll.create(panelString, 22, sm_panelWidth, 8, true, colors::WHITE);
 
     fslib::Directory saveCheck(fs::DEFAULT_SAVE_ROOT);
     m_saveHasData = saveCheck.get_count() > 0;
@@ -90,6 +90,8 @@ BackupMenuState::~BackupMenuState()
 
 void BackupMenuState::update(void)
 {
+    bool hasFocus = AppState::has_focus();
+
     if (input::button_pressed(HidNpadButton_A) && sm_backupMenu->get_selected() == 0 && m_saveHasData)
     {
         // get name for backup.
@@ -230,19 +232,28 @@ void BackupMenuState::update(void)
         AppState::deactivate();
     }
 
+    // Update title scrolling.
+    m_titleScroll.update(hasFocus);
+
     // Update panel.
-    sm_slidePanel->update(AppState::has_focus());
+    sm_slidePanel->update(hasFocus);
     // This state bypasses the Slideout panel's normal behavior because it kind of has to.
-    sm_backupMenu->update(AppState::has_focus());
+    sm_backupMenu->update(hasFocus);
 }
 
 void BackupMenuState::render(void)
 {
+    // Save this locally.
+    bool hasFocus = AppState::has_focus();
+
     // Clear panel target.
     sm_slidePanel->clear_target();
 
     // Grab the render target.
     SDL_Texture *slideTarget = sm_slidePanel->get_target();
+
+    // Start with [Name] - [Title]
+    m_titleScroll.render(slideTarget, hasFocus);
 
     sdl::render_line(slideTarget, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
     sdl::render_line(slideTarget, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
@@ -257,11 +268,11 @@ void BackupMenuState::render(void)
     // Clear menu target.
     sm_menuRenderTarget->clear(colors::TRANSPARENT);
     // render menu to it.
-    sm_backupMenu->render(sm_menuRenderTarget->get(), AppState::has_focus());
+    sm_backupMenu->render(sm_menuRenderTarget->get(), hasFocus);
     // render it to panel target.
     sm_menuRenderTarget->render(slideTarget, 0, 43);
 
-    sm_slidePanel->render(NULL, AppState::has_focus());
+    sm_slidePanel->render(NULL, hasFocus);
 }
 
 void BackupMenuState::refresh(void)

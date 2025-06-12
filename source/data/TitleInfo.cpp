@@ -21,9 +21,6 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) : m_applicationID(application
 
     if (R_FAILED(nsError) || nsAppControlSize < sizeof(m_data.nacp))
     {
-        // This should be false by default, but just in case.
-        m_hasData = false;
-
         // This is the lowest four hex values of the title.
         std::string applicationIDHex = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
 
