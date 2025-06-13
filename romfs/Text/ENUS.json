@@ -95,6 +95,9 @@
         "Are you sure you really want to restore #%s#?",
         "Are you sure you really want to delete #%s#?"
     ],
+    "BackupMenuStatus": [
+        "Processing save data meta file..."
+    ],
     "BackupMenuPops": [
         "System save data cannot be restored to the system!"
     ],
@@ -142,7 +145,7 @@
         "Deleting all backups for #%s#.",
         "Resetting save data for #%s#.",
         "Deleting #%s#'s save data for #%s#...",
-        "Extending #%s#'s save data for #%s#..."
+        "Extending `%s`'s save data for #%s#..."
     ],
     "TitleOptionPops": [
         "All backups deleted for `%s`!",

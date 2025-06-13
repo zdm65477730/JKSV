@@ -111,22 +111,39 @@ void fs::copy_file(const fslib::Path &source,
             journalCount = 0;
             // Close destination file, commit.
             destinationFile.close();
-            fslib::commit_data_to_file_system(commitDevice);
+
+            // Need to try to commit before going over the journaling space limit.
+            if (!fslib::commit_data_to_file_system(commitDevice))
+            {
+                logger::log("First, %s", fslib::get_error_string());
+                // I guess break the loop here?
+                break;
+            }
+
             // Reopen and seek to previous position since we created it with a size earlier.
-            destinationFile.open(destination, FsOpenMode_Write);
-            destinationFile.seek(writeCount, destinationFile.BEGINNING);
+            destinationFile.open(destination, FsOpenMode_Append);
         }
+
         // Write to destination
         destinationFile.write(localBuffer.get(), readCount);
+
         // Update write and journal count.
         writeCount += readCount;
         journalCount += readCount;
+
         // Update task if passed.
         if (task)
         {
             task->update_current(static_cast<double>(writeCount));
         }
     }
+
+    // One last commit for good luck.
+    if (!fslib::commit_data_to_file_system(commitDevice))
+    {
+        logger::log("Second, %s", fslib::get_error_string());
+    }
+
     // Wait for read thread and free it.
     readThread.join();
 }

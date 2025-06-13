@@ -23,6 +23,7 @@ namespace strings
         static constexpr std::string_view BACKUP_MENU = "BackupMenu";
         static constexpr std::string_view COPYING_FILES = "CopyingFiles";
         static constexpr std::string_view BACKUPMENU_CONFIRMATIONS = "BackupMenuConfirmations";
+        static constexpr std::string_view BACKUPMENU_STATUS = "BackupMenuStatus";
         static constexpr std::string_view BACKUPMENU_POPS = "BackupMenuPops";
         static constexpr std::string_view DELETING_FILES = "DeletingFiles";
         static constexpr std::string_view KEYBOARD_STRINGS = "KeyboardStrings";

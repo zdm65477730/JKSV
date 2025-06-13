@@ -185,6 +185,8 @@ void BackupMenuState::update(void)
         }
 
         std::shared_ptr<TargetStruct> dataStruct(new TargetStruct);
+        dataStruct->m_user = m_user;
+        dataStruct->m_titleInfo = m_titleInfo;
         dataStruct->m_targetPath = m_directoryPath / m_directoryListing[selected];
         dataStruct->m_journalSize = m_titleInfo->get_journal_size(m_saveType);
         dataStruct->m_spawningState = this;
@@ -234,7 +236,6 @@ void BackupMenuState::update(void)
 
     // Update title scrolling.
     m_titleScroll.update(hasFocus);
-
     // Update panel.
     sm_slidePanel->update(hasFocus);
     // This state bypasses the Slideout panel's normal behavior because it kind of has to.
@@ -447,6 +448,15 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStru
 
 static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct)
 {
+    // Going to need this later.
+    FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(dataStruct->m_titleInfo->get_application_id());
+    if (!saveInfo)
+    {
+        // To do: Log this.
+        task->finished();
+        return;
+    }
+
     // Wipe the save root first. Forgot to commit the changes before. Oops.
     if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT) ||
         !fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT))
@@ -460,6 +470,19 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct
 
     if (fslib::directory_exists(dataStruct->m_targetPath))
     {
+        {
+            // Process the save meta if it's there.
+            fs::SaveMetaData meta = {0};
+            fslib::Path saveMetaPath = dataStruct->m_targetPath / fs::NAME_SAVE_META;
+            fslib::File saveMetaFile(saveMetaPath, FsOpenMode_Read);
+            if (saveMetaFile && saveMetaFile.read(&meta, sizeof(fs::SaveMetaData)) == sizeof(fs::SaveMetaData))
+            {
+                // Set this so at least the user knows something is going on. Extending saves can take a decent chunk of time.
+                task->set_status(strings::get_by_name(strings::names::BACKUPMENU_STATUS, 0));
+                fs::process_save_meta_data(saveInfo, meta);
+            }
+        }
+
         fs::copy_directory(dataStruct->m_targetPath,
                            fs::DEFAULT_SAVE_ROOT,
                            dataStruct->m_journalSize,
@@ -477,6 +500,19 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct
             task->finished();
             return;
         }
+
+        {
+            // I'm not sure if this is risky or not. Guess we'll find out...
+            fs::SaveMetaData meta = {0};
+            // The locate_file_in_zip should pinpoint the meta file.
+            if (fs::locate_file_in_zip(targetZip, fs::NAME_SAVE_META) && unzOpenCurrentFile(targetZip) == UNZ_OK &&
+                unzReadCurrentFile(targetZip, &meta, sizeof(fs::SaveMetaData)) == sizeof(fs::SaveMetaData))
+            {
+                task->set_status(strings::get_by_name(strings::names::BACKUPMENU_STATUS, 0));
+                fs::process_save_meta_data(saveInfo, meta);
+            }
+        }
+
         fs::copy_zip_to_directory(targetZip,
                                   fs::DEFAULT_SAVE_ROOT,
                                   dataStruct->m_journalSize,

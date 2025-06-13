@@ -377,9 +377,6 @@ static void load_save_data_info(void)
                 s_titleInfoMap.emplace(applicationID, applicationID);
             }
 
-            // Grab a reference to the Title info so we don't try to load stats for titles that don't really exist.
-            data::TitleInfo &titleInfo = s_titleInfoMap.at(applicationID);
-
             // I feel weird allcating space for this even if it's not used, but whatever.
             PdmPlayStatistics stats = {0};
             // This should be an OKish way to filter out system titles...

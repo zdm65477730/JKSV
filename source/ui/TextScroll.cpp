@@ -40,19 +40,16 @@ void ui::TextScroll::create(std::string_view text,
         // Set the X coordinate to 8 and make sure this knows it needs to scroll.
         m_x = 8;
         m_textScrolling = true;
-        logger::log("Scrolling needed?");
     }
     else if (center)
     {
         // Just center it.
         m_x = (availableWidth / 2) - (m_textWidth / 2);
-        logger::log("Centered.");
     }
     else
     {
         // Just set this to 8. To do: Figure out how to make this cleaner.
         m_x = 8;
-        logger::log("Aligned.");
     }
 }
 
@@ -61,7 +58,6 @@ void ui::TextScroll::update(bool hasFocus)
     // I don't think needs to care about having focus.
     if (m_textScrolling && m_scrollTimer.is_triggered())
     {
-        logger::log("Text scroll triggered?");
         m_x -= 2;
         m_textScrollTriggered = true;
     }

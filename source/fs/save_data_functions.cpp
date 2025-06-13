@@ -13,6 +13,7 @@ bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo
                                           .save_data_rank = FsSaveDataRank_Primary,
                                           .save_data_index = 0};
 
+    // For just creating it, we're using the safe baseline values.
     FsSaveDataCreationInfo saveCreation = {
         .save_data_size = titleInfo->get_save_data_size(targetUser->get_account_save_type()),
         .journal_size = titleInfo->get_journal_size(targetUser->get_account_save_type()),

@@ -435,7 +435,7 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TargetStruct> data
     // Get how much to extend.
     char buffer[5] = {0};
     // No default. Maybe change this later?
-    if (!keyboard::get_input(SwkbdType_NumPad, {}, keyboardString, buffer, 4))
+    if (!keyboard::get_input(SwkbdType_NumPad, {}, keyboardString, buffer, 5))
     {
         task->finished();
         return;
