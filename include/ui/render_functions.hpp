@@ -1,5 +1,6 @@
 #pragma once
 #include "sdl.hpp"
+#include "ui/ColorMod.hpp"
 
 // These are just functions to render generic parts of the UI.
 namespace ui
@@ -19,5 +20,5 @@ namespace ui
     /// @param width Width of dialog box in pixels.
     /// @param height Height of dialog box in pixels.
     /// @param colorMod Color to multiply in rendering.
-    void render_bounding_box(SDL_Texture *target, int x, int y, int width, int height, uint8_t colorMod);
+    void render_bounding_box(SDL_Texture *target, int x, int y, int width, int height, const ui::ColorMod &colorMod);
 } // namespace ui

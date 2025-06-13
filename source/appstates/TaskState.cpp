@@ -7,6 +7,9 @@
 
 void TaskState::update(void)
 {
+    // Run the base update routine.
+    BaseTask::update();
+
     if (m_task.is_running() && input::button_pressed(HidNpadButton_Plus))
     {
         // Throw the message.
@@ -29,4 +32,6 @@ void TaskState::render(void)
     sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
     // Render the status.
     sdl::text::render(NULL, statusX, 351, 24, sdl::text::NO_TEXT_WRAP, colors::WHITE, status.c_str());
+    // Render the loading glyph
+    BaseTask::render_loading_glyph();
 }

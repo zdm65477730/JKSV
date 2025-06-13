@@ -1,11 +1,11 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseTask.hpp"
 #include "system/ProgressTask.hpp"
 #include <string>
 #include <switch.h>
 
 /// @brief State that shows progress of a task.
-class ProgressState : public AppState
+class ProgressState : public BaseTask
 {
     public:
         /// @brief Constructs a new ProgressState.
@@ -14,7 +14,7 @@ class ProgressState : public AppState
         /// @note All functions passed to this must follow this signature: void function(sys::ProgressTask *, <arguments>)
         template <typename... Args>
         ProgressState(void (*function)(sys::ProgressTask *, Args...), Args... args)
-            : AppState(false), m_task(function, std::forward<Args>(args)...){};
+            : BaseTask(), m_task(function, std::forward<Args>(args)...){};
 
         /// @brief Required destructor.
         ~ProgressState() {};

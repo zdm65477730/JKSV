@@ -12,7 +12,7 @@ void ui::ColorMod::update(void)
     }
 }
 
-ui::ColorMod::operator uint8_t(void) const
+ui::ColorMod::operator sdl::Color(void) const
 {
-    return m_colorMod;
+    return {static_cast<uint32_t>((0x88 + m_colorMod) << 16 | (0xC5 + (m_colorMod / 2)) << 8 | 0xFF)};
 }

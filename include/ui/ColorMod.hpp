@@ -1,4 +1,5 @@
 #pragma once
+#include "sdl.hpp"
 #include <cstdint>
 
 namespace ui
@@ -13,12 +14,14 @@ namespace ui
             /// @brief Updates the color modification variable.
             void update(void);
 
-            /// @brief Allows me to use this like it's a uint8_t directly.
-            operator uint8_t(void) const;
+            /// @brief Operator that allows using this as an sdl::Color directly.
+            /// @note Since all of these pulse the same color, no sense in not doing this.
+            operator sdl::Color(void) const;
 
         private:
             /// @brief Whether we're adding or subtracting from the color value.
             bool m_direction = true;
+
             /// @brief Color value.
             uint8_t m_colorMod = 0;
     };

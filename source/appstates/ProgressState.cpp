@@ -10,6 +10,9 @@
 
 void ProgressState::update(void)
 {
+    // Base routine.
+    BaseTask::update();
+
     if (m_task.is_running() && input::button_pressed(HidNpadButton_Plus))
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
@@ -44,4 +47,7 @@ void ProgressState::render(void)
                       colors::WHITE,
                       "%s%%",
                       m_percentageString.c_str());
+
+    // Glyph in the corner.
+    BaseTask::render_loading_glyph();
 }
