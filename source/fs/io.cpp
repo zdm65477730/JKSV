@@ -115,7 +115,7 @@ void fs::copy_file(const fslib::Path &source,
             // Need to try to commit before going over the journaling space limit.
             if (!fslib::commit_data_to_file_system(commitDevice))
             {
-                logger::log("First, %s", fslib::get_error_string());
+                logger::log(fslib::get_error_string());
                 // I guess break the loop here?
                 break;
             }
@@ -138,10 +138,13 @@ void fs::copy_file(const fslib::Path &source,
         }
     }
 
+    // Close the destination for committing.
+    destinationFile.close();
+
     // One last commit for good luck.
     if (!fslib::commit_data_to_file_system(commitDevice))
     {
-        logger::log("Second, %s", fslib::get_error_string());
+        logger::log(fslib::get_error_string());
     }
 
     // Wait for read thread and free it.
