@@ -4,6 +4,7 @@
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
+#include <ctime>
 
 namespace
 {
@@ -65,19 +66,29 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo)
     m_saveDataID = stringutil::get_formatted_string(strings::get_by_name(strings::names::TITLE_INFO_STRINGS, 1),
                                                     saveInfo->save_data_id);
     // This is simple.
-    m_totalLaunches = stringutil::get_formatted_string(strings::get_by_name(strings::names::TITLE_INFO_STRINGS, 3),
+    m_totalLaunches = stringutil::get_formatted_string(strings::get_by_name(strings::names::TITLE_INFO_STRINGS, 5),
                                                        playStats->total_launches);
     // This should be semi-simple.
     m_saveDataType = stringutil::get_formatted_string(
-        strings::get_by_name(strings::names::TITLE_INFO_STRINGS, 4),
+        strings::get_by_name(strings::names::TITLE_INFO_STRINGS, 6),
         strings::get_by_name(strings::names::SAVE_DATA_TYPES, saveInfo->save_data_type));
+
+    // Going to "cheat" with the next two. This works, so screw it.
+    char playBuffer[0x40] = {0};
+    std::tm *firstPlayed = std::localtime(reinterpret_cast<const time_t *>(&playStats->first_timestamp_user));
+    std::strftime(playBuffer, 0x40, strings::get_by_name(strings::names::TITLE_INFO_STRINGS, 2), firstPlayed);
+    m_firstPlayed.assign(playBuffer);
+
+    std::tm *lastPlayed = std::localtime(reinterpret_cast<const time_t *>(&playStats->last_timestamp_user));
+    std::strftime(playBuffer, 0x40, strings::get_by_name(strings::names::TITLE_INFO_STRINGS, 3), lastPlayed);
+    m_lastPlayed.assign(playBuffer);
 
     // Calculate play time. We're going to use non-floating point to truncate the remainders.
     int64_t seconds = playStats->playtime / static_cast<int64_t>(1e+9);
     int64_t hours = seconds / 3600;
     int64_t minutes = (seconds % 3600) / 60;
     seconds %= 60;
-    m_playTime = stringutil::get_formatted_string(strings::get_by_name(strings::names::TITLE_INFO_STRINGS, 2),
+    m_playTime = stringutil::get_formatted_string(strings::get_by_name(strings::names::TITLE_INFO_STRINGS, 4),
                                                   hours,
                                                   minutes,
                                                   seconds);
@@ -134,10 +145,10 @@ void TitleInfoState::render(void)
 
     // This is our Y rendering coordinate. It's easier to adjust this as needed than change everything.
     // This starts under the icon.
-    int y = 304;
+    int y = 280;
 
     // Start by rendering the icon.
-    m_icon->render_stretched(panelTarget, 80, 8, 320, 320);
+    m_icon->render_stretched(panelTarget, 88, 8, 304, 304);
 
     // Render the textscroll to the target, then target to the panel target.
     m_titleScroll.render(sm_titleTarget->get(), hasFocus);
@@ -147,14 +158,13 @@ void TitleInfoState::render(void)
     m_publisherScroll.render(sm_publisherTarget->get(), hasFocus);
     sm_publisherTarget->render(panelTarget, 8, (y += SIZE_VERT_GAP));
 
-    // These are different since the probably won't go outside the bounds of the rectangle.
+    // Application ID.
     sdl::render_rect_fill(panelTarget,
                           8,
                           (y += SIZE_VERT_GAP),
                           SIZE_RECT_WIDTH,
                           SIZE_TEXT_TARGET_HEIGHT,
                           colors::DIALOG_BOX);
-    // Text needs to be aligned like the scrolling text.
     sdl::text::render(panelTarget,
                       16,
                       y + 6,
@@ -163,8 +173,7 @@ void TitleInfoState::render(void)
                       colors::WHITE,
                       m_applicationID.c_str());
 
-
-    // These are different since the probably won't go outside the bounds of the rectangle.
+    // Save data ID.
     sdl::render_rect_fill(panelTarget,
                           8,
                           (y += SIZE_VERT_GAP),
@@ -174,26 +183,40 @@ void TitleInfoState::render(void)
     // Text needs to be aligned like the scrolling text.
     sdl::text::render(panelTarget, 16, y + 6, SIZE_FONT, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_saveDataID.c_str());
 
-
-    // These are different since the probably won't go outside the bounds of the rectangle.
+    // First played.
     sdl::render_rect_fill(panelTarget,
                           8,
                           (y += SIZE_VERT_GAP),
                           SIZE_RECT_WIDTH,
                           SIZE_TEXT_TARGET_HEIGHT,
                           colors::DIALOG_BOX);
-    // Text needs to be aligned like the scrolling text.
-    sdl::text::render(panelTarget, 16, y + 6, SIZE_FONT, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_playTime.c_str());
+    sdl::text::render(panelTarget, 16, y + 6, SIZE_FONT, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_firstPlayed.c_str());
 
-
-    // These are different since the probably won't go outside the bounds of the rectangle.
+    // Last played.
     sdl::render_rect_fill(panelTarget,
                           8,
                           (y += SIZE_VERT_GAP),
                           SIZE_RECT_WIDTH,
                           SIZE_TEXT_TARGET_HEIGHT,
                           colors::CLEAR_COLOR);
-    // Text needs to be aligned like the scrolling text.
+    sdl::text::render(panelTarget, 16, y + 6, SIZE_FONT, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_lastPlayed.c_str());
+
+    // Play time.
+    sdl::render_rect_fill(panelTarget,
+                          8,
+                          (y += SIZE_VERT_GAP),
+                          SIZE_RECT_WIDTH,
+                          SIZE_TEXT_TARGET_HEIGHT,
+                          colors::DIALOG_BOX);
+    sdl::text::render(panelTarget, 16, y + 6, SIZE_FONT, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_playTime.c_str());
+
+    // Total launches.
+    sdl::render_rect_fill(panelTarget,
+                          8,
+                          (y += SIZE_VERT_GAP),
+                          SIZE_RECT_WIDTH,
+                          SIZE_TEXT_TARGET_HEIGHT,
+                          colors::CLEAR_COLOR);
     sdl::text::render(panelTarget,
                       16,
                       y + 6,
@@ -202,15 +225,13 @@ void TitleInfoState::render(void)
                       colors::WHITE,
                       m_totalLaunches.c_str());
 
-
-    // These are different since the probably won't go outside the bounds of the rectangle.
+    // Save data type.
     sdl::render_rect_fill(panelTarget,
                           8,
                           (y += SIZE_VERT_GAP),
                           SIZE_RECT_WIDTH,
                           SIZE_TEXT_TARGET_HEIGHT,
                           colors::DIALOG_BOX);
-    // Text needs to be aligned like the scrolling text.
     sdl::text::render(panelTarget,
                       16,
                       y + 6,

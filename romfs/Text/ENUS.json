@@ -127,8 +127,8 @@
         "Are you sure you want to delete all of the save data for `%s`? This is *PERMANENT* and can't be undone."
     ],
     "UserOptionStatus": [
-        "Creating save data for `%s`...",
-        "Deleting save data for `%s`..."
+        "Creating save data for #%s#...",
+        "Deleting save data for #%s#..."
     ],
     "TitleOptions": [
         "Information",
@@ -158,13 +158,15 @@
     ],
     "TitleOptionConfirmations": [
         "Are you sure you want to add #%s# to your blacklist? Once you do this, it will no longer appear on any title list or selection.",
-        "Are you sure you would like to delete all of the current save backups for #%s#? This cannot be undone!",
+        "Are you sure you would like to delete all of the current save backups for #%s#? *This cannot be undone!*",
         "Are you sure you would like to reset the save data for #%s#? *This will delete the current save data for the title as if it were never run!*",
-        "Are you sure you want to delete `%s`'s save data for #%s#? This will permanently delete it from the system."
+        "Are you sure you want to delete `%s`'s save data for #%s#? *This will permanently delete it from the system.*"
     ],
     "TitleInfo": [
         "App ID: %016lX",
         "Save ID: %016lx",
+        "First Played: %x - %X",
+        "Last Played: %x - %X",
         "Play Time: %02d:%02d:%02d",
         "Launches: %i",
         "Save Type: %s"

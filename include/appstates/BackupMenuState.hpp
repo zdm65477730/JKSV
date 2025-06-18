@@ -34,6 +34,25 @@ class BackupMenuState : public AppState
         /// @brief Allows a spawned task to tell this class that it wrote save data to the system.
         void save_data_written(void);
 
+        /// @brief Struct used for passing data to functions.
+        typedef struct
+        {
+                /// @brief Pointer to the target user.
+                data::User *m_user;
+
+                /// @brief Data for the target title.
+                data::TitleInfo *m_titleInfo;
+
+                /// @brief Path of the target.
+                fslib::Path m_targetPath;
+
+                /// @brief Journal size for when a commit is needed.
+                uint64_t m_journalSize;
+
+                /// @brief Pointer to >this spawning state.
+                BackupMenuState *m_spawningState;
+        } DataStruct;
+
     private:
         /// @brief Pointer to current user.
         data::User *m_user = nullptr;
@@ -55,6 +74,9 @@ class BackupMenuState : public AppState
 
         /// @brief Variable that saves whether or not the filesystem has data in it.
         bool m_saveHasData = false;
+
+        /// @brief Data struct passed to functions.
+        std::shared_ptr<BackupMenuState::DataStruct> m_dataStruct;
 
         /// @brief Whether or not anything beyond this point needs to be init'd. Everything here is static and shared by all instances.
         static inline bool sm_isInitialized = false;

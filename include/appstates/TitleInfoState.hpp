@@ -46,6 +46,12 @@ class TitleInfoState : public AppState
         /// @brief This holds the hex save data id of the file on nand.
         std::string m_saveDataID;
 
+        /// @brief This holds the time the game was first played.
+        std::string m_firstPlayed;
+
+        /// @brief This holds the last played timestamp.
+        std::string m_lastPlayed;
+
         /// @brief This holds the play time string.
         std::string m_playTime;
 

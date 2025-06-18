@@ -1,4 +1,5 @@
 #pragma once
+#include "fslib.hpp"
 #include "sdl.hpp"
 #include <string>
 #include <string_view>
@@ -38,7 +39,7 @@ namespace data
             void add_data(const FsSaveDataInfo *saveInfo, const PdmPlayStatistics *playStats);
 
             /// @brief Clears the user save info vector.
-            void clear_save_info(void);
+            void clear_data_entries(void);
 
             /// @brief Erases data at index.
             /// @param index Index of save data info to erase.
@@ -108,6 +109,9 @@ namespace data
             /// @param applicationID ID of the save to erase.
             void erase_save_info_by_id(uint64_t applicationID);
 
+            /// @brief Loads the save data info and play statistics for the current user using the information passed to the constructor.
+            void load_user_data(void);
+
         private:
             /// @brief Account's ID
             AccountUid m_accountID;
@@ -134,5 +138,11 @@ namespace data
 
             /// @brief Creates a placeholder since something went wrong.
             void create_account(void);
+
+            /// @brief Opens a save data info reader according to the data passed to the user.
+            /// @param spaceID The FsSaveDataSpaceId to use when opening the reader.
+            /// @param reader Reference to the reader to use to open.
+            /// @note I added this so the load_user_data function would be easier to follow.
+            bool open_save_info_reader(FsSaveDataSpaceId spaceID, fslib::SaveInfoReader &reader);
     };
 } // namespace data

@@ -137,15 +137,16 @@ void config::reset_to_default(void)
     s_workingDirectory = PATH_DEFAULT_WORK_DIR;
     s_configVector.push_back(std::make_pair(config::keys::INCLUDE_DEVICE_SAVES.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::AUTO_BACKUP_ON_RESTORE.data(), 1));
-    s_configVector.push_back(std::make_pair(config::keys::AUTO_NAME_BACKUPS.data(), 1));
+    s_configVector.push_back(std::make_pair(config::keys::AUTO_NAME_BACKUPS.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::AUTO_UPLOAD.data(), 1));
-    s_configVector.push_back(std::make_pair(config::keys::HOLD_FOR_DELETION.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::HOLD_FOR_RESTORATION.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::HOLD_FOR_OVERWRITE.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::ONLY_LIST_MOUNTABLE.data(), 0));
+    s_configVector.push_back(std::make_pair(config::keys::HOLD_FOR_DELETION.data(), 1));
+    s_configVector.push_back(std::make_pair(config::keys::HOLD_FOR_RESTORATION.data(), 1));
+    s_configVector.push_back(std::make_pair(config::keys::HOLD_FOR_OVERWRITE.data(), 1));
+    s_configVector.push_back(std::make_pair(config::keys::ONLY_LIST_MOUNTABLE.data(), 1));
     s_configVector.push_back(std::make_pair(config::keys::LIST_ACCOUNT_SYS_SAVES.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::ALLOW_WRITING_TO_SYSTEM.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::EXPORT_TO_ZIP.data(), 0));
+    s_configVector.push_back(std::make_pair(config::keys::EXPORT_TO_ZIP.data(), 1));
+    s_configVector.push_back(std::make_pair(config::keys::ZIP_COMPRESSION_LEVEL.data(), 6));
     s_configVector.push_back(std::make_pair(config::keys::TITLE_SORT_TYPE.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::JKSM_TEXT_MODE.data(), 0));
     s_configVector.push_back(std::make_pair(config::keys::FORCE_ENGLISH.data(), 0));
@@ -291,7 +292,6 @@ void config::toggle_by_index(int index)
     {
         return;
     }
-
     s_configVector[index].second = s_configVector[index].second ? 0 : 1;
 }
 

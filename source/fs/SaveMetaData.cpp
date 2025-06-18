@@ -11,71 +11,73 @@ namespace
     constexpr std::string_view STRING_ERROR_TEMPLATE = "Error processing save meta for %016llX: %s";
 } // namespace
 
-void fs::create_save_meta_data(data::TitleInfo *titleInfo, const FsSaveDataInfo *saveInfo, fs::SaveMetaData &meta)
+bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &meta)
 {
-    // I'm assuming this is opened and good because we're making a backup.
-    int64_t containerSize = 0;
-    if (!fslib::get_device_total_space(fs::DEFAULT_SAVE_ROOT, containerSize))
+    // This struct will allow us to fill this all out in one shot.
+    FsSaveDataExtraData extraData;
+    if (R_FAILED(fsReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
+            &extraData,
+            sizeof(FsSaveDataExtraData),
+            static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id),
+            saveInfo->save_data_id)))
     {
-        // Log and fall back to file size count.
-        logger::log("Error getting save container's total size. Defaulting to file size count.");
-        containerSize = fs::get_directory_total_size(fs::DEFAULT_SAVE_ROOT);
+        logger::log("Error generating save meta: Failed to read save extra data!");
+        return false;
     }
 
-    // Fill out the meta struct.
+    // Fill the struct.
     meta = {.m_magic = fs::SAVE_META_MAGIC,
-            .m_applicationID = titleInfo->get_application_id(),
-            .m_saveType = saveInfo->save_data_type,
-            .m_saveRank = saveInfo->save_data_rank,
-            .m_saveSpaceID = saveInfo->save_data_space_id,
-            .m_saveDataSize = titleInfo->get_save_data_size(saveInfo->save_data_type),
-            .m_saveDataSizeMax = titleInfo->get_journal_size_max(saveInfo->save_data_type),
-            .m_journalSize = titleInfo->get_journal_size(saveInfo->save_data_type),
-            .m_journalSizeMax = titleInfo->get_journal_size_max(saveInfo->save_data_type),
-            .m_totalSaveSize = containerSize};
+            .m_revision = 0x00,
+            .m_applicationID = extraData.attr.application_id,
+            .m_accountID = extraData.attr.uid,
+            .m_systemSaveID = extraData.attr.system_save_data_id,
+            .m_saveDataType = extraData.attr.save_data_type,
+            .m_saveDataRank = extraData.attr.save_data_rank,
+            .m_saveDataIndex = extraData.attr.save_data_index,
+            .m_ownerID = extraData.owner_id,
+            .m_timestamp = extraData.timestamp,
+            .m_flags = extraData.flags,
+            .m_saveDataSize = extraData.data_size,
+            .m_journalSize = extraData.journal_size,
+            .m_commitID = extraData.commit_id};
+
+    // Should be good.
+    return true;
 }
 
-bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, SaveMetaData &meta)
+bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaData &meta)
 {
-    if (meta.m_magic != SAVE_META_MAGIC || saveInfo->application_id != meta.m_applicationID)
+    // We're going to grab this quick and use this to compare.
+    FsSaveDataExtraData extraData = {0};
+    if (R_FAILED(fsReadSaveDataFileSystemExtraDataBySaveDataSpaceId(
+            &extraData,
+            sizeof(FsSaveDataExtraData),
+            static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id),
+            saveInfo->save_data_id)))
     {
-        logger::log(STRING_ERROR_TEMPLATE.data(), meta.m_applicationID, "Invalid magic or mismatched application ID.");
+        logger::log(STRING_ERROR_TEMPLATE.data(), saveInfo->application_id, fslib::get_error_string());
         return false;
     }
 
-    // To do: I'm assuming this function will only be called once the save container is already opened here...
-    int64_t totalSpace = 0;
-    if (!fslib::get_device_total_space(fs::DEFAULT_SAVE_ROOT, totalSpace))
-    {
-        logger::log(STRING_ERROR_TEMPLATE.data(), meta.m_applicationID, "get_device_total_space");
-        return false;
-    }
-
-    if (totalSpace >= meta.m_totalSaveSize)
-    {
-        // Gonna return true here, because there's no need to do anything to the container.
-        return true;
-    }
-
-    // First we need to temporarily close the save.
+    // We need to temporarily close the file system.
     if (!fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT))
     {
-        logger::log(STRING_ERROR_TEMPLATE.data(), meta.m_applicationID, "close_file_system");
-        // We can't go any further at this point. You can't extend the save while it's open.
+        logger::log(STRING_ERROR_TEMPLATE.data(), saveInfo->application_id, fslib::get_error_string());
         return false;
     }
 
-    // This is where we finally extend the container. Using the large of the two journal sizes
-    if (!fs::extend_save_data(saveInfo, meta.m_totalSaveSize, meta.m_journalSizeMax))
+    // To do: Other checks.
+    if (extraData.data_size < meta.m_saveDataSize &&
+        !fs::extend_save_data(saveInfo, meta.m_saveDataSize, meta.m_journalSize))
     {
-        logger::log(STRING_ERROR_TEMPLATE.data(), meta.m_applicationID, "Error extending save data container.");
+        // The fs::extend_save_data function should log the error that occurred.
         return false;
     }
 
-    // If this fails, we're super screwed.
+    // Now reopen it.
     if (!fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
     {
-        logger::log(STRING_ERROR_TEMPLATE.data(), meta.m_applicationID, "open_save_data");
+        logger::log(STRING_ERROR_TEMPLATE.data(), saveInfo->application_id, fslib::get_error_string());
         return false;
     }
 

@@ -1,6 +1,8 @@
 #include "appstates/SettingsState.hpp"
+#include "appstates/MainMenuState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
+#include "data/data.hpp"
 #include "fslib.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
@@ -26,7 +28,7 @@ SettingsState::SettingsState(void)
                                                               SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
       m_controlGuideX(1220 - sdl::text::get_width(22, strings::get_by_name(strings::names::CONTROL_GUIDES, 3)))
 {
-    // Loop and allocation the strings and menu options.
+    // Loop and allocate the strings and menu options.
     int currentString = 0;
     const char *settingsString = nullptr;
     while ((settingsString = strings::get_by_name(strings::names::SETTINGS_MENU, currentString++)) != nullptr)
@@ -109,41 +111,76 @@ void SettingsState::update_menu_options(void)
 void SettingsState::toggle_options(void)
 {
     int selected = m_settingsMenu.get_selected();
-    // These are just true or false more or less.
-    if ((selected >= 2 && selected <= 12) || (selected >= 14 && selected <= 17))
+
+
+    switch (selected)
     {
-        config::toggle_by_index(selected - 2);
-    }
-    else if (selected == 13)
-    {
-        // This is the zip compression level.
-        uint8_t zipLevel = config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL);
-        if (++zipLevel > 9)
+        // Zip level.
+        case 13:
         {
-            zipLevel = 0;
+            uint8_t zipLevel = config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL);
+            if (++zipLevel > 9)
+            {
+                zipLevel = 0;
+            }
+            config::set_by_key(config::keys::ZIP_COMPRESSION_LEVEL, zipLevel);
         }
-        config::set_by_key(config::keys::ZIP_COMPRESSION_LEVEL, zipLevel);
-    }
-    else if (selected == 14)
-    {
-        // This is the title sorting type.
-        uint8_t sortType = config::get_by_key(config::keys::TITLE_SORT_TYPE);
-        if (++sortType > 2)
+        break;
+
+        // Title sorting.
+        case 14:
         {
-            sortType = 0;
+            // Change the sorting type.
+            uint8_t sortType = config::get_by_key(config::keys::TITLE_SORT_TYPE);
+            if (++sortType >= 3)
+            {
+                sortType = 0;
+            }
+            config::set_by_key(config::keys::TITLE_SORT_TYPE, sortType);
+
+            // Grab the users and resort their data.
+            data::UserList list;
+            data::get_users(list);
+            for (data::User *user : list)
+            {
+                user->sort_data();
+            }
+
+            // Main the main menu refresh everything.
+            MainMenuState::refresh_view_states();
         }
-        config::set_by_key(config::keys::TITLE_SORT_TYPE, sortType);
-    }
-    else if (selected == 18)
-    {
-        // This is the animation scaling.
-        double scaling = config::get_animation_scaling();
-        if ((scaling += 0.25f) > 4.0f)
+        break;
+
+        // Text mode. This is handled beyond a toggle.
+        case 15:
         {
-            scaling = 1.0f;
+            // We're gonna use this to toggle first.
+            config::toggle_by_index(selected - 2);
+
+            // Need the main state to reinit all the views.
+            MainMenuState::initialize_view_states();
         }
-        config::set_animation_scaling(scaling);
+        break;
+
+        // UI transition scaling.
+        case 18:
+        {
+            double scaling = config::get_animation_scaling();
+            if ((scaling += 0.25f) > 4.0f)
+            {
+                scaling = 1.0f;
+            }
+            config::set_animation_scaling(scaling);
+        }
+        break;
+
+        default:
+        {
+            config::toggle_by_index(selected - 2);
+        }
+        break;
     }
+
     // Toggle the update routine.
     SettingsState::update_menu_options();
 }

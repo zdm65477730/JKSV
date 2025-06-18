@@ -1,6 +1,7 @@
 #include "appstates/UserOptionState.hpp"
 #include "JKSV.hpp"
 #include "appstates/ConfirmState.hpp"
+#include "appstates/MainMenuState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "appstates/SaveCreateState.hpp"
 #include "appstates/TaskState.hpp"
@@ -27,22 +28,17 @@ namespace
     };
 } // namespace
 
-// Struct to pass data to functions that require it.
-typedef struct
-{
-        data::User *m_user;
-} UserStruct;
-
 // Declarations here. Defintions after class.
 // Backs up all save data for the target user.
-static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStruct> dataStruct);
+static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserOptionState::DataStruct> dataStruct);
 // // Creates all save data for the current user.
-static void create_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserStruct> dataStruct);
+static void create_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserOptionState::DataStruct> dataStruct);
 // // Deletes all save data from the system for the target user.
-static void delete_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserStruct> dataStruct);
+static void delete_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserOptionState::DataStruct> dataStruct);
 
 UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelect)
-    : m_user(user), m_titleSelect(titleSelect), m_userOptionMenu(8, 8, 460, 22, 720)
+    : m_user(user), m_titleSelect(titleSelect), m_userOptionMenu(8, 8, 460, 22, 720),
+      m_dataStruct(std::make_shared<UserOptionState::DataStruct>())
 {
     // Check if panel needs to be created. It's shared by all instances.
     if (!m_menuPanel)
@@ -56,11 +52,24 @@ UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelec
     {
         m_userOptionMenu.add_option(stringutil::get_formatted_string(currentString, m_user->get_nickname()));
     }
+
+    // Fill this is.
+    m_dataStruct->m_user = m_user;
+    m_dataStruct->m_spawningState = this;
 }
 
 void UserOptionState::update(void)
 {
+    // Update the main panel.
     m_menuPanel->update(AppState::has_focus());
+
+    // See if this needs to be done.
+    if (m_refreshRequired)
+    {
+        m_user->load_user_data();
+        m_titleSelect->refresh();
+        m_refreshRequired = false;
+    }
 
     if (input::button_pressed(HidNpadButton_A) && m_user->get_account_save_type() != FsSaveDataType_System)
     {
@@ -73,16 +82,13 @@ void UserOptionState::update(void)
                     stringutil::get_formatted_string(strings::get_by_name(strings::names::USER_OPTION_CONFIRMATIONS, 0),
                                                      m_user->get_nickname());
 
-                // Data to send if confirmed.
-                std::shared_ptr<UserStruct> dataStruct(new UserStruct);
-                dataStruct->m_user = m_user;
-
                 // State to push
                 auto confirmBackupAll =
-                    std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, UserStruct>>(queryString,
-                                                                                                 false,
-                                                                                                 backup_all_for_user,
-                                                                                                 dataStruct);
+                    std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, UserOptionState::DataStruct>>(
+                        queryString,
+                        false,
+                        backup_all_for_user,
+                        m_dataStruct);
 
                 JKSV::push_state(confirmBackupAll);
             }
@@ -101,14 +107,12 @@ void UserOptionState::update(void)
                     stringutil::get_formatted_string(strings::get_by_name(strings::names::USER_OPTION_CONFIRMATIONS, 1),
                                                      m_user->get_nickname());
 
-                std::shared_ptr<UserStruct> dataStruct(new UserStruct);
-                dataStruct->m_user = m_user;
-
                 auto confirmCreateAll =
-                    std::make_shared<ConfirmState<sys::Task, TaskState, UserStruct>>(queryString,
-                                                                                     true,
-                                                                                     create_all_save_data_for_user,
-                                                                                     dataStruct);
+                    std::make_shared<ConfirmState<sys::Task, TaskState, UserOptionState::DataStruct>>(
+                        queryString,
+                        true,
+                        create_all_save_data_for_user,
+                        m_dataStruct);
 
                 // Done?
                 JKSV::push_state(confirmCreateAll);
@@ -121,14 +125,12 @@ void UserOptionState::update(void)
                     stringutil::get_formatted_string(strings::get_by_name(strings::names::USER_OPTION_CONFIRMATIONS, 2),
                                                      m_user->get_nickname());
 
-                std::shared_ptr<UserStruct> dataStruct(new UserStruct);
-                dataStruct->m_user = m_user;
-
                 auto confirmDeleteAll =
-                    std::make_shared<ConfirmState<sys::Task, TaskState, UserStruct>>(queryString,
-                                                                                     true,
-                                                                                     delete_all_save_data_for_user,
-                                                                                     dataStruct);
+                    std::make_shared<ConfirmState<sys::Task, TaskState, UserOptionState::DataStruct>>(
+                        queryString,
+                        true,
+                        delete_all_save_data_for_user,
+                        m_dataStruct);
 
                 JKSV::push_state(confirmDeleteAll);
             }
@@ -159,7 +161,12 @@ void UserOptionState::render(void)
     m_menuPanel->render(NULL, AppState::has_focus());
 }
 
-static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStruct> dataStruct)
+void UserOptionState::data_and_view_refresh_required(void)
+{
+    m_refreshRequired = true;
+}
+
+static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserOptionState::DataStruct> dataStruct)
 {
     data::User *targetUser = dataStruct->m_user;
 
@@ -235,7 +242,7 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserStr
     task->finished();
 }
 
-static void create_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserStruct> dataStruct)
+static void create_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserOptionState::DataStruct> dataStruct)
 {
     data::User *targetUser = dataStruct->m_user;
 
@@ -255,31 +262,57 @@ static void create_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserS
 
         if (!fs::create_save_data_for(targetUser, &titleInfo))
         {
-            // Function should log error too.
+            // Function should log error.
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                strings::get_by_name(strings::names::POP_MESSAGES_SAVE_CREATE, 2));
+                                                strings::get_by_name(strings::names::POP_MESSAGES_SAVE_CREATE, 0));
         }
     }
+
+    // This needs to be updated on the next update loop.
+    dataStruct->m_spawningState->data_and_view_refresh_required();
+
     task->finished();
 }
 
-static void delete_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserStruct> dataStruct)
+static void delete_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserOptionState::DataStruct> dataStruct)
 {
+    // This just makes things easier to type.
     data::User *targetUser = dataStruct->m_user;
+
+    // This is to keep track of what's deleted. Erasing on every loop throws the vector out of whack.
+    std::vector<uint64_t> applicationIDs;
 
     for (size_t i = 0; i < targetUser->get_total_data_entries(); i++)
     {
         // Grab title for title.
-        const char *target_title = data::get_title_info_by_id(targetUser->get_application_id_at(i))->get_title();
+        const char *targetTitle = data::get_title_info_by_id(targetUser->get_application_id_at(i))->get_title();
 
         // Update thread task.
-        task->set_status(strings::get_by_name(strings::names::USER_OPTION_STATUS, 1), target_title);
+        task->set_status(strings::get_by_name(strings::names::USER_OPTION_STATUS, 1), targetTitle);
 
-        if (!fs::delete_save_data(targetUser->get_save_info_at(i)))
+        // Grab a pointer quick.
+        FsSaveDataInfo *saveInfo = targetUser->get_save_info_at(i);
+
+        // We don't want to let people nuke their entire system, basically.
+        if (saveInfo->save_data_type != FsSaveDataType_System && !fs::delete_save_data(targetUser->get_save_info_at(i)))
         {
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                                 strings::get_by_name(strings::names::POP_MESSAGES_SAVE_CREATE, 2));
+            continue;
         }
+
+        // Push the application ID back.
+        applicationIDs.push_back(saveInfo->application_id);
     }
+
+    // Loop through the IDs and purge them all.
+    for (uint64_t &applicationID : applicationIDs)
+    {
+        targetUser->erase_save_info_by_id(applicationID);
+    }
+
+    // Signal the main thread to update~
+    dataStruct->m_spawningState->data_and_view_refresh_required();
+
     task->finished();
 }

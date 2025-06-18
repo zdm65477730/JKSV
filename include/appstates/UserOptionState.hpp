@@ -24,6 +24,20 @@ class UserOptionState : public AppState
         /// @brief Runs the render routine.
         void render(void) override;
 
+        /// @brief Signals to the main update() function that a refresh is needed.
+        /// @note Like this to prevent threading headaches.
+        void data_and_view_refresh_required(void);
+
+        /// @brief Struct used for passing data to functions/tasks.
+        typedef struct
+        {
+                /// @brief Pointer to the target user.
+                data::User *m_user;
+
+                /// @brief Pointer to >this spawning state.
+                UserOptionState *m_spawningState;
+        } DataStruct;
+
     private:
         /// @brief Pointer to the target user.
         data::User *m_user;
@@ -33,6 +47,12 @@ class UserOptionState : public AppState
 
         /// @brief Menu that displays the options available.
         ui::Menu m_userOptionMenu;
+
+        /// @brief Shared pointer to pass data to tasks and functions.
+        std::shared_ptr<UserOptionState::DataStruct> m_dataStruct;
+
+        /// @brief This allows spawned tasks to signal to the main thread to update the view.
+        bool m_refreshRequired = false;
 
         /// @brief Slide panel all instances shared.
         static inline std::unique_ptr<ui::SlideOutPanel> m_menuPanel = nullptr;

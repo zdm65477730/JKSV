@@ -11,9 +11,9 @@ class SaveCreateState : public AppState
 {
     public:
         /// @brief Constructs a new SaveCreateState.
-        /// @param targetUser The target user to create save data for.
+        /// @param user The target user to create save data for.
         /// @param titleSelect The selection view for the user for refreshing and rendering.
-        SaveCreateState(data::User *targetUser, TitleSelectCommon *titleSelect);
+        SaveCreateState(data::User *user, TitleSelectCommon *titleSelect);
 
         /// @brief Required destructor.
         ~SaveCreateState() {};
@@ -23,6 +23,9 @@ class SaveCreateState : public AppState
 
         /// @brief Runs the render routine.
         void render(void) override;
+
+        /// @brief This signals so data and the view can be refreshed on the next update() to avoid threading shenanigans.
+        void data_and_view_refresh_required(void);
 
     private:
         /// @brief Pointer to target user.
@@ -36,6 +39,9 @@ class SaveCreateState : public AppState
 
         /// @brief Vector of pointers to the title info. This allows sorting them alphabetically and other things.
         std::vector<data::TitleInfo *> m_titleInfoVector;
+
+        /// @brief Whether or not a refresh is required on the next update() call.
+        bool m_refreshRequired = false;
 
         /// @brief Shared slide panel all instances use. There's no point in allocating a new one every time.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel = nullptr;

@@ -29,6 +29,12 @@ TitleSelectState::TitleSelectState(data::User *user)
 
 void TitleSelectState::update(void)
 {
+    if (m_user->get_total_data_entries() <= 0)
+    {
+        AppState::deactivate();
+        return;
+    }
+
     m_titleView.update(AppState::has_focus());
 
     if (input::button_pressed(HidNpadButton_A))
@@ -58,7 +64,7 @@ void TitleSelectState::update(void)
         uint64_t applicationID = m_user->get_application_id_at(m_titleView.get_selected());
         data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
 
-        JKSV::push_state(std::make_shared<TitleOptionState>(m_user, titleInfo));
+        JKSV::push_state(std::make_shared<TitleOptionState>(m_user, titleInfo, this));
     }
     else if (input::button_pressed(HidNpadButton_B))
     {
@@ -68,9 +74,14 @@ void TitleSelectState::update(void)
     }
     else if (input::button_pressed(HidNpadButton_Y))
     {
+        // Add/remove favorite flag.
         config::add_remove_favorite(m_user->get_application_id_at(m_titleView.get_selected()));
-        // MainMenuState has all the Users and views, so have it refresh.
-        MainMenuState::refresh_view_states();
+
+        // Resort the data.
+        m_user->sort_data();
+
+        // Refresh the view.
+        TitleSelectState::refresh();
     }
 }
 

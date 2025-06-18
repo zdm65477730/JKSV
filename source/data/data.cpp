@@ -32,15 +32,6 @@ namespace
     /// @brief Path used for cacheing title information since NS got slow on 20.0+
     constexpr std::string_view PATH_CACHE_PATH = "sdmc:/config/JKSV/cache.bin";
 
-    // Array of SaveDataSpaceIDs - SaveDataSpaceAll doesn't seem to work as it should...
-    constexpr std::array<FsSaveDataSpaceId, 7> SAVE_DATA_SPACE_ORDER = {FsSaveDataSpaceId_System,
-                                                                        FsSaveDataSpaceId_User,
-                                                                        FsSaveDataSpaceId_SdSystem,
-                                                                        FsSaveDataSpaceId_Temporary,
-                                                                        FsSaveDataSpaceId_SdUser,
-                                                                        FsSaveDataSpaceId_ProperSystem,
-                                                                        FsSaveDataSpaceId_SafeMode};
-
     // These are the ID's used for system type users.
     constexpr AccountUid ID_SYSTEM_USER = {FsSaveDataType_System};
     constexpr AccountUid ID_BCAT_USER = {FsSaveDataType_Bcat};
@@ -58,20 +49,12 @@ static void load_application_records(void);
 /// @brief Imports external SVI(Control Data) files.
 static void import_svi_files(void);
 
-/// @brief Loads the save data info available from the system.
-static void load_save_data_info(void);
-
 /// @brief Attempts to read the cache file from the SD.
 /// @return True on success. False on failure.
 static bool read_cache_file(void);
 
 /// @brief Creates the cache file on the SD card.
 static void create_cache_file(void);
-
-/// @brief Searches for and returns a user according to the AccountUid provided.
-/// @param id AccountUid to use to search with.
-/// @return Iterator to user on success. s_userVector.end() on failure.
-static inline std::vector<UserIDPair>::iterator find_user_by_id(AccountUid id);
 
 bool data::initialize(bool clearCache)
 {
@@ -103,15 +86,14 @@ bool data::initialize(bool clearCache)
     // Load these now if needed.
     import_svi_files();
 
-    // I'm just going to assume this is implied since we're reloading everything.
-    // Loop through the users and clear their save data info.
+    // Load the save data.
+    // data::load_save_data_info();
+    // Loop users and make them load their data.
     for (auto &[accountID, user] : s_userVector)
     {
-        user.clear_save_info();
+        user.load_user_data();
     }
 
-    // Load the save data.
-    load_save_data_info();
 
     // If the cache file doesn't exist at this point, create it.
     if (!fslib::file_exists(PATH_CACHE_PATH))
@@ -141,7 +123,18 @@ data::TitleInfo *data::get_title_info_by_id(uint64_t applicationID)
     {
         return nullptr;
     }
+
     return &s_titleInfoMap.at(applicationID);
+}
+
+void data::load_title_to_map(uint64_t applicationID)
+{
+    s_titleInfoMap.emplace(applicationID, applicationID);
+}
+
+bool data::title_exists_in_map(uint64_t applicationID)
+{
+    return s_titleInfoMap.find(applicationID) != s_titleInfoMap.end();
 }
 
 std::unordered_map<uint64_t, data::TitleInfo> &data::get_title_info_map(void)
@@ -168,6 +161,7 @@ static bool load_create_user_accounts(void)
 {
     // For saving total accounts found.
     int total = 0;
+
     // The Switch can only have up to eight user accounts.
     AccountUid accounts[8] = {0};
 
@@ -277,157 +271,6 @@ static void import_svi_files(void)
     }
 }
 
-static void load_save_data_info(void)
-{
-    // Grab these here so I don't call the config functions every loop. Config uses a vector instead of map so the calls
-    // can add up quickly.
-    bool showAccountSystemSaves = config::get_by_key(config::keys::LIST_ACCOUNT_SYS_SAVES);
-    bool onlyListMountable = config::get_by_key(config::keys::ONLY_LIST_MOUNTABLE);
-
-    // Outer loop iterates through the save data spaces.
-    for (int i = 0; i < 7; i++)
-    {
-        // Using fslib's save info reader wrapper.
-        fslib::SaveInfoReader saveReader(SAVE_DATA_SPACE_ORDER[i]);
-        // If it fails, log and continue the loop. Do not pass go or get 200 Monopoly fun bux.
-        if (!saveReader)
-        {
-            logger::log(fslib::get_error_string());
-            continue;
-        }
-
-        // Inner loop iterates save data info.
-        while (saveReader.read())
-        {
-            // Grab a reference to the current SaveDataInfo struct.
-            FsSaveDataInfo &saveInfo = saveReader.get();
-
-            // System saves have no application ID.
-            uint64_t applicationID = (saveInfo.save_data_type == FsSaveDataType_System ||
-                                      saveInfo.save_data_type == FsSaveDataType_SystemBcat)
-                                         ? saveInfo.system_save_data_id
-                                         : saveInfo.application_id;
-
-            // This will filter out account system saves if desired and unmountable titles.
-            if ((!showAccountSystemSaves && saveInfo.save_data_type == FsSaveDataType_System && saveInfo.uid != 0) ||
-                (onlyListMountable && !fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, saveInfo)) ||
-                config::is_blacklisted(applicationID))
-            {
-                continue;
-            }
-            // If it made it here, we need to close the file system before we, I mean I forget.
-            fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
-
-            // JKSV uses fake placeholder accounts for system type saves.
-            AccountUid accountID = {0};
-            switch (saveInfo.save_data_type)
-            {
-                case FsSaveDataType_Bcat:
-                {
-                    accountID = ID_BCAT_USER;
-                }
-                break;
-
-                case FsSaveDataType_Device:
-                {
-                    accountID = ID_DEVICE_USER;
-                }
-                break;
-
-                case FsSaveDataType_Cache:
-                {
-                    accountID = ID_CACHE_USER;
-                }
-                break;
-
-                default:
-                {
-                    // Default is just the ID in the save info struct. This should be fine for system saves too.
-                    accountID = saveInfo.uid;
-                }
-                break;
-            }
-
-            // Find the user with the ID we have now.
-            auto user = find_user_by_id(accountID);
-
-            // To do: Handle this like old JKSV did. Here we're just being quitters.
-            if (user == s_userVector.end())
-            {
-                // We're going to do this since we don't have much of a choice here.
-                // Just use the lowest 16 bits here.
-                char idHex[32] = {0};
-                std::snprintf(idHex, 32, "%04X", static_cast<uint16_t>(saveInfo.uid.uid[0]));
-
-                // Create a new user using the id and hex name.
-                s_userVector.push_back(std::make_pair(
-                    saveInfo.uid,
-                    data::User(accountID, idHex, idHex, static_cast<FsSaveDataType>(saveInfo.save_data_type))));
-
-                // To do: Maybe check this and continue on failure? I hate nested ifs hard.
-                if ((user = find_user_by_id(accountID)) == s_userVector.end())
-                {
-                    continue;
-                }
-            }
-
-            // Search the map just to be sure it was loaded previously. This can happen.
-            if (s_titleInfoMap.find(applicationID) == s_titleInfoMap.end())
-            {
-                s_titleInfoMap.emplace(applicationID, applicationID);
-            }
-
-            // I feel weird allcating space for this even if it's not used, but whatever.
-            PdmPlayStatistics stats = {0};
-            // This should be an OKish way to filter out system titles...
-            if (R_FAILED(pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(applicationID,
-                                                                                  saveInfo.uid,
-                                                                                  false,
-                                                                                  &stats)))
-            {
-                // This isn't fatal.
-                logger::log("Error getting play stats for title %016llX!", applicationID);
-            }
-
-            // Finally push it over to the user.
-            user->second.add_data(&saveInfo, &stats);
-        }
-    }
-
-    // If the include device save option is toggled.
-    if (config::get_by_key(config::keys::INCLUDE_DEVICE_SAVES))
-    {
-        // Grab the device user.
-        auto deviceUser = find_user_by_id(ID_DEVICE_USER);
-        // Grab a reference to the vector.
-        data::UserSaveInfoList &deviceList = deviceUser->second.get_user_save_info_list();
-
-        for (auto &[accountID, user] : s_userVector)
-        {
-            // Break at the device user. It should be the first that's a system type user.
-            if (accountID == ID_DEVICE_USER)
-            {
-                break;
-            }
-
-            // Loop through the device list and add it to the target user.
-            for (data::UserDataEntry &entry : deviceList)
-            {
-                // To do: Final decision on this. It's easier to read than second.first...
-                auto &[saveInfo, playStats] = entry.second;
-
-                user.add_data(&saveInfo, &playStats);
-            }
-        }
-    }
-
-    // Sort save info according to config.
-    for (auto &[id, user] : s_userVector)
-    {
-        user.sort_data();
-    }
-}
-
 static bool read_cache_file(void)
 {
     // Try opening the cache file.
@@ -511,11 +354,4 @@ static void create_cache_file(void)
     // Write the count.
     cache.write(&titleCount, sizeof(unsigned int));
     // fslib::File cleans up on destruction.
-}
-
-static inline std::vector<UserIDPair>::iterator find_user_by_id(AccountUid id)
-{
-    return std::find_if(s_userVector.begin(), s_userVector.end(), [id](const UserIDPair &pair) {
-        return pair.second.get_account_id() == id;
-    });
 }

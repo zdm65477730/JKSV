@@ -29,7 +29,7 @@ void TextTitleSelectState::update(void)
     if (input::button_pressed(HidNpadButton_Y))
     {
         config::add_remove_favorite(m_user->get_application_id_at(m_titleSelectMenu.get_selected()));
-        MainMenuState::refresh_view_states();
+        TextTitleSelectState::refresh();
     }
     else if (input::button_pressed(HidNpadButton_B))
     {

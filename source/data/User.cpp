@@ -2,6 +2,7 @@
 #include "colors.hpp"
 #include "config.hpp"
 #include "data/data.hpp"
+#include "fs/save_mount.hpp"
 #include "gfxutil.hpp"
 #include "logger.hpp"
 #include "sdl.hpp"
@@ -13,6 +14,17 @@ namespace
 {
     /// @brief Font size for rendering text to icons.
     constexpr int SIZE_ICON_FONT = 50;
+
+    /// @brief This is the number of FsSaveDataInfo entries to allocate and try to read.
+    constexpr size_t SIZE_SAVE_INFO_BUFFER = 128;
+
+    // Array of SaveDataSpaceIDs - SaveDataSpaceAll doesn't seem to work as it should...
+    constexpr std::array<FsSaveDataSpaceId, 6> SAVE_DATA_SPACE_ORDER = {FsSaveDataSpaceId_System,
+                                                                        FsSaveDataSpaceId_User,
+                                                                        FsSaveDataSpaceId_SdSystem,
+                                                                        FsSaveDataSpaceId_Temporary,
+                                                                        FsSaveDataSpaceId_SdUser,
+                                                                        FsSaveDataSpaceId_SafeMode};
 } // namespace
 
 // Function used to sort user data. Definition at the bottom.
@@ -58,7 +70,7 @@ void data::User::add_data(const FsSaveDataInfo *saveInfo, const PdmPlayStatistic
     m_userData.push_back(std::make_pair(applicationID, std::make_pair(*saveInfo, *playStats)));
 }
 
-void data::User::clear_save_info(void)
+void data::User::clear_data_entries(void)
 {
     m_userData.clear();
 }
@@ -182,6 +194,75 @@ void data::User::erase_save_info_by_id(uint64_t applicationID)
     m_userData.erase(targetEntry);
 }
 
+void data::User::load_user_data(void)
+{
+    // Pull these from config quick.
+    bool accountSystemSaves = config::get_by_key(config::keys::LIST_ACCOUNT_SYS_SAVES);
+    bool enforceMountable = config::get_by_key(config::keys::ONLY_LIST_MOUNTABLE);
+
+    // Clear the vector if there's anything there first.
+    if (!m_userData.empty())
+    {
+        m_userData.clear();
+    }
+
+    // Loop through the save data space IDs.
+    for (int i = 0; i < 6; i++)
+    {
+        // Open the save reader according to the save type of the account.
+        fslib::SaveInfoReader infoReader;
+        if (!User::open_save_info_reader(SAVE_DATA_SPACE_ORDER[i], infoReader))
+        {
+            continue;
+        }
+
+        // Loop until the reader can't be read anymore.
+        while (infoReader.read())
+        {
+            // Grab the count cause I don't remember if the compiler optimizes this away or not.
+            int64_t readCount = infoReader.get_read_count();
+
+            // Loop through that too. Loopy loop loop.
+            for (int64_t i = 0; i < readCount; i++)
+            {
+                // Grab the target save data info struct.
+                FsSaveDataInfo &saveInfo = infoReader[i];
+
+                // Since system saves have no application ID...
+                uint64_t applicationID =
+                    saveInfo.application_id == 0 ? saveInfo.system_save_data_id : saveInfo.application_id;
+
+                // Make sure we shouldn't filter it.
+                if ((!accountSystemSaves && saveInfo.save_data_type == FsSaveDataType_System && saveInfo.uid != 0) ||
+                    config::is_blacklisted(applicationID) ||
+                    (enforceMountable && !fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, saveInfo)))
+                {
+                    // Just skip this stuff.
+                    continue;
+                }
+                // Make sure to clean up the mounting.
+                fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
+
+                if (!data::title_exists_in_map(applicationID))
+                {
+                    data::load_title_to_map(applicationID);
+                }
+
+                // Try to read the play stats. I don't really care if this fails.
+                PdmPlayStatistics playStats = {0};
+                pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(saveInfo.application_id,
+                                                                         m_accountID,
+                                                                         false,
+                                                                         &playStats);
+
+                User::add_data(&saveInfo, &playStats);
+            }
+        }
+    }
+    // Sort
+    User::sort_data();
+}
+
 void data::User::load_account(AccountProfile &profile, AccountProfileBase &profileBase)
 {
     // Try to load icon.
@@ -227,6 +308,48 @@ void data::User::create_account(void)
     // Memcpy the id string for both nicknames
     std::memcpy(m_nickname, accountIDString.c_str(), accountIDString.length());
     std::memcpy(m_pathSafeNickname, accountIDString.c_str(), accountIDString.length());
+}
+
+bool data::User::open_save_info_reader(FsSaveDataSpaceId spaceID, fslib::SaveInfoReader &reader)
+{
+    switch (m_saveType)
+    {
+        case FsSaveDataType_System:
+        {
+            reader.open(spaceID, m_saveType, SIZE_SAVE_INFO_BUFFER);
+        }
+        break;
+
+        case FsSaveDataType_Account:
+        {
+            reader.open(spaceID, m_accountID, SIZE_SAVE_INFO_BUFFER);
+        }
+        break;
+
+        case FsSaveDataType_Bcat:
+        {
+            reader.open(spaceID, m_saveType, SIZE_SAVE_INFO_BUFFER);
+        }
+        break;
+
+        case FsSaveDataType_Device:
+        {
+            reader.open(spaceID, m_saveType, SIZE_SAVE_INFO_BUFFER);
+        }
+        break;
+
+        case FsSaveDataType_Cache:
+        {
+            reader.open(spaceID, m_saveType, SIZE_SAVE_INFO_BUFFER);
+        }
+        break;
+
+        default:
+        {
+        }
+        break;
+    }
+    return reader.is_open();
 }
 
 static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDataEntry &entryB)

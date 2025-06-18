@@ -100,12 +100,14 @@ void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
             m_titleTiles.at(i).render(target, tempX, tempY);
         }
     }
+
     // Now render the selected title.
     if (hasFocus)
     {
         sdl::render_rect_fill(target, m_selectedX - 23, m_selectedY - 23, 174, 174, colors::CLEAR_COLOR);
         ui::render_bounding_box(target, m_selectedX - 24, m_selectedY - 24, 176, 176, m_colorMod);
     }
+
     m_titleTiles.at(m_selected).render(target, m_selectedX, m_selectedY);
 }
 
@@ -116,13 +118,25 @@ int ui::TitleView::get_selected(void) const
 
 void ui::TitleView::refresh(void)
 {
+    // Clear the current tiles.
     m_titleTiles.clear();
-    for (size_t i = 0; i < m_user->get_total_data_entries(); i++)
+
+    // Loop through the user's data entries.
+    int userEntryCount = m_user->get_total_data_entries();
+
+    for (int i = 0; i < userEntryCount; i++)
     {
         // Get pointer to data from user save index I.
         data::TitleInfo *currentTitleInfo = data::get_title_info_by_id(m_user->get_application_id_at(i));
+
         // Emplace is faster than push
         m_titleTiles.emplace_back(config::is_favorite(m_user->get_application_id_at(i)), currentTitleInfo->get_icon());
+    }
+
+    // Just to be sure.
+    if (m_selected > 0 && m_selected >= static_cast<int>(m_titleTiles.size()))
+    {
+        m_selected = m_titleTiles.size() - 1;
     }
 }
 

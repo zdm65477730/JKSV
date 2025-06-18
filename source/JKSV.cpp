@@ -22,9 +22,9 @@
 namespace
 {
     /// @brief Build month.
-    constexpr uint8_t BUILD_MON = 5;
+    constexpr uint8_t BUILD_MON = 6;
     /// @brief Build day.
-    constexpr uint8_t BUILD_DAY = 31;
+    constexpr uint8_t BUILD_DAY = 13;
     /// @brief Year.
     constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace
@@ -43,6 +43,9 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
 
 JKSV::JKSV(void)
 {
+    // Start with this.
+    appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad);
+
     // FsLib
     ABORT_ON_FAILURE(fslib::initialize());
 
@@ -139,6 +142,7 @@ JKSV::~JKSV()
     sdl::text::exit();
     sdl::exit();
     fslib::exit();
+    appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
 }
 
 bool JKSV::is_running(void) const
@@ -164,13 +168,17 @@ void JKSV::update(void)
 void JKSV::render(void)
 {
     sdl::frame_begin(colors::CLEAR_COLOR);
+
     // Top and bottom divider lines.
     sdl::render_line(NULL, 30, 88, 1250, 88, colors::WHITE);
     sdl::render_line(NULL, 30, 648, 1250, 648, colors::WHITE);
+
     // Icon
     m_headerIcon->render(NULL, 66, 27);
+
     // "JKSV"
     sdl::text::render(NULL, 130, 32, 34, sdl::text::NO_TEXT_WRAP, colors::WHITE, "JKSV");
+
     // Translation info in bottom left.
     if (m_showTranslationInfo)
     {
@@ -183,6 +191,7 @@ void JKSV::render(void)
                           strings::get_by_name(strings::names::TRANSLATION_INFO, 0),
                           strings::get_by_name(strings::names::TRANSLATION_INFO, 1));
     }
+
     // Build date
     sdl::text::render(NULL,
                       8,

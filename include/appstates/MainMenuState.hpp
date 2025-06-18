@@ -3,6 +3,7 @@
 #include "data/data.hpp"
 #include "sdl.hpp"
 #include "ui/IconMenu.hpp"
+#include <memory>
 
 /// @brief The main
 class MainMenuState : public AppState
@@ -20,7 +21,10 @@ class MainMenuState : public AppState
         /// @brief Renders menu to screen.
         void render(void) override;
 
-        /// @brief This function allows other states to signal to this one to refresh the views on next call to update();
+        /// @brief Signals to
+        static void initialize_view_states(void);
+
+        /// @brief Calls refresh on on view states in the vector.
         static void refresh_view_states(void);
 
     private:
@@ -45,12 +49,15 @@ class MainMenuState : public AppState
         /// @brief X coordinate of the control guide in the bottom right corner.
         int m_controlGuideX;
 
-        /// @brief Vector of pointers to users.
-        static inline std::vector<data::User *> sm_users;
+        /// @brief This is the list of user pointers from data.
+        static inline data::UserList sm_users;
 
-        /// @brief Vector of views for each user, settings, and extras.
+        /// @brief This is the pointer to the settings state.
+        static inline std::shared_ptr<AppState> sm_settingsState = nullptr;
+
+        /// @brief This is the pointer to the extras state.
+        static inline std::shared_ptr<AppState> sm_extrasState = nullptr;
+
+        /// @brief This is the vector of title selection states.
         static inline std::vector<std::shared_ptr<AppState>> sm_states;
-
-        /// @brief For signaling refreshes are needed.
-        static inline bool sm_refreshNeeded = false;
 };

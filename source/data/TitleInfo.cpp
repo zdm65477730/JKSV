@@ -316,6 +316,7 @@ bool data::TitleInfo::has_save_data_type(uint8_t saveType)
 {
     NacpStruct *nacp = &m_data.nacp;
 
+    // I'm not 100% sure this is the best way to test for this.
     switch (saveType)
     {
         case FsSaveDataType_Account:

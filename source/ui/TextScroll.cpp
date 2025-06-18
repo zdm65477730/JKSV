@@ -1,12 +1,13 @@
 #include "ui/TextScroll.hpp"
 #include "sdl.hpp"
 
-#include "logger.hpp"
-
 namespace
 {
     /// @brief This is the number of ticks needed before the text starts scrolling.
     constexpr uint64_t TICKS_SCROLL_TRIGGER = 3000;
+
+    /// @brief This is the number of pixels between the two renderings of the text.
+    constexpr int SIZE_TEXT_GAP = 0;
 } // namespace
 
 ui::TextScroll::TextScroll(std::string_view text,
@@ -61,11 +62,11 @@ void ui::TextScroll::update(bool hasFocus)
         m_x -= 2;
         m_textScrollTriggered = true;
     }
-    else if (m_textScrollTriggered && m_x > -(m_textWidth + 16))
+    else if (m_textScrollTriggered && m_x > -(m_textWidth + SIZE_TEXT_GAP))
     {
         m_x -= 2;
     }
-    else if (m_textScrollTriggered && m_x <= -(m_textWidth + 16))
+    else if (m_textScrollTriggered && m_x <= -(m_textWidth + SIZE_TEXT_GAP))
     {
         // This will snap the text back to where it was, but the user won't even notice it. It just looks like it's scrolling.
         m_x = 8;
@@ -86,7 +87,7 @@ void ui::TextScroll::render(SDL_Texture *target, bool hasFocus)
         // We're going to render text twice so it looks like it's scrolling and doesn't end. Ever.
         sdl::text::render(target, m_x, m_y, m_fontSize, sdl::text::NO_TEXT_WRAP, m_textColor, m_text.c_str());
         sdl::text::render(target,
-                          m_x + m_textWidth + 24,
+                          m_x + m_textWidth + 8,
                           m_y,
                           m_fontSize,
                           sdl::text::NO_TEXT_WRAP,

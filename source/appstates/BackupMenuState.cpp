@@ -23,21 +23,6 @@ namespace
     constexpr size_t SIZE_BACKUP_NAME_LENGTH = 0x80;
 } // namespace
 
-// This struct is used to pass data to Restore, Delete, and upload.
-struct TargetStruct
-{
-        // Path of target.
-        fslib::Path m_targetPath;
-        // Journal size if commit is needed.
-        uint64_t m_journalSize;
-        // User
-        data::User *m_user;
-        // Title info
-        data::TitleInfo *m_titleInfo;
-        // Spawning state so refresh can be called.
-        BackupMenuState *m_spawningState = nullptr;
-};
-
 // Declarations here. Definitions after class.
 // Create new backup in targetPath
 static void create_new_backup(sys::ProgressTask *task,
@@ -46,15 +31,16 @@ static void create_new_backup(sys::ProgressTask *task,
                               fslib::Path targetPath,
                               BackupMenuState *spawningState);
 // Overwrites and existing backup.
-static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct);
+static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct);
 // Restores a backup and requires confirmation to do so. Takes a shared_ptr to a TargetStruct.
-static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct);
+static void restore_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct);
 // Deletes a backup and requires confirmation to do so. Takes a shared_ptr to a TargetStruct.
-static void delete_backup(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
+static void delete_backup(sys::Task *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct);
 
 BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, FsSaveDataType saveType)
     : m_user(user), m_titleInfo(titleInfo), m_saveType(saveType),
-      m_directoryPath(config::get_working_directory() / m_titleInfo->get_path_safe_title())
+      m_directoryPath(config::get_working_directory() / m_titleInfo->get_path_safe_title()),
+      m_dataStruct(std::make_shared<BackupMenuState::DataStruct>())
 {
     if (!sm_isInitialized)
     {
@@ -70,6 +56,12 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
         sm_isInitialized = true;
     }
 
+    // Fill this out. Target path is not set here.
+    m_dataStruct->m_user = m_user;
+    m_dataStruct->m_titleInfo = m_titleInfo;
+    m_dataStruct->m_journalSize = m_titleInfo->get_journal_size(m_saveType);
+    m_dataStruct->m_spawningState = this;
+
     // String for the top of the panel.
     std::string panelString =
         stringutil::get_formatted_string("`%s` - %s", m_user->get_nickname(), m_titleInfo->get_title());
@@ -77,9 +69,11 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
     // This needs sm_panelWidth or it'd be in the initializer list.
     m_titleScroll.create(panelString, 22, sm_panelWidth, 8, true, colors::WHITE);
 
+    // This is a quick check to make sure the save has something in it before creating empty backups.
     fslib::Directory saveCheck(fs::DEFAULT_SAVE_ROOT);
     m_saveHasData = saveCheck.get_count() > 0;
 
+    // This just fills out the menu.
     BackupMenuState::refresh();
 }
 
@@ -125,6 +119,7 @@ void BackupMenuState::update(void)
         {
             return;
         }
+
         // Push the task.
         JKSV::push_state(std::make_shared<ProgressState>(create_new_backup,
                                                          m_user,
@@ -146,14 +141,16 @@ void BackupMenuState::update(void)
             stringutil::get_formatted_string(strings::get_by_name(strings::names::BACKUPMENU_CONFIRMATIONS, 0),
                                              m_directoryListing[selected]);
 
-        std::shared_ptr<TargetStruct> dataStruct(new TargetStruct);
-        dataStruct->m_targetPath = m_directoryPath / m_directoryListing[selected];
+        // Set the target path quick.
+        m_dataStruct->m_targetPath = m_directoryPath / m_directoryListing[selected];
 
-        JKSV::push_state(std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, TargetStruct>>(
+        auto confirm = std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, BackupMenuState::DataStruct>>(
             queryString,
             config::get_by_key(config::keys::HOLD_FOR_OVERWRITE),
             overwrite_backup,
-            dataStruct));
+            m_dataStruct);
+
+        JKSV::push_state(confirm);
     }
     else if (input::button_pressed(HidNpadButton_A) && !m_saveHasData && sm_backupMenu->get_selected() > 0)
     {
@@ -184,44 +181,42 @@ void BackupMenuState::update(void)
             return;
         }
 
-        std::shared_ptr<TargetStruct> dataStruct(new TargetStruct);
-        dataStruct->m_user = m_user;
-        dataStruct->m_titleInfo = m_titleInfo;
-        dataStruct->m_targetPath = m_directoryPath / m_directoryListing[selected];
-        dataStruct->m_journalSize = m_titleInfo->get_journal_size(m_saveType);
-        dataStruct->m_spawningState = this;
+        // Set target path
+        m_dataStruct->m_targetPath = m_directoryPath / m_directoryListing[selected];
 
         std::string queryString =
             stringutil::get_formatted_string(strings::get_by_name(strings::names::BACKUPMENU_CONFIRMATIONS, 1),
                                              m_directoryListing[selected]);
 
-        JKSV::push_state(std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, TargetStruct>>(
+        auto confirm = std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, BackupMenuState::DataStruct>>(
             queryString,
             config::get_by_key(config::keys::HOLD_FOR_RESTORATION),
             restore_backup,
-            dataStruct));
+            m_dataStruct);
+
+        JKSV::push_state(confirm);
     }
     else if (input::button_pressed(HidNpadButton_X) && sm_backupMenu->get_selected() > 0)
     {
         // Selected needs to be offset by one to account for New
         int selected = sm_backupMenu->get_selected() - 1;
 
-        // Create struct to pass.
-        std::shared_ptr<TargetStruct> dataStruct(new TargetStruct);
-        dataStruct->m_targetPath = m_directoryPath / m_directoryListing[selected];
-        dataStruct->m_spawningState = this;
+        // Set path quick.
+        m_dataStruct->m_targetPath = m_directoryPath / m_directoryListing[selected];
 
         // get the string.
         std::string queryString =
             stringutil::get_formatted_string(strings::get_by_name(strings::names::BACKUPMENU_CONFIRMATIONS, 2),
                                              m_directoryListing[selected]);
 
-        // Create/push new state.
-        JKSV::push_state(std::make_shared<ConfirmState<sys::Task, TaskState, TargetStruct>>(
+        auto confirm = std::make_shared<ConfirmState<sys::Task, TaskState, BackupMenuState::DataStruct>>(
             queryString,
             config::get_by_key(config::keys::HOLD_FOR_DELETION),
             delete_backup,
-            dataStruct));
+            m_dataStruct);
+
+        // Create/push new state.
+        JKSV::push_state(confirm);
     }
     else if (input::button_pressed(HidNpadButton_B))
     {
@@ -318,7 +313,7 @@ static void create_new_backup(sys::ProgressTask *task,
 
     // I got tired of typing out the cast.
     fs::SaveMetaData saveMeta;
-    fs::create_save_meta_data(titleInfo, saveInfo, saveMeta);
+    bool hasMeta = fs::fill_save_meta_data(saveInfo, saveMeta);
 
     // This extension search is lazy and needs to be revised.
     if (config::get_by_key(config::keys::EXPORT_TO_ZIP) || std::strstr(targetPath.c_string(), "zip"))
@@ -328,31 +323,34 @@ static void create_new_backup(sys::ProgressTask *task,
         {
             // To do: Pop up.
             logger::log("Error opening zip for backup.");
+            task->finished();
             return;
         }
 
-        // Data for save meta.
-        zip_fileinfo saveMetaInfo;
-        fs::create_zip_fileinfo(saveMetaInfo);
-
-        // Write meta to zip.
-        int zipError = zipOpenNewFileInZip64(newBackup,
-                                             fs::NAME_SAVE_META.data(),
-                                             &saveMetaInfo,
-                                             NULL,
-                                             0,
-                                             NULL,
-                                             0,
-                                             NULL,
-                                             Z_DEFLATED,
-                                             config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL),
-                                             0);
-        if (zipError == ZIP_OK)
+        if (hasMeta)
         {
-            zipWriteInFileInZip(newBackup, &saveMeta, sizeof(fs::SaveMetaData));
-            zipCloseFileInZip(newBackup);
-        }
+            // Data for save meta.
+            zip_fileinfo saveMetaInfo;
+            fs::create_zip_fileinfo(saveMetaInfo);
 
+            // Write meta to zip.
+            int zipError = zipOpenNewFileInZip64(newBackup,
+                                                 fs::NAME_SAVE_META.data(),
+                                                 &saveMetaInfo,
+                                                 NULL,
+                                                 0,
+                                                 NULL,
+                                                 0,
+                                                 NULL,
+                                                 Z_DEFLATED,
+                                                 config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL),
+                                                 0);
+            if (zipError == ZIP_OK)
+            {
+                zipWriteInFileInZip(newBackup, &saveMeta, sizeof(fs::SaveMetaData));
+                zipCloseFileInZip(newBackup);
+            }
+        }
         fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, newBackup, task);
         zipClose(newBackup, NULL);
     }
@@ -361,7 +359,7 @@ static void create_new_backup(sys::ProgressTask *task,
         {
             fslib::Path saveMetaPath = targetPath / fs::NAME_SAVE_META;
             fslib::File saveMetaOut(saveMetaPath, FsOpenMode_Create | FsOpenMode_Write, sizeof(fs::SaveMetaData));
-            if (saveMetaOut)
+            if (saveMetaOut && hasMeta)
             {
                 saveMetaOut.write(&saveMeta, sizeof(fs::SaveMetaData));
             }
@@ -375,7 +373,7 @@ static void create_new_backup(sys::ProgressTask *task,
     task->finished();
 }
 
-static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct)
+static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct)
 {
     // Might need this later.
     FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(dataStruct->m_titleInfo->get_application_id());
@@ -399,31 +397,41 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStru
 
     // Gonna need a new save meta.
     fs::SaveMetaData meta;
-    fs::create_save_meta_data(dataStruct->m_titleInfo, saveInfo, meta);
+    bool hasMeta = fs::fill_save_meta_data(saveInfo, meta);
 
     if (std::strcmp("zip", dataStruct->m_targetPath.get_extension()))
     {
         zipFile backupZip = zipOpen64(dataStruct->m_targetPath.c_string(), APPEND_STATUS_CREATE);
+        if (!backupZip)
+        {
+            logger::log("Error overwriting backup: Couldn't create new zip!");
+            task->finished();
+            return;
+        }
+
 
         // Need the zip info for the meta.
-        zip_fileinfo saveMetaInfo;
-        fs::create_zip_fileinfo(saveMetaInfo);
-
-        int zipError = zipOpenNewFileInZip64(backupZip,
-                                             fs::NAME_SAVE_META.data(),
-                                             &saveMetaInfo,
-                                             NULL,
-                                             0,
-                                             NULL,
-                                             0,
-                                             NULL,
-                                             Z_DEFLATED,
-                                             config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL),
-                                             0);
-        if (zipError == ZIP_OK)
+        if (hasMeta)
         {
-            zipWriteInFileInZip(backupZip, &meta, sizeof(fs::SaveMetaData));
-            zipCloseFileInZip(backupZip);
+            zip_fileinfo saveMetaInfo;
+            fs::create_zip_fileinfo(saveMetaInfo);
+
+            int zipError = zipOpenNewFileInZip64(backupZip,
+                                                 fs::NAME_SAVE_META.data(),
+                                                 &saveMetaInfo,
+                                                 NULL,
+                                                 0,
+                                                 NULL,
+                                                 0,
+                                                 NULL,
+                                                 Z_DEFLATED,
+                                                 config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL),
+                                                 0);
+            if (zipError == ZIP_OK)
+            {
+                zipWriteInFileInZip(backupZip, &meta, sizeof(fs::SaveMetaData));
+                zipCloseFileInZip(backupZip);
+            }
         }
 
         fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, backupZip, task);
@@ -435,7 +443,7 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStru
         {
             fslib::Path metaPath = dataStruct->m_targetPath / fs::NAME_SAVE_META;
             fslib::File metaFile(metaPath, FsOpenMode_Create | FsOpenMode_Write, sizeof(fs::SaveMetaData));
-            if (metaFile)
+            if (metaFile && hasMeta)
             {
                 metaFile.write(&meta, sizeof(fs::SaveMetaData));
             }
@@ -446,7 +454,7 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<TargetStru
     task->finished();
 }
 
-static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct> dataStruct)
+static void restore_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct)
 {
     // Going to need this later.
     FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(dataStruct->m_titleInfo->get_application_id());
@@ -535,7 +543,7 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<TargetStruct
     task->finished();
 }
 
-static void delete_backup(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void delete_backup(sys::Task *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct)
 {
     if (task)
     {

@@ -31,12 +31,16 @@ class JKSV
     private:
         /// @brief Whether or not initialization was successful and JKSV is still running.
         bool m_isRunning = false;
+
         /// @brief Whether or not to print the translation credits.
         bool m_showTranslationInfo = false;
+
         /// @brief JKSV icon in upper left corner.
         sdl::SharedTexture m_headerIcon = nullptr;
+
         /// @brief Vector of states to update and render.
         static inline std::vector<std::shared_ptr<AppState>> sm_stateVector;
+
         /// @brief Purges and updates states in sm_stateVector.
         static void update_state_vector(void);
 };

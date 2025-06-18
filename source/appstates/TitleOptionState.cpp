@@ -1,5 +1,6 @@
 #include "appstates/TitleOptionState.hpp"
 #include "appstates/ConfirmState.hpp"
+#include "appstates/MainMenuState.hpp"
 #include "appstates/TitleInfoState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
@@ -34,23 +35,18 @@ namespace
     static const char *ERROR_RESETTING_SAVE = "Error resetting save data: %s";
 } // namespace
 
-// Struct to send data to functions that require confirmation.
-typedef struct
-{
-        data::User *m_user;
-        data::TitleInfo *m_targetTitle;
-} TargetStruct;
-
 // Declarations. Definitions after class. Some of these are only here to be compatible with confirmations.
-static void blacklist_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
+static void blacklist_title(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct);
 static void change_output_path(data::TitleInfo *targetTitle);
-static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
-static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
-static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
-static void extend_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct);
+static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct);
+static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct);
+static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct);
+static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct);
 static void export_svi_file(data::TitleInfo *titleInfo);
 
-TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo) : m_user(user), m_titleInfo(titleInfo)
+TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo, TitleSelectCommon *titleSelect)
+    : m_user(user), m_titleInfo(titleInfo), m_titleSelect(titleSelect),
+      m_dataStruct(std::make_shared<TitleOptionState::DataStruct>())
 {
     // Create panel if needed.
     if (!sm_initialized)
@@ -70,10 +66,30 @@ TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo)
         // Only do this once.
         sm_initialized = true;
     }
+
+    // Fill this out.
+    m_dataStruct->m_user = m_user;
+    m_dataStruct->m_titleInfo = m_titleInfo;
+    m_dataStruct->m_spawningState = this;
+    m_dataStruct->m_titleSelect = m_titleSelect;
 }
 
 void TitleOptionState::update(void)
 {
+    // This is kind of tricky to handle, because the blacklist function uses both.
+    if (m_refreshRequired)
+    {
+        // Refresh the views.
+        MainMenuState::refresh_view_states();
+        m_refreshRequired = false;
+        // Return so nothing else happens. Not sure I like this, but w/e.
+        return;
+    }
+    if (m_exitRequired)
+    {
+        sm_slidePanel->close();
+    }
+
     // Update panel and menu.
     sm_slidePanel->update(AppState::has_focus());
     sm_titleOptionMenu->update(AppState::has_focus());
@@ -96,16 +112,12 @@ void TitleOptionState::update(void)
                     strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 0),
                     m_titleInfo->get_title());
 
-                // Data to send
-                std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
-                data->m_targetTitle = m_titleInfo;
-
                 // The actual state.
-                std::shared_ptr<ConfirmState<sys::Task, TaskState, TargetStruct>> confirm =
-                    std::make_shared<ConfirmState<sys::Task, TaskState, TargetStruct>>(confirmString,
-                                                                                       false,
-                                                                                       blacklist_title,
-                                                                                       data);
+                auto confirm =
+                    std::make_shared<ConfirmState<sys::Task, TaskState, TitleOptionState::DataStruct>>(confirmString,
+                                                                                                       false,
+                                                                                                       blacklist_title,
+                                                                                                       m_dataStruct);
 
                 // Push
                 JKSV::push_state(confirm);
@@ -130,16 +142,12 @@ void TitleOptionState::update(void)
                     strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 1),
                     m_titleInfo->get_title());
 
-                // Data
-                std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
-                data->m_targetTitle = m_titleInfo;
-
                 // State. This always requires holding because I hate people complaining to me about how it's my fault they don't read things first.
-                std::shared_ptr<ConfirmState<sys::Task, TaskState, TargetStruct>> confirm =
-                    std::make_shared<ConfirmState<sys::Task, TaskState, TargetStruct>>(confirmString,
-                                                                                       true,
-                                                                                       delete_all_backups_for_title,
-                                                                                       data);
+                auto confirm = std::make_shared<ConfirmState<sys::Task, TaskState, TitleOptionState::DataStruct>>(
+                    confirmString,
+                    true,
+                    delete_all_backups_for_title,
+                    m_dataStruct);
 
                 JKSV::push_state(confirm);
             }
@@ -161,16 +169,11 @@ void TitleOptionState::update(void)
                     strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 2),
                     m_titleInfo->get_title());
 
-                // Data
-                std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
-                data->m_user = m_user;
-                data->m_targetTitle = m_titleInfo;
-
-                std::shared_ptr<ConfirmState<sys::Task, TaskState, TargetStruct>> confirm =
-                    std::make_shared<ConfirmState<sys::Task, TaskState, TargetStruct>>(confirmString,
-                                                                                       true,
-                                                                                       reset_save_data,
-                                                                                       data);
+                auto confirm =
+                    std::make_shared<ConfirmState<sys::Task, TaskState, TitleOptionState::DataStruct>>(confirmString,
+                                                                                                       true,
+                                                                                                       reset_save_data,
+                                                                                                       m_dataStruct);
 
                 JKSV::push_state(confirm);
             }
@@ -192,17 +195,12 @@ void TitleOptionState::update(void)
                     m_user->get_nickname(),
                     m_titleInfo->get_title());
 
-                // Data
-                std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
-                data->m_user = m_user;
-                data->m_targetTitle = m_titleInfo;
-
                 // Confirmation.
-                std::shared_ptr<ConfirmState<sys::Task, TaskState, TargetStruct>> confirm =
-                    std::make_shared<ConfirmState<sys::Task, TaskState, TargetStruct>>(confirmString,
-                                                                                       true,
-                                                                                       delete_save_data_from_system,
-                                                                                       data);
+                auto confirm = std::make_shared<ConfirmState<sys::Task, TaskState, TitleOptionState::DataStruct>>(
+                    confirmString,
+                    true,
+                    delete_save_data_from_system,
+                    m_dataStruct);
 
                 JKSV::push_state(confirm);
             }
@@ -218,13 +216,8 @@ void TitleOptionState::update(void)
                     return;
                 }
 
-                // Data
-                std::shared_ptr<TargetStruct> data = std::make_shared<TargetStruct>();
-                data->m_user = m_user;
-                data->m_targetTitle = m_titleInfo;
-
                 // State.
-                JKSV::push_state(std::make_shared<TaskState>(extend_save_data, data));
+                JKSV::push_state(std::make_shared<TaskState>(extend_save_data, m_dataStruct));
             }
             break;
 
@@ -250,6 +243,7 @@ void TitleOptionState::update(void)
         // Reset static members.
         sm_slidePanel->reset();
         sm_titleOptionMenu->set_selected(0);
+        // Deactivate and allow state to be purged.
         AppState::deactivate();
     }
 }
@@ -261,10 +255,36 @@ void TitleOptionState::render(void)
     sm_slidePanel->render(NULL, AppState::has_focus());
 }
 
-static void blacklist_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+void TitleOptionState::close_on_update(void)
 {
+    m_exitRequired = true;
+}
+
+void TitleOptionState::refresh_required(void)
+{
+    m_refreshRequired = true;
+}
+
+static void blacklist_title(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
+{
+    // Gonna need this a lot.
+    uint64_t applicationID = dataStruct->m_titleInfo->get_application_id();
+
     // We're not gonna bother with a status for this. It'll flicker, but be barely noticeable.
-    config::add_remove_blacklist(dataStruct->m_targetTitle->get_application_id());
+    config::add_remove_blacklist(applicationID);
+
+    // Now we need to remove it from all of the users. This doesn't just apply to the active one.
+    data::UserList userList;
+    data::get_users(userList);
+    for (data::User *user : userList)
+    {
+        user->erase_save_info_by_id(applicationID);
+    }
+
+    // This will tell the main thread a refresh is required on the next update call.
+    dataStruct->m_spawningState->refresh_required();
+    dataStruct->m_spawningState->close_on_update();
+
     task->finished();
 }
 
@@ -312,14 +332,14 @@ static void change_output_path(data::TitleInfo *targetTitle)
                                         pathBuffer);
 }
 
-static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
     // Get the path.
-    fslib::Path titlePath = config::get_working_directory() / dataStruct->m_targetTitle->get_path_safe_title();
+    fslib::Path titlePath = config::get_working_directory() / dataStruct->m_titleInfo->get_path_safe_title();
 
     // Set the status.
     task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 0),
-                     dataStruct->m_targetTitle->get_title());
+                     dataStruct->m_titleInfo->get_title());
 
     // Just call this and nuke the folder.
     if (!fslib::delete_directory_recursively(titlePath))
@@ -331,18 +351,18 @@ static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<Target
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLE_OPTION_POPS, 0),
-                                            dataStruct->m_targetTitle->get_title());
+                                            dataStruct->m_titleInfo->get_title());
     }
     task->finished();
 }
 
-static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
     // To do: Make this not as hard to read.
     // Attempt to mount save.
     if (!fslib::open_save_data_with_save_info(
             fs::DEFAULT_SAVE_MOUNT,
-            *dataStruct->m_user->get_save_info_by_id(dataStruct->m_targetTitle->get_application_id())))
+            *dataStruct->m_user->get_save_info_by_id(dataStruct->m_titleInfo->get_application_id())))
     {
         logger::log(ERROR_RESETTING_SAVE, fslib::get_error_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
@@ -380,15 +400,15 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataS
     task->finished();
 }
 
-static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
     // Set the status in case this takes a little while.
     task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 2),
                      dataStruct->m_user->get_nickname(),
-                     dataStruct->m_targetTitle->get_title());
+                     dataStruct->m_titleInfo->get_title());
 
     // Grab the save data info pointer.
-    uint64_t applicationID = dataStruct->m_targetTitle->get_application_id();
+    uint64_t applicationID = dataStruct->m_titleInfo->get_application_id();
     FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(applicationID);
     if (saveInfo == nullptr)
     {
@@ -407,14 +427,22 @@ static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<Target
     // Erase the info from the user since it should have been deleted.
     dataStruct->m_user->erase_save_info_by_id(applicationID);
 
+    // Refresh
+    dataStruct->m_titleSelect->refresh();
+
+    // Signal to close, because this save is no long valid.
+    dataStruct->m_spawningState->close_on_update();
+
     // Done?
     task->finished();
 }
 
-static void extend_save_data(sys::Task *task, std::shared_ptr<TargetStruct> dataStruct)
+static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
     // This is just to make stuff easier to read.
-    data::TitleInfo *titleInfo = dataStruct->m_targetTitle;
+    data::TitleInfo *titleInfo = dataStruct->m_titleInfo;
+
+    // Grab this quick.
     FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(titleInfo->get_application_id());
     if (!saveInfo)
     {
@@ -427,7 +455,7 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TargetStruct> data
     // Set the status.
     task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 3),
                      dataStruct->m_user->get_nickname(),
-                     dataStruct->m_targetTitle->get_title());
+                     dataStruct->m_titleInfo->get_title());
 
     // This is the header string.
     std::string_view keyboardString = strings::get_by_name(strings::names::KEYBOARD_STRINGS, 8);
