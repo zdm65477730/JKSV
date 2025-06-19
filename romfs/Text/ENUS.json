@@ -60,14 +60,16 @@
         "Sets the speed at which transitions and animations occur. Lower is faster."
     ],
     "ExtrasMenu": [
-        "Reload Titles",
+        "Reinitialize Data",
         "SD to SD Browser",
         "BIS: ProdInfoF",
         "BIS: Safe",
         "BIS: System",
         "BIS: User",
-        "Terminate Process",
-        "Mount System Save"
+        "Terminate Process"
+    ],
+    "ExtrasPopMessages": [
+        "Data reinitialized!"
     ],
     "YesNo": [
         "Yes [A]",
