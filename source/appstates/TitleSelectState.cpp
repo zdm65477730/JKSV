@@ -56,7 +56,7 @@ void TitleSelectState::update(void)
         }
         else
         {
-            logger::log("%s", fslib::get_error_string());
+            logger::log(fslib::get_error_string());
         }
     }
     else if (input::button_pressed(HidNpadButton_X))
@@ -78,10 +78,14 @@ void TitleSelectState::update(void)
         config::add_remove_favorite(m_user->get_application_id_at(m_titleView.get_selected()));
 
         // Resort the data.
-        m_user->sort_data();
+        data::UserList list;
+        data::get_users(list);
+        for (data::User *user : list)
+        {
+            user->sort_data();
+        }
 
-        // Refresh the view.
-        TitleSelectState::refresh();
+        MainMenuState::refresh_view_states();
     }
 }
 

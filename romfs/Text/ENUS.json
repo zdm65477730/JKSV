@@ -179,7 +179,8 @@
         "Backup is empty!",
         "Error resetting save data!",
         "Error opening ZIP file for reading!",
-        "Error occurred deleting backup!"
+        "Error occurred deleting backup!",
+        "Error creating backup!"
     ],
     "PopMessagesSaveCreate": [
         "Save data created for #%s#!",

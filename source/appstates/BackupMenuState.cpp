@@ -21,6 +21,9 @@ namespace
 {
     /// @brief This is the length allotted for naming backups.
     constexpr size_t SIZE_BACKUP_NAME_LENGTH = 0x80;
+
+    /// @brief This is just so there isn't random .zip comparisons everywhere.
+    constexpr std::string_view STRING_ZIP_EXTENSION = ".zip";
 } // namespace
 
 // Declarations here. Definitions after class.
@@ -367,6 +370,12 @@ static void create_new_backup(sys::ProgressTask *task,
         fs::copy_directory(fs::DEFAULT_SAVE_ROOT, targetPath, 0, {}, task);
     }
 
+    // This should actually fatal somehow?
+    if (!fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT))
+    {
+        logger::log("Error closing save data: %s.", fslib::get_error_string());
+    }
+
     // Refresh.
     spawningState->refresh();
 
@@ -375,22 +384,20 @@ static void create_new_backup(sys::ProgressTask *task,
 
 static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct)
 {
+    // I hate typing this stuff over and over.
+    static const char *STRING_ERROR_PREFIX = "Error overwriting backup: %s";
+
     // Might need this later.
     FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(dataStruct->m_titleInfo->get_application_id());
 
-    // directory_exists can also be used to check if the target is a directory.
-    if (fslib::directory_exists(dataStruct->m_targetPath) &&
-        !fslib::delete_directory_recursively(dataStruct->m_targetPath))
+    // Wew this is a fun one to read, but it takes care of everything in one go.
+    if ((fslib::directory_exists(dataStruct->m_targetPath) &&
+         !fslib::delete_directory_recursively(dataStruct->m_targetPath)) ||
+        (fslib::file_exists(dataStruct->m_targetPath) && !fslib::delete_file(dataStruct->m_targetPath)))
     {
-        logger::log("Error overwriting backup: %s", fslib::get_error_string());
-        task->finished();
-        return;
-    } // This has an added check for the zip extension so it can't try to overwrite files that aren't supposed to be zip.
-    else if (fslib::file_exists(dataStruct->m_targetPath) &&
-             std::strcmp("zip", dataStruct->m_targetPath.get_extension()) == 0 &&
-             !fslib::delete_file(dataStruct->m_targetPath))
-    {
-        logger::log("Error overwriting backup: %s", fslib::get_error_string());
+        // Try to close this quick.
+        fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
+        logger::log(STRING_ERROR_PREFIX, fslib::get_error_string());
         task->finished();
         return;
     }
@@ -399,7 +406,8 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenu
     fs::SaveMetaData meta;
     bool hasMeta = fs::fill_save_meta_data(saveInfo, meta);
 
-    if (std::strcmp("zip", dataStruct->m_targetPath.get_extension()))
+
+    if (std::strstr(STRING_ZIP_EXTENSION.data(), dataStruct->m_targetPath.c_string()))
     {
         zipFile backupZip = zipOpen64(dataStruct->m_targetPath.c_string(), APPEND_STATUS_CREATE);
         if (!backupZip)

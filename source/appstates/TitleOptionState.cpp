@@ -439,18 +439,16 @@ static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TitleO
 
 static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
-    // This is just to make stuff easier to read.
+    // Grab this stuff to make stuff easier to read and type.
     data::TitleInfo *titleInfo = dataStruct->m_titleInfo;
-
-    // Grab this quick.
     FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(titleInfo->get_application_id());
+
     if (!saveInfo)
     {
         logger::log("Error retrieving save data info to extend!");
         task->finished();
         return;
     }
-
 
     // Set the status.
     task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 3),
@@ -472,8 +470,8 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::
     // Convert input to number and multiply it by 1MB. To do: Check if this is valid before continuing?
     int64_t size = std::strtoll(buffer, NULL, 10) * 0x100000;
 
-    // Grab the journal size. Going max is probably a good idea here in case games increase it.
-    int64_t journalSize = titleInfo->get_journal_size_max(saveInfo->save_data_type);
+    // Grab the journal size.
+    int64_t journalSize = titleInfo->get_journal_size(saveInfo->save_data_type);
 
     // To do: Check this and toast message.
     fs::extend_save_data(saveInfo, size, journalSize);
