@@ -1,4 +1,5 @@
 #include "JKSV.hpp"
+#include "StateManager.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
@@ -120,7 +121,7 @@ JKSV::JKSV(void)
     m_headerIcon = sdl::TextureManager::create_load_texture("HeaderIcon", "romfs:/Textures/HeaderIcon.png");
 
     // Push initial main menu state.
-    JKSV::push_state(std::make_shared<MainMenuState>());
+    StateManager::push_state(std::make_shared<MainMenuState>());
 
     m_isRunning = true;
 }
@@ -154,12 +155,13 @@ void JKSV::update(void)
 {
     input::update();
 
-    if (input::button_pressed(HidNpadButton_Plus) && !sm_stateVector.empty() && sm_stateVector.back()->is_closable())
+    if (input::button_pressed(HidNpadButton_Plus) && StateManager::back_is_closable())
     {
         m_isRunning = false;
     }
 
-    JKSV::update_state_vector();
+    // State update.
+    StateManager::update();
 
     // Update pop messages.
     ui::PopMessageManager::update();
@@ -204,55 +206,11 @@ void JKSV::render(void)
                       BUILD_DAY,
                       BUILD_YEAR);
 
-    // State render loop.
-    if (!sm_stateVector.empty())
-    {
-        for (auto &CurrentState : sm_stateVector)
-        {
-            CurrentState->render();
-        }
-    }
+    // State render.
+    StateManager::render();
 
     // Render messages.
     ui::PopMessageManager::render();
 
     sdl::frame_end();
-}
-
-void JKSV::push_state(std::shared_ptr<AppState> newState)
-{
-    if (!sm_stateVector.empty())
-    {
-        sm_stateVector.back()->take_focus();
-    }
-    newState->give_focus();
-    sm_stateVector.push_back(newState);
-}
-
-void JKSV::update_state_vector(void)
-{
-    if (sm_stateVector.empty())
-    {
-        return;
-    }
-
-    // Check for and purge deactivated states.
-    for (size_t i = 0; i < sm_stateVector.size(); i++)
-    {
-        if (!sm_stateVector.at(i)->is_active())
-        {
-            // This is a just in case thing. Some states are never actually purged.
-            sm_stateVector.at(i)->take_focus();
-            sm_stateVector.erase(sm_stateVector.begin() + i);
-        }
-    }
-
-    // Make sure the back has focus.
-    if (!sm_stateVector.back()->has_focus())
-    {
-        sm_stateVector.back()->give_focus();
-    }
-
-    // Only update the back most state.
-    sm_stateVector.back()->update();
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "JKSV.hpp"
+#include "StateManager.hpp"
 #include "appstates/AppState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "appstates/TaskState.hpp"
@@ -63,7 +63,10 @@ class ConfirmState : public AppState
             if (m_triggerGuard && input::button_pressed(HidNpadButton_A) && !m_hold)
             {
                 AppState::deactivate();
-                JKSV::push_state(std::make_shared<StateType>(m_function, m_dataStruct));
+
+                auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
+
+                StateManager::push_state(newState);
             }
             else if (m_triggerGuard && input::button_pressed(HidNpadButton_A) && m_hold)
             {
@@ -79,7 +82,8 @@ class ConfirmState : public AppState
                 if (TickCount >= 3000)
                 {
                     AppState::deactivate();
-                    JKSV::push_state(std::make_shared<StateType>(m_function, m_dataStruct));
+
+                    auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
                 }
                 else if (TickCount >= 2000)
                 {
@@ -135,10 +139,10 @@ class ConfirmState : public AppState
         std::string m_yesString;
 
         /// @brief X coordinate to render the Yes [A]
-        int m_yesX = 0;
+        int m_yesX{};
 
         /// @brief Position of No.
-        int m_noX = 0;
+        int m_noX{};
 
         /// @brief This is to prevent the dialog from triggering immediately.
         bool m_triggerGuard = false;
@@ -147,7 +151,7 @@ class ConfirmState : public AppState
         bool m_hold;
 
         /// @brief Keep track of the ticks/time needed to confirm.
-        uint64_t m_startingTickCount = 0;
+        uint64_t m_startingTickCount{};
 
         /// @brief Function to execute if action is confirmed.
         TaskFunction m_function;

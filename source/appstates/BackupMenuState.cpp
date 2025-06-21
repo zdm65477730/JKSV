@@ -1,5 +1,5 @@
 #include "appstates/BackupMenuState.hpp"
-#include "JKSV.hpp"
+#include "StateManager.hpp"
 #include "appstates/ConfirmState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "colors.hpp"
@@ -123,12 +123,15 @@ void BackupMenuState::update(void)
             return;
         }
 
+        // This is the path to write the backup to.
+        fslib::Path targetPath = m_directoryPath / backupName;
+
+        // Create the state.
+        auto createNewBackup =
+            std::make_shared<ProgressState>(create_new_backup, m_user, m_titleInfo, targetPath, this);
+
         // Push the task.
-        JKSV::push_state(std::make_shared<ProgressState>(create_new_backup,
-                                                         m_user,
-                                                         m_titleInfo,
-                                                         m_directoryPath / backupName,
-                                                         this));
+        StateManager::push_state(createNewBackup);
     }
     else if (input::button_pressed(HidNpadButton_A) && sm_backupMenu->get_selected() == 0 && !m_saveHasData)
     {
@@ -153,7 +156,7 @@ void BackupMenuState::update(void)
             overwrite_backup,
             m_dataStruct);
 
-        JKSV::push_state(confirm);
+        StateManager::push_state(confirm);
     }
     else if (input::button_pressed(HidNpadButton_A) && !m_saveHasData && sm_backupMenu->get_selected() > 0)
     {
@@ -197,7 +200,7 @@ void BackupMenuState::update(void)
             restore_backup,
             m_dataStruct);
 
-        JKSV::push_state(confirm);
+        StateManager::push_state(confirm);
     }
     else if (input::button_pressed(HidNpadButton_X) && sm_backupMenu->get_selected() > 0)
     {
@@ -219,7 +222,7 @@ void BackupMenuState::update(void)
             m_dataStruct);
 
         // Create/push new state.
-        JKSV::push_state(confirm);
+        StateManager::push_state(confirm);
     }
     else if (input::button_pressed(HidNpadButton_B))
     {

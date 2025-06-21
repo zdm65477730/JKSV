@@ -1,5 +1,5 @@
 #include "appstates/TitleSelectState.hpp"
-#include "JKSV.hpp"
+#include "StateManager.hpp"
 #include "appstates/BackupMenuState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TitleOptionState.hpp"
@@ -50,9 +50,12 @@ void TitleSelectState::update(void)
         if ((fslib::directory_exists(targetPath) || fslib::create_directory(targetPath)) &&
             fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
         {
-            JKSV::push_state(std::make_shared<BackupMenuState>(m_user,
-                                                               titleInfo,
-                                                               static_cast<FsSaveDataType>(saveInfo->save_data_type)));
+            auto backupMenuState =
+                std::make_shared<BackupMenuState>(m_user,
+                                                  titleInfo,
+                                                  static_cast<FsSaveDataType>(saveInfo->save_data_type));
+
+            StateManager::push_state(backupMenuState);
         }
         else
         {
@@ -64,7 +67,9 @@ void TitleSelectState::update(void)
         uint64_t applicationID = m_user->get_application_id_at(m_titleView.get_selected());
         data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
 
-        JKSV::push_state(std::make_shared<TitleOptionState>(m_user, titleInfo, this));
+        auto titleOptionState = std::make_shared<TitleOptionState>(m_user, titleInfo, this);
+
+        StateManager::push_state(std::make_shared<TitleOptionState>(m_user, titleInfo, this));
     }
     else if (input::button_pressed(HidNpadButton_B))
     {

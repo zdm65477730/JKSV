@@ -1,5 +1,5 @@
 #include "appstates/MainMenuState.hpp"
-#include "JKSV.hpp"
+#include "StateManager.hpp"
 #include "appstates/ExtrasMenuState.hpp"
 #include "appstates/SettingsState.hpp"
 #include "appstates/TextTitleSelectState.hpp"
@@ -53,16 +53,17 @@ void MainMenuState::update(void)
 
     int selected = m_mainMenu.get_selected();
 
+    // To do: Simplify this logic.
     if (input::button_pressed(HidNpadButton_A) && selected < static_cast<int>(sm_users.size()) &&
         sm_users.at(selected)->get_total_data_entries() > 0)
     {
         sm_states.at(selected)->reactivate();
-        JKSV::push_state(sm_states.at(selected));
+        StateManager::push_state(sm_states.at(selected));
     }
     else if (input::button_pressed(HidNpadButton_A) && selected >= static_cast<int>(sm_users.size()))
     {
         sm_states.at(selected)->reactivate();
-        JKSV::push_state(sm_states.at(selected));
+        StateManager::push_state(sm_states.at(selected));
     }
     else if (input::button_pressed(HidNpadButton_X) && selected < static_cast<int>(sm_users.size()))
     {
@@ -70,7 +71,7 @@ void MainMenuState::update(void)
         data::User *targetUser = sm_users.at(selected);
         TitleSelectCommon *targetTitleSelect = reinterpret_cast<TitleSelectCommon *>(sm_states.at(selected).get());
 
-        JKSV::push_state(std::make_shared<UserOptionState>(targetUser, targetTitleSelect));
+        StateManager::push_state(std::make_shared<UserOptionState>(targetUser, targetTitleSelect));
     }
 }
 

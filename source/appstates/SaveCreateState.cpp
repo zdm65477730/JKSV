@@ -1,5 +1,5 @@
 #include "appstates/SaveCreateState.hpp"
-#include "JKSV.hpp"
+#include "StateManager.hpp"
 #include "appstates/TaskState.hpp"
 #include "data/data.hpp"
 #include "fs/fs.hpp"
@@ -62,7 +62,7 @@ void SaveCreateState::update(void)
     if (input::button_pressed(HidNpadButton_A))
     {
         data::TitleInfo *targetTitle = m_titleInfoVector.at(m_saveMenu.get_selected());
-        JKSV::push_state(std::make_shared<TaskState>(create_save_data, m_user, targetTitle, this));
+        StateManager::push_state(std::make_shared<TaskState>(create_save_data, m_user, targetTitle, this));
     }
     else if (input::button_pressed(HidNpadButton_B))
     {

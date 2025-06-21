@@ -1,4 +1,5 @@
 #include "appstates/TitleOptionState.hpp"
+#include "StateManager.hpp"
 #include "appstates/ConfirmState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TitleInfoState.hpp"
@@ -100,8 +101,10 @@ void TitleOptionState::update(void)
         {
             case INFORMATION:
             {
+                auto titleInfoState = std::make_shared<TitleInfoState>(m_user, m_titleInfo);
+
                 // Just push the state.
-                JKSV::push_state(std::make_shared<TitleInfoState>(m_user, m_titleInfo));
+                StateManager::push_state(titleInfoState);
             }
             break;
 
@@ -120,7 +123,7 @@ void TitleOptionState::update(void)
                                                                                                        m_dataStruct);
 
                 // Push
-                JKSV::push_state(confirm);
+                StateManager::push_state(confirm);
             }
             break;
 
@@ -149,7 +152,7 @@ void TitleOptionState::update(void)
                     delete_all_backups_for_title,
                     m_dataStruct);
 
-                JKSV::push_state(confirm);
+                StateManager::push_state(confirm);
             }
             break;
 
@@ -175,7 +178,7 @@ void TitleOptionState::update(void)
                                                                                                        reset_save_data,
                                                                                                        m_dataStruct);
 
-                JKSV::push_state(confirm);
+                StateManager::push_state(confirm);
             }
             break;
 
@@ -202,7 +205,7 @@ void TitleOptionState::update(void)
                     delete_save_data_from_system,
                     m_dataStruct);
 
-                JKSV::push_state(confirm);
+                StateManager::push_state(confirm);
             }
             break;
 
@@ -217,7 +220,7 @@ void TitleOptionState::update(void)
                 }
 
                 // State.
-                JKSV::push_state(std::make_shared<TaskState>(extend_save_data, m_dataStruct));
+                StateManager::push_state(std::make_shared<TaskState>(extend_save_data, m_dataStruct));
             }
             break;
 

@@ -24,10 +24,6 @@ class JKSV
         /// @brief Runs JKSV's render routine.
         void render(void);
 
-        /// @brief Pushes a new state to JKSV's state vector.
-        /// @param newState State to push to vector.
-        static void push_state(std::shared_ptr<AppState> newState);
-
     private:
         /// @brief Whether or not initialization was successful and JKSV is still running.
         bool m_isRunning = false;
@@ -37,10 +33,4 @@ class JKSV
 
         /// @brief JKSV icon in upper left corner.
         sdl::SharedTexture m_headerIcon = nullptr;
-
-        /// @brief Vector of states to update and render.
-        static inline std::vector<std::shared_ptr<AppState>> sm_stateVector;
-
-        /// @brief Purges and updates states in sm_stateVector.
-        static void update_state_vector(void);
 };

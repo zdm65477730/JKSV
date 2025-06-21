@@ -1,5 +1,5 @@
 #include "appstates/UserOptionState.hpp"
-#include "JKSV.hpp"
+#include "StateManager.hpp"
 #include "appstates/ConfirmState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/ProgressState.hpp"
@@ -90,14 +90,16 @@ void UserOptionState::update(void)
                         backup_all_for_user,
                         m_dataStruct);
 
-                JKSV::push_state(confirmBackupAll);
+                StateManager::push_state(confirmBackupAll);
             }
             break;
 
             case CREATE_SAVE:
             {
+                auto saveCreateState = std::make_shared<SaveCreateState>(m_user, m_titleSelect);
+
                 // This just pushes the state with the menu to select.
-                JKSV::push_state(std::make_shared<SaveCreateState>(m_user, m_titleSelect));
+                StateManager::push_state(std::make_shared<SaveCreateState>(m_user, m_titleSelect));
             }
             break;
 
@@ -115,7 +117,7 @@ void UserOptionState::update(void)
                         m_dataStruct);
 
                 // Done?
-                JKSV::push_state(confirmCreateAll);
+                StateManager::push_state(confirmCreateAll);
             }
             break;
 
@@ -132,7 +134,7 @@ void UserOptionState::update(void)
                         delete_all_save_data_for_user,
                         m_dataStruct);
 
-                JKSV::push_state(confirmDeleteAll);
+                StateManager::push_state(confirmDeleteAll);
             }
             break;
         }
