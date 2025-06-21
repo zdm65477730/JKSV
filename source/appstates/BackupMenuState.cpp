@@ -82,6 +82,9 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
 
 BackupMenuState::~BackupMenuState()
 {
+    // Close the save.
+    fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
+    // Close the panel.
     sm_slidePanel->clear_elements();
 }
 
@@ -123,7 +126,6 @@ void BackupMenuState::update(void)
             return;
         }
 
-        // This is the path to write the backup to.
         fslib::Path targetPath = m_directoryPath / backupName;
 
         // Create the state.
@@ -226,7 +228,6 @@ void BackupMenuState::update(void)
     }
     else if (input::button_pressed(HidNpadButton_B))
     {
-        fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
         sm_slidePanel->close();
     }
     else if (sm_slidePanel->is_closed())
@@ -373,12 +374,6 @@ static void create_new_backup(sys::ProgressTask *task,
         fs::copy_directory(fs::DEFAULT_SAVE_ROOT, targetPath, 0, {}, task);
     }
 
-    // This should actually fatal somehow?
-    if (!fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT))
-    {
-        logger::log("Error closing save data: %s.", fslib::get_error_string());
-    }
-
     // Refresh.
     spawningState->refresh();
 
@@ -398,8 +393,6 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenu
          !fslib::delete_directory_recursively(dataStruct->m_targetPath)) ||
         (fslib::file_exists(dataStruct->m_targetPath) && !fslib::delete_file(dataStruct->m_targetPath)))
     {
-        // Try to close this quick.
-        fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
         logger::log(STRING_ERROR_PREFIX, fslib::get_error_string());
         task->finished();
         return;
