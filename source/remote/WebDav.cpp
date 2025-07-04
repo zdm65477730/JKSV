@@ -409,7 +409,11 @@ static std::string slice_name_from_href(curl::Handle &handle, std::string_view h
     {
         size_t end = href.find_last_of('/');
         size_t begin = href.find_last_of('/', end - 1);
-
+        if (end == href.npos || begin == href.npos)
+        {
+            // To do: Maybe handle this better?
+            return std::string(href);
+        }
         // To do: Inspect this behavior better.
         name = href.substr(begin + 1, (end - begin) - 1);
     }
@@ -417,12 +421,17 @@ static std::string slice_name_from_href(curl::Handle &handle, std::string_view h
     {
         // File
         size_t begin = href.find_last_of('/');
-        name = href.substr(begin + 1);
+        if (begin == href.npos)
+        {
+            name = href;
+        }
+        else
+        {
+            name = href.substr(begin + 1);
+        }
     }
 
     curl::unescape_string(handle, name, name);
-
-    logger::log(name.c_str());
 
     return name;
 }
