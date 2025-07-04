@@ -205,11 +205,6 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
         return false;
     }
 
-    for (std::string &h : headerArray)
-    {
-        logger::log("h: %s", h.c_str());
-    }
-
     // Extract the location from the headers.
     std::string location;
     if (!curl::get_header_value(headerArray, HEADER_UPLOAD_LOCATION.data(), location))
