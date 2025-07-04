@@ -74,6 +74,11 @@ bool remote::Storage::supports_utf8() const
     return m_utf8Paths;
 }
 
+std::string_view remote::Storage::get_prefix() const
+{
+    return m_prefix;
+}
+
 remote::Storage::List::iterator remote::Storage::find_directory_by_name(std::string_view name)
 {
     return std::find_if(m_list.begin(), m_list.end(), [name, this](const Item &item) {

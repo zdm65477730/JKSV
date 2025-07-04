@@ -50,6 +50,9 @@ remote::GoogleDrive::GoogleDrive() : Storage()
     // Google Drive doesn't really use directories, so UTF-8 is fine!
     m_utf8Paths = true;
 
+    // Google Drive menu prefix.
+    m_prefix = "[GD] ";
+
     // Load the json file.
     json::Object clientJson = json::new_object(json_object_from_file, remote::PATH_GOOGLE_DRIVE_CONFIG.data());
     if (!clientJson)

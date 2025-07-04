@@ -84,6 +84,9 @@ namespace remote
             /// @brief Returns whether or not the remote storage type supports UTF-8 for names or requires path safe titles.
             bool supports_utf8() const;
 
+            /// @brief Returns the prefix for menus.
+            std::string_view get_prefix() const;
+
         protected:
             /// @brief This is the size of the buffers used for snprintf'ing URLs together.
             static constexpr size_t SIZE_URL_BUFFER = 0x401;
@@ -108,6 +111,9 @@ namespace remote
 
             /// @brief This is the main remote listing.
             Storage::List m_list;
+
+            /// @brief This is the prefix used for menus.
+            std::string m_prefix;
 
             /// @brief Searches the list for a directory matching name and the current parent.
             /// @param name Name to search for.

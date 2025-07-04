@@ -3,12 +3,13 @@
 #include "curl/curl.hpp"
 #include "logger.hpp"
 #include "remote/remote.hpp"
+#include "stringutil.hpp"
 #include <tinyxml2.h>
 
 namespace
 {
     const char *TAG_XML_HREF = "href";
-}
+} // namespace
 
 // Declarations here. Definitions at bottom.
 /// @brief Gets a XML element by name. This is namespace agnostic.
@@ -20,12 +21,21 @@ static tinyxml2::XMLElement *get_element_by_name(tinyxml2::XMLElement *parent, s
 /// @param tag Tag to get the name of.
 static std::string_view get_tag_begin(std::string_view tag);
 
+/// @brief Slices and unescapes the directory or filename from the href.
+/// @param handle Curl handle to use to unescape.
+/// @param href HREF to slice.
+/// @note This seemed like a better alternative than relying on servers having displayname.
+static std::string slice_name_from_href(curl::Handle &handle, std::string_view href);
+
 remote::WebDav::WebDav() : Storage()
 {
     static const char *STRING_CONFIG_READ_ERROR = "Error initializing WebDav: %s";
 
     // WebDav has problems with these.
     m_utf8Paths = false;
+
+    // WebDav prefix for menus.
+    m_prefix = "[WD] ";
 
     json::Object config = json::new_object(json_object_from_file, remote::PATH_WEBDAV_CONFIG.data());
     if (!config)
@@ -52,7 +62,7 @@ remote::WebDav::WebDav() : Storage()
     {
         // The root is both in the beginning. I want this to work as closely as the original just not as poorly written
         // or thought out as the original JKSV dav code.
-        m_root = json_object_get_string(basepath);
+        m_root = stringutil::get_formatted_string("/%s/", json_object_get_string(basepath));
         m_parent = m_root;
     }
 
@@ -77,7 +87,6 @@ remote::WebDav::WebDav() : Storage()
         logger::log(STRING_CONFIG_READ_ERROR, "Error retrieving listing from WebDav server!");
         return;
     }
-
     m_isInitialized = true;
 }
 
@@ -328,8 +337,11 @@ bool remote::WebDav::process_listing(std::string_view xml)
         tinyxml2::XMLElement *collection = get_element_by_name(resourceType, "collection");
         if (collection)
         {
-            // JKSV doesn't expose folder names to the end user, so they are emplaced as-is.
-            m_list.emplace_back(href->GetText(), href->GetText(), parentLocation->GetText(), 0, true);
+            m_list.emplace_back(slice_name_from_href(m_curl, href->GetText()),
+                                href->GetText(),
+                                parentLocation->GetText(),
+                                0,
+                                true);
 
             remote::URL nextUrl{m_origin};
             nextUrl.append_path(href->GetText());
@@ -342,15 +354,14 @@ bool remote::WebDav::process_listing(std::string_view xml)
         }
         else
         {
-            tinyxml2::XMLElement *displayName = get_element_by_name(prop, "displayname");
             tinyxml2::XMLElement *getContentLength = get_element_by_name(prop, "getcontentlength");
-            if (!displayName || !getContentLength)
+            if (!getContentLength)
             {
-                logger::log(STRING_ERROR_PROCESSING_XML, "Missing needed tags for file!");
+                logger::log(STRING_ERROR_PROCESSING_XML, "Missing needed data for file!");
                 continue;
             }
 
-            m_list.emplace_back(displayName->GetText(),
+            m_list.emplace_back(slice_name_from_href(m_curl, href->GetText()),
                                 href->GetText(),
                                 parentLocation->GetText(),
                                 std::strtoll(getContentLength->GetText(), NULL, 10),
@@ -387,4 +398,31 @@ static std::string_view get_tag_begin(std::string_view tag)
         return tag;
     }
     return tag.substr(colon + 1);
+}
+
+static std::string slice_name_from_href(curl::Handle &handle, std::string_view href)
+{
+    std::string name{};
+
+    // This means we're working with a directory.
+    if (href.back() == '/')
+    {
+        size_t end = href.find_last_of('/');
+        size_t begin = href.find_last_of('/', end - 1);
+
+        // To do: Inspect this behavior better.
+        name = href.substr(begin + 1, (end - begin) - 1);
+    }
+    else
+    {
+        // File
+        size_t begin = href.find_last_of('/');
+        name = href.substr(begin + 1);
+    }
+
+    curl::unescape_string(handle, name, name);
+
+    logger::log(name.c_str());
+
+    return name;
 }
