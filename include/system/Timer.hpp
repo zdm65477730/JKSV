@@ -9,7 +9,7 @@ namespace sys
     {
         public:
             /// @brief Default constructor.
-            Timer(void) = default;
+            Timer() = default;
 
             /// @brief Constructs a new timer.
             /// @param triggerTicks Number of ticks the timer is triggered at.
@@ -21,15 +21,16 @@ namespace sys
 
             /// @brief Updates and returns if the timer was triggered.
             /// @return True if timer is triggered. False if it isn't.
-            bool is_triggered(void);
+            bool is_triggered();
 
             /// @brief Forces the timer to restart.
-            void restart(void);
+            void restart();
 
         private:
-            // Beginning ticks.
+            /// @brief Tick count when the timer starts.
             uint64_t m_startingTicks;
-            // How many ticks to trigger the timer.
+
+            /// @brief Number of ticks to trigger on.
             uint64_t m_triggerTicks;
     };
 } // namespace sys

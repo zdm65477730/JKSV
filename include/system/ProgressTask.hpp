@@ -25,11 +25,11 @@ namespace sys
 
             /// @brief Returns the goal value.
             /// @return Goal
-            double get_goal(void) const;
+            double get_goal() const;
 
             /// @brief Returns the current progress.
             /// @return Current progress.
-            double get_current(void) const;
+            double get_current() const;
 
         private:
             // Current value and goal

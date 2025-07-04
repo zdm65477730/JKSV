@@ -13,34 +13,34 @@ class AppState
         virtual ~AppState();
 
         /// @brief Every derived class is required to have this function.
-        virtual void update(void) = 0;
+        virtual void update() = 0;
 
         /// @brief Every derived class is required to have this function.
-        virtual void render(void) = 0;
+        virtual void render() = 0;
 
         /// @brief Deactivates state and allows JKSV to purge it from the vector.
-        void deactivate(void);
+        void deactivate();
 
         /// @brief Allows a state to be reactivated and pushed to the vector.
-        void reactivate(void);
+        void reactivate();
 
         /// @brief Returns if the state is still active.
         /// @return Whether state is still active or can be purged.
-        bool is_active(void) const;
+        bool is_active() const;
 
         /// @brief Tells the state it's at the back of the vector and has focus.
-        void give_focus(void);
+        void give_focus();
 
         /// @brief Takes the focus away and tells the state it's no long back();
-        void take_focus(void);
+        void take_focus();
 
         /// @brief Allows the state to know whether it has focus.
         /// @return Whether state has focus or not.
-        bool has_focus(void) const;
+        bool has_focus() const;
 
         /// @brief Returns whether or not JKSV should allow closing while state is active.
         /// @return True if closable. False if not.
-        bool is_closable(void) const;
+        bool is_closable() const;
 
     private:
         /// @brief Stores whether or not the state is currently active.

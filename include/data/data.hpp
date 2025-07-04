@@ -26,7 +26,7 @@ namespace data
 
     /// @brief Returns a reference to the title info map.
     /// @return Reference to TitleInfoMap.
-    std::unordered_map<uint64_t, data::TitleInfo> &get_title_info_map(void);
+    std::unordered_map<uint64_t, data::TitleInfo> &get_title_info_map();
 
     /// @brief Uses the application ID passed to add/load a title to the map.
     /// @param applicationID Application/System save data ID to add.

@@ -41,20 +41,20 @@ namespace
 
 // Declarations here. Definitions at bottom. These should appear in the order called.
 /// @brief Loads users from the system and creates the system users.
-static bool load_create_user_accounts(void);
+static bool load_create_user_accounts();
 
 /// @brief Loads the application records from NS.
-static void load_application_records(void);
+static void load_application_records();
 
 /// @brief Imports external SVI(Control Data) files.
-static void import_svi_files(void);
+static void import_svi_files();
 
 /// @brief Attempts to read the cache file from the SD.
 /// @return True on success. False on failure.
-static bool read_cache_file(void);
+static bool read_cache_file();
 
 /// @brief Creates the cache file on the SD card.
-static void create_cache_file(void);
+static void create_cache_file();
 
 bool data::initialize(bool clearCache)
 {
@@ -137,7 +137,7 @@ bool data::title_exists_in_map(uint64_t applicationID)
     return s_titleInfoMap.find(applicationID) != s_titleInfoMap.end();
 }
 
-std::unordered_map<uint64_t, data::TitleInfo> &data::get_title_info_map(void)
+std::unordered_map<uint64_t, data::TitleInfo> &data::get_title_info_map()
 {
     return s_titleInfoMap;
 }
@@ -157,7 +157,7 @@ void data::get_title_info_by_type(FsSaveDataType saveType, std::vector<data::Tit
     }
 }
 
-static bool load_create_user_accounts(void)
+static bool load_create_user_accounts()
 {
     // For saving total accounts found.
     int total = 0;
@@ -206,7 +206,7 @@ static bool load_create_user_accounts(void)
     return true;
 }
 
-static void load_application_records(void)
+static void load_application_records()
 {
     // Record struct/buffer.
     NsApplicationRecord record = {0};
@@ -223,7 +223,7 @@ static void load_application_records(void)
     }
 }
 
-static void import_svi_files(void)
+static void import_svi_files()
 {
     // Path.
     fslib::Path sviPath = config::get_working_directory() / "svi";
@@ -271,7 +271,7 @@ static void import_svi_files(void)
     }
 }
 
-static bool read_cache_file(void)
+static bool read_cache_file()
 {
     // Try opening the cache file.
     fslib::File cache(PATH_CACHE_PATH, FsOpenMode_Read);
@@ -311,7 +311,7 @@ static bool read_cache_file(void)
     return true;
 }
 
-static void create_cache_file(void)
+static void create_cache_file()
 {
     // First try creating and opening the file.
     fslib::File cache(PATH_CACHE_PATH, FsOpenMode_Create | FsOpenMode_Write);

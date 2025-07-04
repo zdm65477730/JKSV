@@ -30,18 +30,18 @@ void ui::TitleTile::render(SDL_Texture *target, int x, int y)
     }
 }
 
-void ui::TitleTile::reset(void)
+void ui::TitleTile::reset()
 {
     m_renderWidth = 128;
     m_renderHeight = 128;
 }
 
-int ui::TitleTile::get_width(void) const
+int ui::TitleTile::get_width() const
 {
     return m_renderWidth;
 }
 
-int ui::TitleTile::get_height(void) const
+int ui::TitleTile::get_height() const
 {
     return m_renderHeight;
 }

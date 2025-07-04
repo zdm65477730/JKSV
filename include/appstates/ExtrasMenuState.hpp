@@ -4,20 +4,20 @@
 #include "ui/Menu.hpp"
 
 /// @brief Extras menu.
-class ExtrasMenuState : public AppState
+class ExtrasMenuState final : public AppState
 {
     public:
         /// @brief Constructor.
-        ExtrasMenuState(void);
+        ExtrasMenuState();
 
         /// @brief Required even if nothing happens.
         ~ExtrasMenuState() {};
 
         /// @brief Updates the menu.
-        void update(void) override;
+        void update() override;
 
         /// @brief Renders the menu to screen.
-        void render(void) override;
+        void render() override;
 
     private:
         /// @brief Menu

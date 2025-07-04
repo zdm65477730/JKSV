@@ -9,18 +9,40 @@
 #include "logger.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
+#include <array>
 
 namespace
 {
     // All of these states share the same render target.
     constexpr std::string_view SECONDARY_TARGET = "SecondaryTarget";
+
+    // This is needed to be able to get and set keys by index. Anything "NULL" isn't a key that can be easily toggled.
+    constexpr std::array<std::string_view, 19> CONFIG_KEY_ARRAY = {"NULL",
+                                                                   "NULL",
+                                                                   config::keys::INCLUDE_DEVICE_SAVES,
+                                                                   config::keys::AUTO_BACKUP_ON_RESTORE,
+                                                                   config::keys::AUTO_NAME_BACKUPS,
+                                                                   config::keys::AUTO_UPLOAD,
+                                                                   config::keys::HOLD_FOR_DELETION,
+                                                                   config::keys::HOLD_FOR_RESTORATION,
+                                                                   config::keys::HOLD_FOR_OVERWRITE,
+                                                                   config::keys::ONLY_LIST_MOUNTABLE,
+                                                                   config::keys::LIST_ACCOUNT_SYS_SAVES,
+                                                                   config::keys::ALLOW_WRITING_TO_SYSTEM,
+                                                                   config::keys::EXPORT_TO_ZIP,
+                                                                   config::keys::ZIP_COMPRESSION_LEVEL,
+                                                                   config::keys::TITLE_SORT_TYPE,
+                                                                   config::keys::JKSM_TEXT_MODE,
+                                                                   config::keys::FORCE_ENGLISH,
+                                                                   config::keys::ENABLE_TRASH_BIN,
+                                                                   "NULL"};
 } // namespace
 
 // Declarations. Definitions after class members.
 static const char *get_value_text(uint8_t value);
 static const char *get_sort_type_text(uint8_t value);
 
-SettingsState::SettingsState(void)
+SettingsState::SettingsState()
     : m_settingsMenu(32, 8, 1000, 24, 555),
       m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
                                                               1080,
@@ -40,7 +62,7 @@ SettingsState::SettingsState(void)
     SettingsState::update_menu_options();
 }
 
-void SettingsState::update(void)
+void SettingsState::update()
 {
     m_settingsMenu.update(AppState::has_focus());
 
@@ -54,7 +76,7 @@ void SettingsState::update(void)
     }
 }
 
-void SettingsState::render(void)
+void SettingsState::render()
 {
     m_renderTarget->clear(colors::TRANSPARENT);
     m_settingsMenu.render(m_renderTarget->get(), AppState::has_focus());
@@ -72,33 +94,34 @@ void SettingsState::render(void)
     }
 }
 
-void SettingsState::update_menu_options(void)
+void SettingsState::update_menu_options()
 {
     // These can be looped, so screw it.
     for (int i = 2; i < 13; i++)
     {
         std::string updatedOption =
             stringutil::get_formatted_string(strings::get_by_name(strings::names::SETTINGS_MENU, i),
-                                             get_value_text(config::get_by_index(i - 2)));
+                                             get_value_text(config::get_by_key(CONFIG_KEY_ARRAY[i])));
         m_settingsMenu.edit_option(i, updatedOption);
     }
 
     // This just displays the value. The config value is offset to account for the first two settings options.
     m_settingsMenu.edit_option(13,
                                stringutil::get_formatted_string(strings::get_by_name(strings::names::SETTINGS_MENU, 13),
-                                                                config::get_by_index(11)));
+                                                                config::get_by_key(CONFIG_KEY_ARRAY[13])));
 
     // This gets the type according to the value.
-    m_settingsMenu.edit_option(14,
-                               stringutil::get_formatted_string(strings::get_by_name(strings::names::SETTINGS_MENU, 14),
-                                                                get_sort_type_text(config::get_by_index(12))));
+    m_settingsMenu.edit_option(
+        14,
+        stringutil::get_formatted_string(strings::get_by_name(strings::names::SETTINGS_MENU, 14),
+                                         get_sort_type_text(config::get_by_key(CONFIG_KEY_ARRAY[14]))));
 
     // Loop again.
     for (int i = 15; i < 18; i++)
     {
         std::string updatedOption =
             stringutil::get_formatted_string(strings::get_by_name(strings::names::SETTINGS_MENU, i),
-                                             get_value_text(config::get_by_index(i - 2)));
+                                             get_value_text(config::get_by_key(CONFIG_KEY_ARRAY[i])));
         m_settingsMenu.edit_option(i, updatedOption);
     }
 
@@ -108,10 +131,9 @@ void SettingsState::update_menu_options(void)
                                                                 config::get_animation_scaling()));
 }
 
-void SettingsState::toggle_options(void)
+void SettingsState::toggle_options()
 {
     int selected = m_settingsMenu.get_selected();
-
 
     switch (selected)
     {
@@ -154,10 +176,9 @@ void SettingsState::toggle_options(void)
         // Text mode. This is handled beyond a toggle.
         case 15:
         {
-            // We're gonna use this to toggle first.
-            config::toggle_by_index(selected - 2);
+            config::toggle_by_key(CONFIG_KEY_ARRAY[selected]);
 
-            // Need the main state to reinit all the views.
+            // This will reinit all the views according the key toggled.
             MainMenuState::initialize_view_states();
         }
         break;
@@ -176,7 +197,7 @@ void SettingsState::toggle_options(void)
 
         default:
         {
-            config::toggle_by_index(selected - 2);
+            config::toggle_by_key(CONFIG_KEY_ARRAY[selected]);
         }
         break;
     }

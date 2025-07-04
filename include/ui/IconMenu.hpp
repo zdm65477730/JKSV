@@ -8,7 +8,7 @@ namespace ui
     {
         public:
             /// @brief Default constructor.
-            IconMenu(void) = default;
+            IconMenu() = default;
 
             /// @brief This constructor calls initialize.
             /// @param x X coordinate to render the menu to.

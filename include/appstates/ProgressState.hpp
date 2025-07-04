@@ -5,7 +5,7 @@
 #include <switch.h>
 
 /// @brief State that shows progress of a task.
-class ProgressState : public BaseTask
+class ProgressState final : public BaseTask
 {
     public:
         /// @brief Constructs a new ProgressState.
@@ -20,10 +20,10 @@ class ProgressState : public BaseTask
         ~ProgressState() {};
 
         /// @brief Checks if the thread is finished and deactivates this state.
-        void update(void) override;
+        void update() override;
 
         /// @brief Renders the current progress to screen.
-        void render(void) override;
+        void render() override;
 
     private:
         /// @brief Underlying task that has extra methods for tracking the progress of a task.

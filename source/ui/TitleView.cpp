@@ -111,12 +111,12 @@ void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
     m_titleTiles.at(m_selected).render(target, m_selectedX, m_selectedY);
 }
 
-int ui::TitleView::get_selected(void) const
+int ui::TitleView::get_selected() const
 {
     return m_selected;
 }
 
-void ui::TitleView::refresh(void)
+void ui::TitleView::refresh()
 {
     // Clear the current tiles.
     m_titleTiles.clear();
@@ -140,7 +140,7 @@ void ui::TitleView::refresh(void)
     }
 }
 
-void ui::TitleView::reset(void)
+void ui::TitleView::reset()
 {
     for (ui::TitleTile &currentTile : m_titleTiles)
     {

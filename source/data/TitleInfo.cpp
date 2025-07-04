@@ -73,22 +73,22 @@ data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &con
     m_icon = sdl::TextureManager::create_load_texture(entry->name, m_data.icon, sizeof(m_data.icon));
 }
 
-uint64_t data::TitleInfo::get_application_id(void) const
+uint64_t data::TitleInfo::get_application_id() const
 {
     return m_applicationID;
 }
 
-NsApplicationControlData *data::TitleInfo::get_control_data(void)
+NsApplicationControlData *data::TitleInfo::get_control_data()
 {
     return &m_data;
 }
 
-bool data::TitleInfo::has_control_data(void) const
+bool data::TitleInfo::has_control_data() const
 {
     return m_hasData;
 }
 
-const char *data::TitleInfo::get_title(void)
+const char *data::TitleInfo::get_title()
 {
     NacpLanguageEntry *entry = nullptr;
     if (R_FAILED(nacpGetLanguageEntry(&m_data.nacp, &entry)))
@@ -98,12 +98,12 @@ const char *data::TitleInfo::get_title(void)
     return entry->name;
 }
 
-const char *data::TitleInfo::get_path_safe_title(void)
+const char *data::TitleInfo::get_path_safe_title() const
 {
     return m_pathSafeTitle;
 }
 
-const char *data::TitleInfo::get_publisher(void)
+const char *data::TitleInfo::get_publisher()
 {
     NacpLanguageEntry *Entry = nullptr;
     if (R_FAILED(nacpGetLanguageEntry(&m_data.nacp, &Entry)))
@@ -113,7 +113,7 @@ const char *data::TitleInfo::get_publisher(void)
     return Entry->author;
 }
 
-uint64_t data::TitleInfo::get_save_data_owner_id(void) const
+uint64_t data::TitleInfo::get_save_data_owner_id() const
 {
     return m_data.nacp.save_data_owner_id;
 }
@@ -312,9 +312,9 @@ int64_t data::TitleInfo::get_journal_size_max(uint8_t saveType) const
     return 0;
 }
 
-bool data::TitleInfo::has_save_data_type(uint8_t saveType)
+bool data::TitleInfo::has_save_data_type(uint8_t saveType) const
 {
-    NacpStruct *nacp = &m_data.nacp;
+    const NacpStruct *nacp = &m_data.nacp;
 
     // I'm not 100% sure this is the best way to test for this.
     switch (saveType)
@@ -352,7 +352,7 @@ bool data::TitleInfo::has_save_data_type(uint8_t saveType)
     return false;
 }
 
-sdl::SharedTexture data::TitleInfo::get_icon(void) const
+sdl::SharedTexture data::TitleInfo::get_icon() const
 {
     return m_icon;
 }
@@ -369,7 +369,7 @@ void data::TitleInfo::set_path_safe_title(const char *newPathSafe, size_t newPat
     std::memcpy(m_pathSafeTitle, newPathSafe, newPathLength);
 }
 
-void data::TitleInfo::get_create_path_safe_title(void)
+void data::TitleInfo::get_create_path_safe_title()
 {
     // Avoid calling this function over and over.
     uint64_t applicationID = TitleInfo::get_application_id();

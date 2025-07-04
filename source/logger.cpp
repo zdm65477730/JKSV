@@ -12,7 +12,7 @@ namespace
     constexpr size_t VA_BUFFER_SIZE = 0x1000;
 } // namespace
 
-void logger::initialize(void)
+void logger::initialize()
 {
     // Create log path and empty the log for this run.
     s_logFilePath = "sdmc:/config/JKSV/JKSV.log";

@@ -4,7 +4,7 @@
 #include <switch.h>
 
 /// @brief State that spawns a task and allows updates to be printed to screen.
-class TaskState : public BaseTask
+class TaskState final : public BaseTask
 {
     public:
         /// @brief Constructs and spawns a new TaskState.
@@ -19,11 +19,11 @@ class TaskState : public BaseTask
         ~TaskState() {};
 
         /// @brief Runs update routine. Waits for thread function to signal finish and deactivates.
-        void update(void) override;
+        void update() override;
 
         /// @brief Run render routine. Prints m_task's status string to screen, basically.
         /// @param
-        void render(void) override;
+        void render() override;
 
     private:
         /// @brief Underlying task.

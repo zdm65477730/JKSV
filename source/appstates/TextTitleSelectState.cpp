@@ -28,7 +28,7 @@ TextTitleSelectState::TextTitleSelectState(data::User *user)
     TextTitleSelectState::refresh();
 }
 
-void TextTitleSelectState::update(void)
+void TextTitleSelectState::update()
 {
     m_titleSelectMenu.update(AppState::has_focus());
 
@@ -96,7 +96,7 @@ void TextTitleSelectState::update(void)
     }
 }
 
-void TextTitleSelectState::render(void)
+void TextTitleSelectState::render()
 {
     m_renderTarget->clear(colors::TRANSPARENT);
     m_titleSelectMenu.render(m_renderTarget->get(), AppState::has_focus());
@@ -104,7 +104,7 @@ void TextTitleSelectState::render(void)
     m_renderTarget->render(NULL, 201, 91);
 }
 
-void TextTitleSelectState::refresh(void)
+void TextTitleSelectState::refresh()
 {
     m_titleSelectMenu.reset();
     for (size_t i = 0; i < m_user->get_total_data_entries(); i++)

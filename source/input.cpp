@@ -5,13 +5,13 @@ namespace
     PadState s_gamepad;
 }
 
-void input::initialize(void)
+void input::initialize()
 {
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     padInitializeDefault(&s_gamepad);
 }
 
-void input::update(void)
+void input::update()
 {
     padUpdate(&s_gamepad);
 }

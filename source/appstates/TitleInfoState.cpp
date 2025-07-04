@@ -100,7 +100,7 @@ TitleInfoState::~TitleInfoState()
     sm_slidePanel->clear_elements();
 }
 
-void TitleInfoState::update(void)
+void TitleInfoState::update()
 {
     // Grab this instead of calling the function over and over.
     bool hasFocus = AppState::has_focus();
@@ -123,7 +123,7 @@ void TitleInfoState::update(void)
     }
 }
 
-void TitleInfoState::render(void)
+void TitleInfoState::render()
 {
     // This is the vertical gap for rendering text.
     static constexpr int SIZE_VERT_GAP = SIZE_TEXT_TARGET_HEIGHT + 4;

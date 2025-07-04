@@ -75,7 +75,7 @@ TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo,
     m_dataStruct->m_titleSelect = m_titleSelect;
 }
 
-void TitleOptionState::update(void)
+void TitleOptionState::update()
 {
     // This is kind of tricky to handle, because the blacklist function uses both.
     if (m_refreshRequired)
@@ -251,19 +251,19 @@ void TitleOptionState::update(void)
     }
 }
 
-void TitleOptionState::render(void)
+void TitleOptionState::render()
 {
     sm_slidePanel->clear_target();
     sm_titleOptionMenu->render(sm_slidePanel->get_target(), AppState::has_focus());
     sm_slidePanel->render(NULL, AppState::has_focus());
 }
 
-void TitleOptionState::close_on_update(void)
+void TitleOptionState::close_on_update()
 {
     m_exitRequired = true;
 }
 
-void TitleOptionState::refresh_required(void)
+void TitleOptionState::refresh_required()
 {
     m_refreshRequired = true;
 }

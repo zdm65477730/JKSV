@@ -26,7 +26,7 @@ namespace
     };
 } // namespace
 
-ExtrasMenuState::ExtrasMenuState(void)
+ExtrasMenuState::ExtrasMenuState()
     : m_extrasMenu(32, 8, 1000, 24, 555),
       m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
                                                               1080,
@@ -41,7 +41,7 @@ ExtrasMenuState::ExtrasMenuState(void)
     }
 }
 
-void ExtrasMenuState::update(void)
+void ExtrasMenuState::update()
 {
     m_extrasMenu.update(AppState::has_focus());
 
@@ -68,7 +68,7 @@ void ExtrasMenuState::update(void)
     }
 }
 
-void ExtrasMenuState::render(void)
+void ExtrasMenuState::render()
 {
     m_renderTarget->clear(colors::TRANSPARENT);
     m_extrasMenu.render(m_renderTarget->get(), AppState::has_focus());

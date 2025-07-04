@@ -58,7 +58,7 @@ UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelec
     m_dataStruct->m_spawningState = this;
 }
 
-void UserOptionState::update(void)
+void UserOptionState::update()
 {
     // Update the main panel.
     m_menuPanel->update(AppState::has_focus());
@@ -152,7 +152,7 @@ void UserOptionState::update(void)
     m_userOptionMenu.update(AppState::has_focus());
 }
 
-void UserOptionState::render(void)
+void UserOptionState::render()
 {
     // Render target user's title selection screen.
     m_titleSelect->render();
@@ -163,7 +163,7 @@ void UserOptionState::render(void)
     m_menuPanel->render(NULL, AppState::has_focus());
 }
 
-void UserOptionState::data_and_view_refresh_required(void)
+void UserOptionState::data_and_view_refresh_required()
 {
     m_refreshRequired = true;
 }

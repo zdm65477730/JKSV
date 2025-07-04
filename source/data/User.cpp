@@ -70,7 +70,7 @@ void data::User::add_data(const FsSaveDataInfo *saveInfo, const PdmPlayStatistic
     m_userData.push_back(std::make_pair(applicationID, std::make_pair(*saveInfo, *playStats)));
 }
 
-void data::User::clear_data_entries(void)
+void data::User::clear_data_entries()
 {
     m_userData.clear();
 }
@@ -80,32 +80,32 @@ void data::User::erase_data(int index)
     m_userData.erase(m_userData.begin() + index);
 }
 
-void data::User::sort_data(void)
+void data::User::sort_data()
 {
     std::sort(m_userData.begin(), m_userData.end(), sort_user_data);
 }
 
-AccountUid data::User::get_account_id(void) const
+AccountUid data::User::get_account_id() const
 {
     return m_accountID;
 }
 
-FsSaveDataType data::User::get_account_save_type(void) const
+FsSaveDataType data::User::get_account_save_type() const
 {
     return m_saveType;
 }
 
-const char *data::User::get_nickname(void) const
+const char *data::User::get_nickname() const
 {
     return m_nickname;
 }
 
-const char *data::User::get_path_safe_nickname(void) const
+const char *data::User::get_path_safe_nickname() const
 {
     return m_pathSafeNickname;
 }
 
-size_t data::User::get_total_data_entries(void) const
+size_t data::User::get_total_data_entries() const
 {
     return m_userData.size();
 }
@@ -150,7 +150,7 @@ FsSaveDataInfo *data::User::get_save_info_by_id(uint64_t applicationID)
     return &findTitle->second.first;
 }
 
-data::UserSaveInfoList &data::User::get_user_save_info_list(void)
+data::UserSaveInfoList &data::User::get_user_save_info_list()
 {
     return m_userData;
 }
@@ -168,12 +168,12 @@ PdmPlayStatistics *data::User::get_play_stats_by_id(uint64_t applicationID)
     return &findTitle->second.second;
 }
 
-SDL_Texture *data::User::get_icon(void)
+SDL_Texture *data::User::get_icon()
 {
     return m_icon->get();
 }
 
-sdl::SharedTexture data::User::get_shared_icon(void)
+sdl::SharedTexture data::User::get_shared_icon()
 {
     return m_icon;
 }
@@ -194,7 +194,7 @@ void data::User::erase_save_info_by_id(uint64_t applicationID)
     m_userData.erase(targetEntry);
 }
 
-void data::User::load_user_data(void)
+void data::User::load_user_data()
 {
     // Pull these from config quick.
     bool accountSystemSaves = config::get_by_key(config::keys::LIST_ACCOUNT_SYS_SAVES);
@@ -297,7 +297,7 @@ void data::User::load_account(AccountProfile &profile, AccountProfileBase &profi
     }
 }
 
-void data::User::create_account(void)
+void data::User::create_account()
 {
     // This is needed a lot here.
     std::string accountIDString = stringutil::get_formatted_string("Acc_%08X", m_accountID.uid[0] & 0xFFFFFFFF);

@@ -11,12 +11,12 @@ void sys::ProgressTask::update_current(double current)
     m_current = current;
 }
 
-double sys::ProgressTask::get_goal(void) const
+double sys::ProgressTask::get_goal() const
 {
     return m_goal;
 }
 
-double sys::ProgressTask::get_current(void) const
+double sys::ProgressTask::get_current() const
 {
     return m_current / m_goal;
 }

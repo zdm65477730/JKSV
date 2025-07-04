@@ -24,7 +24,7 @@ namespace
 /// @tparam StateType The state type spawned on confirmation. Ex: TaskState, ProgressState
 /// @tparam StructType The type of struct passed to the state on confirmation.
 template <typename TaskType, typename StateType, typename StructType>
-class ConfirmState : public AppState
+class ConfirmState final : public AppState
 {
     public:
         /// @brief All functions passed to this state need to follow this signature: void function(<TaskType> *, std::shared_ptr<<StructType>>)
@@ -39,9 +39,8 @@ class ConfirmState : public AppState
                      bool holdRequired,
                      TaskFunction function,
                      std::shared_ptr<StructType> dataStruct)
-            : AppState(false), m_queryString(queryString.data()),
-              m_yesString(strings::get_by_name(strings::names::YES_NO, 0)), m_hold(holdRequired), m_function(function),
-              m_dataStruct(dataStruct)
+            : AppState(false), m_queryString(queryString), m_yesString(strings::get_by_name(strings::names::YES_NO, 0)),
+              m_hold(holdRequired), m_function(function), m_dataStruct(dataStruct)
         {
             // This is to make centering the Yes [A] string more accurate.
             m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
@@ -52,7 +51,7 @@ class ConfirmState : public AppState
         ~ConfirmState() {};
 
         /// @brief Just updates the ConfirmState.
-        void update(void) override
+        void update() override
         {
             // This is to guard against the dialog being triggered right away. To do: Maybe figure out a better way to accomplish this?
             if (input::button_pressed(HidNpadButton_A) && !m_triggerGuard)
@@ -109,7 +108,7 @@ class ConfirmState : public AppState
         }
 
         /// @brief Renders the state to screen.
-        void render(void) override
+        void render() override
         {
             // Dim background
             sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);

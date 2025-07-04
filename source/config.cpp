@@ -5,26 +5,23 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <map>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace
 {
-    // Makes stuff slightly easier to read.
-    using ConfigPair = std::pair<std::string, uint8_t>;
-
     /// @brief This is the default working directory path.
     constexpr std::string_view PATH_DEFAULT_WORK_DIR = "sdmc:/JKSV";
     // Folder path.
     constexpr std::string_view PATH_CONFIG_FOLDER = "sdmc:/config/JKSV";
-    // Actual config path.
-    constexpr std::string_view PATH_CONFIG_FILE = "sdmc:/config/JKSV/JKSV.json";
     // Paths file. Funny name too.
     constexpr std::string_view PATH_PATHS_PATH = "sdmc:/config/JKSV/Paths.json";
+    // Actual config path.
+    const char *PATH_CONFIG_FILE = "sdmc:/config/JKSV/JKSV.json";
 
-    // Vector to preserve order now.
-    std::vector<ConfigPair> s_configVector;
+    /// @brief This map holds the majority of config values.
+    std::map<std::string, uint8_t> s_configMap;
 
     // Working directory
     fslib::Path s_workingDirectory;
@@ -36,7 +33,7 @@ namespace
     std::vector<uint64_t> s_blacklist;
 
     // Map of paths.
-    std::unordered_map<uint64_t, std::string> s_pathMap;
+    std::map<uint64_t, std::string> s_pathMap;
 } // namespace
 
 static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *array)
@@ -56,7 +53,7 @@ static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *arr
     }
 }
 
-void config::initialize(void)
+void config::initialize()
 {
     if (!fslib::directory_exists(PATH_CONFIG_FOLDER) && !fslib::create_directories_recursively(PATH_CONFIG_FOLDER))
     {
@@ -65,7 +62,7 @@ void config::initialize(void)
         return;
     }
 
-    json::Object configJSON = json::new_object(json_object_from_file, PATH_CONFIG_FILE.data());
+    json::Object configJSON = json::new_object(json_object_from_file, PATH_CONFIG_FILE);
     if (!configJSON)
     {
         logger::log("Error opening config for reading: %s", fslib::get_error_string());
@@ -99,7 +96,7 @@ void config::initialize(void)
         }
         else
         {
-            s_configVector.push_back(std::make_pair(keyName, json_object_get_uint64(configValue)));
+            s_configMap[keyName] = json_object_get_uint64(configValue);
         }
         json_object_iter_next(&configIterator);
     }
@@ -132,29 +129,29 @@ void config::initialize(void)
     }
 }
 
-void config::reset_to_default(void)
+void config::reset_to_default()
 {
     s_workingDirectory = PATH_DEFAULT_WORK_DIR;
-    s_configVector.push_back(std::make_pair(config::keys::INCLUDE_DEVICE_SAVES.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::AUTO_BACKUP_ON_RESTORE.data(), 1));
-    s_configVector.push_back(std::make_pair(config::keys::AUTO_NAME_BACKUPS.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::AUTO_UPLOAD.data(), 1));
-    s_configVector.push_back(std::make_pair(config::keys::HOLD_FOR_DELETION.data(), 1));
-    s_configVector.push_back(std::make_pair(config::keys::HOLD_FOR_RESTORATION.data(), 1));
-    s_configVector.push_back(std::make_pair(config::keys::HOLD_FOR_OVERWRITE.data(), 1));
-    s_configVector.push_back(std::make_pair(config::keys::ONLY_LIST_MOUNTABLE.data(), 1));
-    s_configVector.push_back(std::make_pair(config::keys::LIST_ACCOUNT_SYS_SAVES.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::ALLOW_WRITING_TO_SYSTEM.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::EXPORT_TO_ZIP.data(), 1));
-    s_configVector.push_back(std::make_pair(config::keys::ZIP_COMPRESSION_LEVEL.data(), 6));
-    s_configVector.push_back(std::make_pair(config::keys::TITLE_SORT_TYPE.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::JKSM_TEXT_MODE.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::FORCE_ENGLISH.data(), 0));
-    s_configVector.push_back(std::make_pair(config::keys::ENABLE_TRASH_BIN.data(), 0));
+    s_configMap[config::keys::INCLUDE_DEVICE_SAVES.data()] = 0;
+    s_configMap[config::keys::AUTO_BACKUP_ON_RESTORE.data()] = 1;
+    s_configMap[config::keys::AUTO_NAME_BACKUPS.data()] = 0;
+    s_configMap[config::keys::AUTO_UPLOAD.data()] = 0;
+    s_configMap[config::keys::HOLD_FOR_DELETION.data()] = 1;
+    s_configMap[config::keys::HOLD_FOR_RESTORATION.data()] = 1;
+    s_configMap[config::keys::HOLD_FOR_OVERWRITE.data()] = 1;
+    s_configMap[config::keys::ONLY_LIST_MOUNTABLE.data()] = 1;
+    s_configMap[config::keys::LIST_ACCOUNT_SYS_SAVES.data()] = 0;
+    s_configMap[config::keys::ALLOW_WRITING_TO_SYSTEM.data()] = 0;
+    s_configMap[config::keys::EXPORT_TO_ZIP.data()] = 1;
+    s_configMap[config::keys::ZIP_COMPRESSION_LEVEL.data()] = 6;
+    s_configMap[config::keys::TITLE_SORT_TYPE.data()] = 0;
+    s_configMap[config::keys::JKSM_TEXT_MODE.data()] = 0;
+    s_configMap[config::keys::FORCE_ENGLISH.data()] = 0;
+    s_configMap[config::keys::ENABLE_TRASH_BIN.data()] = 0;
     s_uiAnimationScaling = 2.5f;
 }
 
-void config::save(void)
+void config::save()
 {
     {
         json::Object configJSON = json::new_object(json_object_new_object);
@@ -164,7 +161,7 @@ void config::save(void)
         json::add_object(configJSON, config::keys::WORKING_DIRECTORY.data(), workingDirectory);
 
         // Loop through map and add it.
-        for (auto &[key, value] : s_configVector)
+        for (auto &[key, value] : s_configMap)
         {
             json_object *jsonValue = json_object_new_uint64(value);
             json::add_object(configJSON, key.c_str(), jsonValue);
@@ -234,83 +231,40 @@ void config::save(void)
 uint8_t config::get_by_key(std::string_view key)
 {
     // See if the key can be found.
-    auto findKey = std::find_if(s_configVector.begin(), s_configVector.end(), [key](const auto &configPair) {
-        return key == configPair.first;
-    });
-
-    // Bail.
-    if (findKey == s_configVector.end())
+    auto findKey = s_configMap.find(key.data());
+    if (findKey == s_configMap.end())
     {
         return 0;
     }
-
-    // Return the value.
     return findKey->second;
 }
 
 void config::toggle_by_key(std::string_view key)
 {
-    // Make sure the key exists first.
-    auto findKey = std::find_if(s_configVector.begin(), s_configVector.end(), [key](const auto &configPair) {
-        return key == configPair.first;
-    });
-
-    if (findKey == s_configVector.end())
+    auto findKey = s_configMap.find(key.data());
+    if (findKey == s_configMap.end())
     {
         return;
     }
-
     findKey->second = findKey->second ? 0 : 1;
 }
 
 void config::set_by_key(std::string_view key, uint8_t value)
 {
-    auto findKey = std::find_if(s_configVector.begin(), s_configVector.end(), [key](const auto &configPair) {
-        return key == configPair.first;
-    });
-    if (findKey == s_configVector.end())
+    auto findKey = s_configMap.find(key.data());
+    if (findKey == s_configMap.end())
     {
         return;
     }
     findKey->second = value;
 }
 
-
-uint8_t config::get_by_index(int index)
-{
-    if (index < 0 || index >= static_cast<int>(s_configVector.size()))
-    {
-        return 0;
-    }
-
-    return s_configVector.at(index).second;
-}
-
-void config::toggle_by_index(int index)
-{
-    if (index < 0 || index >= static_cast<int>(s_configVector.size()))
-    {
-        return;
-    }
-    s_configVector[index].second = s_configVector[index].second ? 0 : 1;
-}
-
-void config::set_by_index(int index, uint8_t value)
-{
-    if (index < 0 || index >= static_cast<int>(s_configVector.size()))
-    {
-        return;
-    }
-
-    s_configVector[index].second = value;
-}
-
-fslib::Path config::get_working_directory(void)
+fslib::Path config::get_working_directory()
 {
     return s_workingDirectory;
 }
 
-double config::get_animation_scaling(void)
+double config::get_animation_scaling()
 {
     return s_uiAnimationScaling;
 }

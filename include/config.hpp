@@ -5,13 +5,13 @@
 namespace config
 {
     /// @brief Attempts to load config from file. If it fails, loads defaults.
-    void initialize(void);
+    void initialize();
 
     /// @brief Resets config to default values.
-    void reset_to_default(void);
+    void reset_to_default();
 
     /// @brief Saves config to file.
-    void save(void);
+    void save();
 
     /// @brief Retrieves the config value according to the key passed.
     /// @param key Key to retrieve. See config::keys
@@ -27,26 +27,13 @@ namespace config
     /// @param value Value to set the key to.
     void set_by_key(std::string_view key, uint8_t value);
 
-    /// @brief Retrieves value of config at index.
-    /// @param index Index of value to retrieve.
-    uint8_t get_by_index(int index);
-
-    /// @brief Toggles the key at index from 1 to 0 or vice-versa.
-    /// @param index Index of key to toggle.
-    void toggle_by_index(int index);
-
-    /// @brief Sets the config value at index to value.
-    /// @param index Index of value to set.
-    /// @param value Value to set index to.
-    void set_by_index(int index, uint8_t value);
-
     /// @brief Returns the working directory.
     /// @return Working directory.
-    fslib::Path get_working_directory(void);
+    fslib::Path get_working_directory();
 
     /// @brief Returns the scaling speed of UI transitions and animations.
     /// @return Scaling variable.
-    double get_animation_scaling(void);
+    double get_animation_scaling();
 
     /// @brief Sets the UI animation scaling.
     /// @param newScale New value to set the scaling to.

@@ -59,29 +59,29 @@ void ui::SlideOutPanel::render(SDL_Texture *Target, bool hasFocus)
     m_renderTarget->render(NULL, m_x, 0);
 }
 
-void ui::SlideOutPanel::clear_target(void)
+void ui::SlideOutPanel::clear_target()
 {
     m_renderTarget->clear(colors::SLIDE_PANEL_CLEAR);
 }
 
-void ui::SlideOutPanel::reset(void)
+void ui::SlideOutPanel::reset()
 {
     m_x = m_side == Side::Left ? -(m_width) : 1280.0f;
     m_isOpen = false;
     m_closePanel = false;
 }
 
-void ui::SlideOutPanel::close(void)
+void ui::SlideOutPanel::close()
 {
     m_closePanel = true;
 }
 
-bool ui::SlideOutPanel::is_open(void) const
+bool ui::SlideOutPanel::is_open() const
 {
     return m_isOpen;
 }
 
-bool ui::SlideOutPanel::is_closed(void) const
+bool ui::SlideOutPanel::is_closed() const
 {
     return m_closePanel && (m_side == Side::Left ? m_x > -(m_width) : m_x < 1280);
 }
@@ -91,12 +91,12 @@ void ui::SlideOutPanel::push_new_element(std::shared_ptr<ui::Element> newElement
     m_elements.push_back(newElement);
 }
 
-void ui::SlideOutPanel::clear_elements(void)
+void ui::SlideOutPanel::clear_elements()
 {
     m_elements.clear();
 }
 
-SDL_Texture *ui::SlideOutPanel::get_target(void)
+SDL_Texture *ui::SlideOutPanel::get_target()
 {
     return m_renderTarget->get();
 }

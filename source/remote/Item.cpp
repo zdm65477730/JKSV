@@ -1,29 +1,29 @@
 #include "remote/Item.hpp"
 
-remote::Item::Item(std::string_view name, std::string_view id, std::string_view parent, bool directory)
-    : m_name(name), m_id(id), m_parent(parent), m_isDirectory(directory) {};
+remote::Item::Item(std::string_view name, std::string_view id, std::string_view parent, size_t size, bool directory)
+    : m_name(name), m_id(id), m_parent(parent), m_size(size), m_isDirectory(directory) {};
 
-std::string_view remote::Item::get_name(void) const
+std::string_view remote::Item::get_name() const
 {
     return m_name;
 }
 
-std::string_view remote::Item::get_id(void) const
+std::string_view remote::Item::get_id() const
 {
     return m_id;
 }
 
-std::string_view remote::Item::get_parent_id(void) const
+std::string_view remote::Item::get_parent_id() const
 {
     return m_parent;
 }
 
-size_t remote::Item::get_size(void) const
+size_t remote::Item::get_size() const
 {
     return m_size;
 }
 
-bool remote::Item::is_directory(void) const
+bool remote::Item::is_directory() const
 {
     return m_isDirectory;
 }

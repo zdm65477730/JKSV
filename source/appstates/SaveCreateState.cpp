@@ -44,7 +44,7 @@ SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelec
     }
 }
 
-void SaveCreateState::update(void)
+void SaveCreateState::update()
 {
     if (m_refreshRequired)
     {
@@ -75,7 +75,7 @@ void SaveCreateState::update(void)
     }
 }
 
-void SaveCreateState::render(void)
+void SaveCreateState::render()
 {
     // Clear slide target, render menu, render slide to frame buffer.
     sm_slidePanel->clear_target();
@@ -83,7 +83,7 @@ void SaveCreateState::render(void)
     sm_slidePanel->render(NULL, AppState::has_focus());
 }
 
-void SaveCreateState::data_and_view_refresh_required(void)
+void SaveCreateState::data_and_view_refresh_required()
 {
     m_refreshRequired = true;
 }

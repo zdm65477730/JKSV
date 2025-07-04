@@ -5,7 +5,7 @@
 #include "ui/TitleView.hpp"
 
 /// @brief Title select state with icon tiles.
-class TitleSelectState : public TitleSelectCommon
+class TitleSelectState final : public TitleSelectCommon
 {
     public:
         /// @brief Constructs new title select state.
@@ -16,13 +16,13 @@ class TitleSelectState : public TitleSelectCommon
         ~TitleSelectState() {};
 
         /// @brief Runs the update routine.
-        void update(void) override;
+        void update() override;
 
         /// @brief Runs the render routine.
-        void render(void) override;
+        void render() override;
 
         /// @brief Refreshes the view.
-        void refresh(void) override;
+        void refresh() override;
 
     private:
         /// @brief Pointer to the user the view belongs to.

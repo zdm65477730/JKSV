@@ -9,20 +9,20 @@ class JKSV
 {
     public:
         /// @brief Initializes JKSV. Initializes services.
-        JKSV(void);
+        JKSV();
 
         /// @brief Exits services.
         ~JKSV();
 
         /// @brief Returns if initializing was successful and JKSV is running.
         /// @return True or false.
-        bool is_running(void) const;
+        bool is_running() const;
 
         /// @brief Runs JKSV's update routine.
-        void update(void);
+        void update();
 
         /// @brief Runs JKSV's render routine.
-        void render(void);
+        void render();
 
     private:
         /// @brief Whether or not initialization was successful and JKSV is still running.

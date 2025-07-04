@@ -41,7 +41,7 @@ namespace ui
 
             /// @brief Returns the index of the currently selected menu option.
             /// @return Index of currently selected option.
-            int get_selected(void) const;
+            int get_selected() const;
 
             /// @brief Sets the selected item.
             /// @param selected Value to set selected to.
@@ -52,7 +52,7 @@ namespace ui
             void set_width(int width);
 
             /// @brief Resets the menu and returns it to an empty, default state.
-            void reset(void);
+            void reset();
 
         protected:
             /// @brief X coordinate menu is rendered to.

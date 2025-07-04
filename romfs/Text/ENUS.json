@@ -98,10 +98,11 @@
         "Are you sure you really want to delete #%s#?"
     ],
     "BackupMenuStatus": [
-        "Processing save data meta file..."
+        "Processing save data meta file...",
+        "Uploading #%s# to remote storage..."
     ],
     "BackupMenuPops": [
-        "System save data cannot be restored to the system!"
+        "Writing to system data is disabled!"
     ],
     "DeletingFiles": [
         "Deleting #%s#..."
@@ -195,8 +196,12 @@
         "Error setting new output path!"
     ],
     "GoogleDriveStrings": [
-        "In order to use Google Drive, please go to #%s# on your phone or PC and type in the code >%s>.",
+        "To continue, go to #%s# and enter >%s>!",
         "Successfully signed in to Google Drive!",
         "Google Drive sign in failed!"
+    ],
+    "WebDavStrings": [
+        "WebDav successfully started!",
+        "WebDav failed!"
     ]
 }

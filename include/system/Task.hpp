@@ -35,11 +35,11 @@ namespace sys
 
             /// @brief Returns if the thread has signaled it's finished running.
             /// @return True if the thread is still running. False if it isn't.
-            bool is_running(void) const;
+            bool is_running() const;
 
             /// @brief Allows thread to signal it's finished.
             /// @note Spawned task threads must call this when their work is finished.
-            void finished(void);
+            void finished();
 
             /// @brief Sets the task/threads current status string. Thread safe.
             /// @param format Format of string.
@@ -48,7 +48,7 @@ namespace sys
 
             /// @brief Returns the status string. Thread safe.
             /// @return Copy of the status string.
-            std::string get_status(void);
+            std::string get_status();
 
         private:
             // Whether task is still running.

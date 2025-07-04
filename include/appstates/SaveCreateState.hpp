@@ -7,7 +7,7 @@
 #include <memory>
 
 /// @brief This is the state that is spawned when CreateSaveData is selected from the user menu.
-class SaveCreateState : public AppState
+class SaveCreateState final : public AppState
 {
     public:
         /// @brief Constructs a new SaveCreateState.
@@ -19,13 +19,13 @@ class SaveCreateState : public AppState
         ~SaveCreateState() {};
 
         /// @brief Runs the update routine.
-        void update(void) override;
+        void update() override;
 
         /// @brief Runs the render routine.
-        void render(void) override;
+        void render() override;
 
         /// @brief This signals so data and the view can be refreshed on the next update() to avoid threading shenanigans.
-        void data_and_view_refresh_required(void);
+        void data_and_view_refresh_required();
 
     private:
         /// @brief Pointer to target user.

@@ -3,7 +3,7 @@
 #include "sdl.hpp"
 #include "strings.hpp"
 
-TitleSelectCommon::TitleSelectCommon(void)
+TitleSelectCommon::TitleSelectCommon()
 {
     if (m_titleControlsX == 0)
     {
@@ -11,7 +11,7 @@ TitleSelectCommon::TitleSelectCommon(void)
     }
 }
 
-void TitleSelectCommon::render_control_guide(void)
+void TitleSelectCommon::render_control_guide()
 {
     if (AppState::has_focus())
     {

@@ -8,7 +8,7 @@ namespace ui
     {
         public:
             /// @brief Default constructor.
-            Element(void) = default;
+            Element() = default;
 
             /// @brief Virtual destructor.
             virtual ~Element() {};

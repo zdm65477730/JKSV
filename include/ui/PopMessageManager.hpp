@@ -31,10 +31,10 @@ namespace ui
             PopMessageManager &operator=(PopMessageManager &&) = delete;
 
             /// @brief Updates and processes message queue.
-            static void update(void);
+            static void update();
 
             /// @brief Renders messages to screen.
-            static void render(void);
+            static void render();
 
             /// @brief Pushes a new message to the queue for processing.
             /// @param displayTicks Number of ticks for the message to be displayed until it is purged.
@@ -47,9 +47,9 @@ namespace ui
 
         private:
             // Only one instance allowed.
-            PopMessageManager(void) = default;
+            PopMessageManager() = default;
             // Returns the only instance.
-            static PopMessageManager &get_instance(void)
+            static PopMessageManager &get_instance()
             {
                 static PopMessageManager manager;
                 return manager;

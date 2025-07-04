@@ -10,7 +10,7 @@
 #include <memory>
 
 /// @brief This is the state where the user can backup and restore saves.
-class BackupMenuState : public AppState
+class BackupMenuState final : public AppState
 {
     public:
         /// @brief Creates a new backup selection state.
@@ -23,34 +23,34 @@ class BackupMenuState : public AppState
         ~BackupMenuState();
 
         /// @brief Required. Inherited virtual function from AppState.
-        void update(void) override;
+        void update() override;
 
         /// @brief Required. Inherited virtual function from AppState.
-        void render(void) override;
+        void render() override;
 
         /// @brief Refreshes the directory listing and menu.
-        void refresh(void);
+        void refresh();
 
         /// @brief Allows a spawned task to tell this class that it wrote save data to the system.
-        void save_data_written(void);
+        void save_data_written();
 
         /// @brief Struct used for passing data to functions.
         typedef struct
         {
                 /// @brief Pointer to the target user.
-                data::User *m_user;
+                data::User *user;
 
                 /// @brief Data for the target title.
-                data::TitleInfo *m_titleInfo;
+                data::TitleInfo *titleInfo;
 
                 /// @brief Path of the target.
-                fslib::Path m_targetPath;
+                fslib::Path targetPath;
 
                 /// @brief Journal size for when a commit is needed.
-                uint64_t m_journalSize;
+                uint64_t journalSize;
 
                 /// @brief Pointer to >this spawning state.
-                BackupMenuState *m_spawningState;
+                BackupMenuState *spawningState;
         } DataStruct;
 
     private:
@@ -92,4 +92,16 @@ class BackupMenuState : public AppState
 
         /// @brief The width of the panels. This is set according to the control guide text.
         static inline int sm_panelWidth = 0;
+
+        /// @brief This is the function called when New Backup is selected.
+        void name_and_create_backup();
+
+        /// @brief This is the function called when a backup is selected to be overwritten.
+        void confirm_backup_overwrite();
+
+        /// @brief This function is called to confirm restoring a backup.
+        void confirm_restore();
+
+        /// @brief Function called to confirm deleting a backup.
+        void confirm_delete();
 };

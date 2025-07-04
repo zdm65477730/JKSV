@@ -2,7 +2,7 @@
 #include "config.hpp"
 #include <switch.h>
 
-int main(void)
+int main()
 {
     JKSV jksv{};
     while (appletMainLoop() && jksv.is_running())

@@ -13,13 +13,13 @@ class StateManager
         StateManager &operator=(StateManager &&) = delete;
 
         /// @brief Runs the state update routine.
-        static void update(void);
+        static void update();
 
         /// @brief Runs the state rendering routine(s);
-        static void render(void);
+        static void render();
 
         /// @brief Returns whether the back of the vector is a closable state.
-        static bool back_is_closable(void);
+        static bool back_is_closable();
 
         /// @brief Pushes a new state to the state vector.
         /// @param newState Shared_ptr to state to push.
@@ -27,11 +27,11 @@ class StateManager
 
     private:
         /// @brief Private constructor so no constructing.
-        StateManager(void) = default;
+        StateManager() = default;
 
         /// @brief Returns a reference to the instance of StateManger.
         /// @return Reference to state manager.
-        static StateManager &get_instance(void);
+        static StateManager &get_instance();
 
         /// @brief This is the vector that holds the pointers to the states.
         static inline std::vector<std::shared_ptr<AppState>> sm_stateVector;

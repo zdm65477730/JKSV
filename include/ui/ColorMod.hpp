@@ -9,14 +9,14 @@ namespace ui
     {
         public:
             /// @brief Default constructor.
-            ColorMod(void) = default;
+            ColorMod() = default;
 
             /// @brief Updates the color modification variable.
-            void update(void);
+            void update();
 
             /// @brief Operator that allows using this as an sdl::Color directly.
             /// @note Since all of these pulse the same color, no sense in not doing this.
-            operator sdl::Color(void) const;
+            operator sdl::Color() const;
 
         private:
             /// @brief Whether we're adding or subtracting from the color value.

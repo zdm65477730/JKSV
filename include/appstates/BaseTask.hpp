@@ -10,21 +10,21 @@ class BaseTask : public AppState
 {
     public:
         /// @brief Constructor. Starts the glyph timer and sets AppState to not allow closing.
-        BaseTask(void);
+        BaseTask();
 
         /// @brief Virtual destructor.
         virtual ~BaseTask() {};
 
         /// @brief Runs the update routine for rendering the loading glyph animation.
         /// @param
-        void update(void) override;
+        void update() override;
 
         /// @brief Virtual render function.
-        virtual void render(void) = 0;
+        virtual void render() = 0;
 
         /// @brief This function renders the loading glyph in the bottom left corner.
         /// @note This is mostly just so users don't think JKSV has frozen when operations take a long time.
-        void render_loading_glyph(void);
+        void render_loading_glyph();
 
     private:
         /// @brief This is the current frame of the loading glyph animation.

@@ -5,7 +5,7 @@
 #include "ui/Menu.hpp"
 
 /// @brief Text menu title selection state.
-class TextTitleSelectState : public TitleSelectCommon
+class TextTitleSelectState final : public TitleSelectCommon
 {
     public:
         /// @brief Constructs new text menu title selection state.
@@ -16,13 +16,13 @@ class TextTitleSelectState : public TitleSelectCommon
         ~TextTitleSelectState() {};
 
         /// @brief Runs update routine.
-        void update(void) override;
+        void update() override;
 
         /// @brief Runs render routine.
-        void render(void) override;
+        void render() override;
 
         /// @brief Refreshes view for changes.
-        void refresh(void) override;
+        void refresh() override;
 
     private:
         /// @brief Pointer to user view "belongs" to.

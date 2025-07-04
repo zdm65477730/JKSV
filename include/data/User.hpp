@@ -39,34 +39,34 @@ namespace data
             void add_data(const FsSaveDataInfo *saveInfo, const PdmPlayStatistics *playStats);
 
             /// @brief Clears the user save info vector.
-            void clear_data_entries(void);
+            void clear_data_entries();
 
             /// @brief Erases data at index.
             /// @param index Index of save data info to erase.
             void erase_data(int index);
 
             /// @brief Runs the sort algo on the vector.
-            void sort_data(void);
+            void sort_data();
 
             /// @brief Returns the account ID of the user.
             /// @return AccountID
-            AccountUid get_account_id(void) const;
+            AccountUid get_account_id() const;
 
             /// @brief Returns the save data type the account uses.
             /// @return Save data type of the account.
-            FsSaveDataType get_account_save_type(void) const;
+            FsSaveDataType get_account_save_type() const;
 
             /// @brief Returns the account's nickname.
             /// @return Account nickname.
-            const char *get_nickname(void) const;
+            const char *get_nickname() const;
 
             /// @brief Returns the path safe version of the nickname.
             /// @return Path safe nickname.
-            const char *get_path_safe_nickname(void) const;
+            const char *get_path_safe_nickname() const;
 
             /// @brief Returns the total number of entries in the data vector.
             /// @return Total number of entries.
-            size_t get_total_data_entries(void) const;
+            size_t get_total_data_entries() const;
 
             /// @brief Returns the application ID of the title at index.
             /// @param index Index of title.
@@ -90,7 +90,7 @@ namespace data
 
             /// @brief Returns a reference to the user save data info vector.
             /// @return Reference to the user save info vector.
-            data::UserSaveInfoList &get_user_save_info_list(void);
+            data::UserSaveInfoList &get_user_save_info_list();
 
             /// @brief Returns a pointer to the play statistics of applicationID
             /// @param applicationID Application ID to search and fetch.
@@ -99,18 +99,18 @@ namespace data
 
             /// @brief Returns raw SDL_Texture pointer of icon.
             /// @return SDL_Texture of icon.
-            SDL_Texture *get_icon(void);
+            SDL_Texture *get_icon();
 
             /// @brief Returns the shared texture of icon. Increasing reference count of it.
             /// @return Shared icon texture.
-            sdl::SharedTexture get_shared_icon(void);
+            sdl::SharedTexture get_shared_icon();
 
             /// @brief Erases a UserDataEntry according to the application ID passed.
             /// @param applicationID ID of the save to erase.
             void erase_save_info_by_id(uint64_t applicationID);
 
             /// @brief Loads the save data info and play statistics for the current user using the information passed to the constructor.
-            void load_user_data(void);
+            void load_user_data();
 
         private:
             /// @brief Account's ID
@@ -137,7 +137,7 @@ namespace data
             void load_account(AccountProfile &profile, AccountProfileBase &profileBase);
 
             /// @brief Creates a placeholder since something went wrong.
-            void create_account(void);
+            void create_account();
 
             /// @brief Opens a save data info reader according to the data passed to the user.
             /// @param spaceID The FsSaveDataSpaceId to use when opening the reader.

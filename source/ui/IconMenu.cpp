@@ -28,7 +28,6 @@ void ui::IconMenu::render(SDL_Texture *target, bool hasFocus)
             }
             sdl::render_rect_fill(m_optionTarget->get(), 0, 0, 4, 130, {0x00FFC5FF});
         }
-        //m_options.at(i)->render(m_optiontarget->Get(), 0, 0);
         m_options.at(i)->render_stretched(m_optionTarget->get(), 8, 1, 128, 128);
         m_optionTarget->render(target, m_x, tempY);
     }

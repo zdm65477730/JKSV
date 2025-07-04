@@ -32,7 +32,7 @@ namespace
 } // namespace
 
 // This returns the language file to use depending on the system's language.
-static fslib::Path get_file_path(void)
+static fslib::Path get_file_path()
 {
     fslib::Path returnPath = "romfs:/Text";
 

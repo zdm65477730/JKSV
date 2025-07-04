@@ -7,7 +7,7 @@
 #include <memory>
 
 /// @brief State that allows certain actions to be taken for users.
-class UserOptionState : public AppState
+class UserOptionState final : public AppState
 {
     public:
         /// @brief Constructs a new UserOptionState.
@@ -19,14 +19,14 @@ class UserOptionState : public AppState
         ~UserOptionState() {};
 
         /// @brief Runs the render routine.
-        void update(void) override;
+        void update() override;
 
         /// @brief Runs the render routine.
-        void render(void) override;
+        void render() override;
 
         /// @brief Signals to the main update() function that a refresh is needed.
         /// @note Like this to prevent threading headaches.
-        void data_and_view_refresh_required(void);
+        void data_and_view_refresh_required();
 
         /// @brief Struct used for passing data to functions/tasks.
         typedef struct

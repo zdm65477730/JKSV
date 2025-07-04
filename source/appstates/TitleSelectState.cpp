@@ -27,7 +27,7 @@ TitleSelectState::TitleSelectState(data::User *user)
                                                               SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
       m_titleView(m_user) {};
 
-void TitleSelectState::update(void)
+void TitleSelectState::update()
 {
     if (m_user->get_total_data_entries() <= 0)
     {
@@ -44,11 +44,8 @@ void TitleSelectState::update(void)
         FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
         data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
 
-        // Path to output to.
-        fslib::Path targetPath = config::get_working_directory() / titleInfo->get_path_safe_title();
-
-        if ((fslib::directory_exists(targetPath) || fslib::create_directory(targetPath)) &&
-            fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
+        // To do: Figure out how to handle this differently. Meta files need this closed.
+        if (fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
         {
             auto backupMenuState =
                 std::make_shared<BackupMenuState>(m_user,
@@ -94,7 +91,7 @@ void TitleSelectState::update(void)
     }
 }
 
-void TitleSelectState::render(void)
+void TitleSelectState::render()
 {
     m_renderTarget->clear(colors::TRANSPARENT);
     m_titleView.render(m_renderTarget->get(), AppState::has_focus());
@@ -102,7 +99,7 @@ void TitleSelectState::render(void)
     m_renderTarget->render(NULL, 201, 91);
 }
 
-void TitleSelectState::refresh(void)
+void TitleSelectState::refresh()
 {
     m_titleView.refresh();
 }

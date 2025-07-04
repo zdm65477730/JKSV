@@ -8,6 +8,7 @@
 #include "fslib.hpp"
 #include "input.hpp"
 #include "logger.hpp"
+#include "remote/remote.hpp"
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "ui/PopMessageManager.hpp"
@@ -42,7 +43,7 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
     return true;
 }
 
-JKSV::JKSV(void)
+JKSV::JKSV()
 {
     // Start with this.
     appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad);
@@ -122,6 +123,14 @@ JKSV::JKSV(void)
 
     // Push initial main menu state.
     StateManager::push_state(std::make_shared<MainMenuState>());
+    if (fslib::file_exists(remote::PATH_GOOGLE_DRIVE_CONFIG))
+    {
+        remote::initialize_google_drive();
+    }
+    else if (fslib::file_exists(remote::PATH_WEBDAV_CONFIG))
+    {
+        remote::initialize_webdav();
+    }
 
     m_isRunning = true;
 }
@@ -146,12 +155,12 @@ JKSV::~JKSV()
     appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
 }
 
-bool JKSV::is_running(void) const
+bool JKSV::is_running() const
 {
     return m_isRunning;
 }
 
-void JKSV::update(void)
+void JKSV::update()
 {
     input::update();
 
@@ -167,7 +176,7 @@ void JKSV::update(void)
     ui::PopMessageManager::update();
 }
 
-void JKSV::render(void)
+void JKSV::render()
 {
     sdl::frame_begin(colors::CLEAR_COLOR);
 

@@ -16,23 +16,23 @@ namespace remote
 
             /// @brief Returns the name of the item.
             /// @return Name of the item.
-            std::string_view get_name(void) const;
+            std::string_view get_name() const;
 
             /// @brief Returns the id of the item.
             /// @return ID of the item.
-            std::string_view get_id(void) const;
+            std::string_view get_id() const;
 
             /// @brief Returns the parent id of the item.
             /// @return Parent ID of the item.
-            std::string_view get_parent_id(void) const;
+            std::string_view get_parent_id() const;
 
             /// @brief Gets the size of the item.
             /// @return Size of the item in bytes.
-            size_t get_size(void) const;
+            size_t get_size() const;
 
             /// @brief Returns whether or not the item is a directory.
             /// @return Whether or not the item is a directory.
-            bool is_directory(void) const;
+            bool is_directory() const;
 
             /// @brief Sets the name of the item.
             /// @param name New name of the item.

@@ -5,7 +5,7 @@
 #include "strings.hpp"
 #include "ui/PopMessageManager.hpp"
 
-void TaskState::update(void)
+void TaskState::update()
 {
     // Run the base update routine.
     BaseTask::update();
@@ -22,7 +22,7 @@ void TaskState::update(void)
     }
 }
 
-void TaskState::render(void)
+void TaskState::render()
 {
     // Grab task string.
     std::string status = m_task.get_status();

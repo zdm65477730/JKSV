@@ -145,7 +145,7 @@ void ui::Menu::edit_option(int index, std::string_view newOption)
     m_options[index] = newOption.data();
 }
 
-int ui::Menu::get_selected(void) const
+int ui::Menu::get_selected() const
 {
     return m_selected;
 }
@@ -160,7 +160,7 @@ void ui::Menu::set_width(int width)
     m_width = width;
 }
 
-void ui::Menu::reset(void)
+void ui::Menu::reset()
 {
     m_selected = 0;
     m_y = m_originalY;

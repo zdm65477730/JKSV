@@ -7,12 +7,12 @@ namespace
     constexpr uint64_t TICKS_GLYPH_TRIGGER = 50;
 } // namespace
 
-BaseTask::BaseTask(void) : AppState(false)
+BaseTask::BaseTask() : AppState(false)
 {
     m_frameTimer.start(TICKS_GLYPH_TRIGGER);
 }
 
-void BaseTask::update(void)
+void BaseTask::update()
 {
     // Just bail if the timer wasn't triggered yet.
     if (!m_frameTimer.is_triggered())
@@ -30,7 +30,7 @@ void BaseTask::update(void)
     m_colorMod.update();
 }
 
-void BaseTask::render_loading_glyph(void)
+void BaseTask::render_loading_glyph()
 {
     // This assumes it's being called after the background was dimmed.
     sdl::text::render(NULL, 56, 673, 32, sdl::text::NO_TEXT_WRAP, m_colorMod, sm_glyphArray.at(m_currentFrame).data());

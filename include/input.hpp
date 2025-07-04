@@ -4,10 +4,10 @@
 namespace input
 {
     /// @brief Initializes PadState and input.
-    void initialize(void);
+    void initialize();
 
     /// @brief Updates the PadState.
-    void update(void);
+    void update();
 
     /// @brief Returns if a button was pressed the current frame, but not the previous.
     /// @param button Button to check.

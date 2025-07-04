@@ -4,7 +4,7 @@
 namespace strings
 {
     // Attempts to load strings from file in RomFS.
-    bool initialize(void);
+    bool initialize();
 
     // Returns string with name and index. Returns nullptr if string doesn't exist.
     const char *get_by_name(std::string_view name, int index);
@@ -41,5 +41,6 @@ namespace strings
         static constexpr std::string_view POP_MESSAGES_SAVE_CREATE = "PopMessagesSaveCreate";
         static constexpr std::string_view POP_MESSAGES_TITLE_OPTIONS = "PopMessagesTitleOptions";
         static constexpr std::string_view GOOGLE_DRIVE_STRINGS = "GoogleDriveStrings";
+        static constexpr std::string_view WEBDAV_STRINGS = "WebDavStrings";
     } // namespace names
 } // namespace strings

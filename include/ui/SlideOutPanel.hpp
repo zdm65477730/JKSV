@@ -33,32 +33,32 @@ namespace ui
             void render(SDL_Texture *target, bool hasFocus);
 
             /// @brief Clears the target to a semi-transparent black. To do: Maybe not hard coded color.
-            void clear_target(void);
+            void clear_target();
 
             /// @brief Resets the panel back to its default state.
-            void reset(void);
+            void reset();
 
             /// @brief Closes the panel.
-            void close(void);
+            void close();
 
             /// @brief Returns if the panel is fully open.
             /// @return If the panel is fully open.
-            bool is_open(void) const;
+            bool is_open() const;
 
             /// @brief Returns if the panel is fully closed.
             /// @return If the panel is fully closed.
-            bool is_closed(void) const;
+            bool is_closed() const;
 
             /// @brief Pushes a new element to the element vector.
             /// @param newElement New element to push.
             void push_new_element(std::shared_ptr<ui::Element> newElement);
 
             /// @brief Clears the element vector, freeing them in the process.
-            void clear_elements(void);
+            void clear_elements();
 
             /// @brief Returns a pointer to the render target of the panel.
             /// @return Raw SDL_Texture pointer to target.
-            SDL_Texture *get_target(void);
+            SDL_Texture *get_target();
 
         private:
             /// @brief Bool for whether panel is fully open or not.

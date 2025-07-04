@@ -1,117 +1,97 @@
 #include "remote/GoogleDrive.hpp"
 #include "logger.hpp"
+#include "remote/Form.hpp"
+#include "remote/URL.hpp"
+#include "remote/remote.hpp"
 #include "strings.hpp"
+#include "stringutil.hpp"
 #include <algorithm>
+#include <cstring>
 
 namespace
 {
-    /// @brief Buffer size for snprintf'ing URLS.
-    constexpr size_t SIZE_URL_BUFFER = 0x800;
-
-    /// @brief Path the client_secret from Google should be located at.
-    constexpr std::string_view PATH_CLIENT_SECRET_LOCATION = "sdmc:/config/JKSV/client_secret.json";
-
-    /// @brief Header for json type content.
-    constexpr std::string_view HEADER_CONTENT_TYPE_JSON = "Content-Type: application/json";
-    /// @brief Header for URL encoded content.
-    constexpr std::string_view HEADER_CONTENT_TYPE_URL = "Content-Type: application/x-www-form-urlencoded";
-    /// @brief Authorization header string that the token is appended to.
+    // This is the sort-of template for the authorization/token header.
     constexpr std::string_view HEADER_AUTH_BEARER = "Authorization: Bearer ";
-    /// @brief This is the string used to locate the header containing the upload URL.
-    constexpr std::string_view HEADER_UPLOAD_LOCATION = "location";
 
-    /// @brief OAuth2 login for TV type devices.
-    /// @note This has limited scopes available.
-    constexpr std::string_view URL_OAUTH2_DEVICE_CODE = "https://oauth2.googleapis.com/device/code";
-    /// @brief This is the OAuth2 token URL.
-    constexpr std::string_view URL_OAUTH2_TOKEN_URL = "https://oauth2.googleapis.com/token";
-    /// @brief This a the V2 about api endpoint so I can pull the root drive ID. V3 doesn't support this.
-    constexpr std::string_view URL_DRIVE_ABOUT_API = "https://www.googleapis.com/drive/v2/about";
-    /// @brief This is the main V3 drive API url.
-    constexpr std::string_view URL_DRIVE_FILE_API = "https://www.googleapis.com/drive/v3/files";
-    /// @brief This is the endpoint for starting uploads.
-    constexpr std::string_view URL_DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
+    // Content type headers used.
+    const char *HEADER_CONTENT_TYPE_JSON = "Content-Type: application/json";
+    const char *HEADER_CONTENT_TYPE_FORM = "Content-Type: application/x-www-form-urlencoded";
 
-    /// @brief The drive file scope allowed with the sign in method I chose this time around.
-    constexpr std::string_view PARAM_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
-    /// @brief Grant type string for device type (TV/etc).
-    constexpr std::string_view PARAM_GRANT_TYPE_DEVICE = "urn:ietf:params:oauth:grant-type:device_code";
-    /// @brief These are the default parameters used to get a drive listing. JKSV loads everything it possible can at once.
-    constexpr std::string_view PARAM_DEFUALT_LIST_QUERY =
-        "fields=nextPageToken,files(name,id,size,parents,mimeType)&orderBy=name_natural&pageSize=256&q=trashed=false";
+    // This is used for upload/patch for grabbing the upload location.
+    constexpr std::string_view HEADER_UPLOAD_LOCATION = "Location";
 
-    // JSON keys
-    constexpr std::string_view JSON_KEY_ACCESS_TOKEN = "access_token";
-    constexpr std::string_view JSON_KEY_CLIENT_ID = "client_id";
-    constexpr std::string_view JSON_KEY_CLIENT_SECRET = "client_secret";
-    constexpr std::string_view JSON_KEY_DEVICE_CODE = "device_code";
-    constexpr std::string_view JSON_KEY_ERROR = "error";
-    constexpr std::string_view JSON_KEY_EXPIRES_IN = "expires_in";
-    constexpr std::string_view JSON_KEY_GRANT_TYPE = "grant_type";
-    constexpr std::string_view JSON_KEY_ID = "id";
-    constexpr std::string_view JSON_KEY_INSTALLED = "installed";
-    constexpr std::string_view JSON_KEY_MIMETYPE = "mimeType";
-    constexpr std::string_view JSON_KEY_NAME = "name";
-    constexpr std::string_view JSON_KEY_NEXT_PAGE_TOKEN = "nextPageToken";
-    constexpr std::string_view JSON_KEY_PARENTS = "parents";
-    constexpr std::string_view JSON_KEY_REFRESH_TOKEN = "refresh_token";
+    // These are API endpoints used in multiple request calls.
+    const char *URL_OAUTH2_TOKEN_URL = "https://oauth2.googleapis.com/token";
+    const char *URL_DRIVE_FILE_API = "https://www.googleapis.com/drive/v3/files";
+    const char *URL_DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
+
+    // These are json keys that are used for various requests.
+    const char *JSON_KEY_ACCESS_TOKEN = "access_token";
+    const char *JSON_KEY_CLIENT_ID = "client_id";
+    const char *JSON_KEY_CLIENT_SECRET = "client_secret";
+    const char *JSON_KEY_DEVICE_CODE = "device_code";
+    const char *JSON_KEY_EXPIRES_IN = "expires_in";
+    const char *JSON_KEY_GRANT_TYPE = "grant_type";
+    const char *JSON_KEY_ID = "id";
+    const char *JSON_KEY_INSTALLED = "installed";
+    const char *JSON_KEY_MIMETYPE = "mimeType";
+    const char *JSON_KEY_NAME = "name";
+    const char *JSON_KEY_PARENTS = "parents";
+    const char *JSON_KEY_REFRESH_TOKEN = "refresh_token";
 
     /// @brief Folder mimetype string.
-    constexpr std::string_view MIME_TYPE_DIRECTORY = "application/vnd.google-apps.folder";
+    const char *MIME_TYPE_DIRECTORY = "application/vnd.google-apps.folder";
 } // namespace
 
-remote::GoogleDrive::GoogleDrive(void) : m_curl(curl::new_handle())
+remote::GoogleDrive::GoogleDrive() : Storage()
 {
+    static const char *STRING_ERROR_READING_CONFIG = "Error reading Google Drive config: %s";
+
+    // Google Drive doesn't really use directories, so UTF-8 is fine!
+    m_utf8Paths = true;
+
     // Load the json file.
-    json::Object clientJson = json::new_object(json_object_from_file, PATH_CLIENT_SECRET_LOCATION.data());
+    json::Object clientJson = json::new_object(json_object_from_file, remote::PATH_GOOGLE_DRIVE_CONFIG.data());
     if (!clientJson)
     {
-        logger::log("Error reading Google Drive configuration json!");
+        logger::log(STRING_ERROR_READING_CONFIG, "Error reading configuration file!");
         return;
     }
 
-    json_object *installed = json::get_object(clientJson, JSON_KEY_INSTALLED.data());
+    json_object *installed = json::get_object(clientJson, JSON_KEY_INSTALLED);
     if (!installed)
     {
-        logger::log("Google Drive configuration is invalid!");
+        logger::log(STRING_ERROR_READING_CONFIG, "Configuration file is malformed!");
         return;
     }
 
-    json_object *clientId = json_object_object_get(installed, JSON_KEY_CLIENT_ID.data());
-    json_object *clientSecret = json_object_object_get(installed, JSON_KEY_CLIENT_SECRET.data());
+    json_object *clientId = json_object_object_get(installed, JSON_KEY_CLIENT_ID);
+    json_object *clientSecret = json_object_object_get(installed, JSON_KEY_CLIENT_SECRET);
+    json_object *refreshToken = json_object_object_get(installed, JSON_KEY_REFRESH_TOKEN);
     if (!clientId || !clientSecret)
     {
-        logger::log("Google Drive configuration is missing data!");
+        logger::log(STRING_ERROR_READING_CONFIG, "Configuration file is missing required data!");
         return;
     }
     // Grab them.
     m_clientId = json_object_get_string(clientId);
     m_clientSecret = json_object_get_string(clientSecret);
 
-    json_object *refreshToken = json_object_object_get(installed, JSON_KEY_REFRESH_TOKEN.data());
+    // Returning here will make is_initialized return false.
     if (!refreshToken)
     {
-        // Bail here so it doesn't appear to be initialized.
-        return.
+        return;
     }
     m_refreshToken = json_object_get_string(refreshToken);
-}
 
-void remote::GoogleDrive::change_directory(std::string_view id)
-{
-    remote::Storage::List::iterator targetDir;
-    if (id == ".." && (targetDir = GoogleDrive::find_directory_by_id(m_parent)) != m_list.end())
+    if (!GoogleDrive::refresh_token())
     {
-        // Set it to the parent of the current parent.
-        m_parent = targetDir->get_parent_id();
+        // If refreshing the token failed, this will cause is_initialized to return false and force a re-signin.
+        m_refreshToken.clear();
     }
-    else if ((targetDir = Storage::find_directory(name)) != m_list.end())
+    else if (GoogleDrive::get_root_id() && GoogleDrive::request_listing())
     {
-        m_parent = targetDir->get_id();
-    }
-    else
-    {
-        logger::log("Error changing Google Drive directory: directory specified not found!");
+        m_isInitialized = true;
     }
 }
 
@@ -119,56 +99,49 @@ bool remote::GoogleDrive::create_directory(std::string_view name)
 {
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token())
     {
-        logger::log("Error creating directory: Token is no longer valid and could not be refreshed.");
         return false;
     }
 
-    // Headers.
     curl::HeaderList headers = curl::new_header_list();
     curl::append_header(headers, m_authHeader);
-    curl::append_header(headers, HEADER_CONTENT_TYPE_JSON.data());
+    curl::append_header(headers, HEADER_CONTENT_TYPE_JSON);
 
-    // Post json.
-    json::object postJson = json::new_object(json_object_new_object);
+    json::Object postJson = json::new_object(json_object_new_object);
     json_object *directoryName = json_object_new_string(name.data());
-    json_object *mimeType = json_object_new_string(MIME_TYPE_DIRECTORY.data());
-    json::add_object(postJson, JSON_KEY_NAME.data(), directoryName);
-    json::add_object(postJson, JSON_KEY_MIMETYPE.data(), mimeType);
-    // Append the parent. Empty parent will default to root.
+    json_object *mimeType = json_object_new_string(MIME_TYPE_DIRECTORY);
+    json::add_object(postJson, JSON_KEY_NAME, directoryName);
+    json::add_object(postJson, JSON_KEY_MIMETYPE, mimeType);
     if (!m_parent.empty())
     {
         // I don't understand why this is an array.
         json_object *parentArray = json_object_new_array();
         json_object *parentId = json_object_new_string(m_parent.c_str());
         json_object_array_add(parentArray, parentId);
-        json::add_object(postJson, JSON_KEY_PARENTS.data(), parentArray);
+        json::add_object(postJson, JSON_KEY_PARENTS, parentArray);
     }
 
-    // Response string.
     std::string response;
-    // Curl post
     curl::prepare_post(m_curl);
     curl::set_option(m_curl, CURLOPT_HTTPHEADER, headers.get());
-    curl::set_option(m_curl, CURLOPT_URL, URL_DRIVE_FILE_API.data());
+    curl::set_option(m_curl, CURLOPT_URL, URL_DRIVE_FILE_API);
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
     curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
     curl::set_option(m_curl, CURLOPT_POSTFIELDS, json_object_get_string(postJson.get()));
 
-    if (!curl::perform())
+    if (!curl::perform(m_curl))
     {
         return false;
     }
 
-    // Parse the response.
-    json::Object responseParser = json::new_object(json_tokener_parse, response.c_str());
-    if (!responseParser)
+    json::Object parser = json::new_object(json_tokener_parse, response.c_str());
+    if (!parser)
     {
         logger::log("Error creating directory: Error parsing server response.");
         return false;
     }
 
     // This is all I really need from the response.
-    json_object *id = json::get_object(responseParser, JSON_KEY_ID.data());
+    json_object *id = json::get_object(parser, JSON_KEY_ID);
     if (!id)
     {
         // This doesn't really mean the request wasn't successful. It just means the new directory couldn't be appended
@@ -177,67 +150,7 @@ bool remote::GoogleDrive::create_directory(std::string_view name)
         return false;
     }
 
-    // Emplace the new item.
-    m_list.emplace_back(name, json_object_get_string(id), m_parent, true);
-
-    return true;
-}
-
-// This is basically the same thing as deleting a file on Google Drive.
-bool remote::GoogleDrive::delete_directory(std::string_view id)
-{
-    if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token())
-    {
-        return false;
-    }
-
-    // Header list.
-    curl::HeaderList headers = curl::new_header_list();
-    curl::append_header(headers, m_authHeader);
-
-    // URL
-    char urlBuffer[SIZE_URL_BUFFER] = {0};
-    std::snprintf(urlBuffer, SIZE_URL_BUFFER, "%s/%s", URL_DRIVE_FILE_API.data(), id.data());
-
-    // Response. This is only used to check for errors.
-    std::string response;
-    // Curl.
-    curl::reset_handle(m_curl);
-    curl::set_option(m_curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-    curl::set_option(m_curl, CURLOPT_HTTPHEADER, headers.get());
-    curl::set_option(m_curl, CURLOPT_URL, urlBuffer);
-    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
-    curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
-
-    if (!curl::perform(m_curl))
-    {
-        return false;
-    }
-
-    // This is weird. No response means success?
-    json::Object responseParser = json::new_object(json_tokener_parse, response.c_str());
-    if (GoogleDrive::error_occured(responseParser))
-    {
-        return false;
-    }
-
-    // Now remove it from the local list.
-    remote::Storage::List::iterator findDir = GoogleDrive::find_directory_by_id(id);
-    if (findDir == m_list.end())
-    {
-        logger::log("Error deleting directory from Google Drive: directory could not be located locally for removal.");
-        return false;
-    }
-
-    // Erase the directory locally and all of its children.
-    m_list.erase(findDir);
-    // Just gonna reuse the iterator. This is one hell of a while loop condition.
-    while ((findDir = std::find_if(m_list.begin(), m_list.end(), [id](const remote::Item &item) {
-                return item.get_parent_id() == id;
-            })) != m_list.end())
-    {
-        m_list.erase(findDir);
-    }
+    m_list.emplace_back(name, json_object_get_string(id), m_parent, 0, true);
 
     return true;
 }
@@ -249,7 +162,6 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
         return false;
     }
 
-    // Make sure we can even open the file before proceeding any further.
     fslib::File sourceFile(source, FsOpenMode_Read);
     if (!sourceFile)
     {
@@ -257,41 +169,45 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
         return false;
     }
 
-    // Headers
     curl::HeaderList headers = curl::new_header_list();
     curl::append_header(headers, m_authHeader);
-    curl::append_header(headers, HEADER_CONTENT_TYPE_JSON.data());
+    curl::append_header(headers, HEADER_CONTENT_TYPE_JSON);
 
-    // URL
-    char urlBuffer[SIZE_URL_BUFFER] = {0};
-    std::snprintf(urlBuffer, SIZE_URL_BUFFER, "%s?uploadType=resumable", URL_DRIVE_UPLOAD_API.data());
+    // I don't know if I like this much. Looks like I'm using a high level language instead of a real one.
+    remote::URL url{URL_DRIVE_UPLOAD_API};
+    url.append_parameter("uploadType", "resumable");
 
     // Json to post.
     json::Object postJson = json::new_object(json_object_new_object);
-    json_object *driveName = json_object_new_string(source.get_file_name().data());
-    json::add_object(postJson, JSON_KEY_NAME.data(), driveName);
+    json_object *driveName = json_object_new_string(source.get_filename().data());
+    json::add_object(postJson, JSON_KEY_NAME, driveName);
     // Append the parent.
     if (!m_parent.empty())
     {
         json_object *parentArray = json_object_new_array();
         json_object *parentId = json_object_new_string(m_parent.c_str());
         json_object_array_add(parentArray, parentId);
-        json::add_object(postJson, JSON_KEY_PARENTS.data(), parentArray);
+        json::add_object(postJson, JSON_KEY_PARENTS, parentArray);
     }
 
     // This requires reading a header to get the upload location.
     curl::HeaderArray headerArray;
-    // Curl post.
+
     curl::prepare_post(m_curl);
-    curl::set_option(m_curl, CURL_HTTPHEADER, headers.get());
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, headers.get());
     curl::set_option(m_curl, CURLOPT_HEADERFUNCTION, curl::write_header_array);
     curl::set_option(m_curl, CURLOPT_HEADERDATA, &headerArray);
-    curl::set_option(m_curl, CURLOPT_URL, urlBuffer);
+    curl::set_option(m_curl, CURLOPT_URL, url.get());
     curl::set_option(m_curl, CURLOPT_POSTFIELDS, json_object_get_string(postJson.get()));
 
     if (!curl::perform(m_curl))
     {
         return false;
+    }
+
+    for (std::string &h : headerArray)
+    {
+        logger::log("h: %s", h.c_str());
     }
 
     // Extract the location from the headers.
@@ -302,9 +218,8 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
         return false;
     }
 
-    // Response string.
     std::string response;
-    // This is the actual upload. This doesn't need the authentication header to work.
+    // This is the actual upload. This doesn't need the authentication header to work for some reason?
     curl::prepare_upload(m_curl);
     curl::set_option(m_curl, CURLOPT_URL, location.c_str());
     curl::set_option(m_curl, CURLOPT_READFUNCTION, curl::read_data_from_file);
@@ -317,7 +232,6 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
         return false;
     }
 
-    // Parse response.
     json::Object responseParser = json::new_object(json_tokener_parse, response.c_str());
     if (!responseParser)
     {
@@ -325,9 +239,10 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
         return false;
     }
 
-    json_object *id = json::get_object(responseParser, JSON_KEY_ID.data());
-    json_object *filename = json::get_object(responseParser, JSON_KEY_NAME.data());
-    json_object *mimeType = json::get_object(responseParser, JSON_KEY_MIMETYPE.data());
+    json_object *id = json::get_object(responseParser, JSON_KEY_ID);
+    json_object *filename = json::get_object(responseParser, JSON_KEY_NAME);
+    json_object *mimeType = json::get_object(responseParser, JSON_KEY_MIMETYPE);
+    json_object *size = json::get_object(responseParser, "size");
     // All of these are needed for the emplace_back.
     if (!id || !filename || !mimeType)
     {
@@ -338,14 +253,17 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
     m_list.emplace_back(json_object_get_string(filename),
                         json_object_get_string(id),
                         m_parent,
-                        std::strcmp(MIME_TYPE_DIRECTORY.data(), json_object_get_string(mimeType)) == 0);
+                        json_object_get_uint64(size),
+                        std::strcmp(MIME_TYPE_DIRECTORY, json_object_get_string(mimeType)) == 0);
 
-    // Assumed everything is fine!
+    // Assume everything is fine!
     return true;
 }
 
-bool remote::GoogleDrive::patch_file(std::string_view id, const fslib::Path &source)
+bool remote::GoogleDrive::patch_file(remote::Item *file, const fslib::Path &source)
 {
+    static const char *STRING_PATCH_ERROR = "Error patching file: %s";
+
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token())
     {
         return false;
@@ -354,27 +272,24 @@ bool remote::GoogleDrive::patch_file(std::string_view id, const fslib::Path &sou
     fslib::File sourceFile(source, FsOpenMode_Read);
     if (!sourceFile)
     {
-        logger::log("Error patching file: %s", fslib::get_error_string());
+        logger::log(STRING_PATCH_ERROR, fslib::get_error_string());
         return false;
     }
 
-    char urlBuffer[SIZE_URL_BUFFER] = {0};
-    std::snprintf(urlBuffer, SIZE_URL_BUFFER, "%s/%s?uploadType=resumable", URL_DRIVE_UPLOAD_API.data(), id.data());
+    curl::HeaderList header = curl::new_header_list();
+    curl::append_header(header, m_authHeader);
 
-    curl::HeaderList headers = curl::new_header_list();
-    curl::append_header(headers, m_authHeader);
+    remote::URL url{URL_DRIVE_UPLOAD_API};
+    url.append_path(file->get_id()).append_parameter("uploadType", "resumable");
 
-    // Response string.
     std::string response;
-    // Header array.
     curl::HeaderArray headerArray;
-    // Curl
     curl::reset_handle(m_curl);
     curl::set_option(m_curl, CURLOPT_CUSTOMREQUEST, "PATCH");
-    curl::set_option(m_curl, CURLOPT_HTTPHEADER, headers.get());
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
     curl::set_option(m_curl, CURLOPT_HEADERFUNCTION, curl::write_header_array);
     curl::set_option(m_curl, CURLOPT_HEADERDATA, &headerArray);
-    curl::set_option(m_curl, CURLOPT_URL, urlBuffer);
+    curl::set_option(m_curl, CURLOPT_URL, url.get());
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
     curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
 
@@ -383,16 +298,16 @@ bool remote::GoogleDrive::patch_file(std::string_view id, const fslib::Path &sou
         return false;
     }
 
-    // Get the location from the headers.
+    // This is the target location to upload to.
     std::string location;
-    if (!curl::get_header_value(headerArray, HEADER_UPLOAD_LOCATION.data(), location))
+    if (!curl::get_header_value(headerArray, HEADER_UPLOAD_LOCATION, location))
     {
-        logger::log("Error patching file: upload location not found in headers!");
+        logger::log(STRING_PATCH_ERROR, "Location could not be read from headers!");
         return false;
     }
 
-    // Setup the curl upload.
-    curl::prepare_upload();
+    // For some reason, this doesn't need the auth header.
+    curl::prepare_upload(m_curl);
     curl::set_option(m_curl, CURLOPT_URL, location.c_str());
     curl::set_option(m_curl, CURLOPT_READFUNCTION, curl::read_data_from_file);
     curl::set_option(m_curl, CURLOPT_READDATA, &sourceFile);
@@ -402,103 +317,38 @@ bool remote::GoogleDrive::patch_file(std::string_view id, const fslib::Path &sou
         return false;
     }
 
-    // Try to locate the file with the ID.
-    remote::Storage::List::iterator findFile = GoogleDrive::find_file_by_id(id);
-    if (findFile == m_list.end())
-    {
-        logger::log("Error patching file: file could not be located for updating data.");
-        return false;
-    }
-
-    // Update the size according to the source file instead of wasting time and pulling it from Google.
-    findFile->set_size(sourceFile.get_size());
+    // Update the file size with the source file size.
+    file->set_size(sourceFile.get_size());
 
     return true;
 }
 
-bool remote::GoogleDrive::delete_file(std::string_view id)
+bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::Path &destination)
 {
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token())
     {
         return false;
     }
 
-    // Headers
-    curl::HeaderList headers = curl::new_header_list();
-    curl::append_header(headers, m_authHeader);
-
-    char urlBuffer[SIZE_URL_BUFFER] = {0};
-    std::snprintf(urlBuffer, SIZE_URL_BUFFER, "%s/%s", URL_DRIVE_FILE_API.data(), id.data());
-
-    std::string response;
-    curl::reset_handle(m_curl);
-    curl::set_option(m_curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-    curl::set_option(m_curl, CURLOPT_HTTPHEADER, headers.get());
-    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
-    curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
-
-    if (!curl::perform(m_curl))
-    {
-        return false;
-    }
-
-    json::Object responseParser = json::new_object(json_tokener_parse, response.c_str());
-    if (GoogleDrive::error_occured(responseParser))
-    {
-        return false;
-    }
-
-    // Find the file and remove it from the list if it's found.
-    remote::Storage::List::iterator findFile = GoogleDrive::find_file_by_id(id);
-    if (findFile == m_list.end())
-    {
-        logger::log("Error deleting file from Drive: file could not be located in local list.");
-        return false;
-    }
-
-    m_list.erase(findFile);
-
-    return true;
-}
-
-bool remote::GoogleDrive::download_file(std::string_view id, const fslib::Path &destination)
-{
-    if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token())
-    {
-        return false;
-    }
-
-    // Get iterator to file.
-    remote::Storage::List::iterator findFile = GoogleDrive::find_file_by_id(id);
-    if (findFile == m_list.end())
-    {
-        logger::log("Error downloading file: File information could not be located in local list!");
-        return false;
-    }
-
-    // Try to open the file too before continuing.
-    fslib::File destinationFile(destinationFile, FsOpenMode_Create | FsOpenMode_Write, findFile->get_size());
+    // Try to open the file too before continuing. Using a starting size speeds up write calls later.
+    fslib::File destinationFile(destination, FsOpenMode_Create | FsOpenMode_Write, file->get_size());
     if (!destinationFile)
     {
         logger::log("Error downloading file: local file could not be opened for writing!");
         return false;
     }
 
-    // Headers
-    curl::HeaderList headers = curl::new_header_list();
-    curl::append_header(headers, m_authHeader);
+    curl::HeaderList header = curl::new_header_list();
+    curl::append_header(header, m_authHeader);
 
-    // URL
-    char urlBuffer[SIZE_URL_BUFFER] = {0};
-    std::snprintf(urlBuffer, SIZE_URL_BUFFER, "%s/%s?alt=media", URL_DRIVE_FILE_API.data(), id.data());
+    remote::URL url{URL_DRIVE_FILE_API};
+    url.append_path(file->get_id()).append_parameter("alt", "media");
 
-    // Response string
     std::string response;
-    // Curl
     curl::prepare_get(m_curl);
-    curl::set_option(m_curl, CURLOPT_HTTPHEADER, headers.get());
-    curl::set_option(m_curl, CURLOPT_URL, urlBuffer);
-    // This is temporary until I get some stuff figured out.
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
+    curl::set_option(m_curl, CURLOPT_URL, url.get());
+    // This is temporary until I get threading figured out again.
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_data_to_file);
     curl::set_option(m_curl, CURLOPT_WRITEDATA, &destinationFile);
 
@@ -510,53 +360,418 @@ bool remote::GoogleDrive::download_file(std::string_view id, const fslib::Path &
     return true;
 }
 
-bool remote::GoogleDrive::sign_in_required(void) const
+bool remote::GoogleDrive::delete_item(const remote::Item *item)
 {
-    return !m_isInitialized || m_refreshToken.empty();
-}
+    if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token())
+    {
+        return false;
+    }
 
-bool remote::GoogleDrive::get_sign_in_data(std::string &signInString, std::time_t &expiration, int &waitInterval)
-{
-    // Header list.
-    curl::HeaderList headers = curl::new_header_list();
-    curl::append_header(headers, HEADER_CONTENT_TYPE_JSON.data());
+    // Iterator is needed to remove it from the list.
+    auto findItem = std::find_if(m_list.begin(), m_list.end(), [item](const Item &listItem) {
+        return item->get_id() == listItem.get_id();
+    });
 
-    json::Object postJson = json::new_object(json_object_new_object);
-    json_object *clientId = json_object_new_string(m_clientId.c_str());
-    json_object *scope = json_object_new_string(PARAM_DRIVE_FILE_SCOPE.data());
-    json::add_object(postJson, JSON_KEY_CLIENT_ID.data(), clientId);
-    json::add_object(postJson, "scope", scope);
+    if (findItem == m_list.end())
+    {
+        logger::log("Error deleting item: Item not found in list!");
+        return false;
+    }
 
-    std::string response;
-    curl::prepare_get(m_curl);
-    curl::set_option(m_curl, CURLOPT_HTTPHEADER, headers.get());
-    curl::set_option(m_curl, CURLOPT_URL, URL_OAUTH2_DEVICE_CODE.data());
-    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
-    curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
-    curl::set_option(m_curl, CURLOPT_POSTFIELDS, json_object_get_string(postJson.get()));
+    curl::HeaderList header = curl::new_header_list();
+    curl::append_header(header, m_authHeader);
+
+    remote::URL url{URL_DRIVE_FILE_API};
+    url.append_path(item->get_id());
+
+    curl::reset_handle(m_curl);
+    curl::set_option(m_curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl::set_option(m_curl, CURLOPT_URL, url.get());
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
 
     if (!curl::perform(m_curl))
     {
         return false;
     }
 
-    json::Object responseParser = json::new_object(json_tokener_parse, response.c_str());
-    if (!responseParser || GoogleDrive::error_occurred(responseParser))
+    // This might be a better way to check?
+    long code = curl::get_response_code(m_curl);
+    if (code != 204)
+    {
+        logger::log("Error deleting item from Google Drive: %i.", code);
+        return false;
+    }
+
+    // Erase from the master list.
+    m_list.erase(findItem);
+
+    return true;
+}
+
+bool remote::GoogleDrive::sign_in_required() const
+{
+    return !m_isInitialized || m_refreshToken.empty();
+}
+
+bool remote::GoogleDrive::get_sign_in_data(std::string &message, std::string &code, std::time_t &expiration, int &wait)
+{
+    static const char *STRING_SIGN_IN_ERROR = "Error requesting sign-in data: %s";
+    // This is the the URL for device codes and limited input.
+    static const char *API_URL_DEVICE_CODE = "https://oauth2.googleapis.com/device/code";
+    // This is a gimped version of what I used to use.
+    static const char *STRING_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+
+    curl::HeaderList header = curl::new_header_list();
+    curl::append_header(header, HEADER_CONTENT_TYPE_FORM);
+
+    remote::Form post{};
+    post.append_parameter(JSON_KEY_CLIENT_ID, m_clientId).append_parameter("scope", STRING_DRIVE_FILE_SCOPE);
+
+    std::string response;
+    curl::prepare_post(m_curl);
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
+    curl::set_option(m_curl, CURLOPT_URL, API_URL_DEVICE_CODE);
+    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
+    curl::set_option(m_curl, CURLOPT_POSTFIELDS, post.get());
+
+    if (!curl::perform(m_curl))
     {
         return false;
     }
 
-    json_object *deviceCode = json::get_object(responseParser, JSON_KEY_DEVICE_CODE.data());
-    json_object *userCode = json::get_object(responseParser, "user_code");
-    json_object *verificationUrl = json::get_object(responseParser, "verification_url");
-    json_object *expiresIn = json::get_object(responseParser, JSON_KEY_EXPIRES_IN.data());
-    json_object *interval = json::get_object(responseParser, "interval");
+    json::Object parser = json::new_object(json_tokener_parse, response.c_str());
+    if (!parser || GoogleDrive::error_occurred(parser))
+    {
+        return false;
+    }
+
+    json_object *deviceCode = json::get_object(parser, JSON_KEY_DEVICE_CODE);
+    json_object *userCode = json::get_object(parser, "user_code");
+    json_object *verificationUrl = json::get_object(parser, "verification_url");
+    json_object *expiresIn = json::get_object(parser, "expires_in");
+    json_object *interval = json::get_object(parser, "interval");
+    // These are required and fatal.
     if (!deviceCode || !userCode || !verificationUrl || !expiresIn || !interval)
     {
-        logger::log("Abnormal sign in response.");
+        logger::log(STRING_SIGN_IN_ERROR, "Malformed or bad response.");
         return false;
     }
 
-    // Set expiration time.
+    // I hate how this looks, but whatever.
+    message = stringutil::get_formatted_string(strings::get_by_name(strings::names::GOOGLE_DRIVE_STRINGS, 0),
+                                               json_object_get_string(verificationUrl),
+                                               json_object_get_string(userCode));
+
+    code = json_object_get_string(deviceCode);
+
+    // This is a quick, dirty way to get the expiration time.
     expiration = std::time(NULL) + json_object_get_uint64(expiresIn);
+
+    // This should be the time in seconds to wait between verification checks.
+    wait = json_object_get_int64(interval);
+
+    return true;
+}
+
+bool remote::GoogleDrive::poll_sign_in(std::string_view code)
+{
+    static const char *STRING_ERROR_POLLING = "Error polling Google OAuth2: %s";
+    // I'm just gonna save this pre-escaped instead of wasting time escaping it.
+    static const char *STRING_DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code";
+
+    // I'm not sure how else to make this really work with JKSV's task threading system?
+    remote::Form post{};
+    post.append_parameter(JSON_KEY_CLIENT_ID, m_clientId)
+        .append_parameter(JSON_KEY_CLIENT_SECRET, m_clientSecret)
+        .append_parameter("device_code", code)
+        .append_parameter(JSON_KEY_GRANT_TYPE, STRING_DEVICE_GRANT);
+
+    curl::HeaderList header = curl::new_header_list();
+    curl::append_header(header, HEADER_CONTENT_TYPE_FORM);
+
+    std::string response;
+    curl::prepare_get(m_curl);
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
+    curl::set_option(m_curl, CURLOPT_URL, URL_OAUTH2_TOKEN_URL);
+    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
+    curl::set_option(m_curl, CURLOPT_POSTFIELDS, post.get());
+
+    if (!curl::perform(m_curl) || response.empty())
+    {
+        return false;
+    }
+
+    json::Object parser = json::new_object(json_tokener_parse, response.c_str());
+    // This error isn't logged, because that's how you know if the user logged in or not.
+    if (!parser || GoogleDrive::error_occurred(parser, false))
+    {
+        return false;
+    }
+
+    json_object *accessToken = json::get_object(parser, JSON_KEY_ACCESS_TOKEN);
+    json_object *expiresIn = json::get_object(parser, JSON_KEY_EXPIRES_IN);
+    json_object *refreshToken = json::get_object(parser, JSON_KEY_REFRESH_TOKEN);
+    // All of these are required.
+    if (!accessToken || !expiresIn || !refreshToken)
+    {
+        logger::log(STRING_ERROR_POLLING, "Malformed response or missing data!");
+        return false;
+    }
+
+    m_token = json_object_get_string(accessToken);
+    m_refreshToken = json_object_get_string(refreshToken);
+    m_tokenExpires = std::time(NULL) + json_object_get_uint64(expiresIn);
+
+    m_authHeader = std::string(HEADER_AUTH_BEARER) + m_token;
+
+    json::Object config = json::new_object(json_object_from_file, remote::PATH_GOOGLE_DRIVE_CONFIG.data());
+    if (config)
+    {
+        // We're going to attach the refresh token to the installed object so nothing bad can happen to it and I don't
+        // have to deal with Git issues about it.
+        json_object *installed = json::get_object(config, JSON_KEY_INSTALLED);
+        json_object *refreshToken = json_object_new_string(m_refreshToken.c_str());
+        json_object_object_add(installed, JSON_KEY_REFRESH_TOKEN, refreshToken);
+
+        fslib::File configFile(remote::PATH_GOOGLE_DRIVE_CONFIG, FsOpenMode_Create | FsOpenMode_Write);
+        if (configFile)
+        {
+            configFile << json_object_get_string(config.get());
+        }
+    }
+
+    // Not sure where else to really put this.
+    if (!GoogleDrive::get_root_id())
+    {
+        return false;
+    }
+
+    m_isInitialized = true;
+
+    return true;
+}
+
+bool remote::GoogleDrive::get_root_id()
+{
+    // This is the only place this is used. V3 of the API doesn't allow you to retrieve this for some reason?
+    static const char *API_URL_ABOUT_ROOT_ID = "https://www.googleapis.com/drive/v2/about?fields=rootFolderId";
+
+    if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token())
+    {
+        return false;
+    }
+
+    curl::HeaderList header = curl::new_header_list();
+    curl::append_header(header, m_authHeader);
+
+    std::string response;
+    curl::prepare_get(m_curl);
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
+    curl::set_option(m_curl, CURLOPT_URL, API_URL_ABOUT_ROOT_ID);
+    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
+
+    if (!curl::perform(m_curl))
+    {
+        return false;
+    }
+
+    json::Object parser = json::new_object(json_tokener_parse, response.c_str());
+    if (!parser)
+    {
+        return false;
+    }
+
+    json_object *rootId = json::get_object(parser, "rootFolderId");
+    if (!rootId)
+    {
+        logger::log("Error getting drive root directory ID!");
+        return false;
+    }
+
+    m_root = json_object_get_string(rootId);
+    m_parent = m_root;
+
+    return true;
+}
+
+bool remote::GoogleDrive::token_is_valid() const
+{
+    // I'm giving this a grace period just to be safe.
+    return std::time(NULL) < m_tokenExpires - 10;
+}
+
+bool remote::GoogleDrive::refresh_token()
+{
+    curl::HeaderList header = curl::new_header_list();
+    curl::append_header(header, HEADER_CONTENT_TYPE_FORM);
+
+
+    remote::Form post{};
+    post.append_parameter(JSON_KEY_CLIENT_ID, m_clientId)
+        .append_parameter(JSON_KEY_CLIENT_SECRET, m_clientSecret)
+        .append_parameter(JSON_KEY_REFRESH_TOKEN, m_refreshToken)
+        .append_parameter(JSON_KEY_GRANT_TYPE, JSON_KEY_REFRESH_TOKEN);
+
+    std::string response;
+    curl::prepare_post(m_curl);
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
+    curl::set_option(m_curl, CURLOPT_URL, URL_OAUTH2_TOKEN_URL);
+    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
+    curl::set_option(m_curl, CURLOPT_POSTFIELDS, post.get());
+    curl::set_option(m_curl, CURLOPT_POSTFIELDSIZE, post.length());
+
+    if (!curl::perform(m_curl))
+    {
+        return false;
+    }
+
+    json::Object parser = json::new_object(json_tokener_parse, response.c_str());
+    if (!parser || GoogleDrive::error_occurred(parser))
+    {
+        return false;
+    }
+
+    // These are the only things I care about.
+    json_object *accessToken = json::get_object(parser, JSON_KEY_ACCESS_TOKEN);
+    json_object *expiresIn = json::get_object(parser, JSON_KEY_EXPIRES_IN);
+    if (!accessToken || !expiresIn)
+    {
+        return false;
+    }
+
+    // Got our new access token.
+    m_token = json_object_get_string(accessToken);
+    // This is better than pinging Google's servers every single time.
+    m_tokenExpires = std::time(NULL) + json_object_get_uint64(expiresIn);
+
+    m_authHeader = std::string(HEADER_AUTH_BEARER) + m_token;
+
+    return true;
+}
+
+bool remote::GoogleDrive::request_listing()
+{
+    if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token())
+    {
+        return false;
+    }
+
+    curl::HeaderList header = curl::new_header_list();
+    curl::append_header(header, m_authHeader.c_str());
+
+    remote::URL url{URL_DRIVE_FILE_API};
+    url.append_parameter("fields", "nextPageToken,files(name,id,size,parents,mimeType)")
+        .append_parameter("orderBy", "name_natural")
+        .append_parameter("pageSize", "256")
+        .append_parameter("trashed", "false");
+
+    std::string response;
+    curl::prepare_get(m_curl);
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
+    curl::set_option(m_curl, CURLOPT_URL, url.get());
+    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
+
+    // This is used as the loop condition.
+    json_object *nextPageToken = nullptr;
+    do
+    {
+        // This needs to be cleared for every request.
+        response.clear();
+
+        if (!curl::perform(m_curl))
+        {
+            return false;
+        }
+
+        json::Object parser = json::new_object(json_tokener_parse, response.c_str());
+        if (!parser || GoogleDrive::error_occurred(parser) || !GoogleDrive::process_listing(parser))
+        {
+            logger::log("Error while parseing Google Drive response!");
+            return false;
+        }
+
+        nextPageToken = json::get_object(parser, "nextPageToken");
+        if (nextPageToken)
+        {
+            remote::URL nextPage{url};
+            nextPage.append_parameter("pageToken", json_object_get_string(nextPageToken));
+            curl::set_option(m_curl, CURLOPT_URL, nextPage);
+        }
+    } while (nextPageToken);
+
+    return true;
+}
+
+bool remote::GoogleDrive::process_listing(json::Object &json)
+{
+    static const char *STRING_ERROR_PROCESSING = "Error processing Google Drive listing: %s";
+
+    json_object *files = json::get_object(json, "files");
+    if (!files)
+    {
+        return false;
+    }
+
+    size_t arrayLength = json_object_array_length(files);
+    for (size_t i = 0; i < arrayLength; i++)
+    {
+        json_object *currentFile = json_object_array_get_idx(files, i);
+        if (!currentFile)
+        {
+            return false;
+        }
+
+        json_object *mimeType = json_object_object_get(currentFile, JSON_KEY_MIMETYPE);
+        json_object *parents = json_object_object_get(currentFile, JSON_KEY_PARENTS);
+        json_object *id = json_object_object_get(currentFile, JSON_KEY_ID);
+        json_object *name = json_object_object_get(currentFile, JSON_KEY_NAME);
+        json_object *size = json_object_object_get(currentFile, "size");
+        // All of these are REQUIRED! Size doesn't exist for folders.
+        if (!mimeType || !parents || !id || !name)
+        {
+            logger::log(STRING_ERROR_PROCESSING, "Malformed or missing data!");
+            continue;
+        }
+
+        // I still think it's stupid this is an array when there can only be one...
+        json_object *parent = json_object_array_get_idx(parents, 0);
+        if (!parent)
+        {
+            logger::log(STRING_ERROR_PROCESSING, "Missing parent ID!");
+            continue;
+        }
+
+        m_list.emplace_back(json_object_get_string(name),
+                            json_object_get_string(id),
+                            json_object_get_string(parent),
+                            size ? json_object_get_uint64(size) : 0,
+                            std::strcmp(MIME_TYPE_DIRECTORY, json_object_get_string(mimeType)) == 0);
+    }
+    return true;
+}
+
+bool remote::GoogleDrive::error_occurred(json::Object &json, bool log)
+{
+    json_object *error = json::get_object(json, "error");
+    if (!error)
+    {
+        return false;
+    }
+
+    // Google has so many different error response structures. I'm covering two here. Technically,
+    // I could grab the code too from the second response, that makes this even more of a headache.
+    json_object *description = json::get_object(json, "error_description");
+    json_object *message = json_object_object_get(error, "message");
+    if (log && (description || message))
+    {
+        logger::log("Google Drive error: %s.",
+                    description ? json_object_get_string(description) : json_object_get_string(message));
+    }
+
+    return true;
 }

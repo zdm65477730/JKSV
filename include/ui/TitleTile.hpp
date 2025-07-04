@@ -23,15 +23,15 @@ namespace ui
             void render(SDL_Texture *target, int x, int y);
 
             /// @brief Resets the width and height of the tile.
-            void reset(void);
+            void reset();
 
             /// @brief Returns the render width in pixels.
             /// @return Render width.
-            int get_width(void) const;
+            int get_width() const;
 
             /// @brief Returns the render height in pixels.
             /// @return Render height.
-            int get_height(void) const;
+            int get_height() const;
 
         private:
             /// @brief Width in pixels to render icon at.

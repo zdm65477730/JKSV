@@ -6,26 +6,26 @@
 #include <memory>
 
 /// @brief The main
-class MainMenuState : public AppState
+class MainMenuState final : public AppState
 {
     public:
         /// @brief Creates and initializes the main menu.
-        MainMenuState(void);
+        MainMenuState();
 
         /// @brief Required even if it does nothing.
         ~MainMenuState() {};
 
         /// @brief Runs update routine.
-        void update(void) override;
+        void update() override;
 
         /// @brief Renders menu to screen.
-        void render(void) override;
+        void render() override;
 
         /// @brief Signals to
-        static void initialize_view_states(void);
+        static void initialize_view_states();
 
         /// @brief Calls refresh on on view states in the vector.
-        static void refresh_view_states(void);
+        static void refresh_view_states();
 
     private:
         /// @brief Render target this state renders to.

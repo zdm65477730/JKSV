@@ -6,7 +6,7 @@
 #include "ui/SlideOutPanel.hpp"
 #include <memory>
 
-class TitleOptionState : public AppState
+class TitleOptionState final : public AppState
 {
     public:
         /// @brief Constructs a new title option state.
@@ -18,16 +18,16 @@ class TitleOptionState : public AppState
         ~TitleOptionState() {};
 
         /// @brief Runs update routine.
-        void update(void) override;
+        void update() override;
 
         /// @brief Runs the render routine.
-        void render(void) override;
+        void render() override;
 
         /// @brief This function allows tasks to signal to the spawning state to close itself on the next update() call.
-        void close_on_update(void);
+        void close_on_update();
 
         /// @brief Signals to the main thread that a view refresh is required on the next update() call.
-        void refresh_required(void);
+        void refresh_required();
 
         /// @brief This is the struct used to pass data to the thread functions.
         typedef struct

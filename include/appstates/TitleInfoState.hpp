@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-class TitleInfoState : public AppState
+class TitleInfoState final : public AppState
 {
     public:
         /// @brief Constructs a new title info state.
@@ -19,10 +19,10 @@ class TitleInfoState : public AppState
         ~TitleInfoState();
 
         /// @brief Runs update routine.
-        void update(void) override;
+        void update() override;
 
         /// @brief Runs render routine.
-        void render(void) override;
+        void render() override;
 
     private:
         /// @brief Pointer to user.

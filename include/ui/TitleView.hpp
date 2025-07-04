@@ -30,13 +30,13 @@ namespace ui
 
             /// @brief Returns index of the currently selected tile.
             /// @return Index of currently selected tile.
-            int get_selected(void) const;
+            int get_selected() const;
 
             /// @brief Forces a refresh of the view.
-            void refresh(void);
+            void refresh();
 
             /// @brief Resets the view to its default, empty state.
-            void reset(void);
+            void reset();
 
         private:
             /// @brief Pointer to user passed.

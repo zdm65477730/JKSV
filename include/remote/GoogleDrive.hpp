@@ -8,116 +8,85 @@ namespace remote
     class GoogleDrive final : public remote::Storage
     {
         public:
-            /// @brief Google Drive class constructor. Unlike PC prototype, the path to the client_secret is hardcoded.
-            /// @param
-            GoogleDrive(void);
+            /// @brief Loads the config from SD.
+            GoogleDrive();
 
-            /// @brief Changes the current parent directory.
-            /// @param id ID of the parent to target.
-            void change_directory(std::string_view id) override;
-
-            /// @brief Creates a new directory on Google Drive.
+            /// @brief Creates a directory on Google Drive.
             /// @param name Name of the directory to create.
-            /// @return True on success. False on failure.
             bool create_directory(std::string_view name) override;
 
-            /// @brief Deletes a directory from Google Drive.
-            /// @param id ID of the directory to delete.
-            /// @return True on success. False on failure.
-            bool delete_directory(std::string_view id) override;
-
-            /// @brief Uploads a file to Google Drive.
-            /// @param source Source path.
-            /// @return True on success. False on failure.
+            /// @brief Uploads the file from source. File name is used to name the file.
+            /// @param source Path to upload the file from.
             bool upload_file(const fslib::Path &source) override;
 
-            /// @brief Patches or updates a file on Google Drive.
-            /// @param id ID of the file to patch.
-            /// @param source Source path of the updated file.
-            /// @return True on success. False on failure.
-            bool patch_file(std::string_view id, const fslib::Path &source) override;
-
-            /// @brief Deletes a file from Google Drive.
-            /// @param id ID of the file to delete.
-            /// @return True on success. False on failure.
-            bool delete_file(std::string_view id) override;
+            /// @brief Patches or updates the file on Google Drive.
+            /// @param file Pointer to the item containing the data needed to update the file.
+            /// @param source Source path to update from.
+            bool patch_file(remote::Item *file, const fslib::Path &source) override;
 
             /// @brief Downloads a file from Google Drive.
-            /// @param id ID of the file to download.
-            /// @param destination Path with the destination to save the file to.
-            /// @return True on success. False on failure.
-            bool download_file(std::string_view id, const fslib::Path &destination) override;
+            /// @param file Pointer to the item containing data to download the file.
+            /// @param destination Location to write the downloaded file to.
+            bool download_file(const remote::Item *file, const fslib::Path &destination) override;
 
-            // Sign in related functions.
-            /// @brief Returns if a sign in is required for using Google Drive.
-            /// @return True if sign in is required. False if it isn't.
-            bool sign_in_required(void) const;
+            /// @brief Deletes an item from Google Drive.
+            /// @param item Pointer to item containing data to delete the item.
+            bool delete_item(const remote::Item *item) override;
 
-            /// @brief Gets the data needed to display and sign into Google.
-            /// @param code String to write the sign in code to.
-            /// @param expires std::time_t to write the expiration time to.
-            /// @param wait Time in seconds while pinging server.
-            /// @return True on success. False on failure.
-            bool get_sign_in_data(std::string &code, std::time_t &expires, int &wait);
+            /// @brief Returns whether or not a sign in is required to use drive. AKA the refresh token is missing.
+            bool sign_in_required() const;
 
-            /// @brief This function waits for the response from the server that the user signed in.
-            /// @return True on success. False on failure.
-            bool sign_in(void);
+            /// @brief Requests the the necessary data from Google to login.
+            /// @param message String to store the message to.
+            /// @param code String to store the device code from Google.
+            /// @param expiration time_t to store when the sign in window closes.
+            /// @param wait Int to store the time in seconds between server pings.
+            bool get_sign_in_data(std::string &message, std::string &code, std::time_t &expiration, int &wait);
 
+            /// @brief This is the function that pings the server to see if the user entered the code yet.
+            /// @param code The code Google reponded with for verification.
+            /// @return If the user signs in, true. If not, false;
+            bool poll_sign_in(std::string_view code);
 
         private:
-            /// @brief Client ID.
+            /// @brief Google client ID.
             std::string m_clientId;
 
-            /// @brief Client secret.
+            /// @brief Google client secret.
             std::string m_clientSecret;
 
-            /// @brief Authorization token.
+            /// @brief Authentication token.
             std::string m_token;
 
-            /// @brief Token refresh token.
+            /// @brief Token used for refreshing token when it expires.
             std::string m_refreshToken;
 
-            /// @brief Authentication header string.
+            /// @brief This is to save the authentication header string instead of recreating it over and over.
             std::string m_authHeader;
 
-            /// @brief Calculated time the token expires in.
+            /// @brief This is the calculate time when the auth token expires.
             std::time_t m_tokenExpires;
 
-            /// @brief Gets and sets the root ID of Google Drive using V2 of the API.
-            /// @return True on success. False on failure.
-            bool get_set_root_id(void);
+            /// @brief Uses V2 of Drive's API to get the root directory ID from Google.
+            bool get_root_id();
 
-            /// @brief Returns whether or not the token is still valid with a grace period of 10 seconds.
-            /// @return True if the token is still valid. False if it isn't.
-            bool token_is_valid(void) const;
+            /// @brief Returns whether or not the auth token is still valid for use or needs to be refreshed.
+            bool token_is_valid() const;
 
-            /// @brief Forces a refresh of the access token.
-            /// @return True on success. False on failure.
-            bool refresh_token(void);
+            /// @brief Attempts to refresh the auth token if needed.
+            bool refresh_token();
 
-            /// @brief Requests a listing and processes it.
-            /// @return True on success. False on failure.
-            bool request_listing(void);
+            /// @brief Requests and processes the entire listing for JKSV.
+            bool request_listing();
 
-            /// @brief Processes a file list from Google Drive.
-            /// @param json Json object to process.
-            /// @return True on success. False on failure.
+            /// @brief Processes and listing
+            /// @param json Json object to use for parsing.
             bool process_listing(json::Object &json);
 
-            /// @brief Tries to locate a directory according to its ID instead of its name.
-            /// @param id ID of the directory to search for.
-            /// @return Iterator to directory found. m_list.end() on failure.
-            remote::Storage::List::iterator find_directory_by_id(std::string_view id);
-
-            /// @brief Tries to locate a file according to its ID instead of its name.
-            /// @param id ID of the file to locate.
-            /// @return Iterator to the file on success. m_list.end() on failure.
-            remote::Storage::List::iterator find_file_by_id(std::string_view id);
-
-            /// @brief Checks for, logs, and returns if an error is detected within the json::Object passed.
-            /// @param json json::Object to check.
-            /// @return True if an error was found. False if one wasn't.
-            bool error_occurred(json::Object &json);
+            /// @brief Performs a quick check on the json object passed for errors.
+            /// @param json Json object to check.
+            /// @param log Whether or not to log the error.
+            /// @note This doesn't catch every error. Google's errors aren't consistent.
+            bool error_occurred(json::Object &json, bool log = true);
     };
 } // namespace remote

@@ -10,7 +10,7 @@ namespace ui
     {
         public:
             /// @brief This is only here so I can get around the backup menu having static members.
-            TextScroll(void) = default;
+            TextScroll() = default;
 
             /// @brief Constructor for TextScroll.
             /// @param text Text to create the textscroll with.

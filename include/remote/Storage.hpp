@@ -8,102 +8,113 @@
 
 namespace remote
 {
-    /// @brief This is the base storage class.
     class Storage
     {
         public:
-            // Definition for remote file listing.
+            /// @brief Definition to make things easier to type.
+            using DirectoryListing = std::vector<remote::Item *>;
+
+            /// @brief This makes writing some stuff for these classes way easier.
             using List = std::vector<remote::Item>;
 
-            /// @brief Default storage constructor.
-            Storage(void) = default;
+            /// @brief This just allocates the curl::Handle.
+            Storage();
 
-            /// @brief Returns whether or not the storage type/driver was initialized successfully.
-            /// @return True if it was. False if it wasn't.
-            bool is_initialized(void) const;
+            /// @brief Returns whether or not the Storage type was successfully. initialized.
+            bool is_initialized() const;
 
+            // Directory functions.
             /// @brief Returns whether or not a directory with name exists within the current parent.
-            /// @param name Name of the directory.
-            /// @return True if one was found. False if one wasn't.
+            /// @param name Name of the directory to search for.
             bool directory_exists(std::string_view name);
 
-            /// @brief Tries to locate and get the ID of a directory within the current parent.
-            /// @param name Name of the directory to get.
-            /// @param idOut String to write the ID to if it's found.
-            /// @return True on success. False on failure.
-            bool get_directory_id(std::string_view name, std::string &idOut);
+            /// @brief Returns the parent to the root directory.
+            void return_to_root();
 
-            /// @brief Returns whether or not a file exists within the current parent directory.
-            /// @param name Name of the file to search for.
-            /// @return True if one is found. False if one isn't.
-            bool file_exists(std::string_view name);
+            /// @brief This allows the root to be set to something other than what it originally was at construction.
+            /// @param root Item to be used as the new root.
+            void set_root_directory(remote::Item *root);
 
-            /// @brief Tries to locate and get the ID of a file within the current parent directory.
-            /// @param name Name of the file to search for
-            /// @param idOut String it write the ID to.
-            /// @return True on success. False when no file is found.
-            bool get_file_id(std::string_view name, std::string &idOut);
+            /// @brief Changes the current parent directory.
+            /// @param Item Item to use as the current parent directory.
+            void change_directory(remote::Item *item);
 
-            /// @brief Virtual function to change the current parent/working directory.
-            /// @param name Name or ID of the directory to change to.
-            virtual void change_directory(std::string_view name) = 0;
-
-            /// @brief Virtual function to create a new directory within the current parent directory.
+            /// @brief Creates a directory in the current parent directory.
             /// @param name Name of the directory to create.
-            /// @return True on success. False on failure.
             virtual bool create_directory(std::string_view name) = 0;
 
-            /// @brief Virtual function to delete a directory from within the current parent directory.
-            /// @param name Name or ID of the directory to delete.
-            /// @return True on success. False on failure.
-            virtual bool delete_directory(std::string_view name) = 0;
+            /// @brief Searches the list for a directory matching name and the current parent.
+            /// @param name Name of the directory to search for.
+            /// @return Pointer to the item representing the directory on success. nullptr on failure/not found.
+            remote::Item *get_directory_by_name(std::string_view name);
 
-            /// @brief Virtual function to upload a file to remote storage.
-            /// @param source fslib::Path of the source file to upload.
-            /// @return True on success. False on failure.
+            /// @brief Retrieves a listing of the items in the current parent directory.
+            /// @param out List to fill.
+            remote::Storage::DirectoryListing get_directory_listing();
+
+            // File functions.
+            /// @brief Returns whether a file with name exists within the current directory.
+            /// @param name Name of the file.
+            bool file_exists(std::string_view name);
+
+            /// @brief Uploads a file from the SD card to the remote.
+            /// @param source Path to the file to upload.
             virtual bool upload_file(const fslib::Path &source) = 0;
 
-            /// @brief Virtual function to patch or update a file.
-            /// @param name Name or ID of the file to update.
-            /// @param source Source path to upload from.
-            /// @return True on success. False on failure.
-            virtual bool patch_file(std::string_view name, const fslib::Path &source) = 0;
+            /// @brief Patches or updates a file on the remote.
+            /// @param item Item to be updated.
+            /// @param source Path to the file to update with.
+            virtual bool patch_file(remote::Item *file, const fslib::Path &source) = 0;
 
-            /// @brief Virtual function for downloading a file.
-            /// @param name Name or ID of the file.
-            /// @param destination fslib::Path containing the destination path.
-            /// @return True on success. False on failure.
-            virtual bool download_file(std::string_view name, const fslib::Path &destination) = 0;
+            /// @brief Downloads a file from the remote.
+            /// @param item Item to download.
+            /// @param destination Path to download the file to.
+            virtual bool download_file(const remote::Item *file, const fslib::Path &destination) = 0;
 
-            /// @brief Virtual function to delete a file from the remote storage.
-            /// @param name Name or ID of the file to delete.
-            /// @return True on success. False on failure.
-            virtual bool delete_file(std::string_view name) = 0;
+            /// @brief Searches the list for a file matching name and the current parent.
+            /// @param name Name of the file to search for.
+            /// @return Pointer to the item if located. nullptr if not.
+            remote::Item *get_file_by_name(std::string_view name);
+
+            // General functions that apply to both.
+            /// @brief Deletes a file or folder from the remote.
+            /// @param item Item to delete.
+            virtual bool delete_item(const remote::Item *item) = 0;
+
+            /// @brief Returns whether or not the remote storage type supports UTF-8 for names or requires path safe titles.
+            bool supports_utf8() const;
 
         protected:
-            /// @brief Whether or not initialization of the remote storage service was successful.
+            /// @brief This is the size of the buffers used for snprintf'ing URLs together.
+            static constexpr size_t SIZE_URL_BUFFER = 0x401;
+
+            /// @brief This is the size used for uploads.
+            static constexpr size_t SIZE_UPLOAD_BUFFER = 0x10000;
+
+            /// @brief This allows JKSV to know whether or not the storage type supports UTF-8.
+            bool m_utf8Paths = false;
+
+            /// @brief This stores whether or not the instance was initialized successfully.
             bool m_isInitialized = false;
 
-            /// @brief The root directory of the remote storage.
+            /// @brief This is the root directory of the remote storage.
             std::string m_root;
 
-            /// @brief Current parent directory.
+            /// @brief This stores the current parent.
             std::string m_parent;
 
-            /// @brief Current storage listing.
-            Storage::List m_list;
-
-            /// @brief CURL handle.
+            /// @brief Curl handle.
             curl::Handle m_curl;
 
-            /// @brief Searches for a directory in the current parent directory.
-            /// @param name Name of the directory to search for.
-            /// @return Iterator to found directory or m_list.end() on failure.
-            Storage::List::iterator find_directory(std::string_view name);
+            /// @brief This is the main remote listing.
+            Storage::List m_list;
 
-            /// @brief Searches for a file named file within the current parent directory.
+            /// @brief Searches the list for a directory matching name and the current parent.
+            /// @param name Name to search for.
+            Storage::List::iterator find_directory_by_name(std::string_view name);
+
+            /// @brief Searches to find if a file with name exists within the current parent.
             /// @param name Name of the file to search for.
-            /// @return Iterator to the file found. m_list.end() on failure.
-            Storage::List::iterator find_file(std::string_view name);
+            Storage::List::iterator find_file_by_name(std::string_view name);
     };
 } // namespace remote

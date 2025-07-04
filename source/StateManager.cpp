@@ -1,6 +1,6 @@
 #include "StateManager.hpp"
 
-void StateManager::update(void)
+void StateManager::update()
 {
     // Grab the instance.
     StateManager &instance = StateManager::get_instance();
@@ -35,7 +35,7 @@ void StateManager::update(void)
     instance.sm_stateVector.back()->update();
 }
 
-void StateManager::render(void)
+void StateManager::render()
 {
     // Instance.
     StateManager &instance = StateManager::get_instance();
@@ -47,7 +47,7 @@ void StateManager::render(void)
     }
 }
 
-bool StateManager::back_is_closable(void)
+bool StateManager::back_is_closable()
 {
     // Instance.
     StateManager &instance = StateManager::get_instance();
@@ -78,7 +78,7 @@ void StateManager::push_state(std::shared_ptr<AppState> newState)
     instance.sm_stateVector.push_back(newState);
 }
 
-StateManager &StateManager::get_instance(void)
+StateManager &StateManager::get_instance()
 {
     static StateManager instance;
     return instance;

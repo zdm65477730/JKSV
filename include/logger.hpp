@@ -3,7 +3,7 @@
 namespace logger
 {
     /// @brief Creates and empties the log file
-    void initialize(void);
+    void initialize();
 
     /// @brief Logs a formatted string.
     /// @param format Format of string.

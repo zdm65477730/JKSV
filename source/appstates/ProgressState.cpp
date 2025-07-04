@@ -8,7 +8,7 @@
 #include "ui/render_functions.hpp"
 #include <cmath>
 
-void ProgressState::update(void)
+void ProgressState::update()
 {
     // Base routine.
     BaseTask::update();
@@ -29,7 +29,7 @@ void ProgressState::update(void)
     m_percentageX = 640 - (sdl::text::get_width(18, m_percentageString.c_str()));
 }
 
-void ProgressState::render(void)
+void ProgressState::render()
 {
     // This will dim the background.
     sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);

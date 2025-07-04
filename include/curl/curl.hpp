@@ -1,6 +1,5 @@
 #pragma once
 #include "fslib.hpp"
-#include "logger.hpp"
 #include <curl/curl.h>
 #include <memory>
 #include <string>
@@ -10,7 +9,7 @@
 namespace curl
 {
     /// @brief JKSV's user agent string.
-    static constexpr std::string_view USER_AGENT_STRING = "JKSV";
+    static const char *STRING_USER_AGENT = "JKSV";
 
     /// @brief Self cleaning curl handle.
     using Handle = std::unique_ptr<CURL, decltype(&curl_easy_cleanup)>;
@@ -23,10 +22,10 @@ namespace curl
 
     /// @brief Initializes lib curl.
     /// @return True on success. False on failure.
-    bool initialize(void);
+    bool initialize();
 
     /// @brief Exits libcurl
-    void exit(void);
+    void exit();
 
     /// @brief Inline templated function to wrap curl_easy_setopt and make using curl::Handle slightly easier.
     /// @tparam Option Templated type of the option. This is a headache so let the compiler figure it out.
@@ -43,14 +42,14 @@ namespace curl
 
     /// @brief Inline function that returns a self cleaning curl handle.
     /// @return Curl handle.
-    static inline curl::Handle new_handle(void)
+    static inline curl::Handle new_handle()
     {
         return curl::Handle(curl_easy_init(), curl_easy_cleanup);
     }
 
     /// @brief Inline function that returns a nullptr'd self cleaning curl_list.
     /// @return Self cleaning curl_slist.
-    static inline curl::HeaderList new_header_list(void)
+    static inline curl::HeaderList new_header_list()
     {
         return curl::HeaderList(nullptr, curl_slist_free_all);
     }
@@ -59,41 +58,18 @@ namespace curl
     /// @param curl curl::Handle to reset.
     static inline void reset_handle(curl::Handle &curl)
     {
-        // Reset the handle.
         curl_easy_reset(curl.get());
-        // Set the user agent since basically everything needs it.
-        curl::set_option(curl, CURLOPT_USERAGENT, curl::USER_AGENT_STRING.data());
+        curl::set_option(curl, CURLOPT_USERAGENT, curl::STRING_USER_AGENT);
     }
 
     /// @brief Logged inline wrapper function for curl_easy_perform.
-    /// @param curl Handle to perform.
-    /// @return True on success. False on failure.
-    static inline bool perform(curl::Handle &curl)
-    {
-        // CURLCode is just an int anyway.
-        CURLcode error = curl_easy_perform(curl.get());
-        if (error != CURLE_OK)
-        {
-            logger::log("Error performing curl: %i.", error);
-            return false;
-        }
-        return true;
-    }
+    /// @param handle Handle to perform.
+    bool perform(curl::Handle &handle);
 
     /// @brief Inline wrapper function to make adding to HeaderList simpler.
     /// @param headerList Header list to append to.
     /// @param header Header to append.
-    static inline void append_header(curl::HeaderList &headerList, std::string_view header)
-    {
-        // Release the current list and save the pointer to the head of it.
-        curl_slist *list = headerList.release();
-
-        // Append to it.
-        curl_slist_append(list, header.data());
-
-        // Reassign the unique_ptr to the new head.
-        headerList.reset(list);
-    }
+    void append_header(curl::HeaderList &list, std::string_view header);
 
     /// @brief Curl callback function for reading data from a file.
     /// @param buffer Incoming buffer from curl to read to.
@@ -131,8 +107,23 @@ namespace curl
     /// @param array Array of headers to search.
     /// @param header Header to search for.
     /// @param valueOut String to write the value to.
-    /// @return True if the header was found and the value was successfully extracted.
     bool get_header_value(const curl::HeaderArray &array, std::string_view header, std::string &valueOut);
+
+    /// @brief Gets the response code from the handle passed.
+    /// @param handle Handle to get the response code from.
+    long get_response_code(curl::Handle &handle);
+
+    /// @brief Calls curl_easy_escape using the passed curl::Handle.
+    /// @param handle Handle to use.
+    /// @param in String to escape.
+    /// @param out String to write the escaped text to.
+    bool escape_string(curl::Handle &handle, std::string_view in, std::string &out);
+
+    /// @brief Calls curl_easy_unescape using the passed curl::Handle.
+    /// @param handle Handle to use.
+    /// @param in String to unescape.
+    /// @param out String to write the escaped text to.
+    bool unescape_string(curl::Handle &handle, std::string_view in, std::string &out);
 
     /// @brief Prepares the curl handle passed for a get request.
     /// @param curl Handle to prepare for a get request.

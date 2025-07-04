@@ -17,22 +17,22 @@ AppState::~AppState()
     }
 }
 
-void AppState::deactivate(void)
+void AppState::deactivate()
 {
     m_isActive = false;
 }
 
-void AppState::reactivate(void)
+void AppState::reactivate()
 {
     m_isActive = true;
 }
 
-bool AppState::is_active(void) const
+bool AppState::is_active() const
 {
     return m_isActive;
 }
 
-void AppState::give_focus(void)
+void AppState::give_focus()
 {
     m_hasFocus = true;
 }
@@ -42,12 +42,12 @@ void AppState::take_focus()
     m_hasFocus = false;
 }
 
-bool AppState::has_focus(void) const
+bool AppState::has_focus() const
 {
     return m_hasFocus;
 }
 
-bool AppState::is_closable(void) const
+bool AppState::is_closable() const
 {
     return m_isClosable;
 }

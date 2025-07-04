@@ -21,31 +21,30 @@ namespace data
 
             /// @brief Returns the application ID of the title.
             /// @return Title's application ID.
-            uint64_t get_application_id(void) const;
+            uint64_t get_application_id() const;
 
             /// @brief Returns a pointer to the control data for the title.
             /// @return Pointer to control data.
-            NsApplicationControlData *get_control_data(void);
+            NsApplicationControlData *get_control_data();
 
             /// @brief Returns whether or not the title has control data.
             /// @return Whether or not the title has control data.
-            bool has_control_data(void) const;
+            bool has_control_data() const;
 
             /// @brief Returns the title of the title?
             /// @return Title directly from the NACP.
-            const char *get_title(void);
+            const char *get_title();
 
             /// @brief Returns the path safe version of the title for file system usage.
             /// @return Path safe version of the title.
-            const char *get_path_safe_title(void);
+            const char *get_path_safe_title() const;
 
             /// @brief Returns the publisher of the title.
             /// @return Publisher string from NACP.
-            const char *get_publisher(void);
+            const char *get_publisher();
 
             /// @brief Returns the owner ID of the save data.
-            /// @return Save data owner ID.
-            uint64_t get_save_data_owner_id(void) const;
+            uint64_t get_save_data_owner_id() const;
 
             /// @brief Returns the save data container's base size.
             /// @param saveType Type of save data to return.
@@ -70,11 +69,11 @@ namespace data
             /// @brief Returns if a title uses the save type passed.
             /// @param saveType Save type to check for.
             /// @return True on success. False on failure.
-            bool has_save_data_type(uint8_t saveType);
+            bool has_save_data_type(uint8_t saveType) const;
 
             /// @brief Returns a pointer to the icon texture.
             /// @return Icon
-            sdl::SharedTexture get_icon(void) const;
+            sdl::SharedTexture get_icon() const;
 
             /// @brief Allows the path safe title to be set to a new path.
             /// @param newPathSafe Buffer containing the new safe path to use.
@@ -101,6 +100,6 @@ namespace data
             sdl::SharedTexture m_icon = nullptr;
 
             /// @brief Private function to get/create the path safe title.
-            void get_create_path_safe_title(void);
+            void get_create_path_safe_title();
     };
 } // namespace data

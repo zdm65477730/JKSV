@@ -13,7 +13,7 @@ namespace
 
 } // namespace
 
-void ui::PopMessageManager::update(void)
+void ui::PopMessageManager::update()
 {
     // Grab instance.
     PopMessageManager &manager = PopMessageManager::get_instance();
@@ -65,7 +65,7 @@ void ui::PopMessageManager::update(void)
     }
 }
 
-void ui::PopMessageManager::render(void)
+void ui::PopMessageManager::render()
 {
     // Get instance.
     PopMessageManager &manager = PopMessageManager::get_instance();

@@ -13,7 +13,7 @@
 #include "sdl.hpp"
 #include "strings.hpp"
 
-MainMenuState::MainMenuState(void)
+MainMenuState::MainMenuState()
     : m_renderTarget(sdl::TextureManager::create_load_texture("mainMenuTarget",
                                                               200,
                                                               555,
@@ -46,7 +46,7 @@ MainMenuState::MainMenuState(void)
     MainMenuState::initialize_view_states();
 }
 
-void MainMenuState::update(void)
+void MainMenuState::update()
 {
     // Update the main menu.
     m_mainMenu.update(AppState::has_focus());
@@ -69,13 +69,13 @@ void MainMenuState::update(void)
     {
         // Get pointers to data the user option state needs.
         data::User *targetUser = sm_users.at(selected);
-        TitleSelectCommon *targetTitleSelect = reinterpret_cast<TitleSelectCommon *>(sm_states.at(selected).get());
+        TitleSelectCommon *targetTitleSelect = static_cast<TitleSelectCommon *>(sm_states.at(selected).get());
 
         StateManager::push_state(std::make_shared<UserOptionState>(targetUser, targetTitleSelect));
     }
 }
 
-void MainMenuState::render(void)
+void MainMenuState::render()
 {
     // Clear render target by rendering background to it.
     m_background->render(m_renderTarget->get(), 0, 0);
@@ -84,7 +84,7 @@ void MainMenuState::render(void)
     // render target to screen.
     m_renderTarget->render(NULL, 0, 91);
 
-    // render next state for current user and control guide if this state has focus.
+    // render next state for current user and control guide if this state has focus. To do: Maybe this different?
     if (AppState::has_focus())
     {
         sm_states.at(m_mainMenu.get_selected())->render();
@@ -92,7 +92,7 @@ void MainMenuState::render(void)
     }
 }
 
-void MainMenuState::initialize_view_states(void)
+void MainMenuState::initialize_view_states()
 {
     // Constructor should have taken care of the menu and user list.
     // Start by clearing the vector.
@@ -117,12 +117,12 @@ void MainMenuState::initialize_view_states(void)
     sm_states.push_back(sm_extrasState);
 }
 
-void MainMenuState::refresh_view_states(void)
+void MainMenuState::refresh_view_states()
 {
     // For this, we're only looping through the user states to be extra careful because the last two don't have the refresh() function.
     int userCount = sm_users.size();
     for (int i = 0; i < userCount; i++)
     {
-        std::static_pointer_cast<TitleSelectCommon>(sm_states.at(i))->refresh();
+        static_cast<TitleSelectCommon *>(sm_states.at(i).get())->refresh();
     }
 }
