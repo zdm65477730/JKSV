@@ -475,7 +475,6 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenu
     fs::SaveMetaData meta;
     bool hasMeta = fs::fill_save_meta_data(saveInfo, meta);
 
-
     if (std::strstr(STRING_ZIP_EXTENSION, dataStruct->targetPath.c_string()))
     {
         zipFile backupZip = zipOpen64(dataStruct->targetPath.c_string(), APPEND_STATUS_CREATE);
@@ -485,7 +484,6 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenu
             task->finished();
             return;
         }
-
 
         // Need the zip info for the meta.
         if (hasMeta)

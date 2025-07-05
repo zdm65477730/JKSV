@@ -47,7 +47,9 @@ ICON		:=	icon.jpg
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	$(INCLUDE) -D__SWITCH__ `sdl2-config --cflags` `freetype-config --cflags` \
+# NOTE: For some reason, devkitpro no longer has freetype-config included? Also, using pkg-config causes conflicts with
+# my local pkg-config and I don't feel like dealing with CMake for all of this right now.
+CFLAGS	:=	$(INCLUDE) -D__SWITCH__ `sdl2-config --cflags` \
 			`curl-config --cflags` -g -Wall -O2 -ffunction-sections -ffast-math -fmax-errors=1 \
 			$(ARCH) $(DEFINES)
 
@@ -57,8 +59,8 @@ ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:=	../Libraries/FsLib/Switch/FsLib/lib/libFsLib.a ../Libraries/SDLLib/SDL/lib/libSDL.a \
-			`sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lSDL2_image  \
-			-lwebp -lpng -ljpeg -lz -lminizip -ljson-c -ltinyxml2 -lnx
+			`sdl2-config --libs` -lfreetype -lharfbuzz `curl-config --libs` -lSDL2_image  \
+			-lwebp -lpng -ljpeg -lz -lminizip -ljson-c -ltinyxml2 -lnx -lbz2 -lz
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

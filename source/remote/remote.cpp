@@ -1,6 +1,6 @@
 #include "remote/remote.hpp"
 #include "StateManager.hpp"
-#include "appStates/TaskState.hpp"
+#include "appstates/TaskState.hpp"
 #include "logger.hpp"
 #include "remote/GoogleDrive.hpp"
 #include "remote/WebDav.hpp"
