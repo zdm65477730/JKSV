@@ -46,14 +46,14 @@ void ExtrasMenuState::update()
 
     m_extrasMenu.update(hasFocus);
 
-    if (input::button_pressed(HidNpadButton_A))
+    if (aPressed)
     {
         switch (m_extrasMenu.get_selected())
         {
             case REINIT_DATA: ExtrasMenuState::reinitialize_data(); break;
         }
     }
-    else if (input::button_pressed(HidNpadButton_B)) { BaseState::deactivate(); }
+    else if (bPressed) { BaseState::deactivate(); }
 }
 
 void ExtrasMenuState::render()

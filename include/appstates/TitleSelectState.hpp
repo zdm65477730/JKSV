@@ -33,4 +33,19 @@ class TitleSelectState final : public TitleSelectCommon
 
         /// @brief Tiled title selection view.
         ui::TitleView m_titleView;
+
+        /// @brief Checks if the user still has any games left to list. This is a safety measure.
+        bool title_count_check();
+
+        /// @brief Creates and pushes the backup menu state.
+        void create_backup_menu();
+
+        /// @brief Creates and pushes the title option state.
+        void create_title_option_menu();
+
+        /// @brief Resets and marks the state for purging.
+        void deactivate_state();
+
+        /// @brief Adds or removes the currently highlighted game from the favorite vector.
+        void add_remove_favorite();
 };

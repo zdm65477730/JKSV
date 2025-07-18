@@ -1,4 +1,5 @@
 #include "appstates/TitleSelectState.hpp"
+
 #include "StateManager.hpp"
 #include "appstates/BackupMenuState.hpp"
 #include "appstates/MainMenuState.hpp"
@@ -11,6 +12,7 @@
 #include "logger.hpp"
 #include "sdl.hpp"
 #include "strings.hpp"
+
 #include <string_view>
 
 namespace
@@ -20,86 +22,98 @@ namespace
 } // namespace
 
 TitleSelectState::TitleSelectState(data::User *user)
-    : TitleSelectCommon(), m_user(user),
-      m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
+    : TitleSelectCommon()
+    , m_user(user)
+    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
                                                               1080,
                                                               555,
-                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
-      m_titleView(m_user) {};
+                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
+    , m_titleView(m_user) {};
 
 void TitleSelectState::update()
 {
-    if (m_user->get_total_data_entries() <= 0)
-    {
-        BaseState::deactivate();
-        return;
-    }
+    if (!TitleSelectState::title_count_check()) { return; }
 
-    m_titleView.update(BaseState::has_focus());
+    const bool hasFocus = BaseState::has_focus();
+    const bool aPressed = input::button_pressed(HidNpadButton_A);
+    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool xPressed = input::button_pressed(HidNpadButton_X);
+    const bool yPressed = input::button_pressed(HidNpadButton_Y);
 
-    if (input::button_pressed(HidNpadButton_A))
-    {
-        // Get data needed to mount save.
-        uint64_t applicationID = m_user->get_application_id_at(m_titleView.get_selected());
-        FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
-        data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
+    if (aPressed) { TitleSelectState::create_backup_menu(); }
+    else if (xPressed) { TitleSelectState::create_title_option_menu(); }
+    else if (yPressed) { TitleSelectState::add_remove_favorite(); }
+    else if (bPressed) { TitleSelectState::deactivate_state(); }
 
-        // To do: Figure out how to handle this differently. Meta files need this closed.
-        if (fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
-        {
-            auto backupMenuState =
-                std::make_shared<BackupMenuState>(m_user,
-                                                  titleInfo,
-                                                  static_cast<FsSaveDataType>(saveInfo->save_data_type));
-
-            StateManager::push_state(backupMenuState);
-        }
-        else
-        {
-            logger::log(fslib::error::get_string());
-        }
-    }
-    else if (input::button_pressed(HidNpadButton_X))
-    {
-        uint64_t applicationID = m_user->get_application_id_at(m_titleView.get_selected());
-        data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
-
-        auto titleOptionState = std::make_shared<TitleOptionState>(m_user, titleInfo, this);
-
-        StateManager::push_state(std::make_shared<TitleOptionState>(m_user, titleInfo, this));
-    }
-    else if (input::button_pressed(HidNpadButton_B))
-    {
-        // This will reset all the tiles so they're 128x128.
-        m_titleView.reset();
-        BaseState::deactivate();
-    }
-    else if (input::button_pressed(HidNpadButton_Y))
-    {
-        // Add/remove favorite flag.
-        config::add_remove_favorite(m_user->get_application_id_at(m_titleView.get_selected()));
-
-        // Resort the data.
-        data::UserList list;
-        data::get_users(list);
-        for (data::User *user : list)
-        {
-            user->sort_data();
-        }
-
-        MainMenuState::refresh_view_states();
-    }
+    m_titleView.update(hasFocus);
 }
 
 void TitleSelectState::render()
 {
+    const bool hasFocus = BaseState::has_focus();
+
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleView.render(m_renderTarget->get(), BaseState::has_focus());
+    m_titleView.render(m_renderTarget->get(), hasFocus);
     TitleSelectCommon::render_control_guide();
     m_renderTarget->render(NULL, 201, 91);
 }
 
-void TitleSelectState::refresh()
+void TitleSelectState::refresh() { m_titleView.refresh(); }
+
+bool TitleSelectState::title_count_check()
 {
-    m_titleView.refresh();
+    const int titleCount = m_user->get_total_data_entries();
+
+    if (titleCount <= 0)
+    {
+        BaseState::deactivate();
+        return false;
+    }
+    return true;
+}
+
+void TitleSelectState::create_backup_menu()
+{
+    const int selected             = m_titleView.get_selected();
+    const uint64_t applicationID   = m_user->get_application_id_at(selected);
+    const FsSaveDataInfo *saveInfo = m_user->get_save_info_at(selected);
+    data::TitleInfo *titleInfo     = data::get_title_info_by_id(applicationID);
+    const FsSaveDataType saveType  = static_cast<FsSaveDataType>(saveInfo->save_data_type);
+
+    const bool saveMounted = fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo);
+    if (!saveMounted) { return; }
+
+    auto backupMenu = std::make_shared<BackupMenuState>(m_user, titleInfo, saveType);
+    StateManager::push_state(backupMenu);
+}
+
+void TitleSelectState::create_title_option_menu()
+{
+    const int selected           = m_titleView.get_selected();
+    const uint64_t applicationID = m_user->get_application_id_at(selected);
+    data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
+
+    auto titleOptions = std::make_shared<TitleOptionState>(m_user, titleInfo, this);
+    StateManager::push_state(titleOptions);
+}
+
+void TitleSelectState::deactivate_state()
+{
+    m_titleView.reset();
+    BaseState::deactivate();
+}
+
+void TitleSelectState::add_remove_favorite()
+{
+    const int selected           = m_titleView.get_selected();
+    const uint64_t applicationID = m_user->get_application_id_at(selected);
+
+    config::add_remove_favorite(applicationID);
+
+    // This applies to all users.
+    data::UserList userList;
+    data::get_users(userList);
+    for (data::User *user : userList) { user->sort_data(); }
+
+    MainMenuState::refresh_view_states();
 }
