@@ -50,6 +50,9 @@ class MainMenuState final : public BaseState
         /// @brief X coordinate of the control guide in the bottom right corner.
         int m_controlGuideX{};
 
+        /// @brief Records the size of the sm_users vector.
+        static inline int sm_userCount{};
+
         /// @brief This is the list of user pointers from data.
         static inline data::UserList sm_users{};
 
@@ -61,4 +64,16 @@ class MainMenuState final : public BaseState
 
         /// @brief This is the vector of title selection states.
         static inline std::vector<std::shared_ptr<BaseState>> sm_states{};
+
+        /// @brief Creates the settings and extras.
+        void initialize_settings_extras();
+
+        /// @brief Pushes the icons to the main menu.
+        void initialize_menu();
+
+        /// @brief Pushes the target state to the vector.
+        void push_target_state();
+
+        /// @brief Creates the user option state.
+        void create_user_options();
 };
