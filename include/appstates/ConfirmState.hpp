@@ -5,6 +5,7 @@
 #include "appstates/TaskState.hpp"
 #include "colors.hpp"
 #include "input.hpp"
+#include "logger.hpp"
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "system/Task.hpp"
@@ -17,7 +18,9 @@
 namespace
 {
     // This is the base position on the screen used to center the Yes [A](...) text.
-    constexpr int YES_X_CENTER_COORDINATE = 460;
+    constexpr int COORD_YES_X = 460;
+    // ^ but for no.
+    constexpr int COORD_NO_X = 820;
 } // namespace
 
 /// @brief Templated class to create confirmation dialogs.
@@ -43,14 +46,21 @@ class ConfirmState final : public BaseState
                      std::shared_ptr<StructType> dataStruct)
             : BaseState(false)
             , m_queryString(queryString)
-            , m_yesString(strings::get_by_name(strings::names::YES_NO, 0))
-            , m_hold(holdRequired)
+            , m_yesText(strings::get_by_name(strings::names::YES_NO, 0))
+            , m_noText(strings::get_by_name(strings::names::YES_NO, 1))
+            , m_holdRequired(holdRequired)
             , m_function(function)
             , m_dataStruct(dataStruct)
         {
-            // This is to make centering the Yes [A] string more accurate.
-            m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
-            m_noX  = 820 - (sdl::text::get_width(22, strings::get_by_name(strings::names::YES_NO, 1)) / 2);
+            const int yesWidth = sdl::text::get_width(22, m_yesText);
+            const int noWidth  = sdl::text::get_width(22, m_noText);
+
+            // This stays the same from here on out.
+            m_noX = COORD_NO_X - (noWidth / 2);
+            ConfirmState::center_yes();
+
+            // Gonna loop to do this.
+            for (int i = 0; i < 3; i++) { m_holdText[i] = strings::get_by_name(strings::names::HOLDING_STRINGS, i); }
         }
 
         /// @brief Required even if it does nothing.
@@ -59,107 +69,110 @@ class ConfirmState final : public BaseState
         /// @brief Just updates the ConfirmState.
         void update() override
         {
-            // This is to guard against the dialog being triggered right away. To do: Maybe figure out a better way to
-            // accomplish this?
-            if (input::button_pressed(HidNpadButton_A) && !m_triggerGuard) { m_triggerGuard = true; }
+            const bool aPressed  = input::button_pressed(HidNpadButton_A);
+            const bool bPressed  = input::button_pressed(HidNpadButton_B);
+            const bool aHeld     = input::button_held(HidNpadButton_A);
+            const bool aReleased = input::button_released(HidNpadButton_A);
 
-            if (m_triggerGuard && input::button_pressed(HidNpadButton_A) && !m_hold)
+            m_triggerGuard           = m_triggerGuard || (aPressed && !m_triggerGuard);
+            const bool noHoldTrigger = m_triggerGuard && aPressed && !m_holdRequired;
+            const bool holdTriggered = m_triggerGuard && aPressed && m_holdRequired;
+            const bool holdSustained = m_triggerGuard && aHeld && m_holdRequired;
+
+            if (noHoldTrigger)
             {
+                ConfirmState::create_push_state();
                 BaseState::deactivate();
-
-                auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
-
-                StateManager::push_state(newState);
             }
-            else if (m_triggerGuard && input::button_pressed(HidNpadButton_A) && m_hold)
+            else if (holdTriggered)
             {
-                // Get the starting tick count and change the Yes string to the first holding string.
                 m_startingTickCount = SDL_GetTicks64();
-                m_yesString         = strings::get_by_name(strings::names::HOLDING_STRINGS, 0);
+                m_yesText           = m_holdText[0];
             }
-            else if (m_triggerGuard && input::button_held(HidNpadButton_A) && m_hold)
+            else if (holdSustained)
             {
-                uint64_t TickCount = SDL_GetTicks64() - m_startingTickCount;
+                const uint64_t totalTicks = SDL_GetTicks64() - m_startingTickCount;
+                const bool threeSeconds   = totalTicks >= 3000;
+                const bool twoSeconds     = totalTicks >= 2000;
+                const bool oneSecond      = totalTicks >= 1000;
 
-                // If the TickCount is >= 3 seconds, confirmed. Else, just change the string so we can see we're not holding for
-                // nothing?
-                if (TickCount >= 3000)
+                if (threeSeconds)
                 {
+                    ConfirmState::create_push_state();
                     BaseState::deactivate();
-
-                    auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
                 }
-                else if (TickCount >= 2000)
+                else if (twoSeconds)
                 {
-                    m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 2);
-                    m_yesX      = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
+                    m_yesText = m_holdText[2];
+                    ConfirmState::center_yes();
                 }
-                else if (TickCount >= 1000)
+                else if (oneSecond)
                 {
-                    m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 1);
-                    m_yesX      = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
+                    m_yesText = m_holdText[1];
+                    ConfirmState::center_yes();
                 }
             }
-            else if (input::button_released(HidNpadButton_A))
+            else if (aReleased)
             {
-                m_yesString = strings::get_by_name(strings::names::YES_NO, 0);
-                m_yesX      = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
+                m_yesText = strings::get_by_name(strings::names::YES_NO, 0);
+                ConfirmState::center_yes();
             }
-            else if (input::button_pressed(HidNpadButton_B))
-            {
-                // Just deactivate and don't do anything.
-                BaseState::deactivate();
-            }
+            else if (bPressed) { BaseState::deactivate(); }
         }
 
         /// @brief Renders the state to screen.
         void render() override
         {
-            // Dim background
             sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
-            // Render dialog
             ui::render_dialog_box(NULL, 280, 262, 720, 256);
-            // Text
+
             sdl::text::render(NULL, 312, 288, 18, 656, colors::WHITE, m_queryString.c_str());
-            // Fake buttons. Maybe real later.
+
             sdl::render_line(NULL, 280, 454, 999, 454, colors::WHITE);
             sdl::render_line(NULL, 640, 454, 640, 517, colors::WHITE);
-            // To do: Position this better. Currently brought over from old code.
-            sdl::text::render(NULL, m_yesX, 476, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_yesString.c_str());
-            sdl::text::render(NULL,
-                              m_noX,
-                              476,
-                              22,
-                              sdl::text::NO_TEXT_WRAP,
-                              colors::WHITE,
-                              strings::get_by_name(strings::names::YES_NO, 1));
+
+            sdl::text::render(NULL, m_yesX, 476, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_yesText);
+            sdl::text::render(NULL, m_noX, 476, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_noText);
         }
 
     private:
         /// @brief String displayed
-        std::string m_queryString{};
+        const std::string m_queryString{};
 
-        /// @brief Yes or [X] [A]
-        std::string m_yesString{};
+        /// @brief These are pointers to the strings used to avoid call strings::get_by_name so much.
+        const char *m_yesText{}, *m_noText{};
 
-        /// @brief X coordinate to render the Yes [A]
-        int m_yesX{};
-
-        /// @brief Position of No.
-        int m_noX{};
+        /// @brief X coordinate to render the Yes No
+        int m_yesX{}, m_noX{};
 
         /// @brief This is to prevent the dialog from triggering immediately.
         bool m_triggerGuard{};
 
         /// @brief Whether or not holding [A] to confirm is required.
-        bool m_hold{};
+        const bool m_holdRequired{};
+
+        /// @brief These are pointers to the holding strings.
+        const char *m_holdText[3];
 
         /// @brief Keep track of the ticks/time needed to confirm.
         uint64_t m_startingTickCount{};
 
         /// @brief Function to execute if action is confirmed.
-        TaskFunction m_function{};
+        const TaskFunction m_function{};
 
         /// @brief Pointer to data struct passed to ^
-        std::shared_ptr<StructType> m_dataStruct{};
+        const std::shared_ptr<StructType> m_dataStruct{};
+
+        void create_push_state()
+        {
+            auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
+            StateManager::push_state(newState);
+        }
+
+        // This just centers the Yes or holding text.
+        void center_yes()
+        {
+            const size_t yesWidth = sdl::text::get_width(22, m_yesText);
+            m_yesX                = COORD_YES_X - (yesWidth / 2);
+        }
 };
