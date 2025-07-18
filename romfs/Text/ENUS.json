@@ -69,7 +69,8 @@
         "Terminate Process"
     ],
     "ExtrasPopMessages": [
-        "Data reinitialized!"
+        "Data reinitialized!",
+        "Data reinitialization failed"
     ],
     "YesNo": [
         "Yes [A]",

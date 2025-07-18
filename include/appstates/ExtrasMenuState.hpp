@@ -25,4 +25,10 @@ class ExtrasMenuState final : public BaseState
 
         /// @brief Render target for menu.
         sdl::SharedTexture m_renderTarget{};
+
+        /// @brief Creates and loads the menu strings.
+        void initialize_menu();
+
+        /// @brief This function is called when Reinitialize data is selected.
+        void reinitialize_data();
 };

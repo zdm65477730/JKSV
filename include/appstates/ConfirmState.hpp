@@ -36,24 +36,20 @@ class ConfirmState final : public BaseState
         using TaskFunction = void (*)(TaskType *, std::shared_ptr<StructType>);
 
         /// @brief Constructor for new ConfirmState.
-        /// @param queryString The string displayed.
+        /// @param query The string displayed.
         /// @param holdRequired Whether or not confirmation requires holding A for three seconds.
         /// @param function Function executed on confirmation.
         /// @param dataStruct shared_ptr<StructType> that is passed to function. I tried templating this and it was a nightmare.
-        ConfirmState(std::string_view queryString,
-                     bool holdRequired,
-                     TaskFunction function,
-                     std::shared_ptr<StructType> dataStruct)
+        ConfirmState(std::string_view query, bool holdRequired, TaskFunction function, std::shared_ptr<StructType> dataStruct)
             : BaseState(false)
-            , m_queryString(queryString)
+            , m_queryString(query)
             , m_yesText(strings::get_by_name(strings::names::YES_NO, 0))
             , m_noText(strings::get_by_name(strings::names::YES_NO, 1))
             , m_holdRequired(holdRequired)
             , m_function(function)
             , m_dataStruct(dataStruct)
         {
-            const int yesWidth = sdl::text::get_width(22, m_yesText);
-            const int noWidth  = sdl::text::get_width(22, m_noText);
+            const int noWidth = sdl::text::get_width(22, m_noText);
 
             // This stays the same from here on out.
             m_noX = COORD_NO_X - (noWidth / 2);
@@ -65,6 +61,15 @@ class ConfirmState final : public BaseState
 
         /// @brief Required even if it does nothing.
         ~ConfirmState() {};
+
+        /// @brief Creation function to help clean up code elsewhere.
+        std::shared_ptr<ConfirmState> create(std::string_view query,
+                                             bool holdRequired,
+                                             TaskFunction function,
+                                             std::shared_ptr<StructType> dataStruct)
+        {
+            return std::make_shared<ConfirmState>(query, holdRequired, function, dataStruct);
+        }
 
         /// @brief Just updates the ConfirmState.
         void update() override

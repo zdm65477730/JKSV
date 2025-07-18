@@ -1,4 +1,5 @@
 #include "appstates/ExtrasMenuState.hpp"
+
 #include "appstates/MainMenuState.hpp"
 #include "colors.hpp"
 #include "data/data.hpp"
@@ -6,6 +7,7 @@
 #include "keyboard.hpp"
 #include "strings.hpp"
 #include "ui/PopMessageManager.hpp"
+
 #include <string_view>
 
 namespace
@@ -27,23 +29,20 @@ namespace
 } // namespace
 
 ExtrasMenuState::ExtrasMenuState()
-    : m_extrasMenu(32, 8, 1000, 24, 555),
-      m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
+    : m_extrasMenu(32, 8, 1000, 24, 555)
+    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
                                                               1080,
                                                               555,
                                                               SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
 {
-    const char *extrasString = nullptr;
-    int currentString = 0;
-    while ((extrasString = strings::get_by_name(strings::names::EXTRAS_MENU, currentString++)) != nullptr)
-    {
-        m_extrasMenu.add_option(extrasString);
-    }
+    ExtrasMenuState::initialize_menu();
 }
 
 void ExtrasMenuState::update()
 {
     const bool hasFocus = BaseState::has_focus();
+    const bool aPressed = input::button_pressed(HidNpadButton_A);
+    const bool bPressed = input::button_pressed(HidNpadButton_B);
 
     m_extrasMenu.update(hasFocus);
 
@@ -51,23 +50,10 @@ void ExtrasMenuState::update()
     {
         switch (m_extrasMenu.get_selected())
         {
-            case REINIT_DATA:
-            {
-                // Reinitialize the data with the cache cleared.
-                data::initialize(true);
-                ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                    strings::get_by_name(strings::names::EXTRAS_POP_MESSAGES, 0));
-
-                // This should be adequate for this...
-                MainMenuState::refresh_view_states();
-            }
-            break;
+            case REINIT_DATA: ExtrasMenuState::reinitialize_data(); break;
         }
     }
-    else if (input::button_pressed(HidNpadButton_B))
-    {
-        BaseState::deactivate();
-    }
+    else if (input::button_pressed(HidNpadButton_B)) { BaseState::deactivate(); }
 }
 
 void ExtrasMenuState::render()
@@ -77,4 +63,30 @@ void ExtrasMenuState::render()
     m_renderTarget->clear(colors::TRANSPARENT);
     m_extrasMenu.render(m_renderTarget->get(), hasFocus);
     m_renderTarget->render(NULL, 201, 91);
+}
+
+void ExtrasMenuState::initialize_menu()
+{
+    for (int i = 0; const char *option = strings::get_by_name(strings::names::EXTRAS_MENU, i); i++)
+    {
+        m_extrasMenu.add_option(option);
+    }
+}
+
+void ExtrasMenuState::reinitialize_data()
+{
+    const int popTicks     = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const char *popSuccess = strings::get_by_name(strings::names::EXTRAS_POP_MESSAGES, 0);
+    const char *popFailure = strings::get_by_name(strings::names::EXTRAS_POP_MESSAGES, 1);
+
+    // Call data and make in reinit and delete the cache first.
+    const bool initSuccess = data::initialize(true);
+    if (!initSuccess)
+    {
+        ui::PopMessageManager::push_message(popTicks, popFailure);
+        return;
+    }
+
+    MainMenuState::refresh_view_states();
+    ui::PopMessageManager::push_message(popTicks, popSuccess);
 }
