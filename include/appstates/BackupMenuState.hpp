@@ -18,7 +18,7 @@ class BackupMenuState final : public BaseState
         /// @param user Pointer to currently selected user.
         /// @param titleInfo Pointer to titleInfo of selected title.
         /// @param saveType Save data type we're working with.
-        BackupMenuState(data::User *user, data::TitleInfo *titleInfo, FsSaveDataType saveType);
+        BackupMenuState(data::User *user, data::TitleInfo *titleInfo);
 
         /// @brief Destructor. This is required even if it doesn't free or do anything.
         ~BackupMenuState();
@@ -35,24 +35,15 @@ class BackupMenuState final : public BaseState
         /// @brief Allows a spawned task to tell this class that it wrote save data to the system.
         void save_data_written();
 
-        /// @brief Struct used for passing data to functions.
-        typedef struct
+        // clang-format off
+        struct DataStruct
         {
-                /// @brief Pointer to the target user.
-                data::User *user;
-
-                /// @brief Data for the target title.
-                data::TitleInfo *titleInfo;
-
-                /// @brief Path of the target.
-                fslib::Path targetPath;
-
-                /// @brief Journal size for when a commit is needed.
-                uint64_t journalSize;
-
-                /// @brief Pointer to >this spawning state.
-                BackupMenuState *spawningState;
-        } DataStruct;
+            data::User *user{};
+            data::TitleInfo *titleInfo{};
+            fslib::Path path{};
+            BackupMenuState *spawningState{};
+        };
+        // clang-format on
 
     private:
         /// @brief Pointer to current user.
@@ -79,9 +70,11 @@ class BackupMenuState final : public BaseState
         /// @brief Data struct passed to functions.
         std::shared_ptr<BackupMenuState::DataStruct> m_dataStruct{};
 
-        /// @brief Whether or not anything beyond this point needs to be init'd. Everything here is static and shared by all
-        /// instances.
-        static inline bool sm_isInitialized{};
+        /// @brief This is a pointer to the control guide string.
+        const char *m_controlGuide{};
+
+        /// @brief The width of the panels. This is set according to the control guide text.
+        static inline int sm_panelWidth{};
 
         /// @brief The menu used by all instances of BackupMenuState.
         static inline std::shared_ptr<ui::Menu> sm_backupMenu{};
@@ -91,9 +84,6 @@ class BackupMenuState final : public BaseState
 
         /// @brief Inner render target so the menu only renders to a certain area.
         static inline sdl::SharedTexture sm_menuRenderTarget{};
-
-        /// @brief The width of the panels. This is set according to the control guide text.
-        static inline int sm_panelWidth{};
 
         /// @brief This is the function called when New Backup is selected.
         void name_and_create_backup();
@@ -106,4 +96,19 @@ class BackupMenuState final : public BaseState
 
         /// @brief Function called to confirm deleting a backup.
         void confirm_delete();
+
+        /// @brief Initializes the static members all instances share if they haven't been already.
+        void initialize_static_members();
+
+        /// @brief Checks for and tries to create the target directory if it hasn't been already.
+        void ensure_target_directory();
+
+        /// @brief Initializes the struct passed to tasks.
+        void initialize_task_data();
+
+        /// @brief Init's the string at the top of the backupmenu.
+        void initialize_info_string();
+
+        /// @brief Checks to see if the save data is empty.
+        void save_data_check();
 };

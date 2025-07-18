@@ -83,7 +83,7 @@ void TitleSelectState::create_backup_menu()
     const bool saveMounted = fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo);
     if (!saveMounted) { return; }
 
-    auto backupMenu = std::make_shared<BackupMenuState>(m_user, titleInfo, saveType);
+    auto backupMenu = std::make_shared<BackupMenuState>(m_user, titleInfo);
     StateManager::push_state(backupMenu);
 }
 
