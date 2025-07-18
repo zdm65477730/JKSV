@@ -65,7 +65,7 @@ bool data::initialize(bool clearCache)
     if (clearCache && fslib::file_exists(cachePath) && !fslib::delete_file(cachePath))
     {
         // I don't really think this should be fatal. It's not good that it happens, but not fatal.
-        logger::log("data::initialize failed to remove existing cache file from SD: %s", fslib::get_error_string());
+        logger::log("data::initialize failed to remove existing cache file from SD: %s", fslib::error::get_string());
     }
 
     // Load user accounts if not done previously. Bail if the load fails cause that is fatal.

@@ -64,7 +64,9 @@ SettingsState::SettingsState()
 
 void SettingsState::update()
 {
-    m_settingsMenu.update(AppState::has_focus());
+    const bool hasFocus = BaseState::has_focus();
+
+    m_settingsMenu.update(hasFocus);
 
     if (input::button_pressed(HidNpadButton_A))
     {
@@ -72,17 +74,19 @@ void SettingsState::update()
     }
     else if (input::button_pressed(HidNpadButton_B))
     {
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 }
 
 void SettingsState::render()
 {
+    const bool hasFocus = BaseState::has_focus();
+
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_settingsMenu.render(m_renderTarget->get(), AppState::has_focus());
+    m_settingsMenu.render(m_renderTarget->get(), hasFocus);
     m_renderTarget->render(NULL, 201, 91);
 
-    if (AppState::has_focus())
+    if (hasFocus)
     {
         sdl::text::render(NULL,
                           m_controlGuideX,

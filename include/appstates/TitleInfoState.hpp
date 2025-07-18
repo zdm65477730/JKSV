@@ -1,13 +1,14 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 #include "data/data.hpp"
 #include "system/Timer.hpp"
 #include "ui/SlideOutPanel.hpp"
 #include "ui/TextScroll.hpp"
+
 #include <memory>
 #include <string>
 
-class TitleInfoState final : public AppState
+class TitleInfoState final : public BaseState
 {
     public:
         /// @brief Constructs a new title info state.
@@ -26,50 +27,50 @@ class TitleInfoState final : public AppState
 
     private:
         /// @brief Pointer to user.
-        data::User *m_user;
+        data::User *m_user{};
 
         /// @brief Pointer to title info.
-        data::TitleInfo *m_titleInfo;
+        data::TitleInfo *m_titleInfo{};
 
         /// @brief This is a pointer to the title's icon.
-        sdl::SharedTexture m_icon;
+        sdl::SharedTexture m_icon{};
 
         /// @brief This is the scrolling text for the title.
-        ui::TextScroll m_titleScroll;
+        ui::TextScroll m_titleScroll{};
 
         /// @brief This is the scrolling text for the publisher.
-        ui::TextScroll m_publisherScroll;
+        ui::TextScroll m_publisherScroll{};
 
         /// @brief This string holds the application ID.
-        std::string m_applicationID;
+        std::string m_applicationID{};
 
         /// @brief This holds the hex save data id of the file on nand.
-        std::string m_saveDataID;
+        std::string m_saveDataID{};
 
         /// @brief This holds the time the game was first played.
-        std::string m_firstPlayed;
+        std::string m_firstPlayed{};
 
         /// @brief This holds the last played timestamp.
-        std::string m_lastPlayed;
+        std::string m_lastPlayed{};
 
         /// @brief This holds the play time string.
-        std::string m_playTime;
+        std::string m_playTime{};
 
         /// @brief This holds the total launches string.
-        std::string m_totalLaunches;
+        std::string m_totalLaunches{};
 
         /// @brief This holds the save data type string.
-        std::string m_saveDataType;
+        std::string m_saveDataType{};
 
         /// @brief Bool to tell whether or not static members are initialized.
-        static inline bool sm_initialized = false;
+        static inline bool sm_initialized{};
 
         /// @brief This is the render target for the title text just in case it needs scrolling.
-        static inline sdl::SharedTexture sm_titleTarget = nullptr;
+        static inline sdl::SharedTexture sm_titleTarget{};
 
         /// @brief This is the render target for the publisher string.
-        static inline sdl::SharedTexture sm_publisherTarget = nullptr;
+        static inline sdl::SharedTexture sm_publisherTarget{};
 
         /// @brief Slide panel.
-        static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel = nullptr;
+        static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};
 };

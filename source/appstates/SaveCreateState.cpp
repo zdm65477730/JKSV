@@ -46,6 +46,8 @@ SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelec
 
 void SaveCreateState::update()
 {
+    const bool hasFocus = BaseState::has_focus();
+
     if (m_refreshRequired)
     {
         // There's no other way to get the save info so...
@@ -56,8 +58,8 @@ void SaveCreateState::update()
         m_refreshRequired = false;
     }
 
-    m_saveMenu.update(AppState::has_focus());
-    sm_slidePanel->update(AppState::has_focus());
+    m_saveMenu.update(hasFocus);
+    sm_slidePanel->update(hasFocus);
 
     if (input::button_pressed(HidNpadButton_A))
     {
@@ -71,16 +73,18 @@ void SaveCreateState::update()
     else if (sm_slidePanel->is_closed())
     {
         sm_slidePanel->reset();
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 }
 
 void SaveCreateState::render()
 {
+    const bool hasFocus = BaseState::has_focus();
+
     // Clear slide target, render menu, render slide to frame buffer.
     sm_slidePanel->clear_target();
-    m_saveMenu.render(sm_slidePanel->get_target(), AppState::has_focus());
-    sm_slidePanel->render(NULL, AppState::has_focus());
+    m_saveMenu.render(sm_slidePanel->get_target(), hasFocus);
+    sm_slidePanel->render(NULL, hasFocus);
 }
 
 void SaveCreateState::data_and_view_refresh_required()

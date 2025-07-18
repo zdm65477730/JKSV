@@ -1,13 +1,14 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 #include "appstates/TitleSelectCommon.hpp"
 #include "data/data.hpp"
 #include "ui/Menu.hpp"
 #include "ui/SlideOutPanel.hpp"
+
 #include <memory>
 
 /// @brief This is the state that is spawned when CreateSaveData is selected from the user menu.
-class SaveCreateState final : public AppState
+class SaveCreateState final : public BaseState
 {
     public:
         /// @brief Constructs a new SaveCreateState.
@@ -29,20 +30,20 @@ class SaveCreateState final : public AppState
 
     private:
         /// @brief Pointer to target user.
-        data::User *m_user;
+        data::User *m_user{};
 
         /// @brief Pointer to title selection view for the current user.
-        TitleSelectCommon *m_titleSelect;
+        TitleSelectCommon *m_titleSelect{};
 
         /// @brief Menu populated with every title found on the system.
         ui::Menu m_saveMenu;
 
         /// @brief Vector of pointers to the title info. This allows sorting them alphabetically and other things.
-        std::vector<data::TitleInfo *> m_titleInfoVector;
+        std::vector<data::TitleInfo *> m_titleInfoVector{};
 
         /// @brief Whether or not a refresh is required on the next update() call.
-        bool m_refreshRequired = false;
+        bool m_refreshRequired{};
 
         /// @brief Shared slide panel all instances use. There's no point in allocating a new one every time.
-        static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel = nullptr;
+        static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};
 };

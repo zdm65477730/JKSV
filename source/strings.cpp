@@ -77,7 +77,7 @@ bool strings::initialize()
 {
     fslib::Path filePath = get_file_path();
 
-    json::Object stringJSON = json::new_object(json_object_from_file, filePath.c_string());
+    json::Object stringJSON = json::new_object(json_object_from_file, filePath.full_path());
     if (!stringJSON)
     {
         return false;

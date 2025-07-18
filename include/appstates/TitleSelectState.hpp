@@ -26,10 +26,10 @@ class TitleSelectState final : public TitleSelectCommon
 
     private:
         /// @brief Pointer to the user the view belongs to.
-        data::User *m_user = nullptr;
+        data::User *m_user{};
 
         /// @brief Target to render to.
-        sdl::SharedTexture m_renderTarget = nullptr;
+        sdl::SharedTexture m_renderTarget{};
 
         /// @brief Tiled title selection view.
         ui::TitleView m_titleView;

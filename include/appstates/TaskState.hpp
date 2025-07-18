@@ -1,6 +1,7 @@
 #pragma once
 #include "appstates/BaseTask.hpp"
 #include "system/Task.hpp"
+
 #include <switch.h>
 
 /// @brief State that spawns a task and allows updates to be printed to screen.
@@ -13,7 +14,8 @@ class TaskState final : public BaseTask
         /// @note All functions passed must follow this signature: void function(sys::Task *, <arguments>)
         template <typename... Args>
         TaskState(void (*function)(sys::Task *, Args...), Args... args)
-            : BaseTask(), m_task(function, std::forward<Args>(args)...){};
+            : BaseTask()
+            , m_task(function, std::forward<Args>(args)...){};
 
         /// @brief Required destructor.
         ~TaskState() {};

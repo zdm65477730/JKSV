@@ -70,7 +70,7 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, F
     if (!fslib::directory_exists(targetPath) && !fslib::create_directory(targetPath))
     {
         logger::log(STRING_ERROR_CONSTRUCTING, "Error creating target directory on SD!");
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 
     // Fill this out. Target path is not set here.
@@ -135,7 +135,7 @@ BackupMenuState::~BackupMenuState()
 
 void BackupMenuState::update()
 {
-    bool hasFocus = AppState::has_focus();
+    bool hasFocus = BaseState::has_focus();
 
     if (input::button_pressed(HidNpadButton_A) && sm_backupMenu->get_selected() == 0 && m_saveHasData)
     {
@@ -179,7 +179,7 @@ void BackupMenuState::update()
     else if (sm_slidePanel->is_closed())
     {
         sm_slidePanel->reset();
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 
     // Update title scrolling.
@@ -193,7 +193,7 @@ void BackupMenuState::update()
 void BackupMenuState::render()
 {
     // Save this locally.
-    bool hasFocus = AppState::has_focus();
+    bool hasFocus = BaseState::has_focus();
 
     // Clear panel target.
     sm_slidePanel->clear_target();
@@ -396,9 +396,9 @@ static void create_new_backup(sys::ProgressTask *task,
     bool hasMeta = fs::fill_save_meta_data(saveInfo, saveMeta);
 
     // This extension search is lazy and needs to be revised.
-    if (config::get_by_key(config::keys::EXPORT_TO_ZIP) || std::strstr(targetPath.c_string(), "zip"))
+    if (config::get_by_key(config::keys::EXPORT_TO_ZIP) || std::strstr(targetPath.full_path(), "zip"))
     {
-        zipFile newBackup = zipOpen64(targetPath.c_string(), APPEND_STATUS_CREATE);
+        zipFile newBackup = zipOpen64(targetPath.full_path(), APPEND_STATUS_CREATE);
         if (!newBackup)
         {
             // To do: Pop up.
@@ -466,7 +466,7 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenu
          !fslib::delete_directory_recursively(dataStruct->targetPath)) ||
         (fslib::file_exists(dataStruct->targetPath) && !fslib::delete_file(dataStruct->targetPath)))
     {
-        logger::log(STRING_ERROR_PREFIX, fslib::get_error_string());
+        logger::log(STRING_ERROR_PREFIX, fslib::error::get_string());
         task->finished();
         return;
     }
@@ -475,9 +475,9 @@ static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenu
     fs::SaveMetaData meta;
     bool hasMeta = fs::fill_save_meta_data(saveInfo, meta);
 
-    if (std::strstr(STRING_ZIP_EXTENSION, dataStruct->targetPath.c_string()))
+    if (std::strstr(STRING_ZIP_EXTENSION, dataStruct->targetPath.full_path()))
     {
-        zipFile backupZip = zipOpen64(dataStruct->targetPath.c_string(), APPEND_STATUS_CREATE);
+        zipFile backupZip = zipOpen64(dataStruct->targetPath.full_path(), APPEND_STATUS_CREATE);
         if (!backupZip)
         {
             logger::log("Error overwriting backup: Couldn't create new zip!");
@@ -544,7 +544,7 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuSt
     if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT) ||
         !fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT))
     {
-        logger::log("Error restoring save: %s", fslib::get_error_string());
+        logger::log("Error restoring save: %s", fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 2));
         task->finished();
@@ -572,9 +572,9 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuSt
                            fs::DEFAULT_SAVE_MOUNT,
                            task);
     }
-    else if (std::strstr(dataStruct->targetPath.c_string(), ".zip") != NULL)
+    else if (std::strstr(dataStruct->targetPath.full_path(), ".zip") != NULL)
     {
-        unzFile targetZip = unzOpen64(dataStruct->targetPath.c_string());
+        unzFile targetZip = unzOpen64(dataStruct->targetPath.full_path());
         if (!targetZip)
         {
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
@@ -622,18 +622,18 @@ static void delete_backup(sys::Task *task, std::shared_ptr<BackupMenuState::Data
 {
     if (task)
     {
-        task->set_status(strings::get_by_name(strings::names::DELETING_FILES, 0), dataStruct->targetPath.c_string());
+        task->set_status(strings::get_by_name(strings::names::DELETING_FILES, 0), dataStruct->targetPath.full_path());
     }
 
     if (fslib::directory_exists(dataStruct->targetPath) && !fslib::delete_directory_recursively(dataStruct->targetPath))
     {
-        logger::log("Error deleting folder backup: %s", fslib::get_error_string());
+        logger::log("Error deleting folder backup: %s", fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 4));
     }
     else if (fslib::file_exists(dataStruct->targetPath) && !fslib::delete_file(dataStruct->targetPath))
     {
-        logger::log("Error deleting backup: %s", fslib::get_error_string());
+        logger::log("Error deleting backup: %s", fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 4));
     }
@@ -646,7 +646,7 @@ static void upload_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuSta
     if (task)
     {
         task->set_status(strings::get_by_name(strings::names::BACKUPMENU_STATUS, 1),
-                         dataStruct->targetPath.get_filename().data());
+                         dataStruct->targetPath.get_filename());
     }
 
     // To do: This but flashier.

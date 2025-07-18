@@ -30,7 +30,7 @@ TextTitleSelectState::TextTitleSelectState(data::User *user)
 
 void TextTitleSelectState::update()
 {
-    m_titleSelectMenu.update(AppState::has_focus());
+    m_titleSelectMenu.update(BaseState::has_focus());
 
     // Both title selection states work too differently for this stuff to be shared IMO.
     if (input::button_pressed(HidNpadButton_A))
@@ -59,7 +59,7 @@ void TextTitleSelectState::update()
         }
         else
         {
-            logger::log(fslib::get_error_string());
+            logger::log(fslib::error::get_string());
         }
     }
     else if (input::button_pressed(HidNpadButton_X))
@@ -92,14 +92,14 @@ void TextTitleSelectState::update()
     }
     else if (input::button_pressed(HidNpadButton_B))
     {
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 }
 
 void TextTitleSelectState::render()
 {
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleSelectMenu.render(m_renderTarget->get(), AppState::has_focus());
+    m_titleSelectMenu.render(m_renderTarget->get(), BaseState::has_focus());
     TitleSelectCommon::render_control_guide();
     m_renderTarget->render(NULL, 201, 91);
 }

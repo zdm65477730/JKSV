@@ -168,7 +168,7 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
     fslib::File sourceFile(source, FsOpenMode_Read);
     if (!sourceFile)
     {
-        logger::log("Error uploading file: %s", fslib::get_error_string());
+        logger::log("Error uploading file: %s", fslib::error::get_string());
         return false;
     }
 
@@ -182,7 +182,7 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
 
     // Json to post.
     json::Object postJson = json::new_object(json_object_new_object);
-    json_object *driveName = json_object_new_string(source.get_filename().data());
+    json_object *driveName = json_object_new_string(source.get_filename());
     json::add_object(postJson, JSON_KEY_NAME, driveName);
     // Append the parent.
     if (!m_parent.empty())
@@ -270,7 +270,7 @@ bool remote::GoogleDrive::patch_file(remote::Item *file, const fslib::Path &sour
     fslib::File sourceFile(source, FsOpenMode_Read);
     if (!sourceFile)
     {
-        logger::log(STRING_PATCH_ERROR, fslib::get_error_string());
+        logger::log(STRING_PATCH_ERROR, fslib::error::get_string());
         return false;
     }
 

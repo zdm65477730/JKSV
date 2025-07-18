@@ -1,10 +1,10 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 #include "sdl.hpp"
 #include "ui/Menu.hpp"
 
 /// @brief The state for settings.
-class SettingsState final : public AppState
+class SettingsState final : public BaseState
 {
     public:
         /// @brief Constructs a new settings state.
@@ -24,10 +24,10 @@ class SettingsState final : public AppState
         ui::Menu m_settingsMenu;
 
         /// @brief Render target to render to.
-        sdl::SharedTexture m_renderTarget = nullptr;
+        sdl::SharedTexture m_renderTarget{};
 
         /// @brief X coordinate of the control guide in the bottom right corner.
-        int m_controlGuideX = 0;
+        int m_controlGuideX{};
 
         /// @brief Runs a routine to update the menu strings for the menu.
         void update_menu_options();

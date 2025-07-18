@@ -48,8 +48,10 @@ MainMenuState::MainMenuState()
 
 void MainMenuState::update()
 {
+    const bool hasFocus = BaseState::has_focus();
+
     // Update the main menu.
-    m_mainMenu.update(AppState::has_focus());
+    m_mainMenu.update(hasFocus);
 
     int selected = m_mainMenu.get_selected();
 
@@ -77,15 +79,17 @@ void MainMenuState::update()
 
 void MainMenuState::render()
 {
+    const bool hasFocus = BaseState::has_focus();
+
     // Clear render target by rendering background to it.
     m_background->render(m_renderTarget->get(), 0, 0);
     // render menu.
-    m_mainMenu.render(m_renderTarget->get(), AppState::has_focus());
+    m_mainMenu.render(m_renderTarget->get(), hasFocus);
     // render target to screen.
     m_renderTarget->render(NULL, 0, 91);
 
     // render next state for current user and control guide if this state has focus. To do: Maybe this different?
-    if (AppState::has_focus())
+    if (hasFocus)
     {
         sm_states.at(m_mainMenu.get_selected())->render();
         sdl::text::render(NULL, m_controlGuideX, 673, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_controlGuide);

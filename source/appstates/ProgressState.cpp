@@ -20,7 +20,7 @@ void ProgressState::update()
     }
     else if (!m_task.is_running())
     {
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 
     m_progressBarWidth = std::ceil(656.0f * m_task.get_current());

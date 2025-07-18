@@ -26,11 +26,11 @@ class TextTitleSelectState final : public TitleSelectCommon
 
     private:
         /// @brief Pointer to user view "belongs" to.
-        data::User *m_user;
+        data::User *m_user{};
 
         /// @brief Menu to display titles to select from.
         ui::Menu m_titleSelectMenu;
 
         /// @brief Target to render to.
-        sdl::SharedTexture m_renderTarget;
+        sdl::SharedTexture m_renderTarget{};
 };

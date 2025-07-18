@@ -1,6 +1,7 @@
 #pragma once
 #include "appstates/BaseTask.hpp"
 #include "system/ProgressTask.hpp"
+
 #include <string>
 #include <switch.h>
 
@@ -14,7 +15,8 @@ class ProgressState final : public BaseTask
         /// @note All functions passed to this must follow this signature: void function(sys::ProgressTask *, <arguments>)
         template <typename... Args>
         ProgressState(void (*function)(sys::ProgressTask *, Args...), Args... args)
-            : BaseTask(), m_task(function, std::forward<Args>(args)...){};
+            : BaseTask()
+            , m_task(function, std::forward<Args>(args)...){};
 
         /// @brief Required destructor.
         ~ProgressState() {};
@@ -30,14 +32,14 @@ class ProgressState final : public BaseTask
         sys::ProgressTask m_task;
 
         /// @brief Progress which is saved as a rounded whole number.
-        size_t m_progress = 0;
+        size_t m_progress{};
 
         /// @brief Width of the green bar in pixels.
-        size_t m_progressBarWidth = 0;
+        size_t m_progressBarWidth{};
 
         /// @brief X coordinate of the percentage string.
-        int m_percentageX = 0;
+        int m_percentageX{};
 
         /// @brief Percentage as a string for printing to screen.
-        std::string m_percentageString;
+        std::string m_percentageString{};
 };

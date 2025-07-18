@@ -61,7 +61,7 @@ UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelec
 void UserOptionState::update()
 {
     // Update the main panel.
-    m_menuPanel->update(AppState::has_focus());
+    m_menuPanel->update(BaseState::has_focus());
 
     // See if this needs to be done.
     if (m_refreshRequired)
@@ -145,11 +145,11 @@ void UserOptionState::update()
     }
     else if (m_menuPanel->is_closed())
     {
-        AppState::deactivate();
+        BaseState::deactivate();
         m_menuPanel->reset();
     }
 
-    m_userOptionMenu.update(AppState::has_focus());
+    m_userOptionMenu.update(BaseState::has_focus());
 }
 
 void UserOptionState::render()
@@ -159,8 +159,8 @@ void UserOptionState::render()
 
     // Render panel.
     m_menuPanel->clear_target();
-    m_userOptionMenu.render(m_menuPanel->get_target(), AppState::has_focus());
-    m_menuPanel->render(NULL, AppState::has_focus());
+    m_userOptionMenu.render(m_menuPanel->get_target(), BaseState::has_focus());
+    m_menuPanel->render(NULL, BaseState::has_focus());
 }
 
 void UserOptionState::data_and_view_refresh_required()
@@ -213,10 +213,10 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserOpt
                                          targetUser->get_path_safe_nickname() +
                                      " - " + stringutil::get_date_string() + ".zip";
 
-            zipFile targetZip = zipOpen64(targetPath.c_string(), APPEND_STATUS_CREATE);
+            zipFile targetZip = zipOpen64(targetPath.full_path(), APPEND_STATUS_CREATE);
             if (!targetZip)
             {
-                logger::log("Error creating zip: %s", fslib::get_error_string());
+                logger::log("Error creating zip: %s", fslib::error::get_string());
                 continue;
             }
             fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, targetZip, task);
@@ -230,7 +230,7 @@ static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserOpt
 
             if (!fslib::create_directory(targetPath))
             {
-                logger::log("Error creating backup directory: %s", fslib::get_error_string());
+                logger::log("Error creating backup directory: %s", fslib::error::get_string());
                 continue;
             }
             fs::copy_directory(fs::DEFAULT_SAVE_ROOT, targetPath, 0, {}, task);

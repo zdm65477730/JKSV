@@ -43,7 +43,9 @@ ExtrasMenuState::ExtrasMenuState()
 
 void ExtrasMenuState::update()
 {
-    m_extrasMenu.update(AppState::has_focus());
+    const bool hasFocus = BaseState::has_focus();
+
+    m_extrasMenu.update(hasFocus);
 
     if (input::button_pressed(HidNpadButton_A))
     {
@@ -64,13 +66,15 @@ void ExtrasMenuState::update()
     }
     else if (input::button_pressed(HidNpadButton_B))
     {
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 }
 
 void ExtrasMenuState::render()
 {
+    const bool hasFocus = BaseState::has_focus();
+
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_extrasMenu.render(m_renderTarget->get(), AppState::has_focus());
+    m_extrasMenu.render(m_renderTarget->get(), hasFocus);
     m_renderTarget->render(NULL, 201, 91);
 }

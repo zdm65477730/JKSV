@@ -1,6 +1,6 @@
 #pragma once
 #include "StateManager.hpp"
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "appstates/TaskState.hpp"
 #include "colors.hpp"
@@ -9,6 +9,7 @@
 #include "strings.hpp"
 #include "system/Task.hpp"
 #include "ui/render_functions.hpp"
+
 #include <memory>
 #include <string>
 #include <switch.h>
@@ -24,10 +25,11 @@ namespace
 /// @tparam StateType The state type spawned on confirmation. Ex: TaskState, ProgressState
 /// @tparam StructType The type of struct passed to the state on confirmation.
 template <typename TaskType, typename StateType, typename StructType>
-class ConfirmState final : public AppState
+class ConfirmState final : public BaseState
 {
     public:
-        /// @brief All functions passed to this state need to follow this signature: void function(<TaskType> *, std::shared_ptr<<StructType>>)
+        /// @brief All functions passed to this state need to follow this signature: void function(<TaskType> *,
+        /// std::shared_ptr<<StructType>>)
         using TaskFunction = void (*)(TaskType *, std::shared_ptr<StructType>);
 
         /// @brief Constructor for new ConfirmState.
@@ -39,12 +41,16 @@ class ConfirmState final : public AppState
                      bool holdRequired,
                      TaskFunction function,
                      std::shared_ptr<StructType> dataStruct)
-            : AppState(false), m_queryString(queryString), m_yesString(strings::get_by_name(strings::names::YES_NO, 0)),
-              m_hold(holdRequired), m_function(function), m_dataStruct(dataStruct)
+            : BaseState(false)
+            , m_queryString(queryString)
+            , m_yesString(strings::get_by_name(strings::names::YES_NO, 0))
+            , m_hold(holdRequired)
+            , m_function(function)
+            , m_dataStruct(dataStruct)
         {
             // This is to make centering the Yes [A] string more accurate.
             m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
-            m_noX = 820 - (sdl::text::get_width(22, strings::get_by_name(strings::names::YES_NO, 1)) / 2);
+            m_noX  = 820 - (sdl::text::get_width(22, strings::get_by_name(strings::names::YES_NO, 1)) / 2);
         }
 
         /// @brief Required even if it does nothing.
@@ -53,15 +59,13 @@ class ConfirmState final : public AppState
         /// @brief Just updates the ConfirmState.
         void update() override
         {
-            // This is to guard against the dialog being triggered right away. To do: Maybe figure out a better way to accomplish this?
-            if (input::button_pressed(HidNpadButton_A) && !m_triggerGuard)
-            {
-                m_triggerGuard = true;
-            }
+            // This is to guard against the dialog being triggered right away. To do: Maybe figure out a better way to
+            // accomplish this?
+            if (input::button_pressed(HidNpadButton_A) && !m_triggerGuard) { m_triggerGuard = true; }
 
             if (m_triggerGuard && input::button_pressed(HidNpadButton_A) && !m_hold)
             {
-                AppState::deactivate();
+                BaseState::deactivate();
 
                 auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
 
@@ -71,39 +75,40 @@ class ConfirmState final : public AppState
             {
                 // Get the starting tick count and change the Yes string to the first holding string.
                 m_startingTickCount = SDL_GetTicks64();
-                m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 0);
+                m_yesString         = strings::get_by_name(strings::names::HOLDING_STRINGS, 0);
             }
             else if (m_triggerGuard && input::button_held(HidNpadButton_A) && m_hold)
             {
                 uint64_t TickCount = SDL_GetTicks64() - m_startingTickCount;
 
-                // If the TickCount is >= 3 seconds, confirmed. Else, just change the string so we can see we're not holding for nothing?
+                // If the TickCount is >= 3 seconds, confirmed. Else, just change the string so we can see we're not holding for
+                // nothing?
                 if (TickCount >= 3000)
                 {
-                    AppState::deactivate();
+                    BaseState::deactivate();
 
                     auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
                 }
                 else if (TickCount >= 2000)
                 {
                     m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 2);
-                    m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
+                    m_yesX      = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
                 }
                 else if (TickCount >= 1000)
                 {
                     m_yesString = strings::get_by_name(strings::names::HOLDING_STRINGS, 1);
-                    m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
+                    m_yesX      = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
                 }
             }
             else if (input::button_released(HidNpadButton_A))
             {
                 m_yesString = strings::get_by_name(strings::names::YES_NO, 0);
-                m_yesX = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
+                m_yesX      = YES_X_CENTER_COORDINATE - (sdl::text::get_width(22, m_yesString.c_str()) / 2);
             }
             else if (input::button_pressed(HidNpadButton_B))
             {
                 // Just deactivate and don't do anything.
-                AppState::deactivate();
+                BaseState::deactivate();
             }
         }
 
@@ -132,10 +137,10 @@ class ConfirmState final : public AppState
 
     private:
         /// @brief String displayed
-        std::string m_queryString;
+        std::string m_queryString{};
 
         /// @brief Yes or [X] [A]
-        std::string m_yesString;
+        std::string m_yesString{};
 
         /// @brief X coordinate to render the Yes [A]
         int m_yesX{};
@@ -144,17 +149,17 @@ class ConfirmState final : public AppState
         int m_noX{};
 
         /// @brief This is to prevent the dialog from triggering immediately.
-        bool m_triggerGuard = false;
+        bool m_triggerGuard{};
 
         /// @brief Whether or not holding [A] to confirm is required.
-        bool m_hold;
+        bool m_hold{};
 
         /// @brief Keep track of the ticks/time needed to confirm.
         uint64_t m_startingTickCount{};
 
         /// @brief Function to execute if action is confirmed.
-        TaskFunction m_function;
+        TaskFunction m_function{};
 
         /// @brief Pointer to data struct passed to ^
-        std::shared_ptr<StructType> m_dataStruct;
+        std::shared_ptr<StructType> m_dataStruct{};
 };

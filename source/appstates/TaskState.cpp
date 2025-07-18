@@ -18,7 +18,7 @@ void TaskState::update()
     }
     if (!m_task.is_running())
     {
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 }
 

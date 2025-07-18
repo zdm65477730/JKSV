@@ -13,7 +13,9 @@ TitleSelectCommon::TitleSelectCommon()
 
 void TitleSelectCommon::render_control_guide()
 {
-    if (AppState::has_focus())
+    const bool hasFocus = BaseState::has_focus();
+
+    if (hasFocus)
     {
         sdl::text::render(NULL,
                           m_titleControlsX,

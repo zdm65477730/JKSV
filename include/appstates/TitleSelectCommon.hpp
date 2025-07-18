@@ -1,11 +1,12 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 
 /// @brief Class that both view types are derived from.
-class TitleSelectCommon : public AppState
+class TitleSelectCommon : public BaseState
 {
     public:
-        /// @brief Constructs a new TitleSelectCommon. Basically just calculates the X coordinate of the control if it wasn't already.
+        /// @brief Constructs a new TitleSelectCommon. Basically just calculates the X coordinate of the control if it wasn't
+        /// already.
         TitleSelectCommon();
 
         /// @brief Required destructor.
@@ -25,5 +26,5 @@ class TitleSelectCommon : public AppState
 
     private:
         /// @brief X coordinate the control guide is rendered at.
-        static inline int m_titleControlsX = 0;
+        static inline int m_titleControlsX{};
 };

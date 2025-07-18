@@ -86,7 +86,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
     fslib::Directory sourceDir(source);
     if (!sourceDir)
     {
-        logger::log("Error opening source directory: %s", fslib::get_error_string());
+        logger::log("Error opening source directory: %s", fslib::error::get_string());
         return;
     }
 
@@ -107,7 +107,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
             fslib::File sourceFile(fullSource, FsOpenMode_Read);
             if (!sourceFile)
             {
-                logger::log("Error zipping file: %s", fslib::get_error_string());
+                logger::log("Error zipping file: %s", fslib::error::get_string());
                 continue;
             }
 
@@ -144,7 +144,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
             // Update task if passed.
             if (task)
             {
-                task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 1), fullSource.c_string());
+                task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 1), fullSource.full_path());
                 task->reset(static_cast<double>(sourceFile.get_size()));
             }
 
@@ -232,7 +232,7 @@ void fs::copy_zip_to_directory(unzFile source,
         // To do: Make FsLib handle this correctly. First condition is a workaround for now...
         if (directories.is_valid() && !fslib::create_directories_recursively(directories))
         {
-            logger::log("Error creating zip file path \"%s\": %s", directories.c_string(), fslib::get_error_string());
+            logger::log("Error creating zip file path \"%s\": %s", directories.full_path(), fslib::error::get_string());
             continue;
         }
 
@@ -241,7 +241,7 @@ void fs::copy_zip_to_directory(unzFile source,
                                     currentFileInfo.uncompressed_size);
         if (!destinationFile)
         {
-            logger::log("Error creating file from zip: %s", fslib::get_error_string());
+            logger::log("Error creating file from zip: %s", fslib::error::get_string());
             continue;
         }
 
@@ -290,7 +290,7 @@ void fs::copy_zip_to_directory(unzFile source,
                 // Commit
                 if (!fslib::commit_data_to_file_system(commitDevice))
                 {
-                    logger::log("Error committing data to save: %s", fslib::get_error_string());
+                    logger::log("Error committing data to save: %s", fslib::error::get_string());
                 }
 
                 // Reopen, seek to previous position.
@@ -322,7 +322,7 @@ void fs::copy_zip_to_directory(unzFile source,
 
         if (!fslib::commit_data_to_file_system(commitDevice))
         {
-            logger::log("Error performing final file commit: %s", fslib::get_error_string());
+            logger::log("Error performing final file commit: %s", fslib::error::get_string());
         }
     } while (unzGoToNextFile(source) != UNZ_END_OF_LIST_OF_FILE);
 }
@@ -349,7 +349,7 @@ void fs::create_zip_fileinfo(zip_fileinfo &info)
 
 bool fs::zip_has_contents(const fslib::Path &zipPath)
 {
-    unzFile testZip = unzOpen(zipPath.c_string());
+    unzFile testZip = unzOpen(zipPath.full_path());
     if (!testZip)
     {
         return false;

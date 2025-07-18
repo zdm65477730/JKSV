@@ -1,10 +1,10 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 #include "sdl.hpp"
 #include "ui/Menu.hpp"
 
 /// @brief Extras menu.
-class ExtrasMenuState final : public AppState
+class ExtrasMenuState final : public BaseState
 {
     public:
         /// @brief Constructor.
@@ -24,5 +24,5 @@ class ExtrasMenuState final : public AppState
         ui::Menu m_extrasMenu;
 
         /// @brief Render target for menu.
-        sdl::SharedTexture m_renderTarget;
+        sdl::SharedTexture m_renderTarget{};
 };

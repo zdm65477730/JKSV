@@ -1,16 +1,17 @@
 #pragma once
 #include "sdl.hpp"
+
 #include <memory>
 
-class AppState
+class BaseState
 {
     public:
         /// @brief Base application state class.
         /// @param isClosable Optional. Controls whether or not the state should allow JKSV to close.
-        AppState(bool isClosable = true);
+        BaseState(bool isClosable = true);
 
         /// @brief Ends homebutton and plus locking.
-        virtual ~AppState();
+        virtual ~BaseState();
 
         /// @brief Every derived class is required to have this function.
         virtual void update() = 0;
@@ -47,8 +48,8 @@ class AppState
         bool m_isActive = true;
 
         /// @brief Stores whether or not the state has focus.
-        bool m_hasFocus = false;
+        bool m_hasFocus{};
 
         /// @brief Stores whether or not the state allows closing.
-        bool m_isClosable = true;
+        bool m_isClosable{};
 };

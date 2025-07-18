@@ -59,14 +59,14 @@ void fs::copy_file(const fslib::Path &source,
     fslib::File destinationFile(destination, FsOpenMode_Create | FsOpenMode_Write, sourceFile.get_size());
     if (!sourceFile || !destinationFile)
     {
-        logger::log("Error opening one of the files: %s", fslib::get_error_string());
+        logger::log("Error opening one of the files: %s", fslib::error::get_string());
         return;
     }
 
     // Set status if task pointer was passed.
     if (task)
     {
-        task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 0), source.c_string());
+        task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 0), source.full_path());
     }
 
     // Shared struct both threads use
@@ -115,7 +115,7 @@ void fs::copy_file(const fslib::Path &source,
             // Need to try to commit before going over the journaling space limit.
             if (!fslib::commit_data_to_file_system(commitDevice))
             {
-                logger::log(fslib::get_error_string());
+                logger::log(fslib::error::get_string());
                 // I guess break the loop here?
                 break;
             }
@@ -144,7 +144,7 @@ void fs::copy_file(const fslib::Path &source,
     // One last commit for good luck.
     if (!fslib::commit_data_to_file_system(commitDevice))
     {
-        logger::log(fslib::get_error_string());
+        logger::log(fslib::error::get_string());
     }
 
     // Wait for read thread and free it.
@@ -160,7 +160,7 @@ void fs::copy_directory(const fslib::Path &source,
     fslib::Directory sourceDir(source);
     if (!sourceDir)
     {
-        logger::log("Error opening directory for reading: %s", fslib::get_error_string());
+        logger::log("Error opening directory for reading: %s", fslib::error::get_string());
         return;
     }
 
@@ -173,7 +173,7 @@ void fs::copy_directory(const fslib::Path &source,
             // Try to create new destination folder and continue loop on failure.
             if (!fslib::directory_exists(newDestination) && !fslib::create_directory(newDestination))
             {
-                logger::log("Error creating new destination directory: %s", fslib::get_error_string());
+                logger::log("Error creating new destination directory: %s", fslib::error::get_string());
                 continue;
             }
 

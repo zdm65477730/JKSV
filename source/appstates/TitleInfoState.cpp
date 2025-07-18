@@ -103,7 +103,7 @@ TitleInfoState::~TitleInfoState()
 void TitleInfoState::update()
 {
     // Grab this instead of calling the function over and over.
-    bool hasFocus = AppState::has_focus();
+    const bool hasFocus = BaseState::has_focus();
 
     // Update slide panel.
     sm_slidePanel->update(hasFocus);
@@ -119,7 +119,7 @@ void TitleInfoState::update()
     else if (sm_slidePanel->is_closed())
     {
         sm_slidePanel->reset();
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 }
 
@@ -131,7 +131,7 @@ void TitleInfoState::render()
     static constexpr int SIZE_RECT_WIDTH = SIZE_PANEL_WIDTH - SIZE_PANEL_SUB;
 
     // This is whether or not the state currently has focus.
-    bool hasFocus = AppState::has_focus();
+    bool hasFocus = BaseState::has_focus();
 
     // Clear the title and publisher targets.
     sm_titleTarget->clear(colors::DIALOG_BOX);
@@ -240,5 +240,5 @@ void TitleInfoState::render()
                       colors::WHITE,
                       m_saveDataType.c_str());
 
-    sm_slidePanel->render(NULL, AppState::has_focus());
+    sm_slidePanel->render(NULL, hasFocus);
 }

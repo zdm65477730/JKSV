@@ -31,11 +31,11 @@ void TitleSelectState::update()
 {
     if (m_user->get_total_data_entries() <= 0)
     {
-        AppState::deactivate();
+        BaseState::deactivate();
         return;
     }
 
-    m_titleView.update(AppState::has_focus());
+    m_titleView.update(BaseState::has_focus());
 
     if (input::button_pressed(HidNpadButton_A))
     {
@@ -56,7 +56,7 @@ void TitleSelectState::update()
         }
         else
         {
-            logger::log(fslib::get_error_string());
+            logger::log(fslib::error::get_string());
         }
     }
     else if (input::button_pressed(HidNpadButton_X))
@@ -72,7 +72,7 @@ void TitleSelectState::update()
     {
         // This will reset all the tiles so they're 128x128.
         m_titleView.reset();
-        AppState::deactivate();
+        BaseState::deactivate();
     }
     else if (input::button_pressed(HidNpadButton_Y))
     {
@@ -94,7 +94,7 @@ void TitleSelectState::update()
 void TitleSelectState::render()
 {
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleView.render(m_renderTarget->get(), AppState::has_focus());
+    m_titleView.render(m_renderTarget->get(), BaseState::has_focus());
     TitleSelectCommon::render_control_guide();
     m_renderTarget->render(NULL, 201, 91);
 }

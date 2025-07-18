@@ -134,7 +134,7 @@ bool remote::WebDav::upload_file(const fslib::Path &source)
     fslib::File file(source, FsOpenMode_Read);
     if (!file)
     {
-        logger::log(STRING_ERROR_UPLOADING, fslib::get_error_string());
+        logger::log(STRING_ERROR_UPLOADING, fslib::error::get_string());
         return false;
     }
 
@@ -173,7 +173,7 @@ bool remote::WebDav::patch_file(remote::Item *item, const fslib::Path &source)
     fslib::File file(source, FsOpenMode_Read);
     if (!file)
     {
-        logger::log(STRING_ERROR_PATCHING, fslib::get_error_string());
+        logger::log(STRING_ERROR_PATCHING, fslib::error::get_string());
         return false;
     }
 
@@ -207,7 +207,7 @@ bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &
     fslib::File file(destination, FsOpenMode_Create | FsOpenMode_Write);
     if (!file)
     {
-        logger::log(STRING_ERROR_DOWNLOADING, fslib::get_error_string());
+        logger::log(STRING_ERROR_DOWNLOADING, fslib::error::get_string());
         return false;
     }
 

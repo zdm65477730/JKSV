@@ -57,7 +57,7 @@ void config::initialize()
 {
     if (!fslib::directory_exists(PATH_CONFIG_FOLDER) && !fslib::create_directories_recursively(PATH_CONFIG_FOLDER))
     {
-        logger::log("Error creating config folder: %s.", fslib::get_error_string());
+        logger::log("Error creating config folder: %s.", fslib::error::get_string());
         config::reset_to_default();
         return;
     }
@@ -65,7 +65,7 @@ void config::initialize()
     json::Object configJSON = json::new_object(json_object_from_file, PATH_CONFIG_FILE);
     if (!configJSON)
     {
-        logger::log("Error opening config for reading: %s", fslib::get_error_string());
+        logger::log("Error opening config for reading: %s", fslib::error::get_string());
         config::reset_to_default();
         return;
     }
@@ -157,7 +157,7 @@ void config::save()
         json::Object configJSON = json::new_object(json_object_new_object);
 
         // Add working directory first.
-        json_object *workingDirectory = json_object_new_string(s_workingDirectory.c_string());
+        json_object *workingDirectory = json_object_new_string(s_workingDirectory.full_path());
         json::add_object(configJSON, config::keys::WORKING_DIRECTORY.data(), workingDirectory);
 
         // Loop through map and add it.

@@ -7,7 +7,7 @@ namespace
     constexpr uint64_t TICKS_GLYPH_TRIGGER = 50;
 } // namespace
 
-BaseTask::BaseTask() : AppState(false)
+BaseTask::BaseTask() : BaseState(false)
 {
     m_frameTimer.start(TICKS_GLYPH_TRIGGER);
 }

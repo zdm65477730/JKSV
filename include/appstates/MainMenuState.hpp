@@ -1,12 +1,13 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 #include "data/data.hpp"
 #include "sdl.hpp"
 #include "ui/IconMenu.hpp"
+
 #include <memory>
 
 /// @brief The main
-class MainMenuState final : public AppState
+class MainMenuState final : public BaseState
 {
     public:
         /// @brief Creates and initializes the main menu.
@@ -29,35 +30,35 @@ class MainMenuState final : public AppState
 
     private:
         /// @brief Render target this state renders to.
-        sdl::SharedTexture m_renderTarget = nullptr;
+        sdl::SharedTexture m_renderTarget{};
 
         /// @brief The background gradient.
-        sdl::SharedTexture m_background = nullptr;
+        sdl::SharedTexture m_background{};
 
         /// @brief Icon for the settings option,
-        sdl::SharedTexture m_settingsIcon = nullptr;
+        sdl::SharedTexture m_settingsIcon{};
 
         /// @brief Icon for the extras option.
-        sdl::SharedTexture m_extrasIcon = nullptr;
+        sdl::SharedTexture m_extrasIcon{};
 
         /// @brief Special menu type that uses icons.
         ui::IconMenu m_mainMenu;
 
         /// @brief Pointer to control guide string so I don't need to call string::getByName every loop.
-        const char *m_controlGuide = nullptr;
+        const char *m_controlGuide{};
 
         /// @brief X coordinate of the control guide in the bottom right corner.
-        int m_controlGuideX;
+        int m_controlGuideX{};
 
         /// @brief This is the list of user pointers from data.
-        static inline data::UserList sm_users;
+        static inline data::UserList sm_users{};
 
         /// @brief This is the pointer to the settings state.
-        static inline std::shared_ptr<AppState> sm_settingsState = nullptr;
+        static inline std::shared_ptr<BaseState> sm_settingsState{};
 
         /// @brief This is the pointer to the extras state.
-        static inline std::shared_ptr<AppState> sm_extrasState = nullptr;
+        static inline std::shared_ptr<BaseState> sm_extrasState{};
 
         /// @brief This is the vector of title selection states.
-        static inline std::vector<std::shared_ptr<AppState>> sm_states;
+        static inline std::vector<std::shared_ptr<BaseState>> sm_states{};
 };

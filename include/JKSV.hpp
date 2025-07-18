@@ -1,6 +1,7 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 #include "sdl.hpp"
+
 #include <memory>
 #include <vector>
 

@@ -15,7 +15,7 @@ void StateManager::update()
     for (size_t i = instance.sm_stateVector.size() - 1; i > 0; i--)
     {
         // Grab a raw pointer to avoid reference count increase.
-        AppState *appState = instance.sm_stateVector.at(i).get();
+        BaseState *appState = instance.sm_stateVector.at(i).get();
 
         if (!appState->is_active())
         {
@@ -41,7 +41,7 @@ void StateManager::render()
     StateManager &instance = StateManager::get_instance();
 
     // Loop and render all states.
-    for (std::shared_ptr<AppState> &appState : instance.sm_stateVector)
+    for (std::shared_ptr<BaseState> &appState : instance.sm_stateVector)
     {
         appState->render();
     }
@@ -62,7 +62,7 @@ bool StateManager::back_is_closable()
     return instance.sm_stateVector.back()->is_closable();
 }
 
-void StateManager::push_state(std::shared_ptr<AppState> newState)
+void StateManager::push_state(std::shared_ptr<BaseState> newState)
 {
     // Instance.
     StateManager &instance = StateManager::get_instance();

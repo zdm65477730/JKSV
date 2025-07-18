@@ -86,7 +86,7 @@ JKSV::JKSV()
     fslib::Path workingDirectory = config::get_working_directory();
     if (!fslib::directory_exists(workingDirectory) && !fslib::create_directories_recursively(workingDirectory))
     {
-        logger::log("Error creating working directory: %s", fslib::get_error_string());
+        logger::log("Error creating working directory: %s", fslib::error::get_string());
         return;
     }
 
@@ -95,7 +95,7 @@ JKSV::JKSV()
     if (!fslib::directory_exists(sviDir) && !fslib::create_directories_recursively(sviDir))
     {
         // This one isn't fatal, but it can be super fatal later if this fails.
-        logger::log("Error creating svi directory: %s", fslib::get_error_string());
+        logger::log("Error creating svi directory: %s", fslib::error::get_string());
     }
 
     // JKSV also has no internal strings anymore. This is FATAL now.

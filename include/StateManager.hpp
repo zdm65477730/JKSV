@@ -1,5 +1,6 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
+
 #include <memory>
 #include <vector>
 
@@ -7,10 +8,10 @@ class StateManager
 {
     public:
         // Singleton. No copying or constructing.
-        StateManager(const StateManager &) = delete;
-        StateManager(StateManager &&) = delete;
+        StateManager(const StateManager &)            = delete;
+        StateManager(StateManager &&)                 = delete;
         StateManager &operator=(const StateManager &) = delete;
-        StateManager &operator=(StateManager &&) = delete;
+        StateManager &operator=(StateManager &&)      = delete;
 
         /// @brief Runs the state update routine.
         static void update();
@@ -23,7 +24,7 @@ class StateManager
 
         /// @brief Pushes a new state to the state vector.
         /// @param newState Shared_ptr to state to push.
-        static void push_state(std::shared_ptr<AppState> newState);
+        static void push_state(std::shared_ptr<BaseState> newState);
 
     private:
         /// @brief Private constructor so no constructing.
@@ -34,5 +35,5 @@ class StateManager
         static StateManager &get_instance();
 
         /// @brief This is the vector that holds the pointers to the states.
-        static inline std::vector<std::shared_ptr<AppState>> sm_stateVector;
+        static inline std::vector<std::shared_ptr<BaseState>> sm_stateVector;
 };

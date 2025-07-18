@@ -55,14 +55,14 @@ bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaDa
             static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id),
             saveInfo->save_data_id)))
     {
-        logger::log(STRING_ERROR_TEMPLATE.data(), saveInfo->application_id, fslib::get_error_string());
+        logger::log(STRING_ERROR_TEMPLATE.data(), saveInfo->application_id, fslib::error::get_string());
         return false;
     }
 
     // We need to temporarily close the file system.
     if (!fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT))
     {
-        logger::log(STRING_ERROR_TEMPLATE.data(), saveInfo->application_id, fslib::get_error_string());
+        logger::log(STRING_ERROR_TEMPLATE.data(), saveInfo->application_id, fslib::error::get_string());
         return false;
     }
 
@@ -77,7 +77,7 @@ bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaDa
     // Now reopen it.
     if (!fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
     {
-        logger::log(STRING_ERROR_TEMPLATE.data(), saveInfo->application_id, fslib::get_error_string());
+        logger::log(STRING_ERROR_TEMPLATE.data(), saveInfo->application_id, fslib::error::get_string());
         return false;
     }
 

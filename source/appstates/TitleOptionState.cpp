@@ -92,8 +92,8 @@ void TitleOptionState::update()
     }
 
     // Update panel and menu.
-    sm_slidePanel->update(AppState::has_focus());
-    sm_titleOptionMenu->update(AppState::has_focus());
+    sm_slidePanel->update(BaseState::has_focus());
+    sm_titleOptionMenu->update(BaseState::has_focus());
 
     if (input::button_pressed(HidNpadButton_A))
     {
@@ -247,15 +247,15 @@ void TitleOptionState::update()
         sm_slidePanel->reset();
         sm_titleOptionMenu->set_selected(0);
         // Deactivate and allow state to be purged.
-        AppState::deactivate();
+        BaseState::deactivate();
     }
 }
 
 void TitleOptionState::render()
 {
     sm_slidePanel->clear_target();
-    sm_titleOptionMenu->render(sm_slidePanel->get_target(), AppState::has_focus());
-    sm_slidePanel->render(NULL, AppState::has_focus());
+    sm_titleOptionMenu->render(sm_slidePanel->get_target(), BaseState::has_focus());
+    sm_slidePanel->render(NULL, BaseState::has_focus());
 }
 
 void TitleOptionState::close_on_update()
@@ -321,7 +321,7 @@ static void change_output_path(data::TitleInfo *targetTitle)
     if (fslib::directory_exists(oldPath) && !fslib::rename_directory(oldPath, newPath))
     {
         // Bail if this fails, because something is really wrong.
-        logger::log("Error setting new output path: %s", fslib::get_error_string());
+        logger::log("Error setting new output path: %s", fslib::error::get_string());
         return;
     }
 
@@ -367,7 +367,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::D
             fs::DEFAULT_SAVE_MOUNT,
             *dataStruct->m_user->get_save_info_by_id(dataStruct->m_titleInfo->get_application_id())))
     {
-        logger::log(ERROR_RESETTING_SAVE, fslib::get_error_string());
+        logger::log(ERROR_RESETTING_SAVE, fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
         task->finished();
@@ -378,7 +378,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::D
     if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT))
     {
         fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
-        logger::log(ERROR_RESETTING_SAVE, fslib::get_error_string());
+        logger::log(ERROR_RESETTING_SAVE, fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
         task->finished();
@@ -389,7 +389,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::D
     if (!fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT))
     {
         fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
-        logger::log(ERROR_RESETTING_SAVE, fslib::get_error_string());
+        logger::log(ERROR_RESETTING_SAVE, fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
         task->finished();
@@ -505,7 +505,7 @@ static void export_svi_file(data::TitleInfo *titleInfo)
     fslib::File sviFile(sviPath, FsOpenMode_Create | FsOpenMode_Write, SIZE_SVI_FILE);
     if (!sviFile)
     {
-        logger::log("Error exporting SVI file: %s", fslib::get_error_string());
+        logger::log("Error exporting SVI file: %s", fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLE_OPTION_POPS, 5));
     }

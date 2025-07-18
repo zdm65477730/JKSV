@@ -1,12 +1,13 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 #include "system/Timer.hpp"
 #include "ui/ColorMod.hpp"
+
 #include <array>
 #include <string_view>
 
 /// @brief Normally, I wouldn't do this, but this holds a single function both TaskState and ProgressState share...
-class BaseTask : public AppState
+class BaseTask : public BaseState
 {
     public:
         /// @brief Constructor. Starts the glyph timer and sets AppState to not allow closing.
@@ -28,13 +29,13 @@ class BaseTask : public AppState
 
     private:
         /// @brief This is the current frame of the loading glyph animation.
-        int m_currentFrame = 0;
+        int m_currentFrame{};
 
         /// @brief This is the timer used for changing the current glyph/frame of the animation.
-        sys::Timer m_frameTimer;
+        sys::Timer m_frameTimer{};
 
         /// @brief This is used to give the animation its pulsing color.
-        ui::ColorMod m_colorMod;
+        ui::ColorMod m_colorMod{};
 
         /// @brief This array holds the glyphs of the loading sequence. I think it's from the Wii?
         static inline std::array<std::string_view, 8> sm_glyphArray =

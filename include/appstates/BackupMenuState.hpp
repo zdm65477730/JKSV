@@ -1,5 +1,5 @@
 #pragma once
-#include "appstates/AppState.hpp"
+#include "appstates/BaseState.hpp"
 #include "data/data.hpp"
 #include "fslib.hpp"
 #include "sdl.hpp"
@@ -7,10 +7,11 @@
 #include "ui/Menu.hpp"
 #include "ui/SlideOutPanel.hpp"
 #include "ui/TextScroll.hpp"
+
 #include <memory>
 
 /// @brief This is the state where the user can backup and restore saves.
-class BackupMenuState final : public AppState
+class BackupMenuState final : public BaseState
 {
     public:
         /// @brief Creates a new backup selection state.
@@ -55,43 +56,44 @@ class BackupMenuState final : public AppState
 
     private:
         /// @brief Pointer to current user.
-        data::User *m_user = nullptr;
+        data::User *m_user{};
 
         /// @brief Pointer to data for selected title.
-        data::TitleInfo *m_titleInfo = nullptr;
+        data::TitleInfo *m_titleInfo{};
 
         /// @brief Save data type we're working with.
-        FsSaveDataType m_saveType;
+        FsSaveDataType m_saveType{};
 
         /// @brief Path to the target directory of the title.
-        fslib::Path m_directoryPath;
+        fslib::Path m_directoryPath{};
 
         /// @brief Directory listing of the above.
-        fslib::Directory m_directoryListing;
+        fslib::Directory m_directoryListing{};
 
         /// @brief This is the scrolling text at the top.
-        ui::TextScroll m_titleScroll;
+        ui::TextScroll m_titleScroll{};
 
         /// @brief Variable that saves whether or not the filesystem has data in it.
-        bool m_saveHasData = false;
+        bool m_saveHasData{};
 
         /// @brief Data struct passed to functions.
-        std::shared_ptr<BackupMenuState::DataStruct> m_dataStruct;
+        std::shared_ptr<BackupMenuState::DataStruct> m_dataStruct{};
 
-        /// @brief Whether or not anything beyond this point needs to be init'd. Everything here is static and shared by all instances.
-        static inline bool sm_isInitialized = false;
+        /// @brief Whether or not anything beyond this point needs to be init'd. Everything here is static and shared by all
+        /// instances.
+        static inline bool sm_isInitialized{};
 
         /// @brief The menu used by all instances of BackupMenuState.
-        static inline std::shared_ptr<ui::Menu> sm_backupMenu = nullptr;
+        static inline std::shared_ptr<ui::Menu> sm_backupMenu{};
 
         /// @brief The slide out panel used by all instances of BackupMenuState.
-        static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel = nullptr;
+        static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};
 
         /// @brief Inner render target so the menu only renders to a certain area.
-        static inline sdl::SharedTexture sm_menuRenderTarget = nullptr;
+        static inline sdl::SharedTexture sm_menuRenderTarget{};
 
         /// @brief The width of the panels. This is set according to the control guide text.
-        static inline int sm_panelWidth = 0;
+        static inline int sm_panelWidth{};
 
         /// @brief This is the function called when New Backup is selected.
         void name_and_create_backup();
