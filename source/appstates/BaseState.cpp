@@ -5,12 +5,14 @@
 BaseState::BaseState(bool isClosable)
     : m_isClosable(isClosable)
 {
-    if (!m_isClosable) { appletBeginBlockingHomeButton(0); }
+    if (m_isClosable) { return; }
+    appletBeginBlockingHomeButton(0);
 }
 
 BaseState::~BaseState()
 {
-    if (!m_isClosable) { appletEndBlockingHomeButton(); }
+    if (m_isClosable) { return; }
+    appletEndBlockingHomeButton();
 }
 
 void BaseState::deactivate() { m_isActive = false; }
