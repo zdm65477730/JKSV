@@ -1,6 +1,7 @@
 #pragma once
 #include "fslib.hpp"
 #include "sdl.hpp"
+
 #include <string>
 #include <string_view>
 #include <switch.h>
@@ -8,7 +9,8 @@
 
 namespace data
 {
-    /// @brief Type used to store save info and play statistics in the vector. Vector is used to preserve the order since I can't use a map without having to extra heap allocate it.
+    /// @brief Type used to store save info and play statistics in the vector. Vector is used to preserve the order since I
+    /// can't use a map without having to extra heap allocate it.
     using UserDataEntry = std::pair<uint64_t, std::pair<FsSaveDataInfo, PdmPlayStatistics>>;
 
     /// @brief Type definition for the user save info/play stats vector.
@@ -28,10 +30,15 @@ namespace data
             /// @param pathSafeNickname The path safe version of the save data since JKSV is in everything the Switch supports.
             /// @param iconPath Path to the icon to load for account.
             /// @param saveType Save data type of user.
-            User(AccountUid accountID,
-                 std::string_view nickname,
-                 std::string_view pathSafeNickname,
-                 FsSaveDataType saveType);
+            User(AccountUid accountID, std::string_view nickname, std::string_view pathSafeNickname, FsSaveDataType saveType);
+
+            /// @brief Move constructor and operator.
+            User(User &&user);
+            User &operator=(User &&user);
+
+            // Non of this around these parts.
+            User(const User &)            = delete;
+            User &operator=(const User &) = delete;
 
             /// @brief Pushes data to m_userData
             /// @param saveInfo SaveDataInfo.
@@ -48,88 +55,63 @@ namespace data
             /// @brief Runs the sort algo on the vector.
             void sort_data();
 
-            /// @brief Returns the account ID of the user.
-            /// @return AccountID
             AccountUid get_account_id() const;
 
-            /// @brief Returns the save data type the account uses.
-            /// @return Save data type of the account.
             FsSaveDataType get_account_save_type() const;
 
-            /// @brief Returns the account's nickname.
-            /// @return Account nickname.
             const char *get_nickname() const;
 
-            /// @brief Returns the path safe version of the nickname.
-            /// @return Path safe nickname.
             const char *get_path_safe_nickname() const;
 
-            /// @brief Returns the total number of entries in the data vector.
-            /// @return Total number of entries.
             size_t get_total_data_entries() const;
 
             /// @brief Returns the application ID of the title at index.
-            /// @param index Index of title.
-            /// @return Application ID if index is valid. 0 if not.
             uint64_t get_application_id_at(int index) const;
 
             /// @brief Returns a pointer to the save data info at index.
-            /// @param index Index of data to fetch.
-            /// @return Pointer to info if valid. nullptr if out-of-bounds.
             FsSaveDataInfo *get_save_info_at(int index);
 
             /// @brief Returns a pointer to the play statistics at index.
-            /// @param index Index of play statistics to fetch.
-            /// @return Pointer to play statistics if index is value. nullptr if it's out of bounds.
             PdmPlayStatistics *get_play_stats_at(int index);
 
             /// @brief Returns a pointer to the save info of applicationID.
-            /// @param applicationID Application ID to search and fetch for.
-            /// @return Pointer to save info if found. nullptr if not.
             FsSaveDataInfo *get_save_info_by_id(uint64_t applicationID);
 
-            /// @brief Returns a reference to the user save data info vector.
-            /// @return Reference to the user save info vector.
             data::UserSaveInfoList &get_user_save_info_list();
 
             /// @brief Returns a pointer to the play statistics of applicationID
-            /// @param applicationID Application ID to search and fetch.
-            /// @return Pointer to play statistics if index is valid. nullptr if it isn't.
             PdmPlayStatistics *get_play_stats_by_id(uint64_t applicationID);
 
-            /// @brief Returns raw SDL_Texture pointer of icon.
-            /// @return SDL_Texture of icon.
             SDL_Texture *get_icon();
 
-            /// @brief Returns the shared texture of icon. Increasing reference count of it.
-            /// @return Shared icon texture.
             sdl::SharedTexture get_shared_icon();
 
             /// @brief Erases a UserDataEntry according to the application ID passed.
             /// @param applicationID ID of the save to erase.
             void erase_save_info_by_id(uint64_t applicationID);
 
-            /// @brief Loads the save data info and play statistics for the current user using the information passed to the constructor.
+            /// @brief Loads the save data info and play statistics for the current user using the information passed to the
+            /// constructor.
             void load_user_data();
 
         private:
             /// @brief Account's ID
-            AccountUid m_accountID;
+            AccountUid m_accountID{};
 
             /// @brief Type of save data account uses.
-            FsSaveDataType m_saveType;
+            FsSaveDataType m_saveType{};
 
             /// @brief User's nickname.
-            char m_nickname[0x20] = {0};
+            char m_nickname[0x20]{};
 
             /// @brief Path safe version of nickname.
-            char m_pathSafeNickname[0x20] = {0};
+            char m_pathSafeNickname[0x20]{};
 
             /// @brief User's icon.
-            sdl::SharedTexture m_icon = nullptr;
+            sdl::SharedTexture m_icon{};
 
             /// @brief Vector containing save info and play statistics.
-            data::UserSaveInfoList m_userData;
+            data::UserSaveInfoList m_userData{};
 
             /// @brief Loads account structs from system.
             /// @param profile AccountProfile struct to write to.
@@ -139,10 +121,10 @@ namespace data
             /// @brief Creates a placeholder since something went wrong.
             void create_account();
 
-            /// @brief Opens a save data info reader according to the data passed to the user.
-            /// @param spaceID The FsSaveDataSpaceId to use when opening the reader.
-            /// @param reader Reference to the reader to use to open.
-            /// @note I added this so the load_user_data function would be easier to follow.
-            bool open_save_info_reader(FsSaveDataSpaceId spaceID, fslib::SaveInfoReader &reader);
+            /// @brief Attempts to locate the data associated with applicationID
+            data::UserSaveInfoList::iterator find_title_by_id(uint64_t applicationID);
+
+            /// @brief Returns whether or not the index is within bounds.
+            inline bool index_check(int index) const { return index >= 0 && index < static_cast<int>(m_userData.size()); }
     };
 } // namespace data

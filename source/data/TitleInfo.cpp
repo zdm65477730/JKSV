@@ -1,389 +1,205 @@
 #include "data/TitleInfo.hpp"
+
 #include "colors.hpp"
 #include "config.hpp"
+#include "error.hpp"
 #include "gfxutil.hpp"
 #include "logger.hpp"
 #include "stringutil.hpp"
+
 #include <cstring>
 
-data::TitleInfo::TitleInfo(uint64_t applicationID) : m_applicationID(applicationID)
+data::TitleInfo::TitleInfo(uint64_t applicationID)
+    : m_applicationID(applicationID)
+    , m_data(std::make_unique<NsApplicationControlData>())
 {
-    // Used to calculate icon size.
-    uint64_t nsAppControlSize = 0;
-    // Language entry
-    NacpLanguageEntry *languageEntry = nullptr;
+    static constexpr size_t SIZE_CTRL_DATA = sizeof(NsApplicationControlData);
+    static constexpr size_t SIZE_NACP      = sizeof(NacpStruct);
 
-    Result nsError = nsGetApplicationControlData(NsApplicationControlSource_Storage,
-                                                 applicationID,
-                                                 &m_data,
-                                                 sizeof(NsApplicationControlData),
-                                                 &nsAppControlSize);
+    uint64_t controlSize{};
+    NacpLanguageEntry *entry{};
+    NsApplicationControlData *data = m_data.get();
 
-    if (R_FAILED(nsError) || nsAppControlSize < sizeof(m_data.nacp))
+    // This will filter from even trying to fetch control data for system titles.
+    const bool isSystem   = applicationID & 0x8000000000000000;
+    const bool getError   = !isSystem && error::libnx(nsGetApplicationControlData(NsApplicationControlSource_Storage,
+                                                                                m_applicationID,
+                                                                                data,
+                                                                                SIZE_CTRL_DATA,
+                                                                                &controlSize));
+    const bool entryError = !isSystem && !getError && error::libnx(nacpGetLanguageEntry(&data->nacp, &entry));
+    if (isSystem || getError)
     {
-        // This is the lowest four hex values of the title.
-        std::string applicationIDHex = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
+        const std::string appIDHex = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
+        char *name                 = data->nacp.lang[SetLanguage_ENUS].name; // I'm hoping this is enough?
 
-        // Blank the nacp just to be sure.
-        std::memset(&m_data, 0x00, sizeof(NsApplicationControlData));
-
-        // Sprintf title ids to language entries for safety.
-        snprintf(m_data.nacp.lang[SetLanguage_ENUS].name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
-
-        // Path safe version of title.
+        std::memset(data, 0x00, SIZE_CTRL_DATA);
+        std::snprintf(name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
+        m_icon = gfxutil::create_generic_icon(appIDHex, 48, colors::DIALOG_BOX, colors::WHITE);
         TitleInfo::get_create_path_safe_title();
-
-        // Create the placeholder icon.
-        m_icon = gfxutil::create_generic_icon(applicationIDHex, 48, colors::DIALOG_BOX, colors::WHITE);
     }
-    else if (R_SUCCEEDED(nsError) && R_SUCCEEDED(nacpGetLanguageEntry(&m_data.nacp, &languageEntry)))
+    else if (!getError && !entryError)
     {
-        // Make sure title knows it has a valid control data struct.
-        m_hasData = true;
+        const size_t iconSize = controlSize - SIZE_NACP;
+        m_hasData             = true;
 
-        // Get a path safe version of the title.
         TitleInfo::get_create_path_safe_title();
-
-        // Load the icon.
-        m_icon = sdl::TextureManager::create_load_texture(languageEntry->name,
-                                                          m_data.icon,
-                                                          nsAppControlSize - sizeof(NacpStruct));
+        m_icon = sdl::TextureManager::create_load_texture(entry->name, m_data->icon, iconSize);
     }
 }
 
 // To do: Make this safer...
 data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData)
     : m_applicationID(applicationID)
+    , m_data(std::make_unique<NsApplicationControlData>())
 {
-    // Start by making a copy of this.
-    std::memcpy(&m_data, &controlData, sizeof(NsApplicationControlData));
+    NsApplicationControlData *data = m_data.get();
 
-    // Grab the language entry for the texture name.
-    NacpLanguageEntry *entry = nullptr;
-    if (R_FAILED(nacpGetLanguageEntry(&m_data.nacp, &entry)))
-    {
-        // sprintf the title ID to it. This buffer is the same as the path safe buffer so I'm using that.
-        std::snprintf(entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
-    }
+    std::memcpy(data, &controlData, sizeof(NsApplicationControlData));
 
-    // Oops. Need this.
+    NacpLanguageEntry *entry{};
+    const bool entryError = error::libnx(nacpGetLanguageEntry(&data->nacp, &entry));
+    if (entryError) { std::snprintf(entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID); }
     TitleInfo::get_create_path_safe_title();
-
-    // Load the icon to a texture. We're going to be lazy with the size here since it works anyway.
-    m_icon = sdl::TextureManager::create_load_texture(entry->name, m_data.icon, sizeof(m_data.icon));
+    m_icon = sdl::TextureManager::create_load_texture(entry->name, m_data->icon, sizeof(m_data->icon));
 }
 
-uint64_t data::TitleInfo::get_application_id() const
+data::TitleInfo::TitleInfo(data::TitleInfo &&titleInfo) { *this = std::move(titleInfo); }
+
+data::TitleInfo &data::TitleInfo::operator=(data::TitleInfo &&titleInfo)
 {
-    return m_applicationID;
+    m_applicationID = titleInfo.m_applicationID;
+    m_data          = std::move(titleInfo.m_data);
+    m_hasData       = titleInfo.m_hasData;
+    std::memcpy(m_pathSafeTitle, titleInfo.m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE);
+    m_icon = titleInfo.m_icon;
+
+    titleInfo.m_applicationID = 0;
+    titleInfo.m_data          = nullptr;
+    titleInfo.m_hasData       = false;
+    std::memset(titleInfo.m_pathSafeTitle, 0x00, TitleInfo::SIZE_PATH_SAFE);
+    titleInfo.m_icon = nullptr;
+
+    return *this;
 }
 
-NsApplicationControlData *data::TitleInfo::get_control_data()
-{
-    return &m_data;
-}
+uint64_t data::TitleInfo::get_application_id() const { return m_applicationID; }
 
-bool data::TitleInfo::has_control_data() const
-{
-    return m_hasData;
-}
+NsApplicationControlData *data::TitleInfo::get_control_data() { return m_data.get(); }
+
+bool data::TitleInfo::has_control_data() const { return m_hasData; }
 
 const char *data::TitleInfo::get_title()
 {
-    NacpLanguageEntry *entry = nullptr;
-    if (R_FAILED(nacpGetLanguageEntry(&m_data.nacp, &entry)))
-    {
-        return nullptr;
-    }
+    NacpLanguageEntry *entry{};
+    const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data->nacp, &entry));
+    if (entryError) { return nullptr; }
     return entry->name;
 }
 
-const char *data::TitleInfo::get_path_safe_title() const
-{
-    return m_pathSafeTitle;
-}
+const char *data::TitleInfo::get_path_safe_title() const { return m_pathSafeTitle; }
 
 const char *data::TitleInfo::get_publisher()
 {
-    NacpLanguageEntry *Entry = nullptr;
-    if (R_FAILED(nacpGetLanguageEntry(&m_data.nacp, &Entry)))
-    {
-        return nullptr;
-    }
-    return Entry->author;
+    NacpLanguageEntry *entry{};
+    const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data->nacp, &entry));
+    if (entryError) { return nullptr; }
+    return entry->author;
 }
 
-uint64_t data::TitleInfo::get_save_data_owner_id() const
-{
-    return m_data.nacp.save_data_owner_id;
-}
+uint64_t data::TitleInfo::get_save_data_owner_id() const { return m_data->nacp.save_data_owner_id; }
 
 int64_t data::TitleInfo::get_save_data_size(uint8_t saveType) const
 {
-    // Create pointer to NACP since I don't feel like typing too much.
-    const NacpStruct *nacp = &m_data.nacp;
-
+    const NacpStruct &nacp = m_data->nacp;
     switch (saveType)
     {
-        case FsSaveDataType_Account:
-        {
-            return nacp->user_account_save_data_size;
-        }
-        break;
-
-        case FsSaveDataType_Bcat:
-        {
-            return nacp->bcat_delivery_cache_storage_size;
-        }
-        break;
-
-        case FsSaveDataType_Device:
-        {
-            return nacp->device_save_data_size;
-        }
-        break;
-
-        case FsSaveDataType_Temporary:
-        {
-            return nacp->temporary_storage_size;
-        }
-        break;
-
-        case FsSaveDataType_Cache:
-        {
-            return nacp->cache_storage_size;
-        }
-        break;
-
-        default:
-        {
-            return 0;
-        }
-        break;
+        case FsSaveDataType_Account: return nacp.user_account_save_data_size;
+        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size;
+        case FsSaveDataType_Device: return nacp.device_save_data_size;
+        case FsSaveDataType_Temporary: return nacp.temporary_storage_size;
+        case FsSaveDataType_Cache: return nacp.cache_storage_size;
     }
     return 0;
 }
 
 int64_t data::TitleInfo::get_save_data_size_max(uint8_t saveType) const
 {
-    const NacpStruct *nacp = &m_data.nacp;
-
+    const NacpStruct &nacp = m_data->nacp;
     switch (saveType)
     {
-        case FsSaveDataType_Account:
-        {
-            return nacp->user_account_save_data_size_max > nacp->user_account_save_data_size
-                       ? nacp->user_account_save_data_size_max
-                       : nacp->user_account_save_data_size;
-        }
-        break;
-
-        case FsSaveDataType_Bcat:
-        {
-            return nacp->bcat_delivery_cache_storage_size;
-        }
-        break;
-
-        case FsSaveDataType_Device:
-        {
-            return nacp->device_save_data_size_max > nacp->device_save_data_size ? nacp->device_save_data_size_max
-                                                                                 : nacp->device_save_data_size;
-        }
-        break;
-
-        case FsSaveDataType_Temporary:
-        {
-            return nacp->temporary_storage_size;
-        }
-        break;
-
-        case FsSaveDataType_Cache:
-        {
-            return nacp->cache_storage_data_and_journal_size_max > nacp->cache_storage_size
-                       ? nacp->cache_storage_data_and_journal_size_max
-                       : nacp->cache_storage_size;
-        }
-        break;
-
-        default:
-        {
-            return 0;
-        }
-        break;
+        case FsSaveDataType_Account: return std::max(nacp.user_account_save_data_size, nacp.user_account_save_data_size_max);
+        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size;
+        case FsSaveDataType_Device: return std::max(nacp.device_save_data_size, nacp.device_save_data_size_max);
+        case FsSaveDataType_Temporary: return nacp.temporary_storage_size;
+        case FsSaveDataType_Cache: return std::max(nacp.cache_storage_size, nacp.cache_storage_data_and_journal_size_max);
     }
     return 0;
 }
 
 int64_t data::TitleInfo::get_journal_size(uint8_t saveType) const
 {
-    const NacpStruct *nacp = &m_data.nacp;
-
+    const NacpStruct &nacp = m_data->nacp;
     switch (saveType)
     {
-        case FsSaveDataType_Account:
-        {
-            return nacp->user_account_save_data_journal_size;
-        }
-        break;
-
-        case FsSaveDataType_Bcat:
-        {
-            // I'm just assuming this is right...
-            return nacp->bcat_delivery_cache_storage_size;
-        }
-        break;
-
-        case FsSaveDataType_Device:
-        {
-            return nacp->device_save_data_journal_size;
-        }
-        break;
-
-        case FsSaveDataType_Temporary:
-        {
-            // Again, just assuming.
-            return nacp->temporary_storage_size;
-        }
-        break;
-
-        case FsSaveDataType_Cache:
-        {
-            return nacp->cache_storage_journal_size;
-        }
-        break;
-
-        default:
-        {
-            return 0;
-        }
-        break;
+        case FsSaveDataType_Account: return nacp.user_account_save_data_journal_size;
+        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size;
+        case FsSaveDataType_Device: return nacp.device_save_data_journal_size;
+        case FsSaveDataType_Temporary: return nacp.temporary_storage_size;
+        case FsSaveDataType_Cache: return nacp.cache_storage_journal_size;
     }
     return 0;
 }
 
 int64_t data::TitleInfo::get_journal_size_max(uint8_t saveType) const
 {
-    const NacpStruct *nacp = &m_data.nacp;
-
+    const NacpStruct &nacp = m_data->nacp;
     switch (saveType)
     {
         case FsSaveDataType_Account:
-        {
-            return nacp->user_account_save_data_journal_size_max > nacp->user_account_save_data_journal_size
-                       ? nacp->user_account_save_data_journal_size_max
-                       : nacp->user_account_save_data_journal_size;
-        }
-        break;
-
-        case FsSaveDataType_Bcat:
-        {
-            return nacp->bcat_delivery_cache_storage_size;
-        }
-        break;
-
-        case FsSaveDataType_Device:
-        {
-            return nacp->device_save_data_journal_size_max > nacp->device_save_data_journal_size
-                       ? nacp->device_save_data_journal_size_max
-                       : nacp->device_save_data_journal_size;
-        }
-        break;
-
-        case FsSaveDataType_Temporary:
-        {
-            return nacp->temporary_storage_size;
-        }
-        break;
-
+            return std::max(nacp.user_account_save_data_journal_size, nacp.user_account_save_data_journal_size_max);
+        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size;
+        case FsSaveDataType_Device: return std::max(nacp.device_save_data_journal_size, nacp.device_save_data_journal_size_max);
+        case FsSaveDataType_Temporary: return nacp.temporary_storage_size;
         case FsSaveDataType_Cache:
-        {
-            return nacp->cache_storage_data_and_journal_size_max > nacp->cache_storage_journal_size
-                       ? nacp->cache_storage_data_and_journal_size_max
-                       : nacp->cache_storage_journal_size;
-        }
-        break;
-
-        default:
-        {
-            return 0;
-        }
-        break;
+            return std::max(nacp.cache_storage_journal_size, nacp.cache_storage_data_and_journal_size_max);
     }
     return 0;
 }
 
 bool data::TitleInfo::has_save_data_type(uint8_t saveType) const
 {
-    const NacpStruct *nacp = &m_data.nacp;
-
-    // I'm not 100% sure this is the best way to test for this.
+    const NacpStruct &nacp = m_data->nacp;
     switch (saveType)
     {
-        case FsSaveDataType_Account:
-        {
-            return nacp->user_account_save_data_size > 0 || nacp->user_account_save_data_size_max > 0;
-        }
-        break;
-
-        case FsSaveDataType_Bcat:
-        {
-            return nacp->bcat_delivery_cache_storage_size > 0;
-        }
-        break;
-
-        case FsSaveDataType_Device:
-        {
-            return nacp->device_save_data_size > 0 || nacp->device_save_data_size_max > 0;
-        }
-        break;
-
-        case FsSaveDataType_Cache:
-        {
-            return nacp->cache_storage_size > 0 || nacp->cache_storage_data_and_journal_size_max > 0;
-        }
-        break;
-
-        default:
-        {
-            return false;
-        }
-        break;
+        case FsSaveDataType_Account: return nacp.user_account_save_data_size > 0 || nacp.user_account_save_data_size_max > 0;
+        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size > 0;
+        case FsSaveDataType_Device: return nacp.device_save_data_size > 0 || nacp.device_save_data_size_max > 0;
+        case FsSaveDataType_Cache: return nacp.cache_storage_size > 0 || nacp.cache_storage_data_and_journal_size_max > 0;
     }
     return false;
 }
 
-sdl::SharedTexture data::TitleInfo::get_icon() const
-{
-    return m_icon;
-}
+sdl::SharedTexture data::TitleInfo::get_icon() const { return m_icon; }
 
 void data::TitleInfo::set_path_safe_title(const char *newPathSafe, size_t newPathLength)
 {
-    if (newPathLength >= TitleInfo::SIZE_PATH_SAFE)
-    {
-        return;
-    }
-
-    // Need to memset just in case the new title is shorter than the old one.
+    if (newPathLength >= TitleInfo::SIZE_PATH_SAFE) { return; }
     std::memset(m_pathSafeTitle, 0x00, TitleInfo::SIZE_PATH_SAFE);
     std::memcpy(m_pathSafeTitle, newPathSafe, newPathLength);
 }
 
 void data::TitleInfo::get_create_path_safe_title()
 {
-    // Avoid calling this function over and over.
-    uint64_t applicationID = TitleInfo::get_application_id();
+    const uint64_t applicationID = TitleInfo::get_application_id();
+    NacpLanguageEntry *entry{};
 
-    // Attempt to grab the language entry.
-    NacpLanguageEntry *entry = nullptr;
-
-    // If it has a custom path defined, use that. Else, try to make it path safe.
-    if (config::has_custom_path(applicationID))
-    {
-        config::get_custom_path(applicationID, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE);
-    }
-    else if (R_FAILED(nacpGetLanguageEntry(&m_data.nacp, &entry)) ||
-             !stringutil::sanitize_string_for_path(entry->name, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE))
+    const bool hasCustomPath = config::has_custom_path(applicationID);
+    const bool entryError    = !hasCustomPath && error::libnx(nacpGetLanguageEntry(&m_data->nacp, &entry));
+    const bool sanitizeError = !hasCustomPath && !entryError &&
+                               !stringutil::sanitize_string_for_path(entry->name, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE);
+    if (hasCustomPath) { config::get_custom_path(applicationID, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE); }
+    else if (entryError || sanitizeError)
     {
         std::snprintf(m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
     }

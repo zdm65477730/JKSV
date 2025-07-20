@@ -1,7 +1,9 @@
 #include "strings.hpp"
+
 #include "JSON.hpp"
 #include "fslib.hpp"
 #include "stringutil.hpp"
+
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -37,18 +39,12 @@ static fslib::Path get_file_path()
     fslib::Path returnPath = "romfs:/Text";
 
     uint64_t languageCode = 0;
-    Result setError = setGetLanguageCode(&languageCode);
-    if (R_FAILED(setError))
-    {
-        return returnPath / s_fileMap.at(SetLanguage_ENUS);
-    }
+    Result setError       = setGetLanguageCode(&languageCode);
+    if (R_FAILED(setError)) { return returnPath / s_fileMap.at(SetLanguage_ENUS); }
 
     SetLanguage language;
     setError = setMakeLanguage(languageCode, &language);
-    if (R_FAILED(setError))
-    {
-        return returnPath / s_fileMap.at(SetLanguage_ENUS);
-    }
+    if (R_FAILED(setError)) { return returnPath / s_fileMap.at(SetLanguage_ENUS); }
     return returnPath / s_fileMap.at(language);
 }
 
@@ -75,46 +71,46 @@ static void replace_buttons_in_string(std::string &target)
 
 bool strings::initialize()
 {
-    fslib::Path filePath = get_file_path();
-
-    json::Object stringJSON = json::new_object(json_object_from_file, filePath.full_path());
-    if (!stringJSON)
-    {
-        return false;
-    }
+    const fslib::Path filePath = get_file_path();
+    json::Object stringJSON    = json::new_object(json_object_from_file, filePath.full_path());
+    if (!stringJSON) { return false; }
 
     json_object_iterator stringIterator = json_object_iter_begin(stringJSON.get());
-    json_object_iterator stringEnd = json_object_iter_end(stringJSON.get());
+    json_object_iterator stringEnd      = json_object_iter_end(stringJSON.get());
     while (!json_object_iter_equal(&stringIterator, &stringEnd))
     {
         // Get name of string(s) and pointer to array
-        const char *stringName = json_object_iter_peek_name(&stringIterator);
-        json_object *stringArray = json_object_iter_peek_value(&stringIterator);
+        const char *name   = json_object_iter_peek_name(&stringIterator);
+        json_object *array = json_object_iter_peek_value(&stringIterator);
 
-        // Loop through array and add them to map so I can be lazier and not have to edit code or do shit to add more strings.
-        size_t arrayLength = json_object_array_length(stringArray);
-        for (size_t i = 0; i < arrayLength; i++)
+        // Loop through array and add them to map so I can be lazier and not have to edit code or do anything to add more
+        // strings.
+        size_t length = json_object_array_length(array);
+        for (size_t i = 0; i < length; i++)
         {
-            json_object *string = json_object_array_get_idx(stringArray, i);
-            s_stringMap[std::make_pair(stringName, static_cast<int>(i))] = json_object_get_string(string);
+            json_object *string     = json_object_array_get_idx(array, i);
+            std::string_view slicer = json_object_get_string(string);
+            const int mapIndex      = i;
+            const auto mapPair      = std::make_pair(name, mapIndex);
+            const size_t begin      = slicer.find(": ");
+            if (begin != slicer.npos) { slicer = slicer.substr(begin + 2); }
+
+            s_stringMap[mapPair] = slicer;
         }
         json_object_iter_next(&stringIterator);
     }
 
     // Loop through entire map and replace the buttons.
-    for (auto &[key, string] : s_stringMap)
-    {
-        replace_buttons_in_string(string);
-    }
+    for (auto &[key, string] : s_stringMap) { replace_buttons_in_string(string); }
 
     return true;
 }
 
 const char *strings::get_by_name(std::string_view name, int index)
 {
-    if (s_stringMap.find(std::make_pair(name.data(), index)) == s_stringMap.end())
-    {
-        return nullptr;
-    }
-    return s_stringMap.at(std::make_pair(name.data(), index)).c_str();
+    const auto mapPair  = std::make_pair(name.data(), index);
+    const auto findPair = s_stringMap.find(mapPair);
+
+    if (findPair == s_stringMap.end()) { return nullptr; }
+    return s_stringMap.at(mapPair).c_str();
 }

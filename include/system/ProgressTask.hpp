@@ -4,7 +4,7 @@
 namespace sys
 {
     /// @brief Derived class of Task that has methods for tracking progress.
-    class ProgressTask : public sys::Task
+    class ProgressTask final : public sys::Task
     {
         public:
             /// @brief Contstructs a new ProgressTask
@@ -33,6 +33,7 @@ namespace sys
 
         private:
             // Current value and goal
-            double m_current, m_goal;
+            double m_current{};
+            double m_goal{};
     };
 } // namespace sys

@@ -1,6 +1,8 @@
 #include "fs/io.hpp"
+
 #include "logger.hpp"
 #include "strings.hpp"
+
 #include <condition_variable>
 #include <cstring>
 #include <memory>
@@ -44,8 +46,7 @@ static void readThreadFunction(fslib::File &sourceFile, std::shared_ptr<FileTran
         sharedData->m_bufferCondition.notify_one();
         // Wait for other thread to signal buffer is empty. Lock is released immediately, but it works and that's what matters.
         std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-        sharedData->m_bufferCondition.wait(m_bufferLock,
-                                           [&sharedData]() { return sharedData->m_bufferIsFull == false; });
+        sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull == false; });
     }
 }
 
@@ -64,10 +65,7 @@ void fs::copy_file(const fslib::Path &source,
     }
 
     // Set status if task pointer was passed.
-    if (task)
-    {
-        task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 0), source.full_path());
-    }
+    if (task) { task->set_status(strings::get_by_name(strings::names::IO_STATUSES, 0), source.full_path()); }
 
     // Shared struct both threads use
     std::shared_ptr<FileTransferStruct> sharedData(new FileTransferStruct);
@@ -81,10 +79,7 @@ void fs::copy_file(const fslib::Path &source,
 
     // Get file size for loop and set goal.
     int64_t fileSize = sourceFile.get_size();
-    if (task)
-    {
-        task->reset(static_cast<double>(fileSize));
-    }
+    if (task) { task->reset(static_cast<double>(fileSize)); }
 
     for (int64_t writeCount = 0, readCount = 0, journalCount = 0; writeCount < fileSize;)
     {
@@ -132,20 +127,14 @@ void fs::copy_file(const fslib::Path &source,
         journalCount += readCount;
 
         // Update task if passed.
-        if (task)
-        {
-            task->update_current(static_cast<double>(writeCount));
-        }
+        if (task) { task->update_current(static_cast<double>(writeCount)); }
     }
 
     // Close the destination for committing.
     destinationFile.close();
 
     // One last commit for good luck.
-    if (!fslib::commit_data_to_file_system(commitDevice))
-    {
-        logger::log(fslib::error::get_string());
-    }
+    if (!fslib::commit_data_to_file_system(commitDevice)) { logger::log(fslib::error::get_string()); }
 
     // Wait for read thread and free it.
     readThread.join();
@@ -168,7 +157,7 @@ void fs::copy_directory(const fslib::Path &source,
     {
         if (sourceDir.is_directory(i))
         {
-            fslib::Path newSource = source / sourceDir[i];
+            fslib::Path newSource      = source / sourceDir[i];
             fslib::Path newDestination = destination / sourceDir[i];
             // Try to create new destination folder and continue loop on failure.
             if (!fslib::directory_exists(newDestination) && !fslib::create_directory(newDestination))
@@ -181,7 +170,7 @@ void fs::copy_directory(const fslib::Path &source,
         }
         else
         {
-            fslib::Path fullSource = source / sourceDir[i];
+            fslib::Path fullSource      = source / sourceDir[i];
             fslib::Path fullDestination = destination / sourceDir[i];
             fs::copy_file(fullSource, fullDestination, journalSize, commitDevice, task);
         }

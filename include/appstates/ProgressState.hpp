@@ -16,7 +16,9 @@ class ProgressState final : public BaseTask
         template <typename... Args>
         ProgressState(void (*function)(sys::ProgressTask *, Args...), Args... args)
             : BaseTask()
-            , m_task(function, std::forward<Args>(args)...){};
+        {
+            m_task = std::make_unique<sys::ProgressTask>(function, std::forward<Args>(args)...);
+        }
 
         /// @brief Required destructor.
         ~ProgressState() {};
@@ -28,9 +30,6 @@ class ProgressState final : public BaseTask
         void render() override;
 
     private:
-        /// @brief Underlying task that has extra methods for tracking the progress of a task.
-        sys::ProgressTask m_task;
-
         /// @brief Progress which is saved as a rounded whole number.
         size_t m_progress{};
 

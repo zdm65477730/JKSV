@@ -23,10 +23,14 @@
 namespace
 {
     /// @brief This is the length allotted for naming backups.
-    constexpr size_t SIZE_BACKUP_NAME_LENGTH = 0x80;
+    constexpr size_t SIZE_NAME_LENGTH = 0x80;
 
     /// @brief This is just so there isn't random .zip comparisons everywhere.
     const char *STRING_ZIP_EXTENSION = ".zip";
+
+    // These make some things cleaner and easier to type.
+    using TaskConfirm     = ConfirmState<sys::Task, TaskState, BackupMenuState::DataStruct>;
+    using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, BackupMenuState::DataStruct>;
 } // namespace
 
 // Declarations here. Definitions after class.
@@ -64,97 +68,62 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo)
 
 BackupMenuState::~BackupMenuState()
 {
-    // Close the save.
     fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
-    // Close the panel.
-    sm_slidePanel->clear_elements();
 
-    // Return the remote to root.
+    sm_slidePanel->clear_elements();
+    sm_slidePanel->reset();
+
     remote::Storage *remote = remote::get_remote_storage();
     if (remote && remote->is_initialized()) { remote->return_to_root(); }
 }
 
 void BackupMenuState::update()
 {
-    bool hasFocus = BaseState::has_focus();
+    const bool hasFocus  = BaseState::has_focus();
+    const int selected   = sm_backupMenu->get_selected();
+    const bool aPressed  = input::button_pressed(HidNpadButton_A);
+    const bool bPressed  = input::button_pressed(HidNpadButton_B);
+    const bool xPressed  = input::button_pressed(HidNpadButton_X);
+    const bool yPressed  = input::button_pressed(HidNpadButton_Y);
+    const bool zrPressed = input::button_pressed(HidNpadButton_ZR);
 
-    if (input::button_pressed(HidNpadButton_A) && sm_backupMenu->get_selected() == 0 && m_saveHasData)
-    {
-        BackupMenuState::name_and_create_backup();
-    }
-    else if (input::button_pressed(HidNpadButton_A) && sm_backupMenu->get_selected() == 0 && !m_saveHasData)
-    {
-        // This just makes the little no save data found pop up.
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 0));
-    }
-    else if (input::button_pressed(HidNpadButton_A) && m_saveHasData && sm_backupMenu->get_selected() > 0)
-    {
-        BackupMenuState::confirm_backup_overwrite();
-    }
-    else if (input::button_pressed(HidNpadButton_A) && !m_saveHasData && sm_backupMenu->get_selected() > 0)
-    {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 0));
-    }
-    else if (input::button_pressed(HidNpadButton_Y) && sm_backupMenu->get_selected() > 0)
-    {
-        BackupMenuState::confirm_restore();
-    }
-    else if (input::button_pressed(HidNpadButton_X) && sm_backupMenu->get_selected() > 0) { BackupMenuState::confirm_delete(); }
-    else if (input::button_pressed(HidNpadButton_ZR) && sm_backupMenu->get_selected() > 0)
-    {
-        int selected       = sm_backupMenu->get_selected() - 1;
-        m_dataStruct->path = m_directoryPath / m_directoryListing[selected];
-        auto upload        = std::make_shared<ProgressState>(upload_backup, m_dataStruct);
-        StateManager::push_state(upload);
-    }
+    const bool newSelected     = selected == 0;
+    const bool newBackup       = aPressed && newSelected && m_saveHasData;
+    const bool overwriteBackup = aPressed && !newSelected && m_saveHasData;
+    const bool restoreBackup   = yPressed && !newSelected;
+    const bool deleteBackup    = xPressed && !newSelected;
+    const bool uploadBackup    = zrPressed && !newSelected;
+    const bool popEmpty        = aPressed && !m_saveHasData;
 
-    else if (input::button_pressed(HidNpadButton_B)) { sm_slidePanel->close(); }
-    else if (sm_slidePanel->is_closed())
-    {
-        sm_slidePanel->reset();
-        BaseState::deactivate();
-    }
+    if (newBackup) { BackupMenuState::name_and_create_backup(); }
+    else if (overwriteBackup) { BackupMenuState::confirm_overwrite(); }
+    else if (restoreBackup) { BackupMenuState::confirm_restore(); }
+    else if (deleteBackup) { BackupMenuState::confirm_delete(); }
+    else if (uploadBackup) { BackupMenuState::upload_backup(); }
+    else if (popEmpty) { BackupMenuState::pop_save_empty(); }
+    else if (bPressed) { sm_slidePanel->close(); }
+    else if (sm_slidePanel->is_closed()) { BaseState::deactivate(); }
 
-    // Update title scrolling.
     m_titleScroll.update(hasFocus);
-    // Update panel.
     sm_slidePanel->update(hasFocus);
-    // This state bypasses the Slideout panel's normal behavior because it kind of has to.
     sm_backupMenu->update(hasFocus);
 }
 
 void BackupMenuState::render()
 {
-    // Save this locally.
-    bool hasFocus = BaseState::has_focus();
+    const bool hasFocus = BaseState::has_focus();
+    SDL_Texture *target = sm_slidePanel->get_target();
 
-    // Clear panel target.
     sm_slidePanel->clear_target();
+    m_titleScroll.render(target, hasFocus);
 
-    // Grab the render target.
-    SDL_Texture *slideTarget = sm_slidePanel->get_target();
+    sdl::render_line(target, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
+    sdl::render_line(target, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
+    sdl::text::render(target, 32, 673, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_controlGuide);
 
-    // Start with [Name] - [Title]
-    m_titleScroll.render(slideTarget, hasFocus);
-
-    sdl::render_line(slideTarget, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
-    sdl::render_line(slideTarget, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
-    sdl::text::render(slideTarget,
-                      32,
-                      673,
-                      22,
-                      sdl::text::NO_TEXT_WRAP,
-                      colors::WHITE,
-                      strings::get_by_name(strings::names::CONTROL_GUIDES, 2));
-
-    // Clear menu target.
     sm_menuRenderTarget->clear(colors::TRANSPARENT);
-    // render menu to it.
     sm_backupMenu->render(sm_menuRenderTarget->get(), hasFocus);
-    // render it to panel target.
-    sm_menuRenderTarget->render(slideTarget, 0, 43);
+    sm_menuRenderTarget->render(target, 0, 43);
 
     sm_slidePanel->render(NULL, hasFocus);
 }
@@ -165,8 +134,15 @@ void BackupMenuState::refresh()
     if (!m_directoryListing) { return; }
 
     sm_backupMenu->reset();
-    sm_backupMenu->add_option(strings::get_by_name(strings::names::BACKUP_MENU, 0));
-    for (int64_t i = 0; i < m_directoryListing.get_count(); i++) { sm_backupMenu->add_option(m_directoryListing[i]); }
+    m_menuEntries.clear();
+
+    sm_backupMenu->add_option(strings::get_by_name(strings::names::BACKUPMENU_MENU, 0));
+    m_menuEntries.push_back({MenuEntryType::Null, 0});
+    for (int64_t i = 0; i < m_directoryListing.get_count(); i++)
+    {
+        sm_backupMenu->add_option(m_directoryListing[i]);
+        m_menuEntries.push_back({MenuEntryType::Local, static_cast<int>(i)});
+    }
 }
 
 void BackupMenuState::save_data_written()
@@ -176,126 +152,99 @@ void BackupMenuState::save_data_written()
 
 void BackupMenuState::name_and_create_backup()
 {
-    static const char *STRING_ERROR_CREATE_NEW = "Error creating new backup: %s";
+    const bool autoName             = config::get_by_key(config::keys::AUTO_NAME_BACKUPS);
+    const bool exportZip            = config::get_by_key(config::keys::EXPORT_TO_ZIP);
+    const bool autoUpload           = config::get_by_key(config::keys::AUTO_UPLOAD);
+    const bool zrHeld               = input::button_held(HidNpadButton_ZR);
+    const char *keyboardHeader      = strings::get_by_name(strings::names::KEYBOARD, 0);
+    const bool autoNamed            = (autoName || zrHeld); // This can be eval'd here.
+    char name[SIZE_NAME_LENGTH + 1] = {0};
 
-    bool zip                                     = config::get_by_key(config::keys::EXPORT_TO_ZIP);
-    char backupName[SIZE_BACKUP_NAME_LENGTH + 1] = {0};
+    std::snprintf(name, SIZE_NAME_LENGTH, "%s - %s", m_user->get_path_safe_nickname(), stringutil::get_date_string().c_str());
 
-    std::snprintf(backupName,
-                  SIZE_BACKUP_NAME_LENGTH,
-                  "%s - %s",
-                  m_user->get_path_safe_nickname(),
-                  stringutil::get_date_string().c_str());
+    const bool named = autoNamed || keyboard::get_input(SwkbdType_QWERTY, name, keyboardHeader, name, SIZE_NAME_LENGTH);
+    if (!named) { return; }
 
-    // ZR is a shortcut to skip the keyboard popping up.
-    if (!input::button_held(HidNpadButton_ZR) && !keyboard::get_input(SwkbdType_QWERTY,
-                                                                      backupName,
-                                                                      strings::get_by_name(strings::names::KEYBOARD_STRINGS, 0),
-                                                                      backupName,
-                                                                      SIZE_BACKUP_NAME_LENGTH))
+    fslib::Path target{m_directoryPath / name};
+    const bool hasZipExt = std::strstr(target.full_path(), ".zip"); // This might not be the best check.
+    if ((exportZip || autoUpload) && !hasZipExt) { target += ".zip"; }
+    else if (!exportZip && !autoUpload && !hasZipExt)
     {
-        return;
+        const bool targetExists  = fslib::directory_exists(target);
+        const bool targetCreated = !targetExists && fslib::create_directory(target);
     }
-
-    if (zip && !std::strstr(backupName, STRING_ZIP_EXTENSION))
-    {
-        // This could have potential consequences...
-        std::strncat(backupName, STRING_ZIP_EXTENSION, SIZE_BACKUP_NAME_LENGTH);
-    }
-    else if (!zip && !std::strstr(backupName, STRING_ZIP_EXTENSION) && !fslib::directory_exists(m_directoryPath / backupName) &&
-             !fslib::create_directory(m_directoryPath / backupName))
-    {
-        logger::log(STRING_ERROR_CREATE_NEW, "Error creating export directory.");
-        return;
-    }
-
-    // We should now be able to create the final target path.
-    fslib::Path targetPath = m_directoryPath / backupName;
-
-    auto newBackupTask = std::make_shared<ProgressState>(create_new_backup, m_user, m_titleInfo, targetPath, this);
+    auto newBackupTask = std::make_shared<ProgressState>(create_new_backup, m_user, m_titleInfo, target, this);
     StateManager::push_state(newBackupTask);
 }
 
-void BackupMenuState::confirm_backup_overwrite()
+void BackupMenuState::confirm_overwrite()
 {
-    // This has one subtracted to account for New Backup.
-    int selected = sm_backupMenu->get_selected() - 1;
+    const int selected          = sm_backupMenu->get_selected();
+    const MenuEntry &entry      = m_menuEntries.at(selected);
+    const bool holdRequired     = config::get_by_key(config::keys::HOLD_FOR_OVERWRITE);
+    const char *confirmTemplate = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 0);
+    m_dataStruct->path          = m_directoryPath / m_directoryListing[entry.index];
 
-    std::string confirmationString =
-        stringutil::get_formatted_string(strings::get_by_name(strings::names::BACKUPMENU_CONFIRMATIONS, 0),
-                                         m_directoryListing[selected]);
-
-    // This needs a new target path to pass.
-    m_dataStruct->path = m_directoryPath / m_directoryListing[selected];
-
-    auto confirm = std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, BackupMenuState::DataStruct>>(
-        confirmationString,
-        config::get_by_key(config::keys::HOLD_FOR_OVERWRITE),
-        overwrite_backup,
-        m_dataStruct);
-
+    const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
+    auto confirm            = std::make_shared<ProgressConfirm>(query, holdRequired, overwrite_backup, m_dataStruct);
     StateManager::push_state(confirm);
 }
 
 void BackupMenuState::confirm_restore()
 {
-    if ((m_saveType == FsSaveDataType_System || m_saveType == FsSaveDataType_SystemBcat) &&
-        !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
+    const int selected           = sm_backupMenu->get_selected();
+    const MenuEntry &entry       = m_menuEntries.at(selected);
+    const int popTicks           = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const bool holdRequired      = config::get_by_key(config::keys::HOLD_FOR_RESTORATION);
+    const char *confirmTemplate  = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 1);
+    const char *popBackupEmpty   = strings::get_by_name(strings::names::BACKUPMENU_POPS, 1);
+    const char *popSysNotAllowed = strings::get_by_name(strings::names::BACKUPMENU_POPS, 6);
+
+    const bool isSystem       = BackupMenuState::is_system_save_data();
+    const bool allowSystem    = config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM);
+    const bool isValidRestore = !isSystem || allowSystem;
+    if (!isValidRestore)
     {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::BACKUPMENU_POPS, 0));
+        ui::PopMessageManager::push_message(popTicks, popSysNotAllowed);
         return;
     }
 
-    int selected = sm_backupMenu->get_selected() - 1;
-
-    fslib::Path target = m_directoryPath / m_directoryListing[selected];
-
-    if (fslib::directory_exists(target) && !fs::directory_has_contents(target))
+    const fslib::Path target     = m_directoryPath / m_directoryListing[entry.index];
+    const bool targetIsDirectory = fslib::directory_exists(target);
+    const bool backupIsGood      = targetIsDirectory ? fs::directory_has_contents(target) : fs::zip_has_contents(target);
+    if (!backupIsGood)
     {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 1));
-        return;
-    }
-    else if (fslib::file_exists(target) && std::strcmp("zip", target.get_extension()) == 0 && !fs::zip_has_contents(target))
-    {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 1));
+        ui::PopMessageManager::push_message(popTicks, popBackupEmpty);
         return;
     }
 
-    m_dataStruct->path = m_directoryPath / m_directoryListing[selected];
-
-    std::string confirmationString =
-        stringutil::get_formatted_string(strings::get_by_name(strings::names::BACKUPMENU_CONFIRMATIONS, 1),
-                                         m_directoryListing[selected]);
-
-    auto confirm = std::make_shared<ConfirmState<sys::ProgressTask, ProgressState, BackupMenuState::DataStruct>>(
-        confirmationString,
-        config::get_by_key(config::keys::HOLD_FOR_RESTORATION),
-        restore_backup,
-        m_dataStruct);
-
+    m_dataStruct->path      = target;
+    const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
+    auto confirm            = std::make_shared<ProgressConfirm>(query, holdRequired, restore_backup, m_dataStruct);
     StateManager::push_state(confirm);
 }
 
 void BackupMenuState::confirm_delete()
 {
-    int selected = sm_backupMenu->get_selected() - 1;
+    const int selected          = sm_backupMenu->get_selected();
+    const MenuEntry &entry      = m_menuEntries.at(selected);
+    const bool holdRequired     = config::get_by_key(config::keys::HOLD_FOR_DELETION);
+    const char *confirmTemplate = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 2);
+    m_dataStruct->path          = m_directoryPath / m_directoryListing[entry.index];
 
-    m_dataStruct->path = m_directoryPath / m_directoryListing[selected];
-
-    std::string confirmationString =
-        stringutil::get_formatted_string(strings::get_by_name(strings::names::BACKUPMENU_CONFIRMATIONS, 2),
-                                         m_directoryListing[selected]);
-
-    auto confirm = std::make_shared<ConfirmState<sys::Task, TaskState, BackupMenuState::DataStruct>>(
-        confirmationString,
-        config::get_by_key(config::keys::HOLD_FOR_DELETION),
-        delete_backup,
-        m_dataStruct);
+    const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
+    auto confirm            = std::make_shared<TaskConfirm>(query, holdRequired, delete_backup, m_dataStruct);
 
     StateManager::push_state(confirm);
+}
+
+void BackupMenuState::upload_backup() {}
+
+void BackupMenuState::pop_save_empty()
+{
+    const int ticks      = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const char *popEmpty = strings::get_by_name(strings::names::BACKUPMENU_POPS, 0);
+    ui::PopMessageManager::push_message(ticks, popEmpty);
 }
 
 void BackupMenuState::initialize_static_members()
@@ -303,7 +252,7 @@ void BackupMenuState::initialize_static_members()
     constexpr int SDL_TEX_FLAGS = SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET;
     if (sm_backupMenu && sm_slidePanel && sm_menuRenderTarget && sm_panelWidth) { return; }
 
-    sm_panelWidth       = sdl::text::get_width(22, m_controlGuide);
+    sm_panelWidth       = sdl::text::get_width(22, m_controlGuide) + 64;
     sm_backupMenu       = std::make_shared<ui::Menu>(8, 8, sm_panelWidth - 14, 24, 600);
     sm_slidePanel       = std::make_unique<ui::SlideOutPanel>(sm_panelWidth, ui::SlideOutPanel::Side::Right);
     sm_menuRenderTarget = sdl::TextureManager::create_load_texture("backupMenuTarget", sm_panelWidth, 600, SDL_TEX_FLAGS);
@@ -502,7 +451,7 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuSt
     {
         logger::log("Error restoring save: %s", fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 2));
+                                            strings::get_by_name(strings::names::BACKUPMENU_POPS, 2));
         task->finished();
         return;
     }
@@ -531,7 +480,7 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuSt
         if (!targetZip)
         {
             ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 3));
+                                                strings::get_by_name(strings::names::BACKUPMENU_POPS, 3));
             logger::log("Error opening zip for reading.");
             task->finished();
             return;
@@ -562,19 +511,19 @@ static void restore_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuSt
 
 static void delete_backup(sys::Task *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct)
 {
-    if (task) { task->set_status(strings::get_by_name(strings::names::DELETING_FILES, 0), dataStruct->path.full_path()); }
+    if (task) { task->set_status(strings::get_by_name(strings::names::IO_STATUSES, 3), dataStruct->path.full_path()); }
 
     if (fslib::directory_exists(dataStruct->path) && !fslib::delete_directory_recursively(dataStruct->path))
     {
         logger::log("Error deleting folder backup: %s", fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 4));
+                                            strings::get_by_name(strings::names::BACKUPMENU_POPS, 4));
     }
     else if (fslib::file_exists(dataStruct->path) && !fslib::delete_file(dataStruct->path))
     {
         logger::log("Error deleting backup: %s", fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::POP_MESSAGES_BACKUP_MENU, 4));
+                                            strings::get_by_name(strings::names::BACKUPMENU_POPS, 4));
     }
     dataStruct->spawningState->refresh();
     task->finished();

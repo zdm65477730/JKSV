@@ -7,7 +7,6 @@ namespace data
     static constexpr AccountUid BLANK_ACCOUNT_ID = {0};
 } // namespace data
 
-
 /// @brief Allows comparison of AccountUids since devkitpro decided a struct with two uint64_t's is better than u128
 /// @param accountIDA First account to compare.
 /// @param accountIDB Second account to compare.
@@ -21,7 +20,8 @@ static inline bool operator==(AccountUid accountIDA, AccountUid accountIDB)
 /// @param accountIDA AccountUid to compare.
 /// @param accountIDB Number to compare.
 /// @return True if they match. False if they don't.
-/// @note I'm not 100% sure which uint64_t in the AccountUid struct comes first. I don't know if it's [0][1] or [1][0]. To do: Figure that out.
+/// @note I'm not 100% sure which uint64_t in the AccountUid struct comes first. I don't know if it's [0][1] or [1][0]. To do:
+/// Figure that out.
 static inline bool operator==(AccountUid accountIDA, u128 accountIDB)
 {
     return accountIDA.uid[0] == (accountIDB >> 64 & 0xFFFFFFFFFFFFFFFF) &&

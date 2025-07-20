@@ -1,4 +1,5 @@
 #include "appstates/TitleOptionState.hpp"
+
 #include "StateManager.hpp"
 #include "appstates/ConfirmState.hpp"
 #include "appstates/MainMenuState.hpp"
@@ -14,6 +15,7 @@
 #include "stringutil.hpp"
 #include "system/system.hpp"
 #include "ui/PopMessageManager.hpp"
+
 #include <cstring>
 
 namespace
@@ -46,20 +48,22 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::
 static void export_svi_file(data::TitleInfo *titleInfo);
 
 TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo, TitleSelectCommon *titleSelect)
-    : m_user(user), m_titleInfo(titleInfo), m_titleSelect(titleSelect),
-      m_dataStruct(std::make_shared<TitleOptionState::DataStruct>())
+    : m_user(user)
+    , m_titleInfo(titleInfo)
+    , m_titleSelect(titleSelect)
+    , m_dataStruct(std::make_shared<TitleOptionState::DataStruct>())
 {
     // Create panel if needed.
     if (!sm_initialized)
     {
         // Allocate static members.
-        sm_slidePanel = std::make_unique<ui::SlideOutPanel>(480, ui::SlideOutPanel::Side::Right);
+        sm_slidePanel      = std::make_unique<ui::SlideOutPanel>(480, ui::SlideOutPanel::Side::Right);
         sm_titleOptionMenu = std::make_unique<ui::Menu>(8, 8, 460, 22, 720);
 
         // Populate menu.
-        int stringIndex = 0;
+        int stringIndex           = 0;
         const char *currentString = nullptr;
-        while ((currentString = strings::get_by_name(strings::names::TITLE_OPTIONS, stringIndex++)) != nullptr)
+        while ((currentString = strings::get_by_name(strings::names::TITLEOPTION, stringIndex++)) != nullptr)
         {
             sm_titleOptionMenu->add_option(currentString);
         }
@@ -69,10 +73,10 @@ TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo,
     }
 
     // Fill this out.
-    m_dataStruct->m_user = m_user;
-    m_dataStruct->m_titleInfo = m_titleInfo;
+    m_dataStruct->m_user          = m_user;
+    m_dataStruct->m_titleInfo     = m_titleInfo;
     m_dataStruct->m_spawningState = this;
-    m_dataStruct->m_titleSelect = m_titleSelect;
+    m_dataStruct->m_titleSelect   = m_titleSelect;
 }
 
 void TitleOptionState::update()
@@ -86,10 +90,7 @@ void TitleOptionState::update()
         // Return so nothing else happens. Not sure I like this, but w/e.
         return;
     }
-    if (m_exitRequired)
-    {
-        sm_slidePanel->close();
-    }
+    if (m_exitRequired) { sm_slidePanel->close(); }
 
     // Update panel and menu.
     sm_slidePanel->update(BaseState::has_focus());
@@ -111,9 +112,9 @@ void TitleOptionState::update()
             case BLACKLIST:
             {
                 // Get the string.
-                std::string confirmString = stringutil::get_formatted_string(
-                    strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 0),
-                    m_titleInfo->get_title());
+                std::string confirmString =
+                    stringutil::get_formatted_string(strings::get_by_name(strings::names::TITLEOPTION_CONFS, 0),
+                                                     m_titleInfo->get_title());
 
                 // The actual state.
                 auto confirm =
@@ -141,11 +142,12 @@ void TitleOptionState::update()
             case DELETE_ALL_BACKUPS:
             {
                 // String
-                std::string confirmString = stringutil::get_formatted_string(
-                    strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 1),
-                    m_titleInfo->get_title());
+                std::string confirmString =
+                    stringutil::get_formatted_string(strings::get_by_name(strings::names::TITLEOPTION_CONFS, 1),
+                                                     m_titleInfo->get_title());
 
-                // State. This always requires holding because I hate people complaining to me about how it's my fault they don't read things first.
+                // State. This always requires holding because I hate people complaining to me about how it's my fault they
+                // don't read things first.
                 auto confirm = std::make_shared<ConfirmState<sys::Task, TaskState, TitleOptionState::DataStruct>>(
                     confirmString,
                     true,
@@ -163,14 +165,14 @@ void TitleOptionState::update()
                 if (fs::is_system_save_data(saveInfo) && !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
                 {
                     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 6));
+                                                        strings::get_by_name(strings::names::TITLEOPTION_POPS, 6));
                     return;
                 }
 
                 // String
-                std::string confirmString = stringutil::get_formatted_string(
-                    strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 2),
-                    m_titleInfo->get_title());
+                std::string confirmString =
+                    stringutil::get_formatted_string(strings::get_by_name(strings::names::TITLEOPTION_CONFS, 2),
+                                                     m_titleInfo->get_title());
 
                 auto confirm =
                     std::make_shared<ConfirmState<sys::Task, TaskState, TitleOptionState::DataStruct>>(confirmString,
@@ -188,15 +190,15 @@ void TitleOptionState::update()
                 if (fs::is_system_save_data(saveInfo) && !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
                 {
                     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 6));
+                                                        strings::get_by_name(strings::names::TITLEOPTION_POPS, 6));
                     return;
                 }
 
                 // String
-                std::string confirmString = stringutil::get_formatted_string(
-                    strings::get_by_name(strings::names::TITLE_OPTION_CONFIRMATIONS, 3),
-                    m_user->get_nickname(),
-                    m_titleInfo->get_title());
+                std::string confirmString =
+                    stringutil::get_formatted_string(strings::get_by_name(strings::names::TITLEOPTION_CONFS, 3),
+                                                     m_user->get_nickname(),
+                                                     m_titleInfo->get_title());
 
                 // Confirmation.
                 auto confirm = std::make_shared<ConfirmState<sys::Task, TaskState, TitleOptionState::DataStruct>>(
@@ -215,7 +217,7 @@ void TitleOptionState::update()
                 if (fs::is_system_save_data(saveInfo) && !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
                 {
                     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 6));
+                                                        strings::get_by_name(strings::names::TITLEOPTION_POPS, 6));
                     return;
                 }
 
@@ -228,19 +230,13 @@ void TitleOptionState::update()
             {
                 // This type of save data can't have this exported anyway.
                 FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(m_titleInfo->get_application_id());
-                if (fs::is_system_save_data(saveInfo))
-                {
-                    return;
-                }
+                if (fs::is_system_save_data(saveInfo)) { return; }
                 export_svi_file(m_titleInfo);
             }
             break;
         }
     }
-    else if (input::button_pressed(HidNpadButton_B))
-    {
-        sm_slidePanel->close();
-    }
+    else if (input::button_pressed(HidNpadButton_B)) { sm_slidePanel->close(); }
     else if (sm_slidePanel->is_closed())
     {
         // Reset static members.
@@ -258,15 +254,9 @@ void TitleOptionState::render()
     sm_slidePanel->render(NULL, BaseState::has_focus());
 }
 
-void TitleOptionState::close_on_update()
-{
-    m_exitRequired = true;
-}
+void TitleOptionState::close_on_update() { m_exitRequired = true; }
 
-void TitleOptionState::refresh_required()
-{
-    m_refreshRequired = true;
-}
+void TitleOptionState::refresh_required() { m_refreshRequired = true; }
 
 static void blacklist_title(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
@@ -279,10 +269,7 @@ static void blacklist_title(sys::Task *task, std::shared_ptr<TitleOptionState::D
     // Now we need to remove it from all of the users. This doesn't just apply to the active one.
     data::UserList userList;
     data::get_users(userList);
-    for (data::User *user : userList)
-    {
-        user->erase_save_info_by_id(applicationID);
-    }
+    for (data::User *user : userList) { user->erase_save_info_by_id(applicationID); }
 
     // This will tell the main thread a refresh is required on the next update call.
     dataStruct->m_spawningState->refresh_required();
@@ -298,20 +285,16 @@ static void change_output_path(data::TitleInfo *targetTitle)
 
     // Header string.
     std::string headerString =
-        stringutil::get_formatted_string(strings::get_by_name(strings::names::KEYBOARD_STRINGS, 7),
-                                         targetTitle->get_title());
+        stringutil::get_formatted_string(strings::get_by_name(strings::names::KEYBOARD, 7), targetTitle->get_title());
 
     // Try to get input.
-    if (!keyboard::get_input(SwkbdType_QWERTY, targetTitle->get_path_safe_title(), headerString, pathBuffer, 0x200))
-    {
-        return;
-    }
+    if (!keyboard::get_input(SwkbdType_QWERTY, targetTitle->get_path_safe_title(), headerString, pathBuffer, 0x200)) { return; }
 
     // Try to make sure it will work.
     if (!stringutil::sanitize_string_for_path(pathBuffer, pathBuffer, 0x200))
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::POP_MESSAGES_TITLE_OPTIONS, 0));
+                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 0));
         return;
     }
 
@@ -331,7 +314,7 @@ static void change_output_path(data::TitleInfo *targetTitle)
 
     // Pop so we know stuff happened.
     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                        strings::get_by_name(strings::names::POP_MESSAGES_TITLE_OPTIONS, 1),
+                                        strings::get_by_name(strings::names::TITLEOPTION_POPS, 1),
                                         pathBuffer);
 }
 
@@ -341,19 +324,18 @@ static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TitleO
     fslib::Path titlePath = config::get_working_directory() / dataStruct->m_titleInfo->get_path_safe_title();
 
     // Set the status.
-    task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 0),
-                     dataStruct->m_titleInfo->get_title());
+    task->set_status(strings::get_by_name(strings::names::TITLEOPTION_STATUS, 0), dataStruct->m_titleInfo->get_title());
 
     // Just call this and nuke the folder.
     if (!fslib::delete_directory_recursively(titlePath))
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 1));
+                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 1));
     }
     else
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 0),
+                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 0),
                                             dataStruct->m_titleInfo->get_title());
     }
     task->finished();
@@ -369,7 +351,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::D
     {
         logger::log(ERROR_RESETTING_SAVE, fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
+                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 2));
         task->finished();
         return;
     }
@@ -380,7 +362,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::D
         fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
         logger::log(ERROR_RESETTING_SAVE, fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
+                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 2));
         task->finished();
         return;
     }
@@ -391,7 +373,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::D
         fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
         logger::log(ERROR_RESETTING_SAVE, fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 2));
+                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 2));
         task->finished();
         return;
     }
@@ -399,19 +381,19 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::D
     // Should be good to go.
     fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 3));
+                                        strings::get_by_name(strings::names::TITLEOPTION_POPS, 3));
     task->finished();
 }
 
 static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
     // Set the status in case this takes a little while.
-    task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 2),
+    task->set_status(strings::get_by_name(strings::names::TITLEOPTION_STATUS, 2),
                      dataStruct->m_user->get_nickname(),
                      dataStruct->m_titleInfo->get_title());
 
     // Grab the save data info pointer.
-    uint64_t applicationID = dataStruct->m_titleInfo->get_application_id();
+    uint64_t applicationID   = dataStruct->m_titleInfo->get_application_id();
     FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(applicationID);
     if (saveInfo == nullptr)
     {
@@ -444,7 +426,7 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::
 {
     // Grab this stuff to make stuff easier to read and type.
     data::TitleInfo *titleInfo = dataStruct->m_titleInfo;
-    FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(titleInfo->get_application_id());
+    FsSaveDataInfo *saveInfo   = dataStruct->m_user->get_save_info_by_id(titleInfo->get_application_id());
 
     if (!saveInfo)
     {
@@ -454,12 +436,12 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::
     }
 
     // Set the status.
-    task->set_status(strings::get_by_name(strings::names::TITLE_OPTION_STATUS, 3),
+    task->set_status(strings::get_by_name(strings::names::TITLEOPTION_STATUS, 3),
                      dataStruct->m_user->get_nickname(),
                      dataStruct->m_titleInfo->get_title());
 
     // This is the header string.
-    std::string_view keyboardString = strings::get_by_name(strings::names::KEYBOARD_STRINGS, 8);
+    std::string_view keyboardString = strings::get_by_name(strings::names::KEYBOARD, 8);
 
     // Get how much to extend.
     char buffer[5] = {0};
@@ -497,7 +479,7 @@ static void export_svi_file(data::TitleInfo *titleInfo)
         logger::log("SVI for %016llX already exists!", titleInfo->get_application_id());
         // Just show this and bail.
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 5));
+                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 5));
         return;
     }
 
@@ -507,7 +489,7 @@ static void export_svi_file(data::TitleInfo *titleInfo)
     {
         logger::log("Error exporting SVI file: %s", fslib::error::get_string());
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLE_OPTION_POPS, 5));
+                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 5));
     }
 
     // Ok. Letsa go~
@@ -520,5 +502,5 @@ static void export_svi_file(data::TitleInfo *titleInfo)
 
     // Show this so we know things happened.jpg
     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                        strings::get_by_name(strings::names::TITLE_OPTION_POPS, 4));
+                                        strings::get_by_name(strings::names::TITLEOPTION_POPS, 4));
 }

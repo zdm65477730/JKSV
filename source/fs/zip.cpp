@@ -1,8 +1,10 @@
 #include "fs/zip.hpp"
+
 #include "config.hpp"
 #include "fs/SaveMetaData.hpp"
 #include "logger.hpp"
 #include "strings.hpp"
+
 #include <condition_variable>
 #include <cstring>
 #include <ctime>
@@ -117,7 +119,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
 
             // Create new file in zip
             const char *zipNameBegin = std::strchr(fullSource.get_path(), '/') + 1;
-            int zipError = zipOpenNewFileInZip64(destination,
+            int zipError             = zipOpenNewFileInZip64(destination,
                                                  zipNameBegin,
                                                  &fileInfo,
                                                  NULL,
@@ -144,7 +146,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
             // Update task if passed.
             if (task)
             {
-                task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 1), fullSource.full_path());
+                task->set_status(strings::get_by_name(strings::names::IO_STATUSES, 1), fullSource.full_path());
                 task->reset(static_cast<double>(sourceFile.get_size()));
             }
 
@@ -157,8 +159,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
                 {
                     // Wait for buffer signal
                     std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-                    sharedData->m_bufferCondition.wait(m_bufferLock,
-                                                       [&sharedData]() { return sharedData->m_bufferIsFull; });
+                    sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull; });
 
                     // Save read count, copy shared to local.
                     readCount = sharedData->m_readCount;
@@ -171,17 +172,11 @@ void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, s
 
                 // Write
                 zipError = zipWriteInFileInZip(destination, localBuffer.get(), readCount);
-                if (zipError != ZIP_OK)
-                {
-                    logger::log("Error writing data to zip: %i.", zipError);
-                }
+                if (zipError != ZIP_OK) { logger::log("Error writing data to zip: %i.", zipError); }
 
                 // Update count and status
                 writeCount += readCount;
-                if (task)
-                {
-                    task->update_current(static_cast<double>(writeCount));
-                }
+                if (task) { task->update_current(static_cast<double>(writeCount)); }
             }
             // Wait for thread
             readThread.join();
@@ -205,8 +200,7 @@ void fs::copy_zip_to_directory(unzFile source,
         return;
     }
 
-    do
-    {
+    do {
         // Get file information.
         unz_file_info64 currentFileInfo;
         char filename[FS_MAX_PATH] = {0};
@@ -219,10 +213,7 @@ void fs::copy_zip_to_directory(unzFile source,
         }
 
         // Save meta file filter.
-        if (filename == fs::NAME_SAVE_META)
-        {
-            continue;
-        }
+        if (filename == fs::NAME_SAVE_META) { continue; }
 
         // Create full path to item, make sure directories are created if needed.
         fslib::Path fullDestination = destination / filename;
@@ -236,9 +227,7 @@ void fs::copy_zip_to_directory(unzFile source,
             continue;
         }
 
-        fslib::File destinationFile(fullDestination,
-                                    FsOpenMode_Create | FsOpenMode_Write,
-                                    currentFileInfo.uncompressed_size);
+        fslib::File destinationFile(fullDestination, FsOpenMode_Create | FsOpenMode_Write, currentFileInfo.uncompressed_size);
         if (!destinationFile)
         {
             logger::log("Error creating file from zip: %s", fslib::error::get_string());
@@ -258,7 +247,7 @@ void fs::copy_zip_to_directory(unzFile source,
         // Set status
         if (task)
         {
-            task->set_status(strings::get_by_name(strings::names::COPYING_FILES, 2), filename);
+            task->set_status(strings::get_by_name(strings::names::IO_STATUSES, 2), filename);
             task->reset(static_cast<double>(currentFileInfo.uncompressed_size));
         }
 
@@ -308,10 +297,7 @@ void fs::copy_zip_to_directory(unzFile source,
             journalCount += readCount;
 
             // Update status
-            if (task)
-            {
-                task->update_current(writeCount);
-            }
+            if (task) { task->update_current(writeCount); }
         }
 
         // Join the read thread.
@@ -336,13 +322,13 @@ void fs::create_zip_fileinfo(zip_fileinfo &info)
     std::tm *localTime = std::localtime(&currentTime);
 
     // Create struct to return.
-    info = {.tmz_date = {.tm_sec = localTime->tm_sec,
-                         .tm_min = localTime->tm_min,
-                         .tm_hour = localTime->tm_hour,
-                         .tm_mday = localTime->tm_mday,
-                         .tm_mon = localTime->tm_mon,
-                         .tm_year = localTime->tm_year + 1900},
-            .dosDate = 0,
+    info = {.tmz_date    = {.tm_sec  = localTime->tm_sec,
+                            .tm_min  = localTime->tm_min,
+                            .tm_hour = localTime->tm_hour,
+                            .tm_mday = localTime->tm_mday,
+                            .tm_mon  = localTime->tm_mon,
+                            .tm_year = localTime->tm_year + 1900},
+            .dosDate     = 0,
             .internal_fa = 0,
             .external_fa = 0};
 }
@@ -350,10 +336,7 @@ void fs::create_zip_fileinfo(zip_fileinfo &info)
 bool fs::zip_has_contents(const fslib::Path &zipPath)
 {
     unzFile testZip = unzOpen(zipPath.full_path());
-    if (!testZip)
-    {
-        return false;
-    }
+    if (!testZip) { return false; }
 
     int zipError = unzGoToFirstFile(testZip);
     if (zipError != UNZ_OK)
@@ -381,18 +364,11 @@ bool fs::locate_file_in_zip(unzFile zip, std::string_view name)
     unz_file_info64 fileinfo = {0};
 
     // Loop through files. If minizip has a better way of doing this, I couldn't find it.
-    do
-    {
+    do {
         // Grab this stuff.
         zipError = unzGetCurrentFileInfo64(zip, &fileinfo, filename, FS_MAX_PATH, NULL, 0, NULL, 0);
-        if (zipError != UNZ_OK)
-        {
-            continue;
-        }
-        else if (filename == name)
-        {
-            return true;
-        }
+        if (zipError != UNZ_OK) { continue; }
+        else if (filename == name) { return true; }
     } while (unzGoToNextFile(zip) != UNZ_END_OF_LIST_OF_FILE);
 
     // Guess it wasn't found?
@@ -414,15 +390,11 @@ uint64_t fs::get_zip_total_size(unzFile zip)
 
     // File's name and info buffers.
     char filename[FS_MAX_PATH] = {0};
-    unz_file_info64 fileinfo = {0};
+    unz_file_info64 fileinfo   = {0};
 
-    do
-    {
+    do {
         zipError = unzGetCurrentFileInfo64(zip, &fileinfo, filename, 0, NULL, 0, NULL, 0);
-        if (zipError != UNZ_OK)
-        {
-            continue;
-        }
+        if (zipError != UNZ_OK) { continue; }
 
         // Add
         zipSize += fileinfo.uncompressed_size;

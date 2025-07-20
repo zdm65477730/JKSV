@@ -15,7 +15,9 @@ class TaskState final : public BaseTask
         template <typename... Args>
         TaskState(void (*function)(sys::Task *, Args...), Args... args)
             : BaseTask()
-            , m_task(function, std::forward<Args>(args)...){};
+        {
+            m_task = std::make_unique<sys::Task>(function, std::forward<Args>(args)...);
+        }
 
         /// @brief Required destructor.
         ~TaskState() {};
@@ -26,8 +28,4 @@ class TaskState final : public BaseTask
         /// @brief Run render routine. Prints m_task's status string to screen, basically.
         /// @param
         void render() override;
-
-    private:
-        /// @brief Underlying task.
-        sys::Task m_task;
 };

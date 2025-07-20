@@ -36,6 +36,19 @@ class BackupMenuState final : public BaseState
         void save_data_written();
 
         // clang-format off
+        enum class MenuEntryType
+        {
+            Null,
+            Local,
+            Remote
+        };
+
+        struct MenuEntry
+        {
+            MenuEntryType type;
+            int index;
+        };
+
         struct DataStruct
         {
             data::User *user{};
@@ -44,6 +57,9 @@ class BackupMenuState final : public BaseState
             BackupMenuState *spawningState{};
         };
         // clang-format on
+
+        // This makes some things elsewhere easier to type.
+        using TaskData = std::shared_ptr<BackupMenuState::DataStruct>;
 
     private:
         /// @brief Pointer to current user.
@@ -70,6 +86,9 @@ class BackupMenuState final : public BaseState
         /// @brief Data struct passed to functions.
         std::shared_ptr<BackupMenuState::DataStruct> m_dataStruct{};
 
+        /// @brief This keeps track of the properties of the entries in the menu.
+        std::vector<BackupMenuState::MenuEntry> m_menuEntries{};
+
         /// @brief This is a pointer to the control guide string.
         const char *m_controlGuide{};
 
@@ -89,13 +108,19 @@ class BackupMenuState final : public BaseState
         void name_and_create_backup();
 
         /// @brief This is the function called when a backup is selected to be overwritten.
-        void confirm_backup_overwrite();
+        void confirm_overwrite();
 
         /// @brief This function is called to confirm restoring a backup.
         void confirm_restore();
 
         /// @brief Function called to confirm deleting a backup.
         void confirm_delete();
+
+        /// @brief Uploads the currently selected backup to the remote storage.
+        void upload_backup();
+
+        /// @brief Just creates the pop-up that says Save is empty or w/e.
+        void pop_save_empty();
 
         /// @brief Initializes the static members all instances share if they haven't been already.
         void initialize_static_members();
@@ -111,4 +136,9 @@ class BackupMenuState final : public BaseState
 
         /// @brief Checks to see if the save data is empty.
         void save_data_check();
+
+        inline bool is_system_save_data()
+        {
+            return m_saveType == FsSaveDataType_System || m_saveType == FsSaveDataType_SystemBcat;
+        }
 };

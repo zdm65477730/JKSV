@@ -1,5 +1,6 @@
 #pragma once
 #include "sdl.hpp"
+
 #include <cstdint>
 #include <memory>
 #include <switch.h>
@@ -18,6 +19,13 @@ namespace data
             /// @param applicationID Application ID of the title loaded from cache.
             /// @param controlData Reference to the control data to init from.
             TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData);
+
+            /// @brief Move constructor and operator.
+            TitleInfo(TitleInfo &&titleInfo);
+            TitleInfo &operator=(TitleInfo &&TitleInfo);
+
+            // None of this nonesense around these parts.TitleInfo(const TitleInfo &)            = delete;
+            TitleInfo &operator=(const TitleInfo &) = delete;
 
             /// @brief Returns the application ID of the title.
             /// @return Title's application ID.
@@ -85,19 +93,19 @@ namespace data
             static inline constexpr size_t SIZE_PATH_SAFE = 0x200;
 
             /// @brief Stores application ID for easier grabbing since JKSV is all pointers.
-            uint64_t m_applicationID = 0;
+            uint64_t m_applicationID{};
 
             /// @brief This contains the NACP and the icon.
-            NsApplicationControlData m_data;
+            std::unique_ptr<NsApplicationControlData> m_data{};
 
             /// @brief Saves whether or not the title has control data.
-            bool m_hasData = false;
+            bool m_hasData{};
 
             /// @brief This is the path safe version of the title.
-            char m_pathSafeTitle[TitleInfo::SIZE_PATH_SAFE] = {0};
+            char m_pathSafeTitle[TitleInfo::SIZE_PATH_SAFE]{};
 
             /// @brief Shared icon texture.
-            sdl::SharedTexture m_icon = nullptr;
+            sdl::SharedTexture m_icon{};
 
             /// @brief Private function to get/create the path safe title.
             void get_create_path_safe_title();

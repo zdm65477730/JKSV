@@ -1,4 +1,5 @@
 #include "remote/remote.hpp"
+
 #include "StateManager.hpp"
 #include "appstates/TaskState.hpp"
 #include "logger.hpp"
@@ -6,6 +7,7 @@
 #include "remote/WebDav.hpp"
 #include "strings.hpp"
 #include "ui/PopMessageManager.hpp"
+
 #include <chrono>
 #include <ctime>
 #include <memory>
@@ -17,7 +19,7 @@ namespace
     const char *STRING_JKSV_DIR = "JKSV";
 
     /// @brief This is the single (for now) instance of a storage class.
-    std::unique_ptr<remote::Storage> s_storage = nullptr;
+    std::unique_ptr<remote::Storage> s_storage{};
 } // namespace
 
 // Declarations here. Definitions at bottom.
@@ -45,14 +47,11 @@ void remote::initialize_google_drive()
     }
 
     // To do: Handle this better. Maybe retry somehow?
-    if (!drive->is_initialized())
-    {
-        return;
-    }
+    if (!drive->is_initialized()) { return; }
     // Can't forget this.
     drive_set_jksv_root(drive);
     ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                        strings::get_by_name(strings::names::GOOGLE_DRIVE_STRINGS, 1));
+                                        strings::get_by_name(strings::names::GOOGLE_DRIVE, 1));
 }
 
 void remote::initialize_webdav()
@@ -62,21 +61,18 @@ void remote::initialize_webdav()
     if (s_storage->is_initialized())
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::WEBDAV_STRINGS, 0));
+                                            strings::get_by_name(strings::names::WEBDAV, 0));
     }
     else
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::WEBDAV_STRINGS, 1));
+                                            strings::get_by_name(strings::names::WEBDAV, 1));
     }
 }
 
 remote::Storage *remote::get_remote_storage()
 {
-    if (!s_storage || !s_storage->is_initialized())
-    {
-        return nullptr;
-    }
+    if (!s_storage || !s_storage->is_initialized()) { return nullptr; }
     return s_storage.get();
 }
 
@@ -86,7 +82,7 @@ static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
 
     std::string message{}, deviceCode{};
     std::time_t expiration = 0;
-    int pollingInterval = 0;
+    int pollingInterval    = 0;
 
     if (!drive->get_sign_in_data(message, deviceCode, expiration, pollingInterval))
     {
@@ -108,12 +104,12 @@ static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
         drive_set_jksv_root(drive);
         // Show everyone I did it!
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::GOOGLE_DRIVE_STRINGS, 1));
+                                            strings::get_by_name(strings::names::GOOGLE_DRIVE, 1));
     }
     else
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::GOOGLE_DRIVE_STRINGS, 2));
+                                            strings::get_by_name(strings::names::GOOGLE_DRIVE, 2));
     }
 
     task->finished();

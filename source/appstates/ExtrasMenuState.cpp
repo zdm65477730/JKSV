@@ -67,7 +67,7 @@ void ExtrasMenuState::render()
 
 void ExtrasMenuState::initialize_menu()
 {
-    for (int i = 0; const char *option = strings::get_by_name(strings::names::EXTRAS_MENU, i); i++)
+    for (int i = 0; const char *option = strings::get_by_name(strings::names::EXTRASMENU_MENU, i); i++)
     {
         m_extrasMenu.add_option(option);
     }
@@ -76,8 +76,8 @@ void ExtrasMenuState::initialize_menu()
 void ExtrasMenuState::reinitialize_data()
 {
     const int popTicks     = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
-    const char *popSuccess = strings::get_by_name(strings::names::EXTRAS_POP_MESSAGES, 0);
-    const char *popFailure = strings::get_by_name(strings::names::EXTRAS_POP_MESSAGES, 1);
+    const char *popSuccess = strings::get_by_name(strings::names::EXTRASMENU_POPS, 0);
+    const char *popFailure = strings::get_by_name(strings::names::EXTRASMENU_POPS, 1);
 
     // Call data and make in reinit and delete the cache first.
     const bool initSuccess = data::initialize(true);

@@ -1,4 +1,5 @@
 #include "JKSV.hpp"
+
 #include "StateManager.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "colors.hpp"
@@ -12,14 +13,12 @@
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "ui/PopMessageManager.hpp"
+
 #include <switch.h>
 
 // Normally I try to avoid C macros in C++, but this cleans stuff up nicely.
-#define ABORT_ON_FAILURE(x)                                                                                            \
-    if (!x)                                                                                                            \
-    {                                                                                                                  \
-        return;                                                                                                        \
-    }
+#define ABORT_ON_FAILURE(x)                                                                                                    \
+    if (!x) { return; }
 
 namespace
 {
@@ -43,136 +42,71 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
     return true;
 }
 
+// This can't really have an initializer list since it sets everything up.
 JKSV::JKSV()
 {
     // Start with this.
     appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad);
 
-    // FsLib
-    ABORT_ON_FAILURE(fslib::initialize());
+    ABORT_ON_FAILURE(JKSV::initialize_filesystem());
 
-    // This doesn't rely on stdio or anything.
+    ABORT_ON_FAILURE(JKSV::initialize_services());
     logger::initialize();
-
-    // Need to init RomFS here for now until I update FsLib to take care of this. Never mind. That isn't going to happen.
-    ABORT_ON_FAILURE(initialize_service(romfsInit, "RomFS"));
-
-    // Let FsLib take care of calls to SDMC instead of fs_dev
-    ABORT_ON_FAILURE(fslib::dev::initialize_sdmc());
 
     // SDL
     ABORT_ON_FAILURE(sdl::initialize("JKSV", 1280, 720));
     ABORT_ON_FAILURE(sdl::text::initialize());
+    m_headerIcon = sdl::TextureManager::create_load_texture("HeaderIcon", "romfs:/Textures/HeaderIcon.png");
+    JKSV::add_color_chars();
 
-    // Services.
-    // Using administrator so JKSV can still run in Applet mode, barely.
-    ABORT_ON_FAILURE(initialize_service(accountInitialize, "Account", AccountServiceType_Administrator));
-    ABORT_ON_FAILURE(initialize_service(nsInitialize, "NS"));
-    ABORT_ON_FAILURE(initialize_service(pdmqryInitialize, "PDMQry"));
-    ABORT_ON_FAILURE(initialize_service(plInitialize, "PL", PlServiceType_User));
-    ABORT_ON_FAILURE(initialize_service(pmshellInitialize, "PMShell"));
-    ABORT_ON_FAILURE(initialize_service(setInitialize, "Set"));
-    ABORT_ON_FAILURE(initialize_service(setsysInitialize, "SetSys"));
-    ABORT_ON_FAILURE(initialize_service(socketInitializeDefault, "Socket"));
     ABORT_ON_FAILURE(curl::initialize());
+    ABORT_ON_FAILURE(strings::initialize()); // This is fatal now.
+    m_translation         = strings::get_by_name(strings::names::TRANSLATION, 0);
+    m_author              = strings::get_by_name(strings::names::TRANSLATION, 1);
+    m_showTranslationInfo = std::char_traits<char>::compare(m_author, "NULL", 4) != 0; // This is whether or not to show.
 
-    // Input doesn't have anything to return.
     input::initialize();
-
-    // Neither does config.
     config::initialize();
 
-    // Get and create working directory. There isn't much of an FS anymore.
-    fslib::Path workingDirectory = config::get_working_directory();
-    if (!fslib::directory_exists(workingDirectory) && !fslib::create_directories_recursively(workingDirectory))
-    {
-        logger::log("Error creating working directory: %s", fslib::error::get_string());
-        return;
-    }
+    // This needs the config init'd or read to work.
+    JKSV::create_directories();
 
-    // I'd rather this be here than checked every time one is exported.
-    fslib::Path sviDir = config::get_working_directory() / "svi";
-    if (!fslib::directory_exists(sviDir) && !fslib::create_directories_recursively(sviDir))
-    {
-        // This one isn't fatal, but it can be super fatal later if this fails.
-        logger::log("Error creating svi directory: %s", fslib::error::get_string());
-    }
-
-    // JKSV also has no internal strings anymore. This is FATAL now.
-    ABORT_ON_FAILURE(strings::initialize());
-
-    if (!data::initialize(false))
-    {
-        return;
-    }
-
-    // Install/setup our color changing characters.
-    sdl::text::add_color_character(L'#', colors::BLUE);
-    sdl::text::add_color_character(L'*', colors::RED);
-    sdl::text::add_color_character(L'<', colors::YELLOW);
-    sdl::text::add_color_character(L'>', colors::GREEN);
-    sdl::text::add_color_character(L'`', colors::BLUE_GREEN);
-    sdl::text::add_color_character(L'^', colors::PINK);
-
-    // This is to check whether the author wanted credit for their work.
-    m_showTranslationInfo =
-        std::char_traits<char>::compare(strings::get_by_name(strings::names::TRANSLATION_INFO, 1), "NULL", 4) != 0;
-
-    // This can't be in an initializer list because it needs SDL initialized.
-    m_headerIcon = sdl::TextureManager::create_load_texture("HeaderIcon", "romfs:/Textures/HeaderIcon.png");
+    // Data loading depends on the config being read or init'd.
+    ABORT_ON_FAILURE(data::initialize(false));
 
     // Push initial main menu state.
-    StateManager::push_state(std::make_shared<MainMenuState>());
-    if (fslib::file_exists(remote::PATH_GOOGLE_DRIVE_CONFIG))
-    {
-        remote::initialize_google_drive();
-    }
-    else if (fslib::file_exists(remote::PATH_WEBDAV_CONFIG))
-    {
-        remote::initialize_webdav();
-    }
+    auto mainMenu = std::make_shared<MainMenuState>();
+    StateManager::push_state(mainMenu);
+
+    // Init drive or webdav.
+    if (fslib::file_exists(remote::PATH_GOOGLE_DRIVE_CONFIG)) { remote::initialize_google_drive(); }
+    else if (fslib::file_exists(remote::PATH_WEBDAV_CONFIG)) { remote::initialize_webdav(); }
 
     m_isRunning = true;
 }
 
 JKSV::~JKSV()
 {
-    // Try to save config first.
     config::save();
-
     curl::exit();
-    socketExit();
-    setsysExit();
-    setExit();
-    pmshellExit();
-    plExit();
-    pdmqryExit();
-    nsExit();
-    accountExit();
+    JKSV::exit_services();
     sdl::text::exit();
     sdl::exit();
     fslib::exit();
     appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
 }
 
-bool JKSV::is_running() const
-{
-    return m_isRunning;
-}
+bool JKSV::is_running() const { return m_isRunning; }
 
 void JKSV::update()
 {
     input::update();
 
-    if (input::button_pressed(HidNpadButton_Plus) && StateManager::back_is_closable())
-    {
-        m_isRunning = false;
-    }
+    const bool plusPressed = input::button_pressed(HidNpadButton_Plus);
+    const bool isClosable  = StateManager::back_is_closable();
+    if (plusPressed && isClosable) { m_isRunning = false; }
 
-    // State update.
     StateManager::update();
-
-    // Update pop messages.
     ui::PopMessageManager::update();
 }
 
@@ -193,14 +127,7 @@ void JKSV::render()
     // Translation info in bottom left.
     if (m_showTranslationInfo)
     {
-        sdl::text::render(NULL,
-                          8,
-                          680,
-                          14,
-                          sdl::text::NO_TEXT_WRAP,
-                          colors::WHITE,
-                          strings::get_by_name(strings::names::TRANSLATION_INFO, 0),
-                          strings::get_by_name(strings::names::TRANSLATION_INFO, 1));
+        sdl::text::render(NULL, 8, 680, 14, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_translation, m_author);
     }
 
     // Build date
@@ -215,11 +142,71 @@ void JKSV::render()
                       BUILD_DAY,
                       BUILD_YEAR);
 
-    // State render.
     StateManager::render();
-
-    // Render messages.
     ui::PopMessageManager::render();
 
     sdl::frame_end();
+}
+
+bool JKSV::initialize_filesystem()
+{
+    // This needs to be in this specific order
+    const bool fslib    = fslib::initialize();
+    const bool romfs    = initialize_service(romfsInit, "RomFS");
+    const bool fslibDev = fslib && fslib::dev::initialize_sdmc();
+    if (!fslib || !romfs || !fslibDev) { return false; }
+    return true;
+}
+
+bool JKSV::initialize_services()
+{
+    // This looks cursed, but it works.
+    bool serviceInit = initialize_service(accountInitialize, "Account", AccountServiceType_Administrator);
+    serviceInit      = serviceInit && initialize_service(nsInitialize, "NS");
+    serviceInit      = serviceInit && initialize_service(pdmqryInitialize, "PDMQry");
+    serviceInit      = serviceInit && initialize_service(plInitialize, "PL", PlServiceType_User);
+    serviceInit      = serviceInit && initialize_service(pmshellInitialize, "PMShell");
+    serviceInit      = serviceInit && initialize_service(setInitialize, "Set");
+    serviceInit      = serviceInit && initialize_service(setsysInitialize, "SetSys");
+    serviceInit      = serviceInit && initialize_service(socketInitializeDefault, "Socket");
+    return serviceInit;
+}
+
+bool JKSV::create_directories()
+{
+    // Working directory creation.
+    const fslib::Path workDir = config::get_working_directory();
+    const bool needsWorkDir   = !fslib::directory_exists(workDir);
+    const bool workDirCreated = needsWorkDir && fslib::create_directories_recursively(workDir);
+    if (needsWorkDir && !workDirCreated) { return false; }
+
+    // SVI folder.
+    const fslib::Path sviDir = workDir / "svi";
+    const bool needsSviDir   = !fslib::directory_exists(sviDir);
+    const bool sviDirCreated = needsSviDir && fslib::create_directory(sviDir);
+    if (needsSviDir && !sviDirCreated) { return false; }
+
+    return true;
+}
+
+void JKSV::add_color_chars()
+{
+    sdl::text::add_color_character(L'#', colors::BLUE);
+    sdl::text::add_color_character(L'*', colors::RED);
+    sdl::text::add_color_character(L'<', colors::YELLOW);
+    sdl::text::add_color_character(L'>', colors::GREEN);
+    sdl::text::add_color_character(L'`', colors::BLUE_GREEN);
+    sdl::text::add_color_character(L'^', colors::PINK);
+}
+
+void JKSV::exit_services()
+{
+    socketExit();
+    setsysExit();
+    setExit();
+    pmshellExit();
+    plExit();
+    pdmqryExit();
+    nsExit();
+    accountExit();
 }

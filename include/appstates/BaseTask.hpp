@@ -1,10 +1,11 @@
 #pragma once
 #include "appstates/BaseState.hpp"
+#include "system/Task.hpp"
 #include "system/Timer.hpp"
 #include "ui/ColorMod.hpp"
 
 #include <array>
-#include <string_view>
+#include <memory>
 
 /// @brief Normally, I wouldn't do this, but this holds a single function both TaskState and ProgressState share...
 class BaseTask : public BaseState
@@ -26,6 +27,10 @@ class BaseTask : public BaseState
         /// @brief This function renders the loading glyph in the bottom left corner.
         /// @note This is mostly just so users don't think JKSV has frozen when operations take a long time.
         void render_loading_glyph();
+
+    protected:
+        /// @brief Underlying system task. This needs to be allocated by the derived classes.
+        std::unique_ptr<sys::Task> m_task{};
 
     private:
         /// @brief This is the current frame of the loading glyph animation.
