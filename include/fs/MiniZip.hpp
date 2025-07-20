@@ -18,6 +18,10 @@ namespace fs
             /// @brief Closes the zipFile.
             ~MiniZip();
 
+            /// @brief Returns whether or not the zip file was successfully opened.
+            /// @return
+            bool is_open() const;
+
             /// @brief Opens a Zip file at path
             bool open(const fslib::Path &path);
 

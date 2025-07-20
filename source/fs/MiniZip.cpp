@@ -9,6 +9,8 @@ fs::MiniZip::MiniZip(const fslib::Path &path) { MiniZip::open(path); }
 
 fs::MiniZip::~MiniZip() { MiniZip::close(); }
 
+bool fs::MiniZip::is_open() const { return m_isOpen; }
+
 bool fs::MiniZip::open(const fslib::Path &path)
 {
     MiniZip::close();
@@ -21,7 +23,7 @@ bool fs::MiniZip::open(const fslib::Path &path)
 void fs::MiniZip::close()
 {
     if (!m_isOpen) { return; }
-    zipClose(m_zip, nullptr) == ZIP_OK;
+    zipClose(m_zip, nullptr);
     m_isOpen = false;
 }
 
