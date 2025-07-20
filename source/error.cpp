@@ -37,6 +37,18 @@ bool error::fslib(bool result, const std::source_location &location)
     return true;
 }
 
+bool error::is_null(const void *pointer, const std::source_location &location)
+{
+    if (pointer) { return false; }
+
+    std::string_view file{}, function{};
+    prep_locations(file, function, location);
+
+    logger::log("%s::%s::%u::%u::%s", file.data(), function.data(), location.line(), location.column(), "nullptr received!");
+
+    return true;
+}
+
 static void prep_locations(std::string_view &file, std::string_view &function, const std::source_location &location)
 {
     file     = location.file_name();

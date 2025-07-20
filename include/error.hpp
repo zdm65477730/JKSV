@@ -9,4 +9,7 @@ namespace error
 
     /// @brief Logs and returns if an fslib function fails.
     bool fslib(bool result, const std::source_location &location = std::source_location::current());
+
+    /// @brief Returns whether or not the pointer passed is null. Records the location in which this occurred.
+    bool is_null(const void *pointer, const std::source_location &location = std::source_location::current());
 }
