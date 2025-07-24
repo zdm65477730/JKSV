@@ -1,7 +1,10 @@
 #include "ui/TitleTile.hpp"
+
 #include "colors.hpp"
 
-ui::TitleTile::TitleTile(bool isFavorite, sdl::SharedTexture icon) : m_isFavorite(isFavorite), m_icon(icon) {};
+ui::TitleTile::TitleTile(bool isFavorite, sdl::SharedTexture icon)
+    : m_isFavorite(isFavorite)
+    , m_icon(icon) {};
 
 void ui::TitleTile::update(bool isSelected)
 {
@@ -32,16 +35,10 @@ void ui::TitleTile::render(SDL_Texture *target, int x, int y)
 
 void ui::TitleTile::reset()
 {
-    m_renderWidth = 128;
+    m_renderWidth  = 128;
     m_renderHeight = 128;
 }
 
-int ui::TitleTile::get_width() const
-{
-    return m_renderWidth;
-}
+int ui::TitleTile::get_width() const { return m_renderWidth; }
 
-int ui::TitleTile::get_height() const
-{
-    return m_renderHeight;
-}
+int ui::TitleTile::get_height() const { return m_renderHeight; }

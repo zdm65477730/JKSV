@@ -1,6 +1,7 @@
 #include "JKSV.hpp"
 
 #include "StateManager.hpp"
+#include "appstates/FadeInState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
@@ -45,19 +46,11 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
 // This can't really have an initializer list since it sets everything up.
 JKSV::JKSV()
 {
-    // Start with this.
     appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad);
-
-    ABORT_ON_FAILURE(JKSV::initialize_filesystem());
-
     ABORT_ON_FAILURE(JKSV::initialize_services());
+    ABORT_ON_FAILURE(JKSV::initialize_filesystem());
     logger::initialize();
-
-    // SDL
-    ABORT_ON_FAILURE(sdl::initialize("JKSV", 1280, 720));
-    ABORT_ON_FAILURE(sdl::text::initialize());
-    m_headerIcon = sdl::TextureManager::create_load_texture("HeaderIcon", "romfs:/Textures/HeaderIcon.png");
-    JKSV::add_color_chars();
+    ABORT_ON_FAILURE(JKSV::initialize_sdl());
 
     ABORT_ON_FAILURE(curl::initialize());
     ABORT_ON_FAILURE(strings::initialize()); // This is fatal now.
@@ -170,6 +163,15 @@ bool JKSV::initialize_services()
     serviceInit      = serviceInit && initialize_service(setsysInitialize, "SetSys");
     serviceInit      = serviceInit && initialize_service(socketInitializeDefault, "Socket");
     return serviceInit;
+}
+
+bool JKSV::initialize_sdl()
+{
+    bool sdlInit = sdl::initialize("JKSV", 1280, 720);
+    sdlInit      = sdlInit && sdl::text::initialize();
+    m_headerIcon = sdl::TextureManager::create_load_texture("headerIcon", "romfs:/Textures/HeaderIcon.png");
+    JKSV::add_color_chars();
+    return sdlInit && m_headerIcon;
 }
 
 bool JKSV::create_directories()

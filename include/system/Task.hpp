@@ -12,7 +12,8 @@ namespace sys
             /// @brief Constructs a new task.
             /// @param function Function for task to run.
             /// @param args Arguments forwarded to thread.
-            /// @note Functions passed to this class must follow the following signature: void function(sys::Task *, <arguments>)
+            /// @note Functions passed to this class must follow the following signature: void function(sys::Task *,
+            /// <arguments>)
             template <typename... Args>
             Task(void (*function)(sys::Task *, Args...), Args... args)
             {
@@ -42,9 +43,7 @@ namespace sys
             void finished();
 
             /// @brief Sets the task/threads current status string. Thread safe.
-            /// @param format Format of string.
-            /// @param args Arguments for string.
-            void set_status(const char *format, ...);
+            void set_status(std::string_view status);
 
             /// @brief Returns the status string. Thread safe.
             /// @return Copy of the status string.

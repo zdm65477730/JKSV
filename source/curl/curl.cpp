@@ -1,4 +1,6 @@
 #include "curl/curl.hpp"
+
+#include "error.hpp"
 #include "logger.hpp"
 #include "stringutil.hpp"
 
@@ -8,15 +10,9 @@ namespace
     constexpr size_t SIZE_UPLOAD_BUFFER = 0x10000;
 } // namespace
 
-bool curl::initialize()
-{
-    return curl_global_init(CURL_GLOBAL_ALL) == CURLE_OK;
-}
+bool curl::initialize() { return curl_global_init(CURL_GLOBAL_ALL) == CURLE_OK; }
 
-void curl::exit()
-{
-    curl_global_cleanup();
-}
+void curl::exit() { curl_global_cleanup(); }
 
 bool curl::perform(curl::Handle &handle)
 {
@@ -33,14 +29,20 @@ void curl::append_header(curl::HeaderList &list, std::string_view header)
 {
     // This is the only real way to accomplish this since slist is a linked list.
     curl_slist *head = list.release();
-    head = curl_slist_append(head, header.data());
+    head             = curl_slist_append(head, header.data());
     list.reset(head);
 }
 
-size_t curl::read_data_from_file(char *buffer, size_t size, size_t count, fslib::File *target)
+size_t curl::read_data_from_file(char *buffer, size_t size, size_t count, curl::UploadStruct *upload)
 {
-    // This should be good enough.
-    return target->read(buffer, size * count);
+    if (error::is_null(upload)) { return -1; }
+    fslib::File *source     = upload->source;
+    sys::ProgressTask *task = upload->task;
+
+    ssize_t readSize = source->read(buffer, size * count);
+    if (task) { task->update_current(static_cast<double>(source->tell())); }
+
+    return readSize;
 }
 
 size_t curl::write_header_array(const char *buffer, size_t size, size_t count, curl::HeaderArray *array)
@@ -65,17 +67,11 @@ bool curl::get_header_value(const curl::HeaderArray &array, std::string_view hea
     for (const std::string &currentHeader : array)
     {
         size_t colonPos = currentHeader.find_first_of(':');
-        if (colonPos == currentHeader.npos)
-        {
-            continue;
-        }
+        if (colonPos == currentHeader.npos) { continue; }
 
         // Get the substr.
         std::string headerName = currentHeader.substr(0, colonPos);
-        if (headerName != header)
-        {
-            continue;
-        }
+        if (headerName != header) { continue; }
 
         // Find the first thing after that isn't a space.
         size_t valueBegin = currentHeader.find_first_not_of(' ', colonPos + 1);
@@ -105,10 +101,7 @@ long curl::get_response_code(curl::Handle &handle)
 bool curl::escape_string(curl::Handle &handle, std::string_view in, std::string &out)
 {
     char *escaped = curl_easy_escape(handle.get(), in.data(), in.length());
-    if (!escaped)
-    {
-        return false;
-    }
+    if (!escaped) { return false; }
 
     out.assign(escaped);
 
@@ -121,10 +114,7 @@ bool curl::unescape_string(curl::Handle &handle, std::string_view in, std::strin
 {
     int lengthOut{};
     char *unescaped = curl_easy_unescape(handle.get(), in.data(), in.length(), &lengthOut);
-    if (!unescaped)
-    {
-        return false;
-    }
+    if (!unescaped) { return false; }
 
     out.assign(unescaped);
 

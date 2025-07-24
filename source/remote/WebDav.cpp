@@ -1,9 +1,11 @@
 #include "remote/WebDav.hpp"
+
 #include "JSON.hpp"
 #include "curl/curl.hpp"
 #include "logger.hpp"
 #include "remote/remote.hpp"
 #include "stringutil.hpp"
+
 #include <tinyxml2.h>
 
 namespace
@@ -27,15 +29,10 @@ static std::string_view get_tag_begin(std::string_view tag);
 /// @note This seemed like a better alternative than relying on servers having displayname.
 static std::string slice_name_from_href(curl::Handle &handle, std::string_view href);
 
-remote::WebDav::WebDav() : Storage()
+remote::WebDav::WebDav()
+    : Storage("[WD]")
 {
     static const char *STRING_CONFIG_READ_ERROR = "Error initializing WebDav: %s";
-
-    // WebDav has problems with these.
-    m_utf8Paths = false;
-
-    // WebDav prefix for menus.
-    m_prefix = "[WD] ";
 
     json::Object config = json::new_object(json_object_from_file, remote::PATH_WEBDAV_CONFIG.data());
     if (!config)
@@ -45,7 +42,7 @@ remote::WebDav::WebDav() : Storage()
     }
 
     // Let's just get this all out of the way at once.
-    json_object *origin = json::get_object(config, "origin");
+    json_object *origin   = json::get_object(config, "origin");
     json_object *basepath = json::get_object(config, "basepath");
     json_object *username = json::get_object(config, "username");
     json_object *password = json::get_object(config, "password");
@@ -62,19 +59,13 @@ remote::WebDav::WebDav() : Storage()
     {
         // The root is both in the beginning. I want this to work as closely as the original just not as poorly written
         // or thought out as the original JKSV dav code.
-        m_root = stringutil::get_formatted_string("/%s/", json_object_get_string(basepath));
+        m_root   = stringutil::get_formatted_string("/%s/", json_object_get_string(basepath));
         m_parent = m_root;
     }
 
-    if (username)
-    {
-        m_username = json_object_get_string(username);
-    }
+    if (username) { m_username = json_object_get_string(username); }
 
-    if (password)
-    {
-        m_password = json_object_get_string(password);
-    }
+    if (password) { m_password = json_object_get_string(password); }
 
     // This is the starting point. This will read the entire basepath listing in one go.
     remote::URL url{m_origin};
@@ -109,10 +100,7 @@ bool remote::WebDav::create_directory(std::string_view name)
     curl::set_option(m_curl, CURLOPT_URL, url.get());
     curl::set_option(m_curl, CURLOPT_CUSTOMREQUEST, "MKCOL");
 
-    if (!curl::perform(m_curl))
-    {
-        return false;
-    }
+    if (!curl::perform(m_curl)) { return false; }
 
     if (curl::get_response_code(m_curl) != 201)
     {
@@ -127,12 +115,12 @@ bool remote::WebDav::create_directory(std::string_view name)
     return true;
 }
 
-bool remote::WebDav::upload_file(const fslib::Path &source)
+bool remote::WebDav::upload_file(const fslib::Path &source, sys::ProgressTask *task)
 {
     static const char *STRING_ERROR_UPLOADING = "Error uploading file: %s";
 
-    fslib::File file(source, FsOpenMode_Read);
-    if (!file)
+    fslib::File sourceFile{source, FsOpenMode_Read};
+    if (!sourceFile.is_open())
     {
         logger::log(STRING_ERROR_UPLOADING, fslib::error::get_string());
         return false;
@@ -148,25 +136,24 @@ bool remote::WebDav::upload_file(const fslib::Path &source)
     remote::URL url{m_origin};
     url.append_path(m_parent).append_path(escapedName);
 
+    curl::UploadStruct uploadData = {.source = &sourceFile, .task = task};
+
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
     curl::set_option(m_curl, CURLOPT_URL, url.get());
     curl::set_option(m_curl, CURLOPT_UPLOAD, 1L);
     curl::set_option(m_curl, CURLOPT_UPLOAD_BUFFERSIZE, Storage::SIZE_UPLOAD_BUFFER);
     curl::set_option(m_curl, CURLOPT_READFUNCTION, curl::read_data_from_file);
-    curl::set_option(m_curl, CURLOPT_READDATA, &file);
+    curl::set_option(m_curl, CURLOPT_READDATA, &uploadData);
 
-    if (!curl::perform(m_curl))
-    {
-        return false;
-    }
+    if (!curl::perform(m_curl)) { return false; }
 
-    m_list.emplace_back(source.get_filename(), escapedName, m_parent, file.get_size(), false);
+    m_list.emplace_back(source.get_filename(), escapedName, m_parent, sourceFile.get_size(), false);
 
     return true;
 }
 
-bool remote::WebDav::patch_file(remote::Item *item, const fslib::Path &source)
+bool remote::WebDav::patch_file(remote::Item *item, const fslib::Path &source, sys::ProgressTask *task)
 {
     static const char *STRING_ERROR_PATCHING = "Error patching file: %s";
 
@@ -176,7 +163,6 @@ bool remote::WebDav::patch_file(remote::Item *item, const fslib::Path &source)
         logger::log(STRING_ERROR_PATCHING, fslib::error::get_string());
         return false;
     }
-
 
     remote::URL url{m_origin};
     url.append_path(m_parent).append_path(item->get_id());
@@ -189,10 +175,7 @@ bool remote::WebDav::patch_file(remote::Item *item, const fslib::Path &source)
     curl::set_option(m_curl, CURLOPT_READFUNCTION, curl::read_data_from_file);
     curl::set_option(m_curl, CURLOPT_READDATA, &file);
 
-    if (!curl::perform(m_curl))
-    {
-        return false;
-    }
+    if (!curl::perform(m_curl)) { return false; }
 
     // Just update the size this time.
     item->set_size(file.get_size());
@@ -221,10 +204,7 @@ bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_data_to_file);
     curl::set_option(m_curl, CURLOPT_WRITEDATA, &file);
 
-    if (!curl::perform(m_curl))
-    {
-        return false;
-    }
+    if (!curl::perform(m_curl)) { return false; }
 
     return true;
 }
@@ -235,20 +215,14 @@ bool remote::WebDav::delete_item(const remote::Item *item)
 
     remote::URL url{m_origin};
     url.append_path(m_parent).append_path(item->get_id());
-    if (item->is_directory())
-    {
-        url.append_slash();
-    }
+    if (item->is_directory()) { url.append_slash(); }
 
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
     curl::set_option(m_curl, CURLOPT_CUSTOMREQUEST, "DELETE");
     curl::set_option(m_curl, CURLOPT_URL, url.get());
 
-    if (!curl::perform(m_curl))
-    {
-        return false;
-    }
+    if (!curl::perform(m_curl)) { return false; }
 
     if (curl::get_response_code(m_curl) != 204)
     {
@@ -261,17 +235,10 @@ bool remote::WebDav::delete_item(const remote::Item *item)
 
 void remote::WebDav::append_credentials()
 {
-    if (!m_username.empty())
-    {
-        curl::set_option(m_curl, CURLOPT_USERNAME, m_username.c_str());
-    }
+    if (!m_username.empty()) { curl::set_option(m_curl, CURLOPT_USERNAME, m_username.c_str()); }
 
-    if (!m_password.empty())
-    {
-        curl::set_option(m_curl, CURLOPT_PASSWORD, m_password.c_str());
-    }
+    if (!m_password.empty()) { curl::set_option(m_curl, CURLOPT_PASSWORD, m_password.c_str()); }
 }
-
 
 bool remote::WebDav::prop_find(const remote::URL &url, std::string &xml)
 {
@@ -315,17 +282,13 @@ bool remote::WebDav::process_listing(std::string_view xml)
 
     // There's no point in continuing if this fails. Just return true.
     tinyxml2::XMLElement *current = parent->NextSiblingElement();
-    if (!current)
-    {
-        return true;
-    }
+    if (!current) { return true; }
 
-    do
-    {
+    do {
         // Parsing XML is actually annoying. Even with tinyxml2.
-        tinyxml2::XMLElement *href = get_element_by_name(current, TAG_XML_HREF);
-        tinyxml2::XMLElement *propstat = get_element_by_name(current, "propstat");
-        tinyxml2::XMLElement *prop = get_element_by_name(propstat, "prop");
+        tinyxml2::XMLElement *href         = get_element_by_name(current, TAG_XML_HREF);
+        tinyxml2::XMLElement *propstat     = get_element_by_name(current, "propstat");
+        tinyxml2::XMLElement *prop         = get_element_by_name(propstat, "prop");
         tinyxml2::XMLElement *resourceType = get_element_by_name(prop, "resourcetype");
         if (!href || !propstat || !prop || !resourceType)
         {
@@ -375,17 +338,10 @@ bool remote::WebDav::process_listing(std::string_view xml)
 static tinyxml2::XMLElement *get_element_by_name(tinyxml2::XMLElement *parent, std::string_view name)
 {
     tinyxml2::XMLElement *current = parent->FirstChildElement();
-    if (!current)
-    {
-        return nullptr;
-    }
+    if (!current) { return nullptr; }
 
-    do
-    {
-        if (get_tag_begin(current->Name()) == name)
-        {
-            return current;
-        }
+    do {
+        if (get_tag_begin(current->Name()) == name) { return current; }
     } while ((current = current->NextSiblingElement()));
     return nullptr;
 }
@@ -393,10 +349,7 @@ static tinyxml2::XMLElement *get_element_by_name(tinyxml2::XMLElement *parent, s
 static std::string_view get_tag_begin(std::string_view tag)
 {
     size_t colon = tag.find_first_of(':');
-    if (colon == tag.npos)
-    {
-        return tag;
-    }
+    if (colon == tag.npos) { return tag; }
     return tag.substr(colon + 1);
 }
 
@@ -407,7 +360,7 @@ static std::string slice_name_from_href(curl::Handle &handle, std::string_view h
     // This means we're working with a directory.
     if (href.back() == '/')
     {
-        size_t end = href.find_last_of('/');
+        size_t end   = href.find_last_of('/');
         size_t begin = href.find_last_of('/', end - 1);
         if (end == href.npos || begin == href.npos)
         {
@@ -421,14 +374,8 @@ static std::string slice_name_from_href(curl::Handle &handle, std::string_view h
     {
         // File
         size_t begin = href.find_last_of('/');
-        if (begin == href.npos)
-        {
-            name = href;
-        }
-        else
-        {
-            name = href.substr(begin + 1);
-        }
+        if (begin == href.npos) { name = href; }
+        else { name = href.substr(begin + 1); }
     }
 
     curl::unescape_string(handle, name, name);

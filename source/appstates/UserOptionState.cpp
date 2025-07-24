@@ -8,6 +8,7 @@
 #include "appstates/TaskState.hpp"
 #include "config.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "input.hpp"
@@ -54,8 +55,8 @@ UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelec
     }
 
     // Fill this is.
-    m_dataStruct->m_user          = m_user;
-    m_dataStruct->m_spawningState = this;
+    m_dataStruct->user          = m_user;
+    m_dataStruct->spawningState = this;
 }
 
 void UserOptionState::update()
@@ -162,135 +163,138 @@ void UserOptionState::data_and_view_refresh_required() { m_refreshRequired = tru
 
 static void backup_all_for_user(sys::ProgressTask *task, std::shared_ptr<UserOptionState::DataStruct> dataStruct)
 {
-    data::User *targetUser = dataStruct->m_user;
+    if (error::is_null(task)) { return; }
 
-    for (size_t i = 0; i < targetUser->get_total_data_entries(); i++)
+    data::User *user               = dataStruct->user;
+    UserOptionState *spawningState = dataStruct->spawningState;
+
+    const bool exportZip    = config::get_by_key(config::keys::EXPORT_TO_ZIP) || config::get_by_key(config::keys::AUTO_UPLOAD);
+    const bool autoUpload   = config::get_by_key(config::keys::AUTO_UPLOAD);
+    const size_t titleCount = user->get_total_data_entries();
+    for (size_t i = 0; i < titleCount; i++)
     {
-        // This should be safe like this....
-        FsSaveDataInfo *currentSaveInfo = targetUser->get_save_info_at(i);
-        data::TitleInfo *currentTitle   = data::get_title_info_by_id(currentSaveInfo->application_id);
+        const FsSaveDataInfo *saveInfo = user->get_save_info_at(i);
+        data::TitleInfo *titleInfo     = data::get_title_info_by_id(saveInfo->application_id);
+        if (error::is_null(saveInfo) || error::is_null(titleInfo)) { continue; }
 
-        if (!currentSaveInfo || !currentTitle) { continue; }
+        const fslib::Path targetDir{config::get_working_directory() / titleInfo->get_path_safe_title()};
+        const bool targetExists = fslib::directory_exists(targetDir);
+        const bool targetFailed = !targetExists && error::fslib(fslib::create_directories_recursively(targetDir));
+        if (!targetExists && targetFailed) { continue; }
 
-        // Try to create target game folder.
-        fslib::Path gameFolder = config::get_working_directory() / currentTitle->get_path_safe_title();
-        if (!fslib::directory_exists(gameFolder) && !fslib::create_directory(gameFolder)) { continue; }
-
-        // Try to mount save data.
-        bool saveMounted = fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *targetUser->get_save_info_at(i));
-
-        // Check to make sure the save actually has data to avoid blanks.
+        const bool mountFailed = error::fslib(fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo));
+        const bool validSave   = !mountFailed && fs::directory_has_contents(fs::DEFAULT_SAVE_ROOT);
+        if (mountFailed || !validSave)
         {
-            fslib::Directory saveCheck(fs::DEFAULT_SAVE_ROOT);
-            if (saveMounted && saveCheck.get_count() <= 0)
+            fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
+            continue;
+        }
+
+        fs::SaveMetaData saveMeta{};
+        const bool hasMeta = fs::fill_save_meta_data(saveInfo, saveMeta);
+
+        fslib::Path backupPath{targetDir / "AUTO - " + user->get_path_safe_nickname() + " - " + stringutil::get_date_string()};
+        if (exportZip)
+        {
+            backupPath += ".zip";
+            fs::MiniZip targetZip{backupPath};
+            if (!targetZip.is_open())
             {
-                // Gonna borrow these messages. No point in repeating them.
-                ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                    strings::get_by_name(strings::names::BACKUPMENU_POPS, 0));
                 fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
                 continue;
             }
-        }
 
-        if (currentTitle && saveMounted && config::get_by_key(config::keys::EXPORT_TO_ZIP))
-        {
-            fslib::Path targetPath =
-                config::get_working_directory() / currentTitle->get_path_safe_title() / targetUser->get_path_safe_nickname() +
-                " - " + stringutil::get_date_string() + ".zip";
-
-            zipFile targetZip = zipOpen64(targetPath.full_path(), APPEND_STATUS_CREATE);
-            if (!targetZip)
+            if (hasMeta && targetZip.open_new_file(fs::NAME_SAVE_META))
             {
-                logger::log("Error creating zip: %s", fslib::error::get_string());
-                continue;
+                targetZip.write(&saveMeta, sizeof(fs::SaveMetaData));
+                targetZip.close_current_file();
             }
             fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, targetZip, task);
-            zipClose(targetZip, NULL);
         }
-        else if (currentTitle && saveMounted)
+        else
         {
-            fslib::Path targetPath =
-                config::get_working_directory() / currentTitle->get_path_safe_title() / targetUser->get_path_safe_nickname() +
-                " - " + stringutil::get_date_string();
-
-            if (!fslib::create_directory(targetPath))
             {
-                logger::log("Error creating backup directory: %s", fslib::error::get_string());
-                continue;
+                fslib::File metaFile{backupPath / fs::NAME_SAVE_META, FsOpenMode_Create | FsOpenMode_Write};
+                if (hasMeta && metaFile.is_open()) { metaFile.write(&saveMeta, sizeof(fs::SaveMetaData)); }
+                fs::copy_directory(fs::DEFAULT_SAVE_ROOT, backupPath, task);
             }
-            fs::copy_directory(fs::DEFAULT_SAVE_ROOT, targetPath, 0, {}, task);
         }
-
-        if (saveMounted) { fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT); }
     }
     task->finished();
 }
 
 static void create_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserOptionState::DataStruct> dataStruct)
 {
-    data::User *targetUser = dataStruct->m_user;
+    if (error::is_null(task)) { return; }
 
-    // Get title info map.
-    auto &titleInfoMap = data::get_title_info_map();
+    data::User *user               = dataStruct->user;
+    UserOptionState *spawningState = dataStruct->spawningState;
 
-    // Iterate through it.
+    auto &titleInfoMap            = data::get_title_info_map();
+    const int popTicks            = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const char *statusTemplate    = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);
+    const char *popFailure        = strings::get_by_name(strings::names::SAVECREATE_POPS, 0);
+    const FsSaveDataType saveType = user->get_account_save_type();
+
     for (auto &[applicationID, titleInfo] : titleInfoMap)
     {
-        if (!titleInfo.has_save_data_type(targetUser->get_account_save_type())) { continue; }
+        const bool hasType = titleInfo.has_save_data_type(saveType);
+        if (!hasType) { return; }
 
-        // Set status.
-        task->set_status(strings::get_by_name(strings::names::USEROPTION_STATUS, 0), titleInfo.get_title());
-
-        if (!fs::create_save_data_for(targetUser, &titleInfo))
         {
-            // Function should log error.
-            ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                strings::get_by_name(strings::names::SAVECREATE_POPS, 0));
+            const std::string status = stringutil::get_formatted_string(statusTemplate, titleInfo.get_title());
+            task->set_status(status);
         }
+
+        const bool saveCreated = fs::create_save_data_for(user, &titleInfo);
+        if (!saveCreated) { ui::PopMessageManager::push_message(popTicks, popFailure); }
     }
-
-    // This needs to be updated on the next update loop.
-    dataStruct->m_spawningState->data_and_view_refresh_required();
-
+    spawningState->data_and_view_refresh_required();
     task->finished();
 }
 
 static void delete_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserOptionState::DataStruct> dataStruct)
 {
-    // This just makes things easier to type.
-    data::User *targetUser = dataStruct->m_user;
+    if (error::is_null(task)) { return; }
 
-    // This is to keep track of what's deleted. Erasing on every loop throws the vector out of whack.
+    data::User *user               = dataStruct->user;
+    UserOptionState *spawningState = dataStruct->spawningState;
+    const char *statusTemplate     = strings::get_by_name(strings::names::USEROPTION_STATUS, 1); // Borrowed. No duplication.
+    const char *popFailed          = strings::get_by_name(strings::names::SAVECREATE_POPS, 2);
+    const int popTicks             = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const size_t totalDataEntries  = user->get_total_data_entries();
     std::vector<uint64_t> applicationIDs;
 
-    for (size_t i = 0; i < targetUser->get_total_data_entries(); i++)
+    // Check this quick just in case.
+    if (user->get_account_save_type() == FsSaveDataType_System)
     {
-        // Grab title for title.
-        const char *targetTitle = data::get_title_info_by_id(targetUser->get_application_id_at(i))->get_title();
+        task->finished();
+        return;
+    }
 
-        // Update thread task.
-        task->set_status(strings::get_by_name(strings::names::USEROPTION_STATUS, 1), targetTitle);
+    for (size_t i = 0; i < totalDataEntries; i++)
+    {
+        const FsSaveDataInfo *saveInfo = user->get_save_info_at(i);
+        if (error::is_null(saveInfo)) { continue; }
 
-        // Grab a pointer quick.
-        FsSaveDataInfo *saveInfo = targetUser->get_save_info_at(i);
-
-        // We don't want to let people nuke their entire system, basically.
-        if (saveInfo->save_data_type != FsSaveDataType_System && !fs::delete_save_data(targetUser->get_save_info_at(i)))
         {
-            ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                strings::get_by_name(strings::names::SAVECREATE_POPS, 2));
-            continue;
+            const uint64_t applicationID = user->get_application_id_at(i);
+            data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
+            const char *title            = titleInfo->get_title();
+            const std::string status     = stringutil::get_formatted_string(statusTemplate, title);
+            task->set_status(status);
         }
 
-        // Push the application ID back.
+        const bool saveDeleted = fs::delete_save_data(saveInfo);
+        if (!saveDeleted)
+        {
+            ui::PopMessageManager::push_message(popTicks, popFailed);
+            continue;
+        }
         applicationIDs.push_back(saveInfo->application_id);
     }
 
-    // Loop through the IDs and purge them all.
-    for (uint64_t &applicationID : applicationIDs) { targetUser->erase_save_info_by_id(applicationID); }
-
-    // Signal the main thread to update~
-    dataStruct->m_spawningState->data_and_view_refresh_required();
-
+    for (uint64_t &applicationID : applicationIDs) { user->erase_save_info_by_id(applicationID); }
+    spawningState->data_and_view_refresh_required();
     task->finished();
 }

@@ -9,7 +9,6 @@ namespace
     constexpr int SIZE_ICON_HEIGHT = 256;
 } // namespace
 
-
 sdl::SharedTexture gfxutil::create_generic_icon(std::string_view text,
                                                 int fontSize,
                                                 sdl::Color background,

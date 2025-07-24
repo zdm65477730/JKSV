@@ -1,6 +1,7 @@
 #pragma once
 #include "remote/Storage.hpp"
 #include "remote/URL.hpp"
+
 #include <string>
 
 namespace remote
@@ -17,12 +18,12 @@ namespace remote
 
             /// @brief Uploads a file to the webdav server. File name is retrieved from the path.
             /// @param source Local path of the file to upload.
-            bool upload_file(const fslib::Path &source) override;
+            bool upload_file(const fslib::Path &source, sys::ProgressTask *task = nullptr) override;
 
             /// @brief Patches or updates a file on the WebDav server.
             /// @param file Pointer to the file to update.
             /// @param source Path of the source file to update with.
-            bool patch_file(remote::Item *file, const fslib::Path &source) override;
+            bool patch_file(remote::Item *file, const fslib::Path &source, sys::ProgressTask *task = nullptr) override;
 
             /// @brief Downloads the passed file from the WebDav server.
             /// @param file Pointer to the file to download.
@@ -35,13 +36,13 @@ namespace remote
 
         private:
             /// @brief Origin or server address.
-            std::string m_origin;
+            std::string m_origin{};
 
             /// @brief Username for curl requests.
-            std::string m_username;
+            std::string m_username{};
 
             /// @brief Password for curl requests.
-            std::string m_password;
+            std::string m_password{};
 
             /// @brief Appends the username and password to a WebDav curl request.
             void append_credentials();

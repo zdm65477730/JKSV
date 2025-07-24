@@ -3,10 +3,12 @@
 #include "StateManager.hpp"
 #include "appstates/TaskState.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "strings.hpp"
+#include "stringutil.hpp"
 #include "system/Task.hpp"
 #include "ui/PopMessageManager.hpp"
 
@@ -92,8 +94,14 @@ static void create_save_data(sys::Task *task,
                              data::TitleInfo *titleInfo,
                              SaveCreateState *spawningState)
 {
-    // Set status. We'll just borrow the string from the other group.
-    task->set_status(strings::get_by_name(strings::names::USEROPTION_STATUS, 0), titleInfo->get_title());
+    if (error::is_null(task)) { return; }
+
+    const char *statusTemplate = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);
+
+    {
+        const std::string status = stringutil::get_formatted_string(statusTemplate, titleInfo->get_title());
+        task->set_status(status);
+    }
 
     if (fs::create_save_data_for(targetUser, titleInfo))
     {

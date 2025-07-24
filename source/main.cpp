@@ -1,5 +1,6 @@
 #include "JKSV.hpp"
 #include "config.hpp"
+
 #include <switch.h>
 
 int main()

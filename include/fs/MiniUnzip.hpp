@@ -29,8 +29,20 @@ namespace fs
             /// @brief Attempts to go to the next file. Returns false at the end.
             bool next_file();
 
+            /// @brief Closes the currently open file.
+            bool close_current_file();
+
+            /// @brief Attempts to locate a file with filename in the ZIP.
+            bool locate_file(std::string_view filename);
+
+            /// @brief Resets to the beginning file.
+            bool reset();
+
             /// @brief Reads from the currently open file to the buffer passed.
             ssize_t read(void *buffer, size_t bufferSize);
+
+            /// @brief Returns the name of the current file.
+            const char *get_filename();
 
             /// @brief Returns the compressed size of the currently open file.
             uint64_t get_compressed_size() const;

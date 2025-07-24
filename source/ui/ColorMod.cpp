@@ -2,14 +2,8 @@
 
 void ui::ColorMod::update()
 {
-    if (m_direction && (m_colorMod += 6) >= 0x72)
-    {
-        m_direction = false;
-    }
-    else if (!m_direction && (m_colorMod -= 3) <= 0x00)
-    {
-        m_direction = true;
-    }
+    if (m_direction && (m_colorMod += 6) >= 0x72) { m_direction = false; }
+    else if (!m_direction && (m_colorMod -= 3) <= 0x00) { m_direction = true; }
 }
 
 ui::ColorMod::operator sdl::Color() const

@@ -32,7 +32,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	JKSV
 BUILD		:=	build
-SOURCES		:=	source source/appstates source/ui source/data source/system source/fs source/curl source/remote
+SOURCES		:=	source source/appstates source/ui source/data source/system source/fs source/curl source/remote source/tasks
 DATA		:=	data
 INCLUDES	:=	include ./Libraries/FsLib/Switch/FsLib/include ./Libraries/SDLLib/SDL/include
 EXEFS_SRC	:=	exefs_src

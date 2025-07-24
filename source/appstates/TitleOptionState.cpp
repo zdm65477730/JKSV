@@ -6,6 +6,7 @@
 #include "appstates/TitleInfoState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "input.hpp"
@@ -33,9 +34,6 @@ namespace
         EXTEND_CONTAINER,
         EXPORT_SVI
     };
-
-    // Error string template thingies.
-    static const char *ERROR_RESETTING_SAVE = "Error resetting save data: %s";
 } // namespace
 
 // Declarations. Definitions after class. Some of these are only here to be compatible with confirmations.
@@ -73,10 +71,10 @@ TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo,
     }
 
     // Fill this out.
-    m_dataStruct->m_user          = m_user;
-    m_dataStruct->m_titleInfo     = m_titleInfo;
-    m_dataStruct->m_spawningState = this;
-    m_dataStruct->m_titleSelect   = m_titleSelect;
+    m_dataStruct->user          = m_user;
+    m_dataStruct->titleInfo     = m_titleInfo;
+    m_dataStruct->spawningState = this;
+    m_dataStruct->titleSelect   = m_titleSelect;
 }
 
 void TitleOptionState::update()
@@ -260,20 +258,21 @@ void TitleOptionState::refresh_required() { m_refreshRequired = true; }
 
 static void blacklist_title(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
-    // Gonna need this a lot.
-    uint64_t applicationID = dataStruct->m_titleInfo->get_application_id();
+    if (error::is_null(task)) { return; }
 
-    // We're not gonna bother with a status for this. It'll flicker, but be barely noticeable.
+    data::TitleInfo *titleInfo      = dataStruct->titleInfo;
+    TitleOptionState *spawningState = dataStruct->spawningState;
+    const uint64_t applicationID    = titleInfo->get_application_id();
+
     config::add_remove_blacklist(applicationID);
 
-    // Now we need to remove it from all of the users. This doesn't just apply to the active one.
     data::UserList userList;
     data::get_users(userList);
     for (data::User *user : userList) { user->erase_save_info_by_id(applicationID); }
 
     // This will tell the main thread a refresh is required on the next update call.
-    dataStruct->m_spawningState->refresh_required();
-    dataStruct->m_spawningState->close_on_update();
+    spawningState->refresh_required();
+    spawningState->close_on_update();
 
     task->finished();
 }
@@ -320,11 +319,18 @@ static void change_output_path(data::TitleInfo *targetTitle)
 
 static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
-    // Get the path.
-    fslib::Path titlePath = config::get_working_directory() / dataStruct->m_titleInfo->get_path_safe_title();
+    if (error::is_null(task)) { return; }
 
-    // Set the status.
-    task->set_status(strings::get_by_name(strings::names::TITLEOPTION_STATUS, 0), dataStruct->m_titleInfo->get_title());
+    data::TitleInfo *titleInfo = dataStruct->titleInfo;
+
+    const char *statusTemplate = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 0);
+
+    {
+        const std::string status = stringutil::get_formatted_string(statusTemplate, titleInfo->get_title());
+        task->set_status(status);
+    }
+
+    fslib::Path titlePath = config::get_working_directory() / titleInfo->get_path_safe_title();
 
     // Just call this and nuke the folder.
     if (!fslib::delete_directory_recursively(titlePath))
@@ -336,130 +342,112 @@ static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TitleO
     {
         ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
                                             strings::get_by_name(strings::names::TITLEOPTION_POPS, 0),
-                                            dataStruct->m_titleInfo->get_title());
+                                            titleInfo->get_title());
     }
     task->finished();
 }
 
 static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
-    // To do: Make this not as hard to read.
-    // Attempt to mount save.
-    if (!fslib::open_save_data_with_save_info(
-            fs::DEFAULT_SAVE_MOUNT,
-            *dataStruct->m_user->get_save_info_by_id(dataStruct->m_titleInfo->get_application_id())))
+    if (error::is_null(task)) { return; }
+
+    data::User *user           = dataStruct->user;
+    data::TitleInfo *titleInfo = dataStruct->titleInfo;
+
+    const uint64_t applicationID   = titleInfo->get_application_id();
+    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
+    const int popTicks             = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const char *popFailed          = strings::get_by_name(strings::names::TITLEOPTION_POPS, 2);
+    const char *popSucceeded       = strings::get_by_name(strings::names::TITLEOPTION_POPS, 3);
+
+    const bool mountFailed = error::fslib(fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo));
+    if (mountFailed)
     {
-        logger::log(ERROR_RESETTING_SAVE, fslib::error::get_string());
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 2));
+        ui::PopMessageManager::push_message(popTicks, popFailed);
         task->finished();
         return;
     }
 
-    // Wipe the root.
-    if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT))
-    {
-        fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
-        logger::log(ERROR_RESETTING_SAVE, fslib::error::get_string());
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 2));
-        task->finished();
-        return;
-    }
+    const bool wipeFailed   = error::fslib(fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT));
+    const bool commitFailed = !wipeFailed && error::fslib(fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT));
+    if (wipeFailed || commitFailed) { ui::PopMessageManager::push_message(popTicks, popFailed); }
+    else { ui::PopMessageManager::push_message(popTicks, popSucceeded); }
 
-    // Attempt commit.
-    if (!fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT))
-    {
-        fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
-        logger::log(ERROR_RESETTING_SAVE, fslib::error::get_string());
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 2));
-        task->finished();
-        return;
-    }
-
-    // Should be good to go.
     fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
-    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                        strings::get_by_name(strings::names::TITLEOPTION_POPS, 3));
     task->finished();
 }
 
 static void delete_save_data_from_system(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
-    // Set the status in case this takes a little while.
-    task->set_status(strings::get_by_name(strings::names::TITLEOPTION_STATUS, 2),
-                     dataStruct->m_user->get_nickname(),
-                     dataStruct->m_titleInfo->get_title());
+    data::User *user                = dataStruct->user;
+    data::TitleInfo *titleInfo      = dataStruct->titleInfo;
+    TitleSelectCommon *titleSelect  = dataStruct->titleSelect;
+    TitleOptionState *spawningState = dataStruct->spawningState;
 
-    // Grab the save data info pointer.
-    uint64_t applicationID   = dataStruct->m_titleInfo->get_application_id();
-    FsSaveDataInfo *saveInfo = dataStruct->m_user->get_save_info_by_id(applicationID);
-    if (saveInfo == nullptr)
+    const uint64_t applicationID   = titleInfo->get_application_id();
+    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
+    const char *statusTemplate     = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 2);
+    if (error::is_null(task) || error::is_null(saveInfo)) { return; }
+
     {
-        logger::log("Error deleting save data for user. Target save data null?");
+        const char *nickname     = user->get_nickname();
+        const char *title        = titleInfo->get_title();
+        const std::string status = stringutil::get_formatted_string(statusTemplate, nickname, title);
+        task->set_status(status);
+    }
+
+    const bool saveDeleted = fs::delete_save_data(saveInfo);
+    if (!saveDeleted)
+    {
         task->finished();
         return;
     }
 
-    if (!fs::delete_save_data(saveInfo))
-    {
-        // Just cleanup, I guess?
-        task->finished();
-        return;
-    }
-
-    // Erase the info from the user since it should have been deleted.
-    dataStruct->m_user->erase_save_info_by_id(applicationID);
-
-    // Refresh
-    dataStruct->m_titleSelect->refresh();
-
-    // Signal to close, because this save is no long valid.
-    dataStruct->m_spawningState->close_on_update();
-
-    // Done?
+    user->erase_save_info_by_id(applicationID);
+    titleSelect->refresh();
+    spawningState->close_on_update(); // Since the save was deleted, state is no longer valid.
     task->finished();
 }
 
 static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
-    // Grab this stuff to make stuff easier to read and type.
-    data::TitleInfo *titleInfo = dataStruct->m_titleInfo;
-    FsSaveDataInfo *saveInfo   = dataStruct->m_user->get_save_info_by_id(titleInfo->get_application_id());
+    static constexpr size_t SIZE_EXTRA = sizeof(FsSaveDataExtraData);
+    static constexpr size_t SIZE_MB    = 0x100000;
 
-    if (!saveInfo)
+    data::User *user               = dataStruct->user;
+    data::TitleInfo *titleInfo     = dataStruct->titleInfo;
+    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(titleInfo->get_application_id());
+    const char *statusTemplate     = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 3);
+    const char *keyboardHeader     = strings::get_by_name(strings::names::KEYBOARD, 8);
+    const int popTicks             = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const char *popSuccess         = strings::get_by_name(strings::names::TITLEOPTION_POPS, 10);
+    const char *popFailed          = strings::get_by_name(strings::names::TITLEOPTION_POPS, 11);
+    if (error::is_null(task) || error::is_null(saveInfo)) { return; }
+
     {
-        logger::log("Error retrieving save data info to extend!");
+        const char *nickname     = user->get_nickname();
+        const char *title        = titleInfo->get_title();
+        const std::string status = stringutil::get_formatted_string(statusTemplate, nickname, title);
+        task->set_status(status);
+    }
+
+    FsSaveDataExtraData extraData{};
+    char buffer[5]        = {0};
+    const bool extraError = error::libnx(fsReadSaveDataFileSystemExtraData(&extraData, SIZE_EXTRA, saveInfo->save_data_id));
+    const std::string keyboardDefault = stringutil::get_formatted_string("%u", (extraData.data_size / SIZE_MB) + SIZE_MB);
+    const bool validInput             = keyboard::get_input(SwkbdType_NumPad, keyboardDefault, keyboardHeader, buffer, 5);
+    if (!validInput)
+    {
         task->finished();
         return;
     }
 
-    // Set the status.
-    task->set_status(strings::get_by_name(strings::names::TITLEOPTION_STATUS, 3),
-                     dataStruct->m_user->get_nickname(),
-                     dataStruct->m_titleInfo->get_title());
-
-    // This is the header string.
-    std::string_view keyboardString = strings::get_by_name(strings::names::KEYBOARD, 8);
-
-    // Get how much to extend.
-    char buffer[5] = {0};
-    // No default. Maybe change this later?
-    if (!keyboard::get_input(SwkbdType_NumPad, {}, keyboardString, buffer, 5))
-    {
-        task->finished();
-        return;
-    }
-
-    // Convert input to number and multiply it by 1MB. To do: Check if this is valid before continuing?
-    int64_t size = std::strtoll(buffer, NULL, 10) * 0x100000;
-
-    // Grab the journal size.
-    int64_t journalSize = titleInfo->get_journal_size(saveInfo->save_data_type);
-
-    // To do: Check this and toast message.
-    fs::extend_save_data(saveInfo, size, journalSize);
+    const uint8_t saveType  = saveInfo->save_data_type;
+    const int64_t size      = std::strtoll(buffer, NULL, 10) * 0x100000;
+    const int64_t journal   = extraError ? titleInfo->get_journal_size(saveType) : extraData.journal_size;
+    const bool saveExtended = fs::extend_save_data(saveInfo, size, journal);
+    if (saveExtended) { ui::PopMessageManager::push_message(popTicks, popSuccess); }
+    else { ui::PopMessageManager::push_message(popTicks, popFailed); }
 
     task->finished();
 }

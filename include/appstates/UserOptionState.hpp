@@ -29,15 +29,13 @@ class UserOptionState final : public BaseState
         /// @note Like this to prevent threading headaches.
         void data_and_view_refresh_required();
 
-        /// @brief Struct used for passing data to functions/tasks.
-        typedef struct
+        // clang-format off
+        struct DataStruct
         {
-                /// @brief Pointer to the target user.
-                data::User *m_user{};
-
-                /// @brief Pointer to >this spawning state.
-                UserOptionState *m_spawningState{};
-        } DataStruct;
+            data::User *user{};
+            UserOptionState *spawningState{};
+        };
+        // clang-format on
 
     private:
         /// @brief Pointer to the target user.

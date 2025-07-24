@@ -1,6 +1,7 @@
 #pragma once
 #include "fslib.hpp"
 #include "system/ProgressTask.hpp"
+
 #include <string_view>
 
 namespace fs
@@ -13,9 +14,9 @@ namespace fs
     /// @param Task Optional. Progress tracking task to display progress of operation if needed.
     void copy_file(const fslib::Path &source,
                    const fslib::Path &destination,
-                   uint64_t journalSize = 0,
-                   std::string_view commitDevice = {},
-                   sys::ProgressTask *Task = nullptr);
+                   sys::ProgressTask *Task       = nullptr,
+                   uint64_t journalSize          = 0,
+                   std::string_view commitDevice = {});
 
     /// @brief Recursively copies source to destination.
     /// @param source Source path.
@@ -25,7 +26,7 @@ namespace fs
     /// @param Task Option. Progress tracking task to be passed to copyFile to show progress of operation.
     void copy_directory(const fslib::Path &source,
                         const fslib::Path &destination,
-                        uint64_t journalSize = 0,
-                        std::string_view commitDevice = {},
-                        sys::ProgressTask *Task = nullptr);
+                        sys::ProgressTask *Task       = nullptr,
+                        uint64_t journalSize          = 0,
+                        std::string_view commitDevice = {});
 } // namespace fs

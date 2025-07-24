@@ -1,6 +1,7 @@
 #pragma once
 #include "JSON.hpp"
 #include "remote/Storage.hpp"
+
 #include <ctime>
 
 namespace remote
@@ -17,12 +18,12 @@ namespace remote
 
             /// @brief Uploads the file from source. File name is used to name the file.
             /// @param source Path to upload the file from.
-            bool upload_file(const fslib::Path &source) override;
+            bool upload_file(const fslib::Path &source, sys::ProgressTask *task = nullptr) override;
 
             /// @brief Patches or updates the file on Google Drive.
             /// @param file Pointer to the item containing the data needed to update the file.
             /// @param source Source path to update from.
-            bool patch_file(remote::Item *file, const fslib::Path &source) override;
+            bool patch_file(remote::Item *file, const fslib::Path &source, sys::ProgressTask *task = nullptr) override;
 
             /// @brief Downloads a file from Google Drive.
             /// @param file Pointer to the item containing data to download the file.
@@ -50,22 +51,22 @@ namespace remote
 
         private:
             /// @brief Google client ID.
-            std::string m_clientId;
+            std::string m_clientId{};
 
             /// @brief Google client secret.
-            std::string m_clientSecret;
+            std::string m_clientSecret{};
 
             /// @brief Authentication token.
-            std::string m_token;
+            std::string m_token{};
 
             /// @brief Token used for refreshing token when it expires.
-            std::string m_refreshToken;
+            std::string m_refreshToken{};
 
             /// @brief This is to save the authentication header string instead of recreating it over and over.
-            std::string m_authHeader;
+            std::string m_authHeader{};
 
             /// @brief This is the calculate time when the auth token expires.
-            std::time_t m_tokenExpires;
+            std::time_t m_tokenExpires{};
 
             /// @brief Uses V2 of Drive's API to get the root directory ID from Google.
             bool get_root_id();

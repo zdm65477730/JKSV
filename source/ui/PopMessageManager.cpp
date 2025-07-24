@@ -1,9 +1,11 @@
 #include "ui/PopMessageManager.hpp"
+
 #include "colors.hpp"
 #include "config.hpp"
 #include "logger.hpp"
 #include "sdl.hpp"
 #include "ui/render_functions.hpp"
+
 #include <cstdarg>
 
 namespace
@@ -25,11 +27,11 @@ void ui::PopMessageManager::update()
         for (auto &[displayTicks, currentMessage] : manager.m_messageQueue)
         {
             // New message.
-            manager.m_messages.push_back({.m_y = 720,
+            manager.m_messages.push_back({.m_y       = 720,
                                           .m_targetY = 720,
-                                          .m_width = sdl::text::get_width(32, currentMessage.c_str()) + 32,
+                                          .m_width   = sdl::text::get_width(32, currentMessage.c_str()) + 32,
                                           .m_message = currentMessage,
-                                          .m_timer = sys::Timer(displayTicks)});
+                                          .m_timer   = sys::Timer(displayTicks)});
         }
         // Clear the queue.
         manager.m_messageQueue.clear();
@@ -37,7 +39,7 @@ void ui::PopMessageManager::update()
 
     // Update all the messages.
     // This is the first Y position a message should be displayed at.;
-    double currentY = 594.0f;
+    double currentY         = 594.0f;
     double animationScaling = config::get_animation_scaling();
     for (size_t i = 0; i < manager.m_messages.size(); i++)
     {
@@ -52,10 +54,7 @@ void ui::PopMessageManager::update()
         }
 
         // Make sure Y coordinate is correct.
-        if (currentMessage.m_targetY != currentY)
-        {
-            currentMessage.m_targetY = currentY;
-        }
+        if (currentMessage.m_targetY != currentY) { currentMessage.m_targetY = currentY; }
 
         if (currentMessage.m_y != currentMessage.m_targetY)
         {
@@ -76,13 +75,7 @@ void ui::PopMessageManager::render()
         // Render a dialog box around it.
         ui::render_dialog_box(NULL, 20, popMessage.m_y - 6, popMessage.m_width, 52);
         // Render the actual text.
-        sdl::text::render(NULL,
-                          36,
-                          popMessage.m_y,
-                          32,
-                          sdl::text::NO_TEXT_WRAP,
-                          colors::WHITE,
-                          popMessage.m_message.c_str());
+        sdl::text::render(NULL, 36, popMessage.m_y, 32, sdl::text::NO_TEXT_WRAP, colors::WHITE, popMessage.m_message.c_str());
     }
 }
 

@@ -1,9 +1,13 @@
 #include "fs/zip.hpp"
 
 #include "config.hpp"
+#include "error.hpp"
 #include "fs/SaveMetaData.hpp"
 #include "logger.hpp"
 #include "strings.hpp"
+#include "stringutil.hpp"
+#include "system/defines.hpp"
+#include "ui/PopMessageManager.hpp"
 
 #include <condition_variable>
 #include <cstring>
@@ -22,386 +26,233 @@ namespace
 } // namespace
 
 // Shared struct for Zip/File IO
-typedef struct
+// clang-format off
+struct ZipIOStruct
 {
-        /// @brief Mutex for blocking the shared buffer.
-        std::mutex m_bufferLock;
-
-        /// @brief Conditional for locking and unlocking.
-        std::condition_variable m_bufferCondition;
-
-        /// @brief Bool that lets threads communicate when they are using the buffer.
-        bool m_bufferIsFull = false;
-
-        /// @brief Number of bytes read from the file.
-        ssize_t m_readCount = 0;
-
-        /// @brief Shared/reading buffer.
-        std::unique_ptr<unsigned char[]> m_sharedBuffer;
-} ZipIOStruct;
+    std::mutex lock{};
+    std::condition_variable condition{};
+    ssize_t readSize{};
+    bool bufferReady{};
+    std::unique_ptr<byte[]> sharedBuffer{};
+};
+// clang-format on
 
 // Function for reading files for Zipping.
 static void zipReadThreadFunction(fslib::File &source, std::shared_ptr<ZipIOStruct> sharedData)
 {
-    // Don't call this every loop. Not sure if compiler optimizes that out or not now.
-    int64_t fileSize = source.get_size();
+    std::mutex &lock                      = sharedData->lock;
+    std::condition_variable &condition    = sharedData->condition;
+    ssize_t &readSize                     = sharedData->readSize;
+    bool &bufferReady                     = sharedData->bufferReady;
+    std::unique_ptr<byte[]> &sharedBuffer = sharedData->sharedBuffer;
+    const int64_t fileSize                = source.get_size();
 
-    // Loop until the file is completely read.
-    for (int64_t readCount = 0; readCount < fileSize;)
+    for (int64_t i = 0; i < fileSize;)
     {
-        // Read into shared buffer.
-        sharedData->m_readCount = source.read(sharedData->m_sharedBuffer.get(), SIZE_ZIP_BUFFER);
+        ssize_t localRead{}; // This is a local variable to store the read size so we don't need to hold the other thread up.
+        {
+            std::unique_lock<std::mutex> bufferLock(lock);
+            condition.wait(bufferLock, [&]() { return bufferReady == false; });
 
-        // Update read count
-        readCount += sharedData->m_readCount;
+            readSize  = source.read(sharedBuffer.get(), SIZE_ZIP_BUFFER);
+            localRead = readSize;
 
-        // Signal other thread buffer is ready to go.
-        sharedData->m_bufferIsFull = true;
-        sharedData->m_bufferCondition.notify_one();
-
-        // Wait for other thread to release lock on buffer so this thread can read again.
-        std::unique_lock<std::mutex> bufferLock(sharedData->m_bufferLock);
-        sharedData->m_bufferCondition.wait(bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull == false; });
+            bufferReady = true;
+            condition.notify_one();
+        }
+        if (readSize == -1) { break; }
+        i += localRead;
     }
 }
 
 // Function for reading data from Zip to buffer.
-static void unzipReadThreadFunction(unzFile source, int64_t fileSize, std::shared_ptr<ZipIOStruct> sharedData)
+static void unzipReadThreadFunction(fs::MiniUnzip &unzip, std::shared_ptr<ZipIOStruct> sharedData)
 {
-    for (int64_t readCount = 0; readCount < fileSize;)
+    std::mutex &lock                      = sharedData->lock;
+    std::condition_variable &condition    = sharedData->condition;
+    ssize_t &readSize                     = sharedData->readSize;
+    bool &bufferReady                     = sharedData->bufferReady;
+    std::unique_ptr<byte[]> &sharedBuffer = sharedData->sharedBuffer;
+    const int64_t fileSize                = unzip.get_uncompressed_size();
+
+    for (int64_t i = 0; i < fileSize;)
     {
-        // Read from zip file.
-        sharedData->m_readCount = unzReadCurrentFile(source, sharedData->m_sharedBuffer.get(), SIZE_UNZIP_BUFFER);
+        ssize_t localRead{};
+        {
+            std::unique_lock<std::mutex> bufferLock(lock);
+            condition.wait(bufferLock, [&]() { return bufferReady == false; });
 
-        readCount += sharedData->m_readCount;
+            readSize  = unzip.read(sharedBuffer.get(), SIZE_UNZIP_BUFFER);
+            localRead = readSize;
 
-        sharedData->m_bufferIsFull = true;
-        sharedData->m_bufferCondition.notify_one();
-
-        std::unique_lock<std::mutex> bufferLock(sharedData->m_bufferLock);
-        sharedData->m_bufferCondition.wait(bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull == false; });
+            bufferReady = true;
+            condition.notify_one();
+        }
+        if (localRead == -1) { break; }
+        i += localRead;
     }
 }
 
-void fs::copy_directory_to_zip(const fslib::Path &source, zipFile destination, sys::ProgressTask *task)
+void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys::ProgressTask *task)
 {
-    fslib::Directory sourceDir(source);
-    if (!sourceDir)
-    {
-        logger::log("Error opening source directory: %s", fslib::error::get_string());
-        return;
-    }
+    const char *ioStatus = strings::get_by_name(strings::names::IO_STATUSES, 1);
 
-    // Grab this here instead of calling the config function for every file.
-    int compressionLevel = config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL);
+    fslib::Directory sourceDir{source};
+    if (error::fslib(sourceDir.is_open())) { return; }
 
-    for (int64_t i = 0; i < sourceDir.get_count(); i++)
+    const int64_t dirCount = sourceDir.get_count();
+    for (int64_t i = 0; i < dirCount; i++)
     {
-        if (sourceDir.is_directory(i))
-        {
-            fslib::Path newSource = source / sourceDir[i];
-            fs::copy_directory_to_zip(newSource, destination, task);
-        }
+        const fslib::Path fullSource{source / sourceDir[i]};
+        if (sourceDir.is_directory(i)) { fs::copy_directory_to_zip(fullSource, dest, task); }
         else
         {
-            // Open source file.
-            fslib::Path fullSource = source / sourceDir[i];
-            fslib::File sourceFile(fullSource, FsOpenMode_Read);
-            if (!sourceFile)
-            {
-                logger::log("Error zipping file: %s", fslib::error::get_string());
-                continue;
-            }
+            fslib::File sourceFile{fullSource, FsOpenMode_Read};
+            const bool newZipFile = dest.open_new_file(fullSource.full_path());
+            if (error::fslib(sourceFile.is_open()) || !newZipFile) { continue; }
 
-            // Zip info
-            zip_fileinfo fileInfo;
-            fs::create_zip_fileinfo(fileInfo);
+            const int64_t fileSize   = sourceFile.get_size();
+            auto sharedData          = std::make_shared<ZipIOStruct>();
+            sharedData->sharedBuffer = std::make_unique<byte[]>(SIZE_ZIP_BUFFER);
+            auto localBuffer         = std::make_unique<byte[]>(SIZE_ZIP_BUFFER);
 
-            // Create new file in zip
-            const char *zipNameBegin = std::strchr(fullSource.get_path(), '/') + 1;
-            int zipError             = zipOpenNewFileInZip64(destination,
-                                                 zipNameBegin,
-                                                 &fileInfo,
-                                                 NULL,
-                                                 0,
-                                                 NULL,
-                                                 0,
-                                                 NULL,
-                                                 Z_DEFLATED,
-                                                 compressionLevel,
-                                                 0);
-            if (zipError != ZIP_OK)
-            {
-                logger::log("Error creating file in zip: %i.", zipError);
-                continue;
-            }
-
-            // Shared data for thread.
-            std::shared_ptr<ZipIOStruct> sharedData(new ZipIOStruct);
-            sharedData->m_sharedBuffer = std::make_unique<unsigned char[]>(SIZE_ZIP_BUFFER);
-
-            // Local buffer for writing.
-            std::unique_ptr<unsigned char[]> localBuffer(new unsigned char[SIZE_ZIP_BUFFER]);
-
-            // Update task if passed.
             if (task)
             {
-                task->set_status(strings::get_by_name(strings::names::IO_STATUSES, 1), fullSource.full_path());
-                task->reset(static_cast<double>(sourceFile.get_size()));
+                const std::string status = stringutil::get_formatted_string(ioStatus, fullSource.full_path());
+                task->set_status(status);
+                task->reset(static_cast<double>(fileSize));
             }
 
-            // To do: Thread pool to avoid spawning threads like this.
+            // I just like doing this. It makes things easier to type.
+            std::mutex &lock                   = sharedData->lock;
+            std::condition_variable &condition = sharedData->condition;
+            ssize_t &readSize                  = sharedData->readSize;
+            bool &bufferReady                  = sharedData->bufferReady;
+            auto &sharedBuffer                 = sharedData->sharedBuffer;
+
             std::thread readThread(zipReadThreadFunction, std::ref(sourceFile), sharedData);
-
-            int64_t fileSize = sourceFile.get_size();
-            for (int64_t writeCount = 0, readCount = 0; writeCount < fileSize;)
+            for (int64_t i = 0; i < fileSize;)
             {
+                ssize_t localRead{};
                 {
-                    // Wait for buffer signal
-                    std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-                    sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull; });
+                    std::unique_lock<std::mutex> bufferLock(lock);
+                    condition.wait(bufferLock, [&]() { return bufferReady == true; });
 
-                    // Save read count, copy shared to local.
-                    readCount = sharedData->m_readCount;
-                    std::memcpy(localBuffer.get(), sharedData->m_sharedBuffer.get(), readCount);
+                    localRead = readSize;
 
-                    // Signal copy was good and release lock.
-                    sharedData->m_bufferIsFull = false;
-                    sharedData->m_bufferCondition.notify_one();
+                    std::memcpy(localBuffer.get(), sharedBuffer.get(), localRead);
+
+                    bufferReady = false;
+                    condition.notify_one();
                 }
+                const bool writeGood = localRead != -1 && dest.write(localBuffer.get(), localRead);
+                if (!writeGood) { break; }
 
-                // Write
-                zipError = zipWriteInFileInZip(destination, localBuffer.get(), readCount);
-                if (zipError != ZIP_OK) { logger::log("Error writing data to zip: %i.", zipError); }
+                i += localRead;
 
-                // Update count and status
-                writeCount += readCount;
-                if (task) { task->update_current(static_cast<double>(writeCount)); }
+                if (task) { task->update_current(static_cast<double>(i)); }
             }
-            // Wait for thread
+
+            dest.close_current_file();
             readThread.join();
-            // Close file in zip
-            zipCloseFileInZip(destination);
         }
     }
 }
 
-void fs::copy_zip_to_directory(unzFile source,
-                               const fslib::Path &destination,
+void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
+                               const fslib::Path &dest,
                                uint64_t journalSize,
                                std::string_view commitDevice,
                                sys::ProgressTask *task)
 {
-    // With the new save meta, this might never fail... Need to figure this out some time.
-    int zipError = unzGoToFirstFile(source);
-    if (zipError != UNZ_OK)
-    {
-        logger::log("Error unzipping file: Zip is empty!");
-        return;
-    }
+    if (!unzip.reset()) { return; }
+    const int popTicks          = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const char *popCommitFailed = strings::get_by_name(strings::names::IO_POPS, 0);
+    const char *statusTemplate  = strings::get_by_name(strings::names::IO_STATUSES, 2);
+    const bool needCommits      = journalSize > 0 && !commitDevice.empty();
 
     do {
-        // Get file information.
-        unz_file_info64 currentFileInfo;
-        char filename[FS_MAX_PATH] = {0};
+        if (unzip.get_filename() == fs::NAME_SAVE_META) { continue; }
 
-        if (unzGetCurrentFileInfo64(source, &currentFileInfo, filename, FS_MAX_PATH, NULL, 0, NULL, 0) != UNZ_OK ||
-            unzOpenCurrentFile(source) != UNZ_OK)
-        {
-            logger::log("Error getting information for or opening file for reading in zip!");
-            continue;
-        }
+        fslib::Path fullDest{dest / unzip.get_filename()};
+        const size_t lastDir = fullDest.find_last_of('/');
+        if (lastDir == fullDest.NOT_FOUND) { continue; }
 
-        // Save meta file filter.
-        if (filename == fs::NAME_SAVE_META) { continue; }
+        const fslib::Path dirPath{fullDest.sub_path(lastDir)};
+        const bool dirExists = fslib::directory_exists(dirPath);
+        const bool dirFailed = !dirExists && dirPath.is_valid() && error::fslib(fslib::create_directories_recursively(dirPath));
+        if (!dirExists && dirFailed) { continue; }
 
-        // Create full path to item, make sure directories are created if needed.
-        fslib::Path fullDestination = destination / filename;
+        const int64_t fileSize = unzip.get_uncompressed_size();
+        fslib::File destFile{fullDest, FsOpenMode_Create | FsOpenMode_Write, fileSize};
+        if (!destFile.is_open()) { return; }
 
-        fslib::Path directories = fullDestination.sub_path(fullDestination.find_last_of('/'));
-
-        // To do: Make FsLib handle this correctly. First condition is a workaround for now...
-        if (directories.is_valid() && !fslib::create_directories_recursively(directories))
-        {
-            logger::log("Error creating zip file path \"%s\": %s", directories.full_path(), fslib::error::get_string());
-            continue;
-        }
-
-        fslib::File destinationFile(fullDestination, FsOpenMode_Create | FsOpenMode_Write, currentFileInfo.uncompressed_size);
-        if (!destinationFile)
-        {
-            logger::log("Error creating file from zip: %s", fslib::error::get_string());
-            continue;
-        }
-
-        // Shared data for both threads
-        std::shared_ptr<ZipIOStruct> sharedData(new ZipIOStruct);
-        sharedData->m_sharedBuffer = std::make_unique<unsigned char[]>(SIZE_UNZIP_BUFFER);
-
-        // Local buffer
-        std::unique_ptr<unsigned char[]> localBuffer(new unsigned char[SIZE_UNZIP_BUFFER]);
-
-        // Spawn read thread.
-        std::thread readThread(unzipReadThreadFunction, source, currentFileInfo.uncompressed_size, sharedData);
-
-        // Set status
         if (task)
         {
-            task->set_status(strings::get_by_name(strings::names::IO_STATUSES, 2), filename);
-            task->reset(static_cast<double>(currentFileInfo.uncompressed_size));
+            const std::string status = stringutil::get_formatted_string(statusTemplate, unzip.get_filename());
+            task->set_status(status);
+            task->reset(static_cast<double>(fileSize));
         }
 
-        for (int64_t writeCount = 0, readCount = 0, journalCount = 0;
-             writeCount < static_cast<int64_t>(currentFileInfo.uncompressed_size);)
+        auto sharedData          = std::make_shared<ZipIOStruct>();
+        sharedData->sharedBuffer = std::make_unique<byte[]>(SIZE_UNZIP_BUFFER);
+        auto localBuffer         = std::make_unique<byte[]>(SIZE_UNZIP_BUFFER);
+
+        std::mutex &lock                      = sharedData->lock;
+        std::condition_variable &condition    = sharedData->condition;
+        ssize_t &readSize                     = sharedData->readSize;
+        bool &bufferReady                     = sharedData->bufferReady;
+        std::unique_ptr<byte[]> &sharedBuffer = sharedData->sharedBuffer;
+
+        std::thread readThread(unzipReadThreadFunction, std::ref(unzip), sharedData);
+        int64_t journalCount{};
+        for (int64_t i = 0; i < fileSize;)
         {
+            ssize_t localRead{};
             {
-                // Wait for buffer.
-                std::unique_lock<std::mutex> bufferLock(sharedData->m_bufferLock);
-                sharedData->m_bufferCondition.wait(bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull; });
+                std::unique_lock<std::mutex> bufferLock(lock);
+                condition.wait(bufferLock, [&]() { return bufferReady == true; });
 
-                // Save read count for later
-                readCount = sharedData->m_readCount;
+                localRead = readSize;
+                std::memcpy(localBuffer.get(), sharedBuffer.get(), localRead);
 
-                // Copy shared to local
-                std::memcpy(localBuffer.get(), sharedData->m_sharedBuffer.get(), readCount);
-
-                // Signal this thread is done.
-                sharedData->m_bufferIsFull = false;
-                sharedData->m_bufferCondition.notify_one();
+                bufferReady = false;
+                condition.notify_one();
             }
 
-            // Journaling check
-            if (journalCount + readCount >= static_cast<int64_t>(journalSize))
+            const bool commitNeeded = needCommits && journalCount + localRead >= journalSize;
+            if (commitNeeded)
             {
-                // Close.
-                destinationFile.close();
+                destFile.close();
+                const bool commitError = error::fslib(fslib::commit_data_to_file_system(commitDevice));
+                if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); } // To do: How to recover?
 
-                // Commit
-                if (!fslib::commit_data_to_file_system(commitDevice))
-                {
-                    logger::log("Error committing data to save: %s", fslib::error::get_string());
-                }
-
-                // Reopen, seek to previous position.
-                destinationFile.open(fullDestination, FsOpenMode_Write);
-                destinationFile.seek(writeCount, destinationFile.BEGINNING);
-
-                // Reset journal
+                destFile.open(fullDest, FsOpenMode_Write);
+                destFile.seek(i, destFile.BEGINNING);
                 journalCount = 0;
             }
-            // Write data.
-            destinationFile.write(localBuffer.get(), readCount);
+            // To do: Same as above.
+            const bool goodWrite = localRead != -1 && destFile.write(localBuffer.get(), localRead);
 
-            // Update write and journal count
-            writeCount += readCount;
-            journalCount += readCount;
-
-            // Update status
-            if (task) { task->update_current(writeCount); }
+            i += localRead;
+            journalCount += localRead;
+            if (task) { task->update_current(static_cast<double>(i)); }
         }
-
-        // Join the read thread.
         readThread.join();
+        destFile.close();
 
-        // Close file and commit again just for good measure.
-        destinationFile.close();
-
-        if (!fslib::commit_data_to_file_system(commitDevice))
-        {
-            logger::log("Error performing final file commit: %s", fslib::error::get_string());
-        }
-    } while (unzGoToNextFile(source) != UNZ_END_OF_LIST_OF_FILE);
-}
-
-void fs::create_zip_fileinfo(zip_fileinfo &info)
-{
-    // Grab the current time.
-    std::time_t currentTime = std::time(NULL);
-
-    // Get the local time.
-    std::tm *localTime = std::localtime(&currentTime);
-
-    // Create struct to return.
-    info = {.tmz_date    = {.tm_sec  = localTime->tm_sec,
-                            .tm_min  = localTime->tm_min,
-                            .tm_hour = localTime->tm_hour,
-                            .tm_mday = localTime->tm_mday,
-                            .tm_mon  = localTime->tm_mon,
-                            .tm_year = localTime->tm_year + 1900},
-            .dosDate     = 0,
-            .internal_fa = 0,
-            .external_fa = 0};
+        const bool commitError = needCommits && error::fslib(fslib::commit_data_to_file_system(commitDevice));
+        if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); }
+    } while (unzip.next_file());
 }
 
 bool fs::zip_has_contents(const fslib::Path &zipPath)
 {
-    unzFile testZip = unzOpen(zipPath.full_path());
-    if (!testZip) { return false; }
+    fs::MiniUnzip unzip{zipPath};
+    if (!unzip.is_open()) { return false; }
 
-    int zipError = unzGoToFirstFile(testZip);
-    if (zipError != UNZ_OK)
-    {
-        unzClose(testZip);
-        return false;
-    }
-    unzClose(testZip);
-    return true;
-}
-
-bool fs::locate_file_in_zip(unzFile zip, std::string_view name)
-{
-    // Go to the first file, first.
-    int zipError = unzGoToFirstFile(zip);
-    if (zipError != UNZ_OK)
-    {
-        logger::log("Error locating file: Zip is empty!");
-        return false;
-    }
-
-    // This should be a large enough buffer.
-    char filename[FS_MAX_PATH] = {0};
-    // File info.
-    unz_file_info64 fileinfo = {0};
-
-    // Loop through files. If minizip has a better way of doing this, I couldn't find it.
     do {
-        // Grab this stuff.
-        zipError = unzGetCurrentFileInfo64(zip, &fileinfo, filename, FS_MAX_PATH, NULL, 0, NULL, 0);
-        if (zipError != UNZ_OK) { continue; }
-        else if (filename == name) { return true; }
-    } while (unzGoToNextFile(zip) != UNZ_END_OF_LIST_OF_FILE);
-
-    // Guess it wasn't found?
+        if (unzip.get_filename() != fs::NAME_SAVE_META) { return true; }
+    } while (unzip.next_file());
     return false;
-}
-
-uint64_t fs::get_zip_total_size(unzFile zip)
-{
-    // First, first.
-    int zipError = unzGoToFirstFile(zip);
-    if (zipError != UNZ_OK)
-    {
-        logger::log("Error getting total zip file size: %i.", zipError);
-        return 0;
-    }
-
-    // Size.
-    uint64_t zipSize = 0;
-
-    // File's name and info buffers.
-    char filename[FS_MAX_PATH] = {0};
-    unz_file_info64 fileinfo   = {0};
-
-    do {
-        zipError = unzGetCurrentFileInfo64(zip, &fileinfo, filename, 0, NULL, 0, NULL, 0);
-        if (zipError != UNZ_OK) { continue; }
-
-        // Add
-        zipSize += fileinfo.uncompressed_size;
-    } while (unzGoToNextFile(zip) != UNZ_END_OF_LIST_OF_FILE);
-
-    // Reset. Maybe this should be error checked, but I don't see the point here?
-    unzGoToFirstFile(zip);
-
-    return zipSize;
 }

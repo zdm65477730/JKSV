@@ -45,6 +45,9 @@ class JKSV
         /// @brief Initializes the services JKSV uses.
         bool initialize_services();
 
+        /// @brief Initializes SDL and loads the header icon.
+        bool initialize_sdl();
+
         // Creates the needed directories on SD.
         bool create_directories();
 

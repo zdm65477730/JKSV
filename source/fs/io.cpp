@@ -1,7 +1,11 @@
 #include "fs/io.hpp"
 
-#include "logger.hpp"
+#include "error.hpp"
+#include "fslib.hpp"
 #include "strings.hpp"
+#include "stringutil.hpp"
+#include "system/defines.hpp"
+#include "ui/PopMessageManager.hpp"
 
 #include <condition_variable>
 #include <cstring>
@@ -13,166 +17,150 @@ namespace
     // Size of buffer shared between threads.
     // constexpr size_t FILE_BUFFER_SIZE = 0x600000;
     // This one is just for testing something.
-    constexpr size_t FILE_BUFFER_SIZE = 0x80000;
+    constexpr size_t SIZE_FILE_BUFFER = 0x200000;
 } // namespace
 
-// Struct threads shared to read and write files.
-typedef struct
+// clang-format off
+struct FileThreadStruct
 {
-        // Mutex to lock buffer.
-        std::mutex m_bufferLock;
-        // Conditional to wait on signals.
-        std::condition_variable m_bufferCondition;
-        // Bool to control signals.
-        bool m_bufferIsFull = false;
-        // Number of bytes read.
-        size_t m_readSize = 0;
-        // Shared (read) buffer.
-        std::unique_ptr<unsigned char[]> m_readBuffer;
-} FileTransferStruct;
+    std::mutex lock{};
+    std::condition_variable condition{};
+    bool bufferReady{};
+    ssize_t readSize{};
+    std::unique_ptr<byte[]> sharedBuffer{};
+};
+// clang-format on
 
-// This function Reads into the buffer. The other thread writes.
-static void readThreadFunction(fslib::File &sourceFile, std::shared_ptr<FileTransferStruct> sharedData)
+static void readThreadFunction(fslib::File &sourceFile, std::shared_ptr<FileThreadStruct> sharedData)
 {
-    int64_t fileSize = sourceFile.get_size();
-    for (int64_t readCount = 0; readCount < fileSize;)
+    std::mutex &lock                      = sharedData->lock;
+    std::condition_variable &condition    = sharedData->condition;
+    bool &bufferReady                     = sharedData->bufferReady;
+    ssize_t &readSize                     = sharedData->readSize;
+    std::unique_ptr<byte[]> &sharedBuffer = sharedData->sharedBuffer;
+    const int64_t fileSize                = sourceFile.get_size();
+
+    for (int64_t i = 0; i < fileSize;)
     {
-        // Read data to shared buffer.
-        sharedData->m_readSize = sourceFile.read(sharedData->m_readBuffer.get(), FILE_BUFFER_SIZE);
-        // Update local read count
-        readCount += sharedData->m_readSize;
-        // Signal to other thread buffer is full.
-        sharedData->m_bufferIsFull = true;
-        sharedData->m_bufferCondition.notify_one();
-        // Wait for other thread to signal buffer is empty. Lock is released immediately, but it works and that's what matters.
-        std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-        sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull == false; });
+        ssize_t localRead{};
+        {
+            std::unique_lock<std::mutex> bufferLock(lock);
+            condition.wait(bufferLock, [&]() { return bufferReady == false; });
+
+            readSize  = sourceFile.read(sharedBuffer.get(), SIZE_FILE_BUFFER);
+            localRead = readSize;
+
+            bufferReady = true;
+            condition.notify_one();
+        }
+        if (localRead == -1) { break; }
+        i += localRead;
     }
 }
 
 void fs::copy_file(const fslib::Path &source,
                    const fslib::Path &destination,
+                   sys::ProgressTask *task,
                    uint64_t journalSize,
-                   std::string_view commitDevice,
-                   sys::ProgressTask *task)
+                   std::string_view commitDevice)
 {
-    fslib::File sourceFile(source, FsOpenMode_Read);
-    fslib::File destinationFile(destination, FsOpenMode_Create | FsOpenMode_Write, sourceFile.get_size());
-    if (!sourceFile || !destinationFile)
+    const char *statusTemplate     = strings::get_by_name(strings::names::IO_STATUSES, 0);
+    const char *popErrorCommitting = strings::get_by_name(strings::names::IO_POPS, 0);
+    const int popticks             = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+
+    fslib::File sourceFile{source, FsOpenMode_Read};
+    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, sourceFile.get_size()};
+    if (error::fslib(sourceFile.is_open()) || error::fslib(destFile.is_open())) { return; }
+
+    const bool needsCommits = journalSize > 0 && !commitDevice.empty();
+    const int64_t fileSize  = sourceFile.get_size();
+    if (task)
     {
-        logger::log("Error opening one of the files: %s", fslib::error::get_string());
-        return;
+        const std::string status = stringutil::get_formatted_string(statusTemplate, source.full_path());
+        task->set_status(status);
+        task->reset(static_cast<double>(fileSize));
     }
 
-    // Set status if task pointer was passed.
-    if (task) { task->set_status(strings::get_by_name(strings::names::IO_STATUSES, 0), source.full_path()); }
+    auto sharedData          = std::make_shared<FileThreadStruct>();
+    sharedData->sharedBuffer = std::make_unique<byte[]>(SIZE_FILE_BUFFER);
+    auto localBuffer         = std::make_unique<byte[]>(SIZE_FILE_BUFFER);
 
-    // Shared struct both threads use
-    std::shared_ptr<FileTransferStruct> sharedData(new FileTransferStruct);
-    sharedData->m_readBuffer = std::make_unique<unsigned char[]>(FILE_BUFFER_SIZE);
+    std::mutex &lock                      = sharedData->lock;
+    std::condition_variable &condition    = sharedData->condition;
+    bool &bufferReady                     = sharedData->bufferReady;
+    ssize_t &readSize                     = sharedData->readSize;
+    std::unique_ptr<byte[]> &sharedBuffer = sharedData->sharedBuffer;
 
-    // To do: Static thread or pool to avoid reallocating thread.
     std::thread readThread(readThreadFunction, std::ref(sourceFile), sharedData);
 
-    // This thread has a local buffer so the read thread can continue while this one writes.
-    std::unique_ptr<unsigned char[]> localBuffer(new unsigned char[FILE_BUFFER_SIZE]);
-
-    // Get file size for loop and set goal.
-    int64_t fileSize = sourceFile.get_size();
-    if (task) { task->reset(static_cast<double>(fileSize)); }
-
-    for (int64_t writeCount = 0, readCount = 0, journalCount = 0; writeCount < fileSize;)
+    int64_t journalCount{};
+    for (int64_t i = 0; i < fileSize; i++)
     {
+        ssize_t localRead{};
         {
-            // Wait for lock/signal.
-            std::unique_lock<std::mutex> m_bufferLock(sharedData->m_bufferLock);
-            sharedData->m_bufferCondition.wait(m_bufferLock, [&sharedData]() { return sharedData->m_bufferIsFull; });
+            std::unique_lock<std::mutex> bufferLock(lock);
+            condition.wait(bufferLock, [&]() { return bufferReady == true; });
 
-            // Record read count.
-            readCount = sharedData->m_readSize;
+            localRead = readSize;
+            if (localRead == -1) { break; }
 
-            // Copy shared to local.
-            std::memcpy(localBuffer.get(), sharedData->m_readBuffer.get(), readCount);
+            std::memcpy(localBuffer.get(), sharedBuffer.get(), localRead);
 
-            // Signal buffer was copied and release mutex.
-            sharedData->m_bufferIsFull = false;
-            sharedData->m_bufferCondition.notify_one();
+            bufferReady = false;
+            condition.notify_one();
         }
 
-        // Journaling size check. Breathing room is given.
-        if (journalSize != 0 && (journalCount + readCount) >= static_cast<int64_t>(journalSize) - 0x100000)
+        const bool commitNeeded = needsCommits && (journalCount + localRead) >= static_cast<int64_t>(journalSize);
+        if (commitNeeded)
         {
-            // Reset journal count.
-            journalCount = 0;
-            // Close destination file, commit.
-            destinationFile.close();
-
-            // Need to try to commit before going over the journaling space limit.
-            if (!fslib::commit_data_to_file_system(commitDevice))
+            destFile.close();
+            const bool commitError = error::fslib(fslib::commit_data_to_file_system(commitDevice));
+            if (commitError)
             {
-                logger::log(fslib::error::get_string());
-                // I guess break the loop here?
+                ui::PopMessageManager::push_message(popticks, popErrorCommitting);
                 break;
             }
 
-            // Reopen and seek to previous position since we created it with a size earlier.
-            destinationFile.open(destination, FsOpenMode_Append);
+            destFile.open(destination, FsOpenMode_Write);
+            destFile.seek(i, destFile.BEGINNING);
+
+            journalCount = 0;
         }
-
-        // Write to destination
-        destinationFile.write(localBuffer.get(), readCount);
-
-        // Update write and journal count.
-        writeCount += readCount;
-        journalCount += readCount;
-
-        // Update task if passed.
-        if (task) { task->update_current(static_cast<double>(writeCount)); }
+        // This should be checked. Not sure how yet...
+        destFile.write(localBuffer.get(), localRead);
+        i += localRead;
+        journalCount += localRead;
+        if (task) { task->update_current(static_cast<double>(i)); }
     }
 
-    // Close the destination for committing.
-    destinationFile.close();
-
-    // One last commit for good luck.
-    if (!fslib::commit_data_to_file_system(commitDevice)) { logger::log(fslib::error::get_string()); }
-
-    // Wait for read thread and free it.
     readThread.join();
+    destFile.close();
+
+    const bool commitError = needsCommits && error::fslib(fslib::commit_data_to_file_system(commitDevice));
+    if (commitError) { ui::PopMessageManager::push_message(popticks, popErrorCommitting); }
 }
 
 void fs::copy_directory(const fslib::Path &source,
                         const fslib::Path &destination,
+                        sys::ProgressTask *task,
                         uint64_t journalSize,
-                        std::string_view commitDevice,
-                        sys::ProgressTask *task)
+                        std::string_view commitDevice)
 {
-    fslib::Directory sourceDir(source);
-    if (!sourceDir)
-    {
-        logger::log("Error opening directory for reading: %s", fslib::error::get_string());
-        return;
-    }
+    fslib::Directory sourceDir{source};
+    if (error::fslib(sourceDir.is_open())) { return; }
 
-    for (int64_t i = 0; i < sourceDir.get_count(); i++)
+    const int64_t dirCount = sourceDir.get_count();
+    for (int64_t i = 0; i < dirCount; i++)
     {
+        const fslib::Path fullSource{source / sourceDir[i]};
+        const fslib::Path fullDest{destination / sourceDir[i]};
         if (sourceDir.is_directory(i))
         {
-            fslib::Path newSource      = source / sourceDir[i];
-            fslib::Path newDestination = destination / sourceDir[i];
-            // Try to create new destination folder and continue loop on failure.
-            if (!fslib::directory_exists(newDestination) && !fslib::create_directory(newDestination))
-            {
-                logger::log("Error creating new destination directory: %s", fslib::error::get_string());
-                continue;
-            }
-
-            fs::copy_directory(newSource, newDestination, journalSize, commitDevice, task);
+            const bool destExists  = fslib::directory_exists(fullDest);
+            const bool createError = !destExists && fslib::create_directory(fullDest);
+            if (!destExists && createError) { continue; }
+            fs::copy_directory(fullSource, fullDest, task, journalSize, commitDevice);
         }
-        else
-        {
-            fslib::Path fullSource      = source / sourceDir[i];
-            fslib::Path fullDestination = destination / sourceDir[i];
-            fs::copy_file(fullSource, fullDestination, journalSize, commitDevice, task);
-        }
+        else { fs::copy_file(fullSource, fullDest, task, journalSize, commitDevice); }
     }
 }

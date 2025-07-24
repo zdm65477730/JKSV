@@ -104,6 +104,24 @@ class BackupMenuState final : public BaseState
         /// @brief Inner render target so the menu only renders to a certain area.
         static inline sdl::SharedTexture sm_menuRenderTarget{};
 
+        /// @brief Initializes the static members all instances share if they haven't been already.
+        void initialize_static_members();
+
+        /// @brief Checks for and tries to create the target directory if it hasn't been already.
+        void ensure_target_directory();
+
+        /// @brief Initializes the struct passed to tasks.
+        void initialize_task_data();
+
+        /// @brief Init's the string at the top of the backupmenu.
+        void initialize_info_string();
+
+        /// @brief Checks to see if the save data is empty.
+        void save_data_check();
+
+        /// @brief Ensures the remote storage is initalized and pointing to the right place.
+        void initialize_remote_storage();
+
         /// @brief This is the function called when New Backup is selected.
         void name_and_create_backup();
 
@@ -121,21 +139,6 @@ class BackupMenuState final : public BaseState
 
         /// @brief Just creates the pop-up that says Save is empty or w/e.
         void pop_save_empty();
-
-        /// @brief Initializes the static members all instances share if they haven't been already.
-        void initialize_static_members();
-
-        /// @brief Checks for and tries to create the target directory if it hasn't been already.
-        void ensure_target_directory();
-
-        /// @brief Initializes the struct passed to tasks.
-        void initialize_task_data();
-
-        /// @brief Init's the string at the top of the backupmenu.
-        void initialize_info_string();
-
-        /// @brief Checks to see if the save data is empty.
-        void save_data_check();
 
         inline bool is_system_save_data()
         {

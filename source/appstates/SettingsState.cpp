@@ -175,6 +175,5 @@ const char *SettingsState::get_status_text(uint8_t value)
 const char *SettingsState::get_sort_type_text(uint8_t value)
 {
     if (value > 2) { return nullptr; }
-    logger::log("return string: %s", m_sortTypes[value]);
     return m_sortTypes[value];
 }

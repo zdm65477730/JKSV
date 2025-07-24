@@ -46,15 +46,9 @@ namespace
 } // namespace
 
 remote::GoogleDrive::GoogleDrive()
-    : Storage()
+    : Storage("[GD]", true)
 {
     static const char *STRING_ERROR_READING_CONFIG = "Error reading Google Drive config: %s";
-
-    // Google Drive doesn't really use directories, so UTF-8 is fine!
-    m_utf8Paths = true;
-
-    // Google Drive menu prefix.
-    m_prefix = "[GD] ";
 
     // Load the json file.
     json::Object clientJson = json::new_object(json_object_from_file, remote::PATH_GOOGLE_DRIVE_CONFIG.data());
@@ -149,9 +143,10 @@ bool remote::GoogleDrive::create_directory(std::string_view name)
     return true;
 }
 
-bool remote::GoogleDrive::upload_file(const fslib::Path &source)
+bool remote::GoogleDrive::upload_file(const fslib::Path &source, sys::ProgressTask *task)
 {
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
+    const char *statusTemplate = strings::get_by_name(strings::names::BACKUPMENU_STATUS, 1);
 
     fslib::File sourceFile(source, FsOpenMode_Read);
     if (!sourceFile)
@@ -172,7 +167,6 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
     json::Object postJson  = json::new_object(json_object_new_object);
     json_object *driveName = json_object_new_string(source.get_filename());
     json::add_object(postJson, JSON_KEY_NAME, driveName);
-    // Append the parent.
     if (!m_parent.empty())
     {
         json_object *parentArray = json_object_new_array();
@@ -181,9 +175,7 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
         json::add_object(postJson, JSON_KEY_PARENTS, parentArray);
     }
 
-    // This requires reading a header to get the upload location.
     curl::HeaderArray headerArray;
-
     curl::prepare_post(m_curl);
     curl::set_option(m_curl, CURLOPT_HTTPHEADER, headers.get());
     curl::set_option(m_curl, CURLOPT_HEADERFUNCTION, curl::write_header_array);
@@ -201,12 +193,20 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
         return false;
     }
 
+    if (task)
+    {
+        std::string status = stringutil::get_formatted_string(statusTemplate, source.full_path());
+        task->set_status(status);
+        task->reset(static_cast<double>(sourceFile.get_size()));
+    }
+
     std::string response;
+    curl::UploadStruct uploadData = {.source = &sourceFile, .task = task};
     // This is the actual upload. This doesn't need the authentication header to work for some reason?
     curl::prepare_upload(m_curl);
     curl::set_option(m_curl, CURLOPT_URL, location.c_str());
     curl::set_option(m_curl, CURLOPT_READFUNCTION, curl::read_data_from_file);
-    curl::set_option(m_curl, CURLOPT_READDATA, &sourceFile);
+    curl::set_option(m_curl, CURLOPT_READDATA, &uploadData);
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
     curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
 
@@ -240,11 +240,12 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source)
     return true;
 }
 
-bool remote::GoogleDrive::patch_file(remote::Item *file, const fslib::Path &source)
+bool remote::GoogleDrive::patch_file(remote::Item *file, const fslib::Path &source, sys::ProgressTask *task)
 {
     static const char *STRING_PATCH_ERROR = "Error patching file: %s";
 
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
+    const char *statusTemplate = strings::get_by_name(strings::names::BACKUPMENU_STATUS, 2);
 
     fslib::File sourceFile(source, FsOpenMode_Read);
     if (!sourceFile)
@@ -280,11 +281,20 @@ bool remote::GoogleDrive::patch_file(remote::Item *file, const fslib::Path &sour
         return false;
     }
 
+    if (task)
+    {
+        const std::string status = stringutil::get_formatted_string(statusTemplate, source.full_path());
+        task->set_status(status);
+        task->reset(static_cast<double>(sourceFile.get_size()));
+    }
+
     // For some reason, this doesn't need the auth header.
+    curl::UploadStruct uploadData = {.source = &sourceFile, .task = task};
+
     curl::prepare_upload(m_curl);
     curl::set_option(m_curl, CURLOPT_URL, location.c_str());
     curl::set_option(m_curl, CURLOPT_READFUNCTION, curl::read_data_from_file);
-    curl::set_option(m_curl, CURLOPT_READDATA, &sourceFile);
+    curl::set_option(m_curl, CURLOPT_READDATA, &uploadData);
 
     if (!curl::perform(m_curl)) { return false; }
 

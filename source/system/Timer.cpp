@@ -1,12 +1,10 @@
 #include "system/Timer.hpp"
-#include <SDL2/SDL.h>
 
 #include "logger.hpp"
 
-sys::Timer::Timer(uint64_t triggerTicks)
-{
-    Timer::start(triggerTicks);
-}
+#include <SDL2/SDL.h>
+
+sys::Timer::Timer(uint64_t triggerTicks) { Timer::start(triggerTicks); }
 
 void sys::Timer::start(uint64_t triggerTicks)
 {
@@ -22,10 +20,7 @@ bool sys::Timer::is_triggered()
     uint64_t currentTicks = SDL_GetTicks64();
 
     // Nope
-    if (currentTicks - m_startingTicks < m_triggerTicks)
-    {
-        return false;
-    }
+    if (currentTicks - m_startingTicks < m_triggerTicks) { return false; }
 
     // Reset starting ticks.
     m_startingTicks = currentTicks;
@@ -34,7 +29,4 @@ bool sys::Timer::is_triggered()
     return true;
 }
 
-void sys::Timer::restart()
-{
-    m_startingTicks = SDL_GetTicks64();
-}
+void sys::Timer::restart() { m_startingTicks = SDL_GetTicks64(); }

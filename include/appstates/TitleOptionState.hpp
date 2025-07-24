@@ -30,21 +30,17 @@ class TitleOptionState final : public BaseState
         /// @brief Signals to the main thread that a view refresh is required on the next update() call.
         void refresh_required();
 
-        /// @brief This is the struct used to pass data to the thread functions.
-        typedef struct
+        // clang-format off
+        struct DataStruct
         {
-                /// @brief Pointer to the target user.
-                data::User *m_user{};
+            data::User *user{};
+            data::TitleInfo *titleInfo{};
+            TitleOptionState *spawningState{};
+            TitleSelectCommon *titleSelect{};
+        };
+        // clang-format on
 
-                /// @brief The target title's data.
-                data::TitleInfo *m_titleInfo{};
-
-                /// @brief Allows tasks to signal deactivation.
-                TitleOptionState *m_spawningState{};
-
-                /// @brief The target title select. This is used for updating it.
-                TitleSelectCommon *m_titleSelect{};
-        } DataStruct;
+        using TaskData = std::shared_ptr<TitleOptionState::DataStruct>;
 
     private:
         /// @brief This is just in case the option should only apply to the current user.

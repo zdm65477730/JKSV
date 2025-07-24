@@ -1,9 +1,10 @@
 #include "ui/render_functions.hpp"
+
 #include "colors.hpp"
 
 namespace
 {
-    sdl::SharedTexture s_dialogCorners = nullptr;
+    sdl::SharedTexture s_dialogCorners       = nullptr;
     sdl::SharedTexture s_menuBoundingCorners = nullptr;
 } // namespace
 
@@ -11,8 +12,7 @@ void ui::render_dialog_box(SDL_Texture *target, int x, int y, int width, int hei
 {
     if (!s_dialogCorners)
     {
-        s_dialogCorners =
-            sdl::TextureManager::create_load_texture("DialogCorners", "romfs:/Textures/DialogCorners.png");
+        s_dialogCorners = sdl::TextureManager::create_load_texture("DialogCorners", "romfs:/Textures/DialogCorners.png");
     }
 
     // Top

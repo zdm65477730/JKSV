@@ -2,6 +2,8 @@
 #include "curl/curl.hpp"
 #include "fslib.hpp"
 #include "remote/Item.hpp"
+#include "system/ProgressTask.hpp"
+
 #include <ctime>
 #include <string>
 #include <vector>
@@ -17,8 +19,8 @@ namespace remote
             /// @brief This makes writing some stuff for these classes way easier.
             using List = std::vector<remote::Item>;
 
-            /// @brief This just allocates the curl::Handle.
-            Storage();
+            /// @brief This just allocates the curl::Handle. Never mind.
+            Storage(std::string_view prefix, bool supportsUtf8 = false);
 
             /// @brief Returns whether or not the Storage type was successfully. initialized.
             bool is_initialized() const;
@@ -33,11 +35,11 @@ namespace remote
 
             /// @brief This allows the root to be set to something other than what it originally was at construction.
             /// @param root Item to be used as the new root.
-            void set_root_directory(remote::Item *root);
+            void set_root_directory(const remote::Item *root);
 
             /// @brief Changes the current parent directory.
             /// @param Item Item to use as the current parent directory.
-            void change_directory(remote::Item *item);
+            void change_directory(const remote::Item *item);
 
             /// @brief Creates a directory in the current parent directory.
             /// @param name Name of the directory to create.
@@ -59,12 +61,12 @@ namespace remote
 
             /// @brief Uploads a file from the SD card to the remote.
             /// @param source Path to the file to upload.
-            virtual bool upload_file(const fslib::Path &source) = 0;
+            virtual bool upload_file(const fslib::Path &source, sys::ProgressTask *task = nullptr) = 0;
 
             /// @brief Patches or updates a file on the remote.
             /// @param item Item to be updated.
             /// @param source Path to the file to update with.
-            virtual bool patch_file(remote::Item *file, const fslib::Path &source) = 0;
+            virtual bool patch_file(remote::Item *file, const fslib::Path &source, sys::ProgressTask *task = nullptr) = 0;
 
             /// @brief Downloads a file from the remote.
             /// @param item Item to download.
@@ -94,26 +96,26 @@ namespace remote
             /// @brief This is the size used for uploads.
             static constexpr size_t SIZE_UPLOAD_BUFFER = 0x10000;
 
-            /// @brief This allows JKSV to know whether or not the storage type supports UTF-8.
-            bool m_utf8Paths = false;
-
-            /// @brief This stores whether or not the instance was initialized successfully.
-            bool m_isInitialized = false;
-
-            /// @brief This is the root directory of the remote storage.
-            std::string m_root;
-
-            /// @brief This stores the current parent.
-            std::string m_parent;
-
             /// @brief Curl handle.
             curl::Handle m_curl;
 
-            /// @brief This is the main remote listing.
-            Storage::List m_list;
+            /// @brief This allows JKSV to know whether or not the storage type supports UTF-8.
+            bool m_utf8Paths{};
 
             /// @brief This is the prefix used for menus.
-            std::string m_prefix;
+            std::string m_prefix{};
+
+            /// @brief This stores whether or not the instance was initialized successfully.
+            bool m_isInitialized{};
+
+            /// @brief This is the root directory of the remote storage.
+            std::string m_root{};
+
+            /// @brief This stores the current parent.
+            std::string m_parent{};
+
+            /// @brief This is the main remote listing.
+            Storage::List m_list{};
 
             /// @brief Searches the list for a directory matching name and the current parent.
             /// @param name Name to search for.

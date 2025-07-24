@@ -1,4 +1,6 @@
 #pragma once
+#include "fs/MiniUnzip.hpp"
+#include "fs/MiniZip.hpp"
 #include "fs/SaveMetaData.hpp"
 #include "fs/directory_functions.hpp"
 #include "fs/io.hpp"

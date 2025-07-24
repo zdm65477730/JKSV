@@ -14,11 +14,13 @@
         "3: Error opening ZIP file for reading!",
         "4: Error occurred deleting backup!",
         "5: Error creating backup!",
-        "6: Writing to system is disabled!"
+        "6: Writing to system is disabled!",
+        "7: Unable to open zip for reading!"
     ],
     "BackupMenuStatus": [
         "0: Processing save data meta file...",
-        "1: Uploading #%s# to remote storage..."
+        "1: Uploading #%s# to remote storage...",
+        "2: Updating #%s# on remote storage..."
     ],
     "ControlGuides": [
         "0: [A] Select   [Y] Dump All Saves   [X] User Options",
@@ -37,7 +39,7 @@
     ],
     "ExtrasPops": [
         "0: Data reinitialized!",
-        "1: Data reinitialization failed"
+        "1: Data reinitialization failed!"
     ],
     "GeneralPops": [
         "0: Unable to exit JKSV while tasks are running!"
@@ -57,6 +59,9 @@
         "1: Compressing #%s# to ZIP...",
         "2: Decompressing #%s# from ZIP...",
         "3: Deleting #%s#..."
+    ],
+    "IOPops": [
+        "0: Error committing data to device!"
     ],
     "KeyboardStrings": [
         "0: Enter a new backup name.",
@@ -159,7 +164,9 @@
         "6: This option is unavailable for system saves!",
         "7: Could not sanitize path for use!",
         "8: Output folder set to #%s#.",
-        "9: Error setting new output path!"
+        "9: Error setting new output path!",
+        "10: Save data successfully extended!",
+        "11: Save data extension failed!"
     ],
     "TitleOptionStatus": [
         "0: Deleting all backups for #%s#.",

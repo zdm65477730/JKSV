@@ -1,4 +1,5 @@
 #include "stringutil.hpp"
+
 #include <algorithm>
 #include <array>
 #include <cstdarg>
@@ -47,15 +48,12 @@ void stringutil::strip_character(char c, std::string &target)
 
 bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut, size_t stringOutSize)
 {
-    uint32_t codepoint = 0;
+    uint32_t codepoint  = 0;
     size_t stringLength = std::strlen(stringIn);
     for (size_t i = 0, stringOutOffset = 0; i < stringLength;)
     {
         ssize_t unitCount = decode_utf8(&codepoint, reinterpret_cast<const uint8_t *>(&stringIn[i]));
-        if (unitCount <= 0 || i + unitCount >= stringOutSize)
-        {
-            break;
-        }
+        if (unitCount <= 0 || i + unitCount >= stringOutSize) { break; }
 
         if (codepoint < 0x20 || codepoint > 0x7E)
         {
@@ -69,13 +67,11 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
         {
             stringOut[stringOutOffset++] = 0x20;
         }
-        else if (codepoint == L'é')
-        {
-            stringOut[stringOutOffset++] = 'e';
-        }
+        else if (codepoint == L'é') { stringOut[stringOutOffset++] = 'e'; }
         else
         {
-            // Just memcpy it over. This is a safety thing to be honest. Since it's only Ascii allowed, unitcount should only be 1.
+            // Just memcpy it over. This is a safety thing to be honest. Since it's only Ascii allowed, unitcount should only
+            // be 1.
             std::memcpy(&stringOut[stringOutOffset], &stringIn[i], static_cast<size_t>(unitCount));
             stringOutOffset += unitCount;
         }

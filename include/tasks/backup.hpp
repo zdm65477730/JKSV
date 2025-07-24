@@ -12,7 +12,8 @@ namespace tasks
                                data::User *user,
                                data::TitleInfo *titleInfo,
                                fslib::Path target,
-                               BackupMenuState *spawningState);
+                               BackupMenuState *spawningState,
+                               bool killTask = true);
 
         /// @brief Overwrites a pre-existing backup.
         void overwrite_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskData);

@@ -1,12 +1,17 @@
 #include "logger.hpp"
+
 #include "config.hpp"
 #include "fslib.hpp"
+
 #include <cstdarg>
+#include <mutex>
 
 namespace
 {
     /// @brief This is the path to the log file.
-    fslib::Path s_logFilePath;
+    fslib::Path s_logFilePath{};
+
+    std::mutex s_logLock{};
 
     /// @brief This is the buffer size for log strings.
     constexpr size_t VA_BUFFER_SIZE = 0x1000;
@@ -30,9 +35,8 @@ void logger::log(const char *format, ...)
     vsnprintf(vaBuffer, VA_BUFFER_SIZE, format, vaList);
     va_end(vaList);
 
+    std::scoped_lock<std::mutex> logLock(s_logLock);
     fslib::File logFile(s_logFilePath, FsOpenMode_Append);
     logFile << vaBuffer << "\n";
-
-    // Always flush to guarantee output.
     logFile.flush();
 }

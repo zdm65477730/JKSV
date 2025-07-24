@@ -5,16 +5,17 @@
 #include "appstates/ProgressState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
-#include "logger.hpp"
 #include "remote/remote.hpp"
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
 #include "system/system.hpp"
+#include "tasks/backup.hpp"
 #include "ui/PopMessageManager.hpp"
 #include "ui/TextScroll.hpp"
 
@@ -26,28 +27,12 @@ namespace
     constexpr size_t SIZE_NAME_LENGTH = 0x80;
 
     /// @brief This is just so there isn't random .zip comparisons everywhere.
-    const char *STRING_ZIP_EXTENSION = ".zip";
+    constexpr const char *STRING_ZIP_EXT = ".zip";
 
     // These make some things cleaner and easier to type.
     using TaskConfirm     = ConfirmState<sys::Task, TaskState, BackupMenuState::DataStruct>;
     using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, BackupMenuState::DataStruct>;
 } // namespace
-
-// Declarations here. Definitions after class.
-// Create new backup in targetPath
-static void create_new_backup(sys::ProgressTask *task,
-                              data::User *user,
-                              data::TitleInfo *titleInfo,
-                              fslib::Path targetPath,
-                              BackupMenuState *spawningState);
-// Overwrites and existing backup.
-static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct);
-// Restores a backup and requires confirmation to do so. Takes a shared_ptr to a TargetStruct.
-static void restore_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct);
-// Deletes a backup and requires confirmation to do so. Takes a shared_ptr to a TargetStruct.
-static void delete_backup(sys::Task *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct);
-// Uploads a backup to the remote server.
-static void upload_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct);
 
 BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo)
     : m_user(user)
@@ -60,6 +45,7 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo)
 {
     BackupMenuState::initialize_static_members();
     BackupMenuState::ensure_target_directory();
+    BackupMenuState::initialize_remote_storage();
     BackupMenuState::initialize_task_data();
     BackupMenuState::initialize_info_string();
     BackupMenuState::save_data_check();
@@ -130,6 +116,7 @@ void BackupMenuState::render()
 
 void BackupMenuState::refresh()
 {
+    remote::Storage *remote = remote::get_remote_storage();
     m_directoryListing.open(m_directoryPath);
     if (!m_directoryListing) { return; }
 
@@ -138,7 +125,23 @@ void BackupMenuState::refresh()
 
     sm_backupMenu->add_option(strings::get_by_name(strings::names::BACKUPMENU_MENU, 0));
     m_menuEntries.push_back({MenuEntryType::Null, 0});
-    for (int64_t i = 0; i < m_directoryListing.get_count(); i++)
+
+    if (remote && remote->is_initialized())
+    {
+        const std::string_view prefix             = remote->get_prefix();
+        remote::Storage::DirectoryListing listing = remote->get_directory_listing();
+        int index{};
+        for (const remote::Item *item : listing)
+        {
+            const std::string_view name = item->get_name();
+            const std::string option    = stringutil::get_formatted_string("%s %s", prefix.data(), name.data());
+            sm_backupMenu->add_option(option);
+            m_menuEntries.push_back({MenuEntryType::Remote, index++});
+        }
+    }
+
+    const int64_t listingCount = m_directoryListing.get_count();
+    for (int64_t i = 0; i < listingCount; i++)
     {
         sm_backupMenu->add_option(m_directoryListing[i]);
         m_menuEntries.push_back({MenuEntryType::Local, static_cast<int>(i)});
@@ -148,103 +151,6 @@ void BackupMenuState::refresh()
 void BackupMenuState::save_data_written()
 {
     if (!m_saveHasData) { m_saveHasData = true; }
-}
-
-void BackupMenuState::name_and_create_backup()
-{
-    const bool autoName             = config::get_by_key(config::keys::AUTO_NAME_BACKUPS);
-    const bool exportZip            = config::get_by_key(config::keys::EXPORT_TO_ZIP);
-    const bool autoUpload           = config::get_by_key(config::keys::AUTO_UPLOAD);
-    const bool zrHeld               = input::button_held(HidNpadButton_ZR);
-    const char *keyboardHeader      = strings::get_by_name(strings::names::KEYBOARD, 0);
-    const bool autoNamed            = (autoName || zrHeld); // This can be eval'd here.
-    char name[SIZE_NAME_LENGTH + 1] = {0};
-
-    std::snprintf(name, SIZE_NAME_LENGTH, "%s - %s", m_user->get_path_safe_nickname(), stringutil::get_date_string().c_str());
-
-    const bool named = autoNamed || keyboard::get_input(SwkbdType_QWERTY, name, keyboardHeader, name, SIZE_NAME_LENGTH);
-    if (!named) { return; }
-
-    fslib::Path target{m_directoryPath / name};
-    const bool hasZipExt = std::strstr(target.full_path(), ".zip"); // This might not be the best check.
-    if ((exportZip || autoUpload) && !hasZipExt) { target += ".zip"; }
-    else if (!exportZip && !autoUpload && !hasZipExt)
-    {
-        const bool targetExists  = fslib::directory_exists(target);
-        const bool targetCreated = !targetExists && fslib::create_directory(target);
-    }
-    auto newBackupTask = std::make_shared<ProgressState>(create_new_backup, m_user, m_titleInfo, target, this);
-    StateManager::push_state(newBackupTask);
-}
-
-void BackupMenuState::confirm_overwrite()
-{
-    const int selected          = sm_backupMenu->get_selected();
-    const MenuEntry &entry      = m_menuEntries.at(selected);
-    const bool holdRequired     = config::get_by_key(config::keys::HOLD_FOR_OVERWRITE);
-    const char *confirmTemplate = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 0);
-    m_dataStruct->path          = m_directoryPath / m_directoryListing[entry.index];
-
-    const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
-    auto confirm            = std::make_shared<ProgressConfirm>(query, holdRequired, overwrite_backup, m_dataStruct);
-    StateManager::push_state(confirm);
-}
-
-void BackupMenuState::confirm_restore()
-{
-    const int selected           = sm_backupMenu->get_selected();
-    const MenuEntry &entry       = m_menuEntries.at(selected);
-    const int popTicks           = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
-    const bool holdRequired      = config::get_by_key(config::keys::HOLD_FOR_RESTORATION);
-    const char *confirmTemplate  = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 1);
-    const char *popBackupEmpty   = strings::get_by_name(strings::names::BACKUPMENU_POPS, 1);
-    const char *popSysNotAllowed = strings::get_by_name(strings::names::BACKUPMENU_POPS, 6);
-
-    const bool isSystem       = BackupMenuState::is_system_save_data();
-    const bool allowSystem    = config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM);
-    const bool isValidRestore = !isSystem || allowSystem;
-    if (!isValidRestore)
-    {
-        ui::PopMessageManager::push_message(popTicks, popSysNotAllowed);
-        return;
-    }
-
-    const fslib::Path target     = m_directoryPath / m_directoryListing[entry.index];
-    const bool targetIsDirectory = fslib::directory_exists(target);
-    const bool backupIsGood      = targetIsDirectory ? fs::directory_has_contents(target) : fs::zip_has_contents(target);
-    if (!backupIsGood)
-    {
-        ui::PopMessageManager::push_message(popTicks, popBackupEmpty);
-        return;
-    }
-
-    m_dataStruct->path      = target;
-    const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
-    auto confirm            = std::make_shared<ProgressConfirm>(query, holdRequired, restore_backup, m_dataStruct);
-    StateManager::push_state(confirm);
-}
-
-void BackupMenuState::confirm_delete()
-{
-    const int selected          = sm_backupMenu->get_selected();
-    const MenuEntry &entry      = m_menuEntries.at(selected);
-    const bool holdRequired     = config::get_by_key(config::keys::HOLD_FOR_DELETION);
-    const char *confirmTemplate = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 2);
-    m_dataStruct->path          = m_directoryPath / m_directoryListing[entry.index];
-
-    const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
-    auto confirm            = std::make_shared<TaskConfirm>(query, holdRequired, delete_backup, m_dataStruct);
-
-    StateManager::push_state(confirm);
-}
-
-void BackupMenuState::upload_backup() {}
-
-void BackupMenuState::pop_save_empty()
-{
-    const int ticks      = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
-    const char *popEmpty = strings::get_by_name(strings::names::BACKUPMENU_POPS, 0);
-    ui::PopMessageManager::push_message(ticks, popEmpty);
 }
 
 void BackupMenuState::initialize_static_members()
@@ -287,256 +193,126 @@ void BackupMenuState::save_data_check()
     m_saveHasData = saveRoot.get_count() > 0;
 }
 
-// This is the function to create new backups.
-static void create_new_backup(sys::ProgressTask *task,
-                              data::User *user,
-                              data::TitleInfo *titleInfo,
-                              fslib::Path targetPath,
-                              BackupMenuState *spawningState)
+void BackupMenuState::initialize_remote_storage()
 {
-    // SaveMeta
-    FsSaveDataInfo *saveInfo = user->get_save_info_by_id(titleInfo->get_application_id());
-    if (!saveInfo)
-    {
-        logger::log("Error retrieving save data information for %016lX.", titleInfo->get_application_id());
-        task->finished();
-        return;
-    }
-
-    // I got tired of typing out the cast.
-    fs::SaveMetaData saveMeta;
-    bool hasMeta = fs::fill_save_meta_data(saveInfo, saveMeta);
-
-    // This extension search is lazy and needs to be revised.
-    if (config::get_by_key(config::keys::EXPORT_TO_ZIP) || std::strstr(targetPath.full_path(), "zip"))
-    {
-        zipFile newBackup = zipOpen64(targetPath.full_path(), APPEND_STATUS_CREATE);
-        if (!newBackup)
-        {
-            // To do: Pop up.
-            logger::log("Error opening zip for backup.");
-            task->finished();
-            return;
-        }
-
-        if (hasMeta)
-        {
-            // Data for save meta.
-            zip_fileinfo saveMetaInfo;
-            fs::create_zip_fileinfo(saveMetaInfo);
-
-            // Write meta to zip.
-            int zipError = zipOpenNewFileInZip64(newBackup,
-                                                 fs::NAME_SAVE_META.data(),
-                                                 &saveMetaInfo,
-                                                 NULL,
-                                                 0,
-                                                 NULL,
-                                                 0,
-                                                 NULL,
-                                                 Z_DEFLATED,
-                                                 config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL),
-                                                 0);
-            if (zipError == ZIP_OK)
-            {
-                zipWriteInFileInZip(newBackup, &saveMeta, sizeof(fs::SaveMetaData));
-                zipCloseFileInZip(newBackup);
-            }
-        }
-        fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, newBackup, task);
-        zipClose(newBackup, NULL);
-    }
-    else
-    {
-        {
-            fslib::Path saveMetaPath = targetPath / fs::NAME_SAVE_META;
-            fslib::File saveMetaOut(saveMetaPath, FsOpenMode_Create | FsOpenMode_Write, sizeof(fs::SaveMetaData));
-            if (saveMetaOut && hasMeta) { saveMetaOut.write(&saveMeta, sizeof(fs::SaveMetaData)); }
-        }
-        fs::copy_directory(fs::DEFAULT_SAVE_ROOT, targetPath, 0, {}, task);
-    }
-
-    // Refresh.
-    spawningState->refresh();
-
-    task->finished();
-}
-
-static void overwrite_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct)
-{
-    // I hate typing this stuff over and over.
-    static const char *STRING_ERROR_PREFIX = "Error overwriting backup: %s";
-
-    // Might need this later.
-    FsSaveDataInfo *saveInfo = dataStruct->user->get_save_info_by_id(dataStruct->titleInfo->get_application_id());
-
-    // Wew this is a fun one to read, but it takes care of everything in one go.
-    if ((fslib::directory_exists(dataStruct->path) && !fslib::delete_directory_recursively(dataStruct->path)) ||
-        (fslib::file_exists(dataStruct->path) && !fslib::delete_file(dataStruct->path)))
-    {
-        logger::log(STRING_ERROR_PREFIX, fslib::error::get_string());
-        task->finished();
-        return;
-    }
-
-    // Gonna need a new save meta.
-    fs::SaveMetaData meta;
-    bool hasMeta = fs::fill_save_meta_data(saveInfo, meta);
-
-    if (std::strstr(STRING_ZIP_EXTENSION, dataStruct->path.full_path()))
-    {
-        zipFile backupZip = zipOpen64(dataStruct->path.full_path(), APPEND_STATUS_CREATE);
-        if (!backupZip)
-        {
-            logger::log("Error overwriting backup: Couldn't create new zip!");
-            task->finished();
-            return;
-        }
-
-        // Need the zip info for the meta.
-        if (hasMeta)
-        {
-            zip_fileinfo saveMetaInfo;
-            fs::create_zip_fileinfo(saveMetaInfo);
-
-            int zipError = zipOpenNewFileInZip64(backupZip,
-                                                 fs::NAME_SAVE_META.data(),
-                                                 &saveMetaInfo,
-                                                 NULL,
-                                                 0,
-                                                 NULL,
-                                                 0,
-                                                 NULL,
-                                                 Z_DEFLATED,
-                                                 config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL),
-                                                 0);
-            if (zipError == ZIP_OK)
-            {
-                zipWriteInFileInZip(backupZip, &meta, sizeof(fs::SaveMetaData));
-                zipCloseFileInZip(backupZip);
-            }
-        }
-
-        fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, backupZip, task);
-        zipClose(backupZip, NULL);
-    } // I hope this check works for making sure this is a folder
-    else if (dataStruct->path.get_extension() == nullptr && fslib::create_directory(dataStruct->path))
-    {
-        // Write this quick.
-        {
-            fslib::Path metaPath = dataStruct->path / fs::NAME_SAVE_META;
-            fslib::File metaFile(metaPath, FsOpenMode_Create | FsOpenMode_Write, sizeof(fs::SaveMetaData));
-            if (metaFile && hasMeta) { metaFile.write(&meta, sizeof(fs::SaveMetaData)); }
-        }
-
-        fs::copy_directory(fs::DEFAULT_SAVE_ROOT, dataStruct->path, 0, {}, task);
-    }
-    task->finished();
-}
-
-static void restore_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct)
-{
-    // Going to need this later.
-    FsSaveDataInfo *saveInfo = dataStruct->user->get_save_info_by_id(dataStruct->titleInfo->get_application_id());
-    if (!saveInfo)
-    {
-        // To do: Log this.
-        task->finished();
-        return;
-    }
-
-    // Wipe the save root first. Forgot to commit the changes before. Oops.
-    if (!fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT) ||
-        !fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT))
-    {
-        logger::log("Error restoring save: %s", fslib::error::get_string());
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::BACKUPMENU_POPS, 2));
-        task->finished();
-        return;
-    }
-
-    if (fslib::directory_exists(dataStruct->path))
-    {
-        {
-            // Process the save meta if it's there.
-            fs::SaveMetaData meta    = {0};
-            fslib::Path saveMetaPath = dataStruct->path / fs::NAME_SAVE_META;
-            fslib::File saveMetaFile(saveMetaPath, FsOpenMode_Read);
-            if (saveMetaFile && saveMetaFile.read(&meta, sizeof(fs::SaveMetaData)) == sizeof(fs::SaveMetaData))
-            {
-                // Set this so at least the user knows something is going on. Extending saves can take a decent chunk of
-                // time.
-                task->set_status(strings::get_by_name(strings::names::BACKUPMENU_STATUS, 0));
-                fs::process_save_meta_data(saveInfo, meta);
-            }
-        }
-
-        fs::copy_directory(dataStruct->path, fs::DEFAULT_SAVE_ROOT, 0, fs::DEFAULT_SAVE_MOUNT, task);
-    }
-    else if (std::strstr(dataStruct->path.full_path(), ".zip") != NULL)
-    {
-        unzFile targetZip = unzOpen64(dataStruct->path.full_path());
-        if (!targetZip)
-        {
-            ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                                strings::get_by_name(strings::names::BACKUPMENU_POPS, 3));
-            logger::log("Error opening zip for reading.");
-            task->finished();
-            return;
-        }
-
-        {
-            // I'm not sure if this is risky or not. Guess we'll find out...
-            fs::SaveMetaData meta = {0};
-            // The locate_file_in_zip should pinpoint the meta file.
-            if (fs::locate_file_in_zip(targetZip, fs::NAME_SAVE_META) && unzOpenCurrentFile(targetZip) == UNZ_OK &&
-                unzReadCurrentFile(targetZip, &meta, sizeof(fs::SaveMetaData)) == sizeof(fs::SaveMetaData))
-            {
-                task->set_status(strings::get_by_name(strings::names::BACKUPMENU_STATUS, 0));
-                fs::process_save_meta_data(saveInfo, meta);
-            }
-        }
-
-        fs::copy_zip_to_directory(targetZip, fs::DEFAULT_SAVE_ROOT, 0, fs::DEFAULT_SAVE_MOUNT, task);
-        unzClose(targetZip);
-    }
-    else { fs::copy_file(dataStruct->path, fs::DEFAULT_SAVE_ROOT, 0, fs::DEFAULT_SAVE_MOUNT, task); }
-
-    // Update this just in case.
-    dataStruct->spawningState->save_data_written();
-
-    task->finished();
-}
-
-static void delete_backup(sys::Task *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct)
-{
-    if (task) { task->set_status(strings::get_by_name(strings::names::IO_STATUSES, 3), dataStruct->path.full_path()); }
-
-    if (fslib::directory_exists(dataStruct->path) && !fslib::delete_directory_recursively(dataStruct->path))
-    {
-        logger::log("Error deleting folder backup: %s", fslib::error::get_string());
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::BACKUPMENU_POPS, 4));
-    }
-    else if (fslib::file_exists(dataStruct->path) && !fslib::delete_file(dataStruct->path))
-    {
-        logger::log("Error deleting backup: %s", fslib::error::get_string());
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::BACKUPMENU_POPS, 4));
-    }
-    dataStruct->spawningState->refresh();
-    task->finished();
-}
-
-static void upload_backup(sys::ProgressTask *task, std::shared_ptr<BackupMenuState::DataStruct> dataStruct)
-{
-    if (task) { task->set_status(strings::get_by_name(strings::names::BACKUPMENU_STATUS, 1), dataStruct->path.get_filename()); }
-
-    // To do: This but flashier.
     remote::Storage *remote = remote::get_remote_storage();
+    if (error::is_null(remote) || !remote->is_initialized()) { return; }
 
-    remote->upload_file(dataStruct->path);
+    const bool supportsUtf8            = remote->supports_utf8();
+    const std::string_view remoteTitle = supportsUtf8 ? m_titleInfo->get_title() : m_titleInfo->get_path_safe_title();
+    const bool remoteDirExists         = remote->directory_exists(remoteTitle);
+    const bool remoteDirCreated        = !remoteDirExists && remote->create_directory(remoteTitle);
+    if (!remoteDirExists && !remoteDirCreated) { return; }
 
-    task->finished();
+    const remote::Item *remoteDir = remote->get_directory_by_name(remoteTitle);
+    if (!remoteDir) { return; }
+
+    remote->change_directory(remoteDir);
+}
+
+void BackupMenuState::name_and_create_backup()
+{
+    const bool autoName  = config::get_by_key(config::keys::AUTO_NAME_BACKUPS);
+    const bool exportZip = config::get_by_key(config::keys::EXPORT_TO_ZIP) || config::get_by_key(config::keys::AUTO_UPLOAD);
+    const bool zrHeld    = input::button_held(HidNpadButton_ZR);
+    const char *keyboardHeader      = strings::get_by_name(strings::names::KEYBOARD, 0);
+    const bool autoNamed            = (autoName || zrHeld); // This can be eval'd here.
+    char name[SIZE_NAME_LENGTH + 1] = {0};
+
+    std::snprintf(name, SIZE_NAME_LENGTH, "%s - %s", m_user->get_path_safe_nickname(), stringutil::get_date_string().c_str());
+
+    const bool named = autoNamed || keyboard::get_input(SwkbdType_QWERTY, name, keyboardHeader, name, SIZE_NAME_LENGTH);
+    if (!named) { return; }
+
+    fslib::Path target{m_directoryPath / name};
+    const bool hasZipExt = std::strstr(target.full_path(), STRING_ZIP_EXT); // This might not be the best check.
+    if (exportZip && !hasZipExt) { target += STRING_ZIP_EXT; }
+    else if (!exportZip && !hasZipExt)
+    {
+        const bool targetExists  = fslib::directory_exists(target);
+        const bool targetCreated = !targetExists && fslib::create_directory(target);
+    }
+    auto newBackupTask =
+        std::make_shared<ProgressState>(tasks::backup::create_new_backup, m_user, m_titleInfo, target, this, true);
+    StateManager::push_state(newBackupTask);
+}
+
+void BackupMenuState::confirm_overwrite()
+{
+    const int selected          = sm_backupMenu->get_selected();
+    const MenuEntry &entry      = m_menuEntries.at(selected);
+    const bool holdRequired     = config::get_by_key(config::keys::HOLD_FOR_OVERWRITE);
+    const char *confirmTemplate = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 0);
+    m_dataStruct->path          = m_directoryPath / m_directoryListing[entry.index];
+
+    const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
+    auto confirm = std::make_shared<ProgressConfirm>(query, holdRequired, tasks::backup::overwrite_backup, m_dataStruct);
+    StateManager::push_state(confirm);
+}
+
+void BackupMenuState::confirm_restore()
+{
+    const int selected           = sm_backupMenu->get_selected();
+    const MenuEntry &entry       = m_menuEntries.at(selected);
+    const int popTicks           = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const bool holdRequired      = config::get_by_key(config::keys::HOLD_FOR_RESTORATION);
+    const char *confirmTemplate  = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 1);
+    const char *popBackupEmpty   = strings::get_by_name(strings::names::BACKUPMENU_POPS, 1);
+    const char *popSysNotAllowed = strings::get_by_name(strings::names::BACKUPMENU_POPS, 6);
+
+    const bool isSystem       = BackupMenuState::is_system_save_data();
+    const bool allowSystem    = config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM);
+    const bool isValidRestore = !isSystem || allowSystem;
+    if (!isValidRestore)
+    {
+        ui::PopMessageManager::push_message(popTicks, popSysNotAllowed);
+        return;
+    }
+
+    const fslib::Path target     = m_directoryPath / m_directoryListing[entry.index];
+    const bool targetIsDirectory = fslib::directory_exists(target);
+    const bool backupIsGood      = targetIsDirectory ? fs::directory_has_contents(target) : fs::zip_has_contents(target);
+    if (!backupIsGood)
+    {
+        ui::PopMessageManager::push_message(popTicks, popBackupEmpty);
+        return;
+    }
+
+    m_dataStruct->path      = target;
+    const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
+    auto confirm = std::make_shared<ProgressConfirm>(query, holdRequired, tasks::backup::restore_backup, m_dataStruct);
+    StateManager::push_state(confirm);
+}
+
+void BackupMenuState::confirm_delete()
+{
+    const int selected          = sm_backupMenu->get_selected();
+    const MenuEntry &entry      = m_menuEntries.at(selected);
+    const bool holdRequired     = config::get_by_key(config::keys::HOLD_FOR_DELETION);
+    const char *confirmTemplate = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 2);
+    m_dataStruct->path          = m_directoryPath / m_directoryListing[entry.index];
+
+    const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
+    auto confirm            = std::make_shared<TaskConfirm>(query, holdRequired, tasks::backup::delete_backup, m_dataStruct);
+
+    StateManager::push_state(confirm);
+}
+
+void BackupMenuState::upload_backup()
+{
+    const int selected     = sm_backupMenu->get_selected();
+    const MenuEntry &entry = m_menuEntries.at(selected);
+    if (entry.type != BackupMenuState::MenuEntryType::Local) { return; }
+
+    m_dataStruct->path = m_directoryPath / m_directoryListing[entry.index];
+
+    auto upload = std::make_shared<ProgressState>(tasks::backup::upload_backup, m_dataStruct);
+    StateManager::push_state(upload);
+}
+
+void BackupMenuState::pop_save_empty()
+{
+    const int ticks      = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const char *popEmpty = strings::get_by_name(strings::names::BACKUPMENU_POPS, 0);
+    ui::PopMessageManager::push_message(ticks, popEmpty);
 }

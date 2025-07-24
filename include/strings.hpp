@@ -23,6 +23,7 @@ namespace strings
         static constexpr std::string_view GOOGLE_DRIVE          = "GoogleDriveStrings";
         static constexpr std::string_view HOLDING_STRINGS       = "HoldingStrings";
         static constexpr std::string_view IO_STATUSES           = "IOStatuses";
+        static constexpr std::string_view IO_POPS               = "IOPops";
         static constexpr std::string_view KEYBOARD              = "KeyboardStrings";
         static constexpr std::string_view ON_OFF                = "OnOff";
         static constexpr std::string_view SAVECREATE_POPS       = "SaveCreatePops";

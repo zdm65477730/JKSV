@@ -26,10 +26,7 @@ void StateManager::update()
     }
 
     // Check if the back has focus. It should always have it.
-    if (!instance.sm_stateVector.back()->has_focus())
-    {
-        instance.sm_stateVector.back()->give_focus();
-    }
+    if (!instance.sm_stateVector.back()->has_focus()) { instance.sm_stateVector.back()->give_focus(); }
 
     // Only call update on the back.
     instance.sm_stateVector.back()->update();
@@ -41,10 +38,7 @@ void StateManager::render()
     StateManager &instance = StateManager::get_instance();
 
     // Loop and render all states.
-    for (std::shared_ptr<BaseState> &appState : instance.sm_stateVector)
-    {
-        appState->render();
-    }
+    for (std::shared_ptr<BaseState> &appState : instance.sm_stateVector) { appState->render(); }
 }
 
 bool StateManager::back_is_closable()
@@ -53,10 +47,7 @@ bool StateManager::back_is_closable()
     StateManager &instance = StateManager::get_instance();
 
     // Not too sure how to handle this yet.
-    if (instance.sm_stateVector.empty())
-    {
-        return false;
-    }
+    if (instance.sm_stateVector.empty()) { return false; }
 
     // Just return this.
     return instance.sm_stateVector.back()->is_closable();
@@ -68,10 +59,7 @@ void StateManager::push_state(std::shared_ptr<BaseState> newState)
     StateManager &instance = StateManager::get_instance();
 
     // Take focus from the current back()
-    if (!instance.sm_stateVector.empty())
-    {
-        instance.sm_stateVector.back()->take_focus();
-    }
+    if (!instance.sm_stateVector.empty()) { instance.sm_stateVector.back()->take_focus(); }
 
     // Give the incoming state focus and then push it.
     newState->give_focus();

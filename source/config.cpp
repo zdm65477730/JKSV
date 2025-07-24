@@ -1,7 +1,9 @@
 #include "config.hpp"
+
 #include "JSON.hpp"
 #include "logger.hpp"
 #include "stringutil.hpp"
+
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
@@ -45,10 +47,7 @@ static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *arr
     for (size_t i = 0; i < arrayLength; i++)
     {
         json_object *arrayEntry = json_object_array_get_idx(array, i);
-        if (!arrayEntry)
-        {
-            continue;
-        }
+        if (!arrayEntry) { continue; }
         vector.push_back(std::strtoull(json_object_get_string(arrayEntry), NULL, 16));
     }
 }
@@ -71,10 +70,10 @@ void config::initialize()
     }
 
     json_object_iterator configIterator = json_object_iter_begin(configJSON.get());
-    json_object_iterator configEnd = json_object_iter_end(configJSON.get());
+    json_object_iterator configEnd      = json_object_iter_end(configJSON.get());
     while (!json_object_iter_equal(&configIterator, &configEnd))
     {
-        const char *keyName = json_object_iter_peek_name(&configIterator);
+        const char *keyName      = json_object_iter_peek_name(&configIterator);
         json_object *configValue = json_object_iter_peek_value(&configIterator);
 
         // These are exemptions.
@@ -86,18 +85,9 @@ void config::initialize()
         {
             s_uiAnimationScaling = json_object_get_double(configValue);
         }
-        else if (std::strcmp(keyName, config::keys::FAVORITES.data()) == 0)
-        {
-            read_array_to_vector(s_favorites, configValue);
-        }
-        else if (std::strcmp(keyName, config::keys::BLACKLIST.data()) == 0)
-        {
-            read_array_to_vector(s_blacklist, configValue);
-        }
-        else
-        {
-            s_configMap[keyName] = json_object_get_uint64(configValue);
-        }
+        else if (std::strcmp(keyName, config::keys::FAVORITES.data()) == 0) { read_array_to_vector(s_favorites, configValue); }
+        else if (std::strcmp(keyName, config::keys::BLACKLIST.data()) == 0) { read_array_to_vector(s_blacklist, configValue); }
+        else { s_configMap[keyName] = json_object_get_uint64(configValue); }
         json_object_iter_next(&configIterator);
     }
 
@@ -109,18 +99,15 @@ void config::initialize()
     }
 
     json::Object pathsJSON = json::new_object(json_object_from_file, PATH_PATHS_PATH.data());
-    if (!pathsJSON)
-    {
-        return;
-    }
+    if (!pathsJSON) { return; }
 
     json_object_iterator pathsIterator = json_object_iter_begin(pathsJSON.get());
-    json_object_iterator pathsEnd = json_object_iter_end(pathsJSON.get());
+    json_object_iterator pathsEnd      = json_object_iter_end(pathsJSON.get());
     while (!json_object_iter_equal(&pathsIterator, &pathsEnd))
     {
         // Grab these
         uint64_t applicationID = std::strtoull(json_object_iter_peek_name(&pathsIterator), NULL, 16);
-        json_object *path = json_object_iter_peek_value(&pathsIterator);
+        json_object *path      = json_object_iter_peek_value(&pathsIterator);
 
         // Map em.
         s_pathMap[applicationID] = json_object_get_string(path);
@@ -131,24 +118,24 @@ void config::initialize()
 
 void config::reset_to_default()
 {
-    s_workingDirectory = PATH_DEFAULT_WORK_DIR;
-    s_configMap[config::keys::INCLUDE_DEVICE_SAVES.data()] = 0;
-    s_configMap[config::keys::AUTO_BACKUP_ON_RESTORE.data()] = 1;
-    s_configMap[config::keys::AUTO_NAME_BACKUPS.data()] = 0;
-    s_configMap[config::keys::AUTO_UPLOAD.data()] = 0;
-    s_configMap[config::keys::HOLD_FOR_DELETION.data()] = 1;
-    s_configMap[config::keys::HOLD_FOR_RESTORATION.data()] = 1;
-    s_configMap[config::keys::HOLD_FOR_OVERWRITE.data()] = 1;
-    s_configMap[config::keys::ONLY_LIST_MOUNTABLE.data()] = 1;
-    s_configMap[config::keys::LIST_ACCOUNT_SYS_SAVES.data()] = 0;
+    s_workingDirectory                                        = PATH_DEFAULT_WORK_DIR;
+    s_configMap[config::keys::INCLUDE_DEVICE_SAVES.data()]    = 0;
+    s_configMap[config::keys::AUTO_BACKUP_ON_RESTORE.data()]  = 1;
+    s_configMap[config::keys::AUTO_NAME_BACKUPS.data()]       = 0;
+    s_configMap[config::keys::AUTO_UPLOAD.data()]             = 0;
+    s_configMap[config::keys::HOLD_FOR_DELETION.data()]       = 1;
+    s_configMap[config::keys::HOLD_FOR_RESTORATION.data()]    = 1;
+    s_configMap[config::keys::HOLD_FOR_OVERWRITE.data()]      = 1;
+    s_configMap[config::keys::ONLY_LIST_MOUNTABLE.data()]     = 1;
+    s_configMap[config::keys::LIST_ACCOUNT_SYS_SAVES.data()]  = 0;
     s_configMap[config::keys::ALLOW_WRITING_TO_SYSTEM.data()] = 0;
-    s_configMap[config::keys::EXPORT_TO_ZIP.data()] = 1;
-    s_configMap[config::keys::ZIP_COMPRESSION_LEVEL.data()] = 6;
-    s_configMap[config::keys::TITLE_SORT_TYPE.data()] = 0;
-    s_configMap[config::keys::JKSM_TEXT_MODE.data()] = 0;
-    s_configMap[config::keys::FORCE_ENGLISH.data()] = 0;
-    s_configMap[config::keys::ENABLE_TRASH_BIN.data()] = 0;
-    s_uiAnimationScaling = 2.5f;
+    s_configMap[config::keys::EXPORT_TO_ZIP.data()]           = 1;
+    s_configMap[config::keys::ZIP_COMPRESSION_LEVEL.data()]   = 6;
+    s_configMap[config::keys::TITLE_SORT_TYPE.data()]         = 0;
+    s_configMap[config::keys::JKSM_TEXT_MODE.data()]          = 0;
+    s_configMap[config::keys::FORCE_ENGLISH.data()]           = 0;
+    s_configMap[config::keys::ENABLE_TRASH_BIN.data()]        = 0;
+    s_uiAnimationScaling                                      = 2.5f;
 }
 
 void config::save()
@@ -176,8 +163,7 @@ void config::save()
         for (uint64_t &titleID : s_favorites)
         {
             // Need to do it like this or json-c does decimal instead of hex.
-            json_object *newFavorite =
-                json_object_new_string(stringutil::get_formatted_string("%016lX", titleID).c_str());
+            json_object *newFavorite = json_object_new_string(stringutil::get_formatted_string("%016lX", titleID).c_str());
             json_object_array_add(favoritesArray, newFavorite);
         }
         json::add_object(configJSON, config::keys::FAVORITES.data(), favoritesArray);
@@ -186,8 +172,7 @@ void config::save()
         json_object *blacklistArray = json_object_new_array();
         for (uint64_t &titleID : s_blacklist)
         {
-            json_object *newBlacklist =
-                json_object_new_string(stringutil::get_formatted_string("%016lX", titleID).c_str());
+            json_object *newBlacklist = json_object_new_string(stringutil::get_formatted_string("%016lX", titleID).c_str());
             json_object_array_add(blacklistArray, newBlacklist);
         }
         json::add_object(configJSON, config::keys::BLACKLIST.data(), blacklistArray);
@@ -196,10 +181,7 @@ void config::save()
         fslib::File configFile(PATH_CONFIG_FILE,
                                FsOpenMode_Create | FsOpenMode_Write,
                                std::strlen(json_object_get_string(configJSON.get())));
-        if (configFile)
-        {
-            configFile << json_object_get_string(configJSON.get());
-        }
+        if (configFile) { configFile << json_object_get_string(configJSON.get()); }
     }
 
     if (!s_pathMap.empty())
@@ -221,10 +203,7 @@ void config::save()
         fslib::File pathsFile(PATH_PATHS_PATH,
                               FsOpenMode_Create | FsOpenMode_Write,
                               std::strlen(json_object_get_string(pathsJSON.get())));
-        if (pathsFile)
-        {
-            pathsFile << json_object_get_string(pathsJSON.get());
-        }
+        if (pathsFile) { pathsFile << json_object_get_string(pathsJSON.get()); }
     }
 }
 
@@ -232,67 +211,40 @@ uint8_t config::get_by_key(std::string_view key)
 {
     // See if the key can be found.
     auto findKey = s_configMap.find(key.data());
-    if (findKey == s_configMap.end())
-    {
-        return 0;
-    }
+    if (findKey == s_configMap.end()) { return 0; }
     return findKey->second;
 }
 
 void config::toggle_by_key(std::string_view key)
 {
     auto findKey = s_configMap.find(key.data());
-    if (findKey == s_configMap.end())
-    {
-        return;
-    }
+    if (findKey == s_configMap.end()) { return; }
     findKey->second = findKey->second ? 0 : 1;
 }
 
 void config::set_by_key(std::string_view key, uint8_t value)
 {
     auto findKey = s_configMap.find(key.data());
-    if (findKey == s_configMap.end())
-    {
-        return;
-    }
+    if (findKey == s_configMap.end()) { return; }
     findKey->second = value;
 }
 
-fslib::Path config::get_working_directory()
-{
-    return s_workingDirectory;
-}
+fslib::Path config::get_working_directory() { return s_workingDirectory; }
 
-double config::get_animation_scaling()
-{
-    return s_uiAnimationScaling;
-}
+double config::get_animation_scaling() { return s_uiAnimationScaling; }
 
-void config::set_animation_scaling(double newScale)
-{
-    s_uiAnimationScaling = newScale;
-}
+void config::set_animation_scaling(double newScale) { s_uiAnimationScaling = newScale; }
 
 void config::add_remove_favorite(uint64_t applicationID)
 {
     auto findTitle = std::find(s_favorites.begin(), s_favorites.end(), applicationID);
-    if (findTitle == s_favorites.end())
-    {
-        s_favorites.push_back(applicationID);
-    }
-    else
-    {
-        s_favorites.erase(findTitle);
-    }
+    if (findTitle == s_favorites.end()) { s_favorites.push_back(applicationID); }
+    else { s_favorites.erase(findTitle); }
 }
 
 bool config::is_favorite(uint64_t applicationID)
 {
-    if (std::find(s_favorites.begin(), s_favorites.end(), applicationID) == s_favorites.end())
-    {
-        return false;
-    }
+    if (std::find(s_favorites.begin(), s_favorites.end(), applicationID) == s_favorites.end()) { return false; }
 
     return true;
 }
@@ -300,22 +252,13 @@ bool config::is_favorite(uint64_t applicationID)
 void config::add_remove_blacklist(uint64_t applicationID)
 {
     auto findTitle = std::find(s_blacklist.begin(), s_blacklist.end(), applicationID);
-    if (findTitle == s_blacklist.end())
-    {
-        s_blacklist.push_back(applicationID);
-    }
-    else
-    {
-        s_blacklist.erase(findTitle);
-    }
+    if (findTitle == s_blacklist.end()) { s_blacklist.push_back(applicationID); }
+    else { s_blacklist.erase(findTitle); }
 }
 
 bool config::is_blacklisted(uint64_t applicationID)
 {
-    if (std::find(s_blacklist.begin(), s_blacklist.end(), applicationID) == s_blacklist.end())
-    {
-        return false;
-    }
+    if (std::find(s_blacklist.begin(), s_blacklist.end(), applicationID) == s_blacklist.end()) { return false; }
 
     return true;
 }
@@ -327,20 +270,14 @@ void config::add_custom_path(uint64_t applicationID, std::string_view customPath
 
 bool config::has_custom_path(uint64_t applicationID)
 {
-    if (s_pathMap.find(applicationID) == s_pathMap.end())
-    {
-        return false;
-    }
+    if (s_pathMap.find(applicationID) == s_pathMap.end()) { return false; }
 
     return true;
 }
 
 void config::get_custom_path(uint64_t applicationID, char *pathOut, size_t pathOutSize)
 {
-    if (s_pathMap.find(applicationID) == s_pathMap.end())
-    {
-        return;
-    }
+    if (s_pathMap.find(applicationID) == s_pathMap.end()) { return; }
 
     std::memcpy(pathOut, s_pathMap[applicationID].c_str(), s_pathMap[applicationID].length());
 }

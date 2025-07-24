@@ -1,5 +1,7 @@
 #pragma once
+#include "curl/UploadStruct.hpp"
 #include "fslib.hpp"
+
 #include <curl/curl.h>
 #include <memory>
 #include <string>
@@ -42,17 +44,11 @@ namespace curl
 
     /// @brief Inline function that returns a self cleaning curl handle.
     /// @return Curl handle.
-    static inline curl::Handle new_handle()
-    {
-        return curl::Handle(curl_easy_init(), curl_easy_cleanup);
-    }
+    static inline curl::Handle new_handle() { return curl::Handle(curl_easy_init(), curl_easy_cleanup); }
 
     /// @brief Inline function that returns a nullptr'd self cleaning curl_list.
     /// @return Self cleaning curl_slist.
-    static inline curl::HeaderList new_header_list()
-    {
-        return curl::HeaderList(nullptr, curl_slist_free_all);
-    }
+    static inline curl::HeaderList new_header_list() { return curl::HeaderList(nullptr, curl_slist_free_all); }
 
     /// @brief Inline wrapper function for curl_easy_reset.
     /// @param curl curl::Handle to reset.
@@ -77,7 +73,7 @@ namespace curl
     /// @param count Element count.
     /// @param target Target file to read from.
     /// @return Number of bytes read so curl thinks everything went OK.
-    size_t read_data_from_file(char *buffer, size_t size, size_t count, fslib::File *target);
+    size_t read_data_from_file(char *buffer, size_t size, size_t count, curl::UploadStruct *upload);
 
     /// @brief Curl callback function that writes incoming headers to a vector/array.
     /// @param buffer Incoming buffer from curl.
