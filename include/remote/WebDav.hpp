@@ -18,7 +18,9 @@ namespace remote
 
             /// @brief Uploads a file to the webdav server. File name is retrieved from the path.
             /// @param source Local path of the file to upload.
-            bool upload_file(const fslib::Path &source, sys::ProgressTask *task = nullptr) override;
+            bool upload_file(const fslib::Path &source,
+                             std::string_view remoteName,
+                             sys::ProgressTask *task = nullptr) override;
 
             /// @brief Patches or updates a file on the WebDav server.
             /// @param file Pointer to the file to update.
@@ -28,7 +30,9 @@ namespace remote
             /// @brief Downloads the passed file from the WebDav server.
             /// @param file Pointer to the file to download.
             /// @param destination Path to write the downloaded data from.
-            bool download_file(const remote::Item *item, const fslib::Path &destination) override;
+            bool download_file(const remote::Item *item,
+                               const fslib::Path &destination,
+                               sys::ProgressTask *task = nullptr) override;
 
             /// @brief Deletes the target item from the WebDav server.
             /// @param item Item to delete.

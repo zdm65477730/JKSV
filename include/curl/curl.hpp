@@ -1,4 +1,5 @@
 #pragma once
+#include "curl/DownloadStruct.hpp"
 #include "curl/UploadStruct.hpp"
 #include "fslib.hpp"
 
@@ -98,6 +99,18 @@ namespace curl
     /// @param target File to write the data to.
     /// @return Number of bytes written to the file.
     size_t write_data_to_file(const char *buffer, size_t size, size_t count, fslib::File *target);
+
+    /// @brief Threaded version of the above.
+    /// @param buffer Incoming data from curl
+    /// @param size size
+    /// @param count count
+    /// @param download Struct containing data for threaded download.
+    /// @return size * count
+    size_t download_file_threaded(const char *buffer, size_t size, size_t count, curl::DownloadStruct *download);
+
+    /// @brief Function used to download files threaded.
+    /// @param download Struct shared by both threads.
+    void download_write_thread_function(curl::DownloadStruct &download);
 
     /// @brief Gets the value of a header from an array of headers.
     /// @param array Array of headers to search.

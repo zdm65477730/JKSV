@@ -12,7 +12,8 @@ void ui::IconMenu::render(SDL_Texture *target, bool hasFocus)
 {
     if (hasFocus) { m_colorMod.update(); }
 
-    for (int i = 0, tempY = m_y; i < static_cast<int>(m_options.size()); i++, tempY += m_optionHeight)
+    const int optionCount = m_options.size();
+    for (int i = 0, tempY = m_y; i < optionCount; i++, tempY += m_optionHeight)
     {
         // Clear target.
         m_optionTarget->clear(colors::TRANSPARENT);
@@ -28,7 +29,6 @@ void ui::IconMenu::render(SDL_Texture *target, bool hasFocus)
 
 void ui::IconMenu::add_option(sdl::SharedTexture newOption)
 {
-    // Parent needs a text option to work correctly.
-    Menu::add_option("ICON");
+    Menu::add_option("ICON"); // Parent class needs text for this to work correctly.
     m_options.push_back(newOption);
 }

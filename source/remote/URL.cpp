@@ -5,33 +5,23 @@ remote::URL::URL(std::string_view base)
 
 remote::URL::URL(const URL &url) { m_url = url.m_url; }
 
-remote::URL::URL(URL &&url)
-{
-    m_url = url.m_url;
-    // This seems odd, but w/e
-    url.m_url.clear();
-}
+remote::URL::URL(URL &&url) { m_url = std::move(url.m_url); }
 
 remote::URL &remote::URL::operator=(const remote::URL &url)
 {
     m_url = url.m_url;
-
     return *this;
 }
 
 remote::URL &remote::URL::operator=(remote::URL &&url)
 {
-    m_url = url.m_url;
-    url.m_url.clear();
-
+    m_url = std::move(url.m_url);
     return *this;
 }
 
 remote::URL &remote::URL::set_base(std::string_view base)
 {
-    // This will just assign and clear out the old one, I hope.
     m_url = base;
-
     return *this;
 }
 
@@ -39,12 +29,8 @@ remote::URL &remote::URL::append_path(std::string_view path)
 {
     // Check both just to be sure because this makes WebDav easier to tackle.
     if (m_url.back() != '/' && path.front() != '/') { m_url.append("/"); }
-
-    // This is here to make WebDav easier to read and deal with in case of blank basepaths.
     if (path.empty()) { return *this; }
-
     m_url.append(path);
-
     return *this;
 }
 

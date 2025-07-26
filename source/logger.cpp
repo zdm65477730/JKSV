@@ -40,3 +40,11 @@ void logger::log(const char *format, ...)
     logFile << vaBuffer << "\n";
     logFile.flush();
 }
+
+void logger::log_straight(std::string_view string)
+{
+    std::scoped_lock<std::mutex> logLock(s_logLock);
+    fslib::File logFile{s_logFilePath, FsOpenMode_Append};
+    logFile << string.data() << "\n";
+    logFile.flush();
+}

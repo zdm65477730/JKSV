@@ -4,10 +4,13 @@
 #include "logger.hpp"
 #include "stringutil.hpp"
 
+#include <cstring>
+
 namespace
 {
     /// @brief Size of the buffer used for uploading files.
-    constexpr size_t SIZE_UPLOAD_BUFFER = 0x10000;
+    constexpr size_t SIZE_UPLOAD_BUFFER      = 0x10000;
+    constexpr size_t SIZE_DOWNLOAD_THRESHOLD = 0x400000;
 } // namespace
 
 bool curl::initialize() { return curl_global_init(CURL_GLOBAL_ALL) == CURLE_OK; }
@@ -60,6 +63,68 @@ size_t curl::write_response_string(const char *buffer, size_t size, size_t count
 size_t curl::write_data_to_file(const char *buffer, size_t size, size_t count, fslib::File *target)
 {
     return target->write(buffer, size * count);
+}
+
+size_t curl::download_file_threaded(const char *buffer, size_t size, size_t count, curl::DownloadStruct *download)
+{
+    std::mutex &lock                   = download->lock;
+    std::condition_variable &condition = download->condition;
+    std::vector<byte> &sharedBuffer    = download->sharedBuffer;
+    bool &bufferReady                  = download->bufferReady;
+    sys::ProgressTask *task            = download->task;
+    size_t &offset                     = download->offset;
+    size_t &fileSize                   = download->fileSize;
+    const size_t downloadSize          = size * count;
+    const std::span<const byte> bufferSpan{reinterpret_cast<const byte *>(buffer), downloadSize};
+
+    {
+        std::unique_lock<std::mutex> bufferLock(lock);
+        condition.wait(bufferLock, [&]() { return bufferReady == false; });
+        sharedBuffer.append_range(bufferSpan);
+
+        const size_t sharedSize = sharedBuffer.size();
+        if (sharedSize >= SIZE_DOWNLOAD_THRESHOLD || offset + downloadSize >= fileSize)
+        {
+            bufferReady = true;
+            condition.notify_one();
+        }
+
+        offset += downloadSize;
+    }
+
+    if (task) { task->increase_current(static_cast<double>(downloadSize)); }
+
+    return downloadSize;
+}
+
+void curl::download_write_thread_function(curl::DownloadStruct &download)
+{
+    std::mutex &lock                   = download.lock;
+    std::condition_variable &condition = download.condition;
+    std::vector<byte> &sharedBuffer    = download.sharedBuffer;
+    bool &bufferReady                  = download.bufferReady;
+    fslib::File *dest                  = download.dest;
+    size_t fileSize                    = download.fileSize;
+
+    auto localBuffer = std::make_unique<byte[]>(SIZE_DOWNLOAD_THRESHOLD + 0x100000); // Gonna give this some room.
+
+    for (size_t i = 0; i < fileSize;)
+    {
+        size_t bufferSize{};
+        {
+            std::unique_lock<std::mutex> bufferLock(lock);
+            condition.wait(bufferLock, [&]() { return bufferReady == true; });
+
+            bufferSize = sharedBuffer.size();
+            std::memcpy(localBuffer.get(), sharedBuffer.data(), bufferSize);
+
+            sharedBuffer.clear();
+            bufferReady = false;
+            condition.notify_one();
+        }
+        dest->write(localBuffer.get(), bufferSize);
+        i += bufferSize;
+    }
 }
 
 bool curl::get_header_value(const curl::HeaderArray &array, std::string_view header, std::string &valueOut)
@@ -129,7 +194,7 @@ void curl::prepare_get(curl::Handle &curl)
 
     // Setup basic request.
     curl::set_option(curl, CURLOPT_HTTPGET, 1L);
-    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, ""); // I think this is how you set the defaults for this?
+    // curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
 }
 
 void curl::prepare_post(curl::Handle &curl)
@@ -137,7 +202,7 @@ void curl::prepare_post(curl::Handle &curl)
     curl::reset_handle(curl);
 
     curl::set_option(curl, CURLOPT_POST, 1L);
-    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
+    // curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
 }
 
 void curl::prepare_upload(curl::Handle &curl)
@@ -145,5 +210,5 @@ void curl::prepare_upload(curl::Handle &curl)
     curl::reset_handle(curl);
 
     curl::set_option(curl, CURLOPT_UPLOAD, 1L);
-    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, ""); // Not really sure this will have any affect here...
+    // curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
 }

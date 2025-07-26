@@ -4,6 +4,7 @@
 #include "curl/curl.hpp"
 #include "logger.hpp"
 #include "remote/remote.hpp"
+#include "strings.hpp"
 #include "stringutil.hpp"
 
 #include <tinyxml2.h>
@@ -64,7 +65,6 @@ remote::WebDav::WebDav()
     }
 
     if (username) { m_username = json_object_get_string(username); }
-
     if (password) { m_password = json_object_get_string(password); }
 
     // This is the starting point. This will read the entire basepath listing in one go.
@@ -115,9 +115,10 @@ bool remote::WebDav::create_directory(std::string_view name)
     return true;
 }
 
-bool remote::WebDav::upload_file(const fslib::Path &source, sys::ProgressTask *task)
+bool remote::WebDav::upload_file(const fslib::Path &source, std::string_view remoteName, sys::ProgressTask *task)
 {
-    static const char *STRING_ERROR_UPLOADING = "Error uploading file: %s";
+    static constexpr const char *STRING_ERROR_UPLOADING = "Error uploading to WebDav: %s";
+    const char *statusTemplate                          = strings::get_by_name(strings::names::IO_STATUSES, 5);
 
     fslib::File sourceFile{source, FsOpenMode_Read};
     if (!sourceFile.is_open())
@@ -127,10 +128,17 @@ bool remote::WebDav::upload_file(const fslib::Path &source, sys::ProgressTask *t
     }
 
     std::string escapedName;
-    if (!curl::escape_string(m_curl, source.get_filename(), escapedName))
+    if (!curl::escape_string(m_curl, remoteName, escapedName))
     {
         logger::log(STRING_ERROR_UPLOADING, "Failed to escape filename!");
         return false;
+    }
+
+    if (task)
+    {
+        const std::string status = stringutil::get_formatted_string(statusTemplate, remoteName.data());
+        task->set_status(status);
+        task->reset(static_cast<double>(sourceFile.get_size()));
     }
 
     remote::URL url{m_origin};
@@ -148,7 +156,8 @@ bool remote::WebDav::upload_file(const fslib::Path &source, sys::ProgressTask *t
 
     if (!curl::perform(m_curl)) { return false; }
 
-    m_list.emplace_back(source.get_filename(), escapedName, m_parent, sourceFile.get_size(), false);
+    const std::string id = m_parent + "/" + escapedName;
+    m_list.emplace_back(remoteName, id, m_parent, sourceFile.get_size(), false);
 
     return true;
 }
@@ -157,7 +166,7 @@ bool remote::WebDav::patch_file(remote::Item *item, const fslib::Path &source, s
 {
     static const char *STRING_ERROR_PATCHING = "Error patching file: %s";
 
-    fslib::File file(source, FsOpenMode_Read);
+    fslib::File file{source, FsOpenMode_Read};
     if (!file)
     {
         logger::log(STRING_ERROR_PATCHING, fslib::error::get_string());
@@ -165,7 +174,7 @@ bool remote::WebDav::patch_file(remote::Item *item, const fslib::Path &source, s
     }
 
     remote::URL url{m_origin};
-    url.append_path(m_parent).append_path(item->get_id());
+    url.append_path(item->get_id());
 
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
@@ -183,28 +192,39 @@ bool remote::WebDav::patch_file(remote::Item *item, const fslib::Path &source, s
     return true;
 }
 
-bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &destination)
+bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &destination, sys::ProgressTask *task)
 {
     static const char *STRING_ERROR_DOWNLOADING = "Error downloading file: %s";
+    const char *statusTemplate                  = strings::get_by_name(strings::names::IO_STATUSES, 4);
 
-    fslib::File file(destination, FsOpenMode_Create | FsOpenMode_Write);
-    if (!file)
+    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, item->get_size()};
+    if (!destFile)
     {
         logger::log(STRING_ERROR_DOWNLOADING, fslib::error::get_string());
         return false;
     }
 
-    remote::URL url{m_origin};
-    url.append_path(m_parent).append_path(item->get_id());
+    if (task)
+    {
+        const std::string status = stringutil::get_formatted_string(statusTemplate, item->get_name().data());
+        task->set_status(status);
+        task->reset(static_cast<double>(item->get_size()));
+    }
 
+    remote::URL url{m_origin};
+    url.append_path(item->get_id());
+
+    curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = item->get_size()};
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
     curl::set_option(m_curl, CURLOPT_HTTPGET, 1L);
     curl::set_option(m_curl, CURLOPT_URL, url.get());
-    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_data_to_file);
-    curl::set_option(m_curl, CURLOPT_WRITEDATA, &file);
+    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::download_file_threaded);
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, &download);
 
+    std::thread writeThread{curl::download_write_thread_function, std::ref(download)};
     if (!curl::perform(m_curl)) { return false; }
+    writeThread.join();
 
     return true;
 }
@@ -214,8 +234,9 @@ bool remote::WebDav::delete_item(const remote::Item *item)
     static const char *STRING_ERROR_DELETING = "Error deleting item: %s";
 
     remote::URL url{m_origin};
-    url.append_path(m_parent).append_path(item->get_id());
+    url.append_path(item->get_id());
     if (item->is_directory()) { url.append_slash(); }
+    logger::log(url.get());
 
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
@@ -224,19 +245,23 @@ bool remote::WebDav::delete_item(const remote::Item *item)
 
     if (!curl::perform(m_curl)) { return false; }
 
-    if (curl::get_response_code(m_curl) != 204)
+    const long code = curl::get_response_code(m_curl);
+    if (code != 204) // This can be any of these, I think?
     {
         logger::log(STRING_ERROR_DELETING, "Deletion failed!");
         return false;
     }
 
+    auto findFile = Storage::find_file_by_name(item->get_name());
+    if (findFile == m_list.end()) { return false; }
+
+    m_list.erase(findFile);
     return true;
 }
 
 void remote::WebDav::append_credentials()
 {
     if (!m_username.empty()) { curl::set_option(m_curl, CURLOPT_USERNAME, m_username.c_str()); }
-
     if (!m_password.empty()) { curl::set_option(m_curl, CURLOPT_PASSWORD, m_password.c_str()); }
 }
 

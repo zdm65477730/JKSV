@@ -1,4 +1,5 @@
 #pragma once
+#include <string_view>
 
 namespace logger
 {
@@ -9,4 +10,6 @@ namespace logger
     /// @param format Format of string.
     /// @param arguments Va arguments.
     void log(const char *format, ...);
+
+    void log_straight(std::string_view string);
 } // namespace logger

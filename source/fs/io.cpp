@@ -1,6 +1,7 @@
 #include "fs/io.hpp"
 
 #include "error.hpp"
+#include "fs/SaveMetaData.hpp"
 #include "fslib.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
@@ -66,7 +67,7 @@ void fs::copy_file(const fslib::Path &source,
 {
     const char *statusTemplate     = strings::get_by_name(strings::names::IO_STATUSES, 0);
     const char *popErrorCommitting = strings::get_by_name(strings::names::IO_POPS, 0);
-    const int popticks             = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const int popticks             = ui::PopMessageManager::DEFAULT_TICKS;
 
     fslib::File sourceFile{source, FsOpenMode_Read};
     fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, sourceFile.get_size()};
@@ -152,6 +153,8 @@ void fs::copy_directory(const fslib::Path &source,
     const int64_t dirCount = sourceDir.get_count();
     for (int64_t i = 0; i < dirCount; i++)
     {
+        if (sourceDir[i] == fs::NAME_SAVE_META) { continue; }
+
         const fslib::Path fullSource{source / sourceDir[i]};
         const fslib::Path fullDest{destination / sourceDir[i]};
         if (sourceDir.is_directory(i))

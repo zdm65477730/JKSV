@@ -15,12 +15,14 @@
         "4: Error occurred deleting backup!",
         "5: Error creating backup!",
         "6: Writing to system is disabled!",
-        "7: Unable to open zip for reading!"
+        "7: Unable to open zip for reading!",
+        "8: Error writing save meta data file!",
+        "9: Error downloading file!",
+        "10: Error uploading file!",
+        "11: Error processing save data meta!"
     ],
     "BackupMenuStatus": [
-        "0: Processing save data meta file...",
-        "1: Uploading #%s# to remote storage...",
-        "2: Updating #%s# on remote storage..."
+        "0: Processing save data meta file..."
     ],
     "ControlGuides": [
         "0: [A] Select   [Y] Dump All Saves   [X] User Options",
@@ -58,7 +60,10 @@
         "0: Copying #%s#...",
         "1: Compressing #%s# to ZIP...",
         "2: Decompressing #%s# from ZIP...",
-        "3: Deleting #%s#..."
+        "3: Deleting #%s#...",
+        "4: Downloading #%s#...",
+        "5: Uploading #%s# to remote storage...",
+        "6: Updating #%s# on remote storage..."
     ],
     "IOPops": [
         "0: Error committing data to device!"

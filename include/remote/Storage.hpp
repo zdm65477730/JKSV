@@ -61,7 +61,7 @@ namespace remote
 
             /// @brief Uploads a file from the SD card to the remote.
             /// @param source Path to the file to upload.
-            virtual bool upload_file(const fslib::Path &source, sys::ProgressTask *task = nullptr) = 0;
+            virtual bool upload_file(const fslib::Path &source, std::string_view name, sys::ProgressTask *task = nullptr) = 0;
 
             /// @brief Patches or updates a file on the remote.
             /// @param item Item to be updated.
@@ -71,7 +71,9 @@ namespace remote
             /// @brief Downloads a file from the remote.
             /// @param item Item to download.
             /// @param destination Path to download the file to.
-            virtual bool download_file(const remote::Item *file, const fslib::Path &destination) = 0;
+            virtual bool download_file(const remote::Item *file,
+                                       const fslib::Path &destination,
+                                       sys::ProgressTask *task = nullptr) = 0;
 
             /// @brief Searches the list for a file matching name and the current parent.
             /// @param name Name of the file to search for.

@@ -8,9 +8,11 @@ void sys::ProgressTask::reset(double goal)
 
 void sys::ProgressTask::update_current(double current) { m_current = current; }
 
+void sys::ProgressTask::increase_current(double amount) { m_current += amount; }
+
 double sys::ProgressTask::get_goal() const { return m_goal; }
 
-double sys::ProgressTask::get_current() const
+double sys::ProgressTask::get_progress() const
 {
     // Reminder: Never divide by zero. It ends badly every time!
     return m_goal > 0 ? m_current / m_goal : 0;

@@ -17,14 +17,10 @@ void sys::Timer::start(uint64_t triggerTicks)
 
 bool sys::Timer::is_triggered()
 {
-    uint64_t currentTicks = SDL_GetTicks64();
-
-    // Nope
+    const uint64_t currentTicks = SDL_GetTicks64();
     if (currentTicks - m_startingTicks < m_triggerTicks) { return false; }
 
-    // Reset starting ticks.
     m_startingTicks = currentTicks;
-
     // Trigger me timbers~
     return true;
 }

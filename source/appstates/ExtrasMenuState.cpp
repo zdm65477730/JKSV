@@ -75,7 +75,7 @@ void ExtrasMenuState::initialize_menu()
 
 void ExtrasMenuState::reinitialize_data()
 {
-    const int popTicks     = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const int popTicks     = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popSuccess = strings::get_by_name(strings::names::EXTRASMENU_POPS, 0);
     const char *popFailure = strings::get_by_name(strings::names::EXTRASMENU_POPS, 1);
 

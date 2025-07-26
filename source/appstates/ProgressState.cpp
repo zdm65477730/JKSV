@@ -13,7 +13,7 @@
 void ProgressState::update()
 {
     sys::ProgressTask *task = static_cast<sys::ProgressTask *>(m_task.get());
-    const double current    = task->get_current();
+    const double current    = task->get_progress();
 
     // Base routine.
     BaseTask::update();

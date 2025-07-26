@@ -1,150 +1,215 @@
 {
-    "TranslationInfo": [
-        "Übersetzt von: %s",
-        "NULL"
+    "BackupMenu": [
+        "0: Neues Backup"
+    ],
+    "BackupMenuConfirmations": [
+        "0: Bist du sicher, dass du #%s# wirklich überschreiben möchtest?",
+        "1: Bist du sicher, dass du #%s# wirklich wiederherstellen möchtest?",
+        "2: Bist du sicher, dass du #%s# wirklich löschen möchtest?"
+    ],
+    "BackupMenuPops": [
+        "0: Speicherdaten sind leer!",
+        "1: Backup ist leer!",
+        "2: Fehler beim Zurücksetzen der Speicherdaten!",
+        "3: Fehler beim Öffnen der ZIP-Datei zum Lesen!",
+        "4: Fehler beim Löschen des Backups!",
+        "5: Fehler beim Erstellen des Backups!",
+        "6: Schreiben auf das System ist deaktiviert!",
+        "7: ZIP-Datei konnte nicht zum Lesen geöffnet werden!"
+    ],
+    "BackupMenuStatus": [
+        "0: Verarbeite Metadatei der Speicherdaten...",
+        "1: Lade #%s# in den Cloud-Speicher hoch...",
+        "2: Aktualisiere #%s# im Cloud-Speicher..."
     ],
     "ControlGuides": [
-        "[A] Auswählen   [Y] Alle Speicherstände ausgeben   [X] Benutzeroptionen",
-        "[A] Auswählen   [L] [R] Springen   [Y] Favorit   [X] Titeloptionen  [B] Zurück",
-        "[A] Auswählen  [Y] Wiederherstellen  [X] Löschen   [ZR] Hochladen  [B] Schließen",
-        "[A] Umschalten   [X] Standardwerte   [B] Zurück"
-    ],
-    "SaveDataTypes": [
-        "System",
-        "Konto",
-        "BCAT",
-        "Gerät",
-        "Temporär",
-        "Cache",
-        "System BCAT"
-    ],
-    "SettingsMenu": [
-        "JKSV-Ausgabeverzeichnis festlegen.",
-        "Blacklist bearbeiten",
-        "Gerätespeicher mit Benutzern einbeziehen: %s",
-        "Automatisches Backup bei Wiederherstellung: %s",
-        "Backups automatisch benennen: %s",
-        "Backups automatisch in den entfernten Speicher hochladen: %s",
-        "Zum Löschen von Backups gedrückt halten: %s",
-        "Zum Wiederherstellen von Backups gedrückt halten: %s",
-        "Zum Überschreiben von Backups gedrückt halten: %s",
-        "Nur mountbare Titel auflisten: %s",
-        "Systemspeicherstände des Kontos anzeigen: %s",
-        "Schreiben in Systemspeicher und NAND aktivieren: %s",
-        "Speicherstände in ZIP exportieren: %s",
-        "ZIP-Komprimierungsstufe: %u",
-        "Titelsortierungstyp: %s",
-        "Textmenü (JKSM) Modus: %s",
-        "Englisch erzwingen: %s",
-        "Papierkorb aktivieren: %s",
-        "Animationsskalierung: %.02f"
+        "0: [A] Auswählen   [Y] Alle Speicherdaten sichern   [X] Benutzeroptionen",
+        "1: [A] Auswählen   [L] [R] Springen   [Y] Favorit   [X] Titeloptionen  [B] Zurück",
+        "2: [A] Auswählen  [Y] Wiederherstellen  [X] Löschen  [ZR] Hochladen  [B] Schließen",
+        "3: [A] Umschalten   [X] Standardwerte   [B] Zurück"
     ],
     "ExtrasMenu": [
-        "Titel neu laden",
-        "SD-zu-SD-Browser",
-        "BIS: ProfInfoF",
-        "BIS: Sicher",
-        "BIS: System",
-        "BIS: Benutzer",
-        "Prozess beenden",
-        "Systemspeicher mounten"
+        "0: Daten zurücksetzen",
+        "1: SD zu SD Browser",
+        "2: ProdInfoF",
+        "3: Sicher",
+        "4: System",
+        "5: Benutzer",
+        "6: Prozess beenden"
     ],
-    "OnOff": [
-        "Aus",
-        ">Ein>"
+    "ExtrasPops": [
+        "0: Daten wurden zurückgesetzt!",
+        "1: Zurücksetzen der Daten fehlgeschlagen!"
     ],
-    "BackupMenu": [
-        "Neues Backup"
+    "GeneralPops": [
+        "0: JKSV kann nicht beendet werden, während Aufgaben laufen!"
     ],
-    "CopyingFiles": [
-        "Kopiere #%s#...",
-        "Komprimiere #%s# zu ZIP...",
-        "Dekomprimiere #%s# aus ZIP..."
+    "GoogleDriveStrings": [
+        "0: Um fortzufahren, gehe zu #%s# und gib >%s> ein!",
+        "1: Erfolgreich bei Google Drive angemeldet!",
+        "2: Anmeldung bei Google Drive fehlgeschlagen!"
+    ],
+    "HoldingStrings": [
+        "0: Halte [A] gedrückt",
+        "1: Halte [A] weiter gedrückt",
+        "2: Fast geschafft! [A] gedrückt halten"
+    ],
+    "IOStatuses": [
+        "0: Kopiere #%s#...",
+        "1: Komprimiere #%s# in ZIP...",
+        "2: Dekomprimiere #%s# aus ZIP...",
+        "3: Lösche #%s#..."
+    ],
+    "IOPops": [
+        "0: Fehler beim Schreiben auf das Gerät!"
     ],
     "KeyboardStrings": [
-        "Geben Sie einen neuen Backup-Namen ein.",
-        "Cache-Index eingeben.",
-        "Neuen Ausgabepfad für JKSV eingeben",
-        "Prozess-ID zum Beenden eingeben.",
-        "Systemspeicher-ID eingeben",
-        "Geben Sie einen neuen Namen für das Zielobjekt ein.",
-        "Geben Sie einen Namen für den neuen Ordner ein.",
-        "Neuen Namen für das Ausgabeverzeichnis von %s eingeben.",
-        "Geben Sie an, wie viel erweitert werden soll (in MB)."
-    ]
-}
-{
+        "0: Gib einen neuen Namen für das Backup ein.",
+        "1: Cache-Index eingeben.",
+        "2: Gib einen neuen Ausgabepfad für JKSV ein",
+        "3: Gib die Prozess-ID zum Beenden ein.",
+        "4: Gib eine System-Speicher-ID ein",
+        "5: Gib einen neuen Namen für das Zielobjekt ein.",
+        "6: Gib einen Namen für den neuen Ordner ein.",
+        "7: Gib einen neuen Ausgabepfadnamen für %s ein.",
+        "8: Gib an, um wie viel erweitert werden soll (in MB)."
+    ],
+    "OnOff": [
+        "0: Aus",
+        "1: >Ein>"
+    ],
+    "SaveCreatePops": [
+        "0: Speicherdaten für #%s# erstellt!",
+        "1: Fehler beim Erstellen der Speicherdaten!",
+        "2: Fehler beim Löschen der Speicherdaten!"
+    ],
+    "SaveDataTypes": [
+        "0: System",
+        "1: Benutzerkonto",
+        "2: BCAT",
+        "3: Gerät",
+        "4: Temporär",
+        "5: Cache",
+        "6: System-BCAT"
+    ],
+    "SettingsDescriptions": [
+        "0: Legt das Arbeitsverzeichnis für JKSV fest. Der Standardwert ist `sdmc:/JKSV`.",
+        "1: Ermöglicht das Entfernen von Titeln aus der Blacklist.",
+        "2: Beinhaltet Geräte- oder gemeinsame Speicherstände mit Benutzern.",
+        "3: Erstellt automatisch ein Backup beim Wiederherstellen eines anderen.",
+        "4: Vergibt automatisch Backup-Namen und überspringt die Tastatureingabe.",
+        "5: Lädt Backups automatisch zu Google Drive oder WebDav hoch und löscht sie lokal.",
+        "6: Ob das Halten von [A] für drei Sekunden erforderlich ist, um Backups zu löschen.",
+        "7: Ob das Halten von [A] für drei Sekunden erforderlich ist, um Backups wiederherzustellen.",
+        "8: Ob das Halten von [A] für drei Sekunden erforderlich ist, um Backups zu überschreiben.",
+        "9: Zeigt nur Speicherdaten an, die JKSV erfolgreich öffnen kann.",
+        "10: Zeigt System-Speicherstände mit zugeordneten Benutzerkonten.",
+        "11: Aktiviert das Wiederherstellen von Systemdaten und Schreiben auf NAND-Partitionen.",
+        "12: Exportiert Speicherdaten als ZIP-Archive anstelle von entpackten Ordnern.",
+        "13: Kompressions- oder Deflate-Level beim Schreiben in ZIP. Der Standardwert ist 6. Niedrigere Werte sind schneller, bieten aber weniger Kompression und Platzersparnis. Null bedeutet keine Kompression.",
+        "14: Steuert, wie Titel sortiert und angezeigt werden.",
+        "15: Zeigt Titel als Textmenüs wie im ursprünglichen JKSM auf dem 3DS anstatt als Icons.",
+        "16: Erzwingt Englisch als Sprache anstelle der erkannten Systemsprache.",
+        "17: Verschiebt gelöschte Backups in den _TRASH_-Ordner anstatt sie dauerhaft zu löschen.",
+        "18: Legt die Geschwindigkeit von Übergängen und Animationen fest. Geringere Werte sind schneller."
+    ],
+    "SettingsMenu": [
+        "0: JKSV-Ausgabeverzeichnis festlegen.",
+        "1: Blacklist bearbeiten",
+        "2: Gerätedaten mit Benutzern einbeziehen: %s",
+        "3: Automatisch Backup bei Wiederherstellung: %s",
+        "4: Backup automatisch benennen: %s",
+        "5: Backups automatisch in Cloud hochladen: %s",
+        "6: Halten zum Löschen von Backups: %s",
+        "7: Halten zum Wiederherstellen von Backups: %s",
+        "8: Halten zum Überschreiben von Backups: %s",
+        "9: Nur mountbare Titel anzeigen: %s",
+        "10: Kontenbezogene Systemdaten anzeigen: %s",
+        "11: Schreiben auf Systemdaten und NAND erlauben: %s",
+        "12: Speicherdaten als ZIP exportieren: %s",
+        "13: ZIP-Kompressionsstufe: %u",
+        "14: Titel-Sortiertyp: %s",
+        "15: Textmenümodus (JKSM): %s",
+        "16: Englisch erzwingen: %s",
+        "17: Papierkorb aktivieren: %s",
+        "18: Animationsskalierung: %.02f"
+    ],
+    "SortTypes": [
+        "0: Alphabetisch",
+        "1: Meistgespielt",
+        "2: Zuletzt gespielt"
+    ],
+    "TitleInfo": [
+        "0: App-ID: %016lX",
+        "1: Speicher-ID: %016lx",
+        "2: Erstes Spiel: %x - %X",
+        "3: Letztes Spiel: %x - %X",
+        "4: Spielzeit: %02d:%02d:%02d",
+        "5: Starts: %i",
+        "6: Speichertyp: %s"
+    ],
+    "TitleOptionConfirmations": [
+        "0: Bist du sicher, dass du #%s# auf die Blacklist setzen möchtest? Danach erscheint der Titel nicht mehr in der Liste.",
+        "1: Bist du sicher, dass du alle derzeitigen Backups für #%s# löschen möchtest? *Dies kann nicht rückgängig gemacht werden!*",
+        "2: Bist du sicher, dass du die Speicherdaten für #%s# zurücksetzen möchtest? *Dies löscht die aktuellen Speicherdaten so, als wäre das Spiel nie gestartet worden!*",
+        "3: Bist du sicher, dass du `%s`'s Speicherdaten für #%s# löschen möchtest? *Dies wird sie dauerhaft vom System entfernen.*"
+    ],
+    "TitleOptionPops": [
+        "0: Alle Backups für `%s` gelöscht!",
+        "1: Alle Backups konnten nicht gelöscht werden!",
+        "2: Fehler beim Zurücksetzen der Speicherdaten!",
+        "3: Speicherdaten erfolgreich zurückgesetzt!",
+        "4: SVI-Datei erfolgreich exportiert!",
+        "5: Fehler beim Exportieren der SVI-Datei!",
+        "6: Diese Option ist für Systemdaten nicht verfügbar!",
+        "7: Pfad konnte nicht zur Verwendung bereinigt werden!",
+        "8: Ausgabeverzeichnis auf #%s# gesetzt.",
+        "9: Fehler beim Setzen des neuen Ausgabepfads!",
+        "10: Speicherdaten erfolgreich erweitert!",
+        "11: Erweiterung der Speicherdaten fehlgeschlagen!"
+    ],
+    "TitleOptionStatus": [
+        "0: Lösche alle Backups für #%s#.",
+        "1: Setze Speicherdaten für #%s# zurück.",
+        "2: Lösche `%s`'s Speicherdaten für #%s#...",
+        "3: Erweitere `%s`'s Speicherdaten für #%s#..."
+    ],
+    "TitleOptions": [
+        "0: Informationen",
+        "1: Titel auf Blacklist setzen",
+        "2: Ausgabeverzeichnis ändern",
+        "3: Im Dateimodus öffnen",
+        "4: Alle Speicher-Backups löschen",
+        "5: Speicherdaten zurücksetzen.",
+        "6: Speicherdaten vom System löschen",
+        "7: Speicherdaten erweitern",
+        "8: SVI-Datei exportieren"
+    ],
     "TranslationInfo": [
-        "Übersetzt von: %s",
-        "NULL"
+        "0: Übersetzt von: %s",
+        "1: NULL"
     ],
-    "ControlGuides": [
-        "[A] Auswählen   [Y] Alle Speicherstände ausgeben   [X] Benutzeroptionen",
-        "[A] Auswählen   [L] [R] Springen   [Y] Favorit   [X] Titeloptionen  [B] Zurück",
-        "[A] Auswählen  [Y] Wiederherstellen  [X] Löschen   [ZR] Hochladen  [B] Schließen",
-        "[A] Umschalten   [X] Standardwerte   [B] Zurück"
+    "UserOptionConfirmations": [
+        "0: Bist du sicher, dass du die Speicherdaten für jeden gefundenen Titel für `%s` sichern willst? Dies kann eine Weile dauern.",
+        "1: Bist du sicher, dass du für alle gefundenen Titel auf deinem System Speicherdaten für `%s` erstellen möchtest? Dies kann eine Weile dauern.",
+        "2: Bist du sicher, dass du alle Speicherdaten für `%s` löschen möchtest? *Dies ist PERMANENT und kann nicht rückgängig gemacht werden.*"
     ],
-    "SaveDataTypes": [
-        "System",
-        "Konto",
-        "BCAT",
-        "Gerät",
-        "Temporär",
-        "Cache",
-        "System BCAT"
+    "UserOptionStatus": [
+        "0: Erstelle Speicherdaten für #%s#...",
+        "1: Lösche Speicherdaten für #%s#..."
     ],
-    "SettingsMenu": [
-        "JKSV-Ausgabeverzeichnis festlegen.",
-        "Blacklist bearbeiten",
-        "Gerätespeicher mit Benutzern einbeziehen: %s",
-        "Automatisches Backup bei Wiederherstellung: %s",
-        "Backups automatisch benennen: %s",
-        "Backups automatisch in den entfernten Speicher hochladen: %s",
-        "Zum Löschen von Backups gedrückt halten: %s",
-        "Zum Wiederherstellen von Backups gedrückt halten: %s",
-        "Zum Überschreiben von Backups gedrückt halten: %s",
-        "Nur mountbare Titel auflisten: %s",
-        "Systemspeicherstände des Kontos anzeigen: %s",
-        "Schreiben in Systemspeicher und NAND aktivieren: %s",
-        "Speicherstände in ZIP exportieren: %s",
-        "ZIP-Komprimierungsstufe: %u",
-        "Titelsortierungstyp: %s",
-        "Textmenü (JKSM) Modus: %s",
-        "Englisch erzwingen: %s",
-        "Papierkorb aktivieren: %s",
-        "Animationsskalierung: %.02f"
+    "UserOptions": [
+        "0: Alles für `%s` sichern",
+        "1: Speicherdaten für `%s` erstellen",
+        "2: Alle Speicherdaten für `%s` erstellen",
+        "3: Alle Speicherdaten für `%s` löschen"
     ],
-    "ExtrasMenu": [
-        "Titel neu laden",
-        "SD-zu-SD-Browser",
-        "BIS: ProfInfoF",
-        "BIS: Sicher",
-        "BIS: System",
-        "BIS: Benutzer",
-        "Prozess beenden",
-        "Systemspeicher mounten"
+    "WebDavStrings": [
+        "0: WebDav erfolgreich gestartet!",
+        "1: WebDav fehlgeschlagen!"
     ],
-    "OnOff": [
-        "Aus",
-        ">Ein>"
-    ],
-    "BackupMenu": [
-        "Neues Backup"
-    ],
-    "CopyingFiles": [
-        "Kopiere #%s#...",
-        "Komprimiere #%s# zu ZIP...",
-        "Dekomprimiere #%s# aus ZIP..."
-    ],
-    "KeyboardStrings": [
-        "Geben Sie einen neuen Backup-Namen ein.",
-        "Cache-Index eingeben.",
-        "Neuen Ausgabepfad für JKSV eingeben",
-        "Prozess-ID zum Beenden eingeben.",
-        "Systemspeicher-ID eingeben",
-        "Geben Sie einen neuen Namen für das Zielobjekt ein.",
-        "Geben Sie einen Namen für den neuen Ordner ein.",
-        "Neuen Namen für das Ausgabeverzeichnis von %s eingeben.",
-        "Geben Sie an, wie viel erweitert werden soll (in MB)."
+    "YesNo": [
+        "0: Ja [A]",
+        "1: Nein [B]"
     ]
 }

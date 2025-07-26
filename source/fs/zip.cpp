@@ -166,7 +166,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
                                sys::ProgressTask *task)
 {
     if (!unzip.reset()) { return; }
-    const int popTicks          = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const int popTicks          = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popCommitFailed = strings::get_by_name(strings::names::IO_POPS, 0);
     const char *statusTemplate  = strings::get_by_name(strings::names::IO_STATUSES, 2);
     const bool needCommits      = journalSize > 0 && !commitDevice.empty();

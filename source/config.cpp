@@ -1,6 +1,7 @@
 #include "config.hpp"
 
 #include "JSON.hpp"
+#include "error.hpp"
 #include "logger.hpp"
 #include "stringutil.hpp"
 
@@ -43,7 +44,7 @@ static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *arr
     // Just in case. Shouldn't happen though.
     vector.clear();
 
-    size_t arrayLength = json_object_array_length(array);
+    const size_t arrayLength = json_object_array_length(array);
     for (size_t i = 0; i < arrayLength; i++)
     {
         json_object *arrayEntry = json_object_array_get_idx(array, i);
@@ -54,9 +55,13 @@ static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *arr
 
 void config::initialize()
 {
-    if (!fslib::directory_exists(PATH_CONFIG_FOLDER) && !fslib::create_directories_recursively(PATH_CONFIG_FOLDER))
+    // This is so we don't constantly construct new Paths
+    const fslib::Path configDir{PATH_CONFIG_FOLDER};
+
+    const bool configDirExists = fslib::directory_exists(configDir);
+    const bool configDirError  = !configDirExists && error::fslib(fslib::create_directories_recursively(configDir));
+    if (!configDirExists && configDirError)
     {
-        logger::log("Error creating config folder: %s.", fslib::error::get_string());
         config::reset_to_default();
         return;
     }
@@ -77,17 +82,17 @@ void config::initialize()
         json_object *configValue = json_object_iter_peek_value(&configIterator);
 
         // These are exemptions.
-        if (std::strcmp(keyName, config::keys::WORKING_DIRECTORY.data()) == 0)
-        {
-            s_workingDirectory = json_object_get_string(configValue);
-        }
-        else if (std::strcmp(keyName, config::keys::UI_ANIMATION_SCALE.data()) == 0)
-        {
-            s_uiAnimationScaling = json_object_get_double(configValue);
-        }
-        else if (std::strcmp(keyName, config::keys::FAVORITES.data()) == 0) { read_array_to_vector(s_favorites, configValue); }
-        else if (std::strcmp(keyName, config::keys::BLACKLIST.data()) == 0) { read_array_to_vector(s_blacklist, configValue); }
+        const bool workingDirectory = std::strcmp(keyName, config::keys::WORKING_DIRECTORY.data()) == 0;
+        const bool animationScaling = std::strcmp(keyName, config::keys::UI_ANIMATION_SCALE.data()) == 0;
+        const bool favorites        = std::strcmp(keyName, config::keys::FAVORITES.data()) == 0;
+        const bool blacklist        = std::strcmp(keyName, config::keys::BLACKLIST.data()) == 0;
+
+        if (workingDirectory) { s_workingDirectory = json_object_get_string(configValue); }
+        else if (animationScaling) { s_uiAnimationScaling = json_object_get_double(configValue); }
+        else if (favorites) { read_array_to_vector(s_favorites, configValue); }
+        else if (blacklist) { read_array_to_vector(s_blacklist, configValue); }
         else { s_configMap[keyName] = json_object_get_uint64(configValue); }
+
         json_object_iter_next(&configIterator);
     }
 
@@ -178,32 +183,27 @@ void config::save()
         json::add_object(configJSON, config::keys::BLACKLIST.data(), blacklistArray);
 
         // Write config file
-        fslib::File configFile(PATH_CONFIG_FILE,
+        fslib::File configFile{PATH_CONFIG_FILE,
                                FsOpenMode_Create | FsOpenMode_Write,
-                               std::strlen(json_object_get_string(configJSON.get())));
+                               std::strlen(json_object_get_string(configJSON.get()))};
         if (configFile) { configFile << json_object_get_string(configJSON.get()); }
     }
 
     if (!s_pathMap.empty())
     {
-        // Paths file.
         json::Object pathsJSON = json::new_object(json_object_new_object);
-        // Loop through map and write stuff.
-        for (auto &[applicationID, path] : s_pathMap)
+        for (const auto &[applicationID, path] : s_pathMap)
         {
-            // Get ID as hex string.
-            std::string idHex = stringutil::get_formatted_string("%016llX", applicationID);
-            // path
-            json_object *pathObject = json_object_new_string(path.c_str());
+            const std::string idHex = stringutil::get_formatted_string("%016llX", applicationID);
 
-            // Add to pathsJSON object.
+            json_object *pathObject = json_object_new_string(path.c_str());
             json::add_object(pathsJSON, idHex.c_str(), pathObject);
         }
         // Write it.
         fslib::File pathsFile(PATH_PATHS_PATH,
                               FsOpenMode_Create | FsOpenMode_Write,
                               std::strlen(json_object_get_string(pathsJSON.get())));
-        if (pathsFile) { pathsFile << json_object_get_string(pathsJSON.get()); }
+        if (pathsFile.is_open()) { pathsFile << json_object_get_string(pathsJSON.get()); }
     }
 }
 
@@ -244,8 +244,8 @@ void config::add_remove_favorite(uint64_t applicationID)
 
 bool config::is_favorite(uint64_t applicationID)
 {
-    if (std::find(s_favorites.begin(), s_favorites.end(), applicationID) == s_favorites.end()) { return false; }
-
+    const auto findID = std::find(s_favorites.begin(), s_favorites.end(), applicationID);
+    if (findID == s_favorites.end()) { return false; }
     return true;
 }
 
@@ -258,8 +258,8 @@ void config::add_remove_blacklist(uint64_t applicationID)
 
 bool config::is_blacklisted(uint64_t applicationID)
 {
-    if (std::find(s_blacklist.begin(), s_blacklist.end(), applicationID) == s_blacklist.end()) { return false; }
-
+    const bool found = std::find(s_blacklist.begin(), s_blacklist.end(), applicationID) == s_blacklist.end();
+    if (found) { return false; }
     return true;
 }
 
@@ -271,13 +271,12 @@ void config::add_custom_path(uint64_t applicationID, std::string_view customPath
 bool config::has_custom_path(uint64_t applicationID)
 {
     if (s_pathMap.find(applicationID) == s_pathMap.end()) { return false; }
-
     return true;
 }
 
 void config::get_custom_path(uint64_t applicationID, char *pathOut, size_t pathOutSize)
 {
+    const auto findPath = s_pathMap.find(applicationID);
     if (s_pathMap.find(applicationID) == s_pathMap.end()) { return; }
-
     std::memcpy(pathOut, s_pathMap[applicationID].c_str(), s_pathMap[applicationID].length());
 }

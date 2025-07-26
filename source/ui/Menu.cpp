@@ -32,25 +32,28 @@ ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
 
 void ui::Menu::update(bool hasFocus)
 {
-    // Bail if there's nothing to update.
     if (m_options.empty()) { return; }
 
-    int optionsSize = m_options.size();
-    if (input::button_pressed(HidNpadButton_AnyUp) && --m_selected < 0) { m_selected = optionsSize - 1; }
-    else if (input::button_pressed(HidNpadButton_AnyDown) && ++m_selected >= optionsSize) { m_selected = 0; }
-    else if (input::button_pressed(HidNpadButton_AnyLeft) && (m_selected -= m_scrollLength) < 0) { m_selected = 0; }
-    else if (input::button_pressed(HidNpadButton_AnyRight) && (m_selected += m_scrollLength) >= optionsSize)
-    {
-        m_selected = optionsSize - 1;
-    }
-    else if (input::button_pressed(HidNpadButton_L) && (m_selected -= m_scrollLength * 3) < 0) { m_selected = 0; }
-    else if (input::button_pressed(HidNpadButton_R) && (m_selected += m_scrollLength * 3) >= optionsSize)
-    {
-        m_selected = optionsSize - 1;
-    }
+    const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);
+    const bool downPressed      = input::button_pressed(HidNpadButton_AnyDown);
+    const bool leftPressed      = input::button_pressed(HidNpadButton_AnyLeft);
+    const bool rightPressed     = input::button_pressed(HidNpadButton_AnyRight);
+    const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
+    const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
+    const int optionsSize       = m_options.size();
+
+    const bool wrapSelectedUp    = upPressed && --m_selected < 0;
+    const bool wrapSelectedDown  = downPressed && ++m_selected >= optionsSize;
+    const bool stopSelectedLeft  = leftPressed && (m_selected -= m_scrollLength) < 0;
+    const bool stopSelectedRight = rightPressed && (m_selected += m_scrollLength) >= optionsSize;
+    const bool stopShoulderLeft  = lShoulderPressed && (m_selected -= m_scrollLength * 3) < 0;
+    const bool stopShoulderRight = rShoulderPressed && (m_selected += m_scrollLength * 3) >= optionsSize;
+
+    if (wrapSelectedUp || stopSelectedRight || stopShoulderRight) { m_selected = optionsSize - 1; }
+    else if (wrapSelectedDown || stopSelectedLeft || stopShoulderLeft) { m_selected = 0; }
 
     // Don't bother continuing further if there's no reason to scroll.
-    if (static_cast<int>(m_options.size()) <= m_maxDisplayOptions) { return; }
+    if (optionsSize <= m_maxDisplayOptions) { return; }
 
     if (m_selected < m_scrollLength) { m_targetY = m_originalY; }
     else if (m_selected >= static_cast<int>(m_options.size()) - (m_maxDisplayOptions - m_scrollLength))

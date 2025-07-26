@@ -1,5 +1,6 @@
 #pragma once
 #include "system/Timer.hpp"
+
 #include <mutex>
 #include <string>
 #include <vector>
@@ -10,25 +11,25 @@ namespace ui
     typedef struct
     {
             // Y coordinate
-            double m_y;
+            double y{};
             // Target Y coordinate
-            double m_targetY;
+            double targetY{};
             // Width of the message.
-            size_t m_width;
+            size_t width{};
             // Message string.
-            std::string m_message;
+            std::string message{};
             // Timer.
-            sys::Timer m_timer;
+            sys::Timer timer{};
     } PopMessage;
 
     class PopMessageManager
     {
         public:
             // No copying.
-            PopMessageManager(const PopMessageManager &) = delete;
-            PopMessageManager(PopMessageManager &&) = delete;
+            PopMessageManager(const PopMessageManager &)            = delete;
+            PopMessageManager(PopMessageManager &&)                 = delete;
             PopMessageManager &operator=(const PopMessageManager &) = delete;
-            PopMessageManager &operator=(PopMessageManager &&) = delete;
+            PopMessageManager &operator=(PopMessageManager &&)      = delete;
 
             /// @brief Updates and processes message queue.
             static void update();
@@ -37,13 +38,10 @@ namespace ui
             static void render();
 
             /// @brief Pushes a new message to the queue for processing.
-            /// @param displayTicks Number of ticks for the message to be displayed until it is purged.
-            /// @param format Format of message.
-            /// @param args Arguments for message.
-            static void push_message(int displayTicks, const char *format, ...);
+            static void push_message(int displayTicks, std::string_view message);
 
             /// @brief The default duration of ticks for messages to be shown.
-            static constexpr int DEFAULT_MESSAGE_TICKS = 2500;
+            static constexpr int DEFAULT_TICKS = 2500;
 
         private:
             // Only one instance allowed.

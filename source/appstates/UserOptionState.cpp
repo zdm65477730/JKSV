@@ -231,7 +231,7 @@ static void create_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserO
     UserOptionState *spawningState = dataStruct->spawningState;
 
     auto &titleInfoMap            = data::get_title_info_map();
-    const int popTicks            = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const int popTicks            = ui::PopMessageManager::DEFAULT_TICKS;
     const char *statusTemplate    = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);
     const char *popFailure        = strings::get_by_name(strings::names::SAVECREATE_POPS, 0);
     const FsSaveDataType saveType = user->get_account_save_type();
@@ -261,7 +261,7 @@ static void delete_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserO
     UserOptionState *spawningState = dataStruct->spawningState;
     const char *statusTemplate     = strings::get_by_name(strings::names::USEROPTION_STATUS, 1); // Borrowed. No duplication.
     const char *popFailed          = strings::get_by_name(strings::names::SAVECREATE_POPS, 2);
-    const int popTicks             = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
     const size_t totalDataEntries  = user->get_total_data_entries();
     std::vector<uint64_t> applicationIDs;
 

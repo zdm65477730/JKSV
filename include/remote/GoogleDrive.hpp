@@ -18,7 +18,7 @@ namespace remote
 
             /// @brief Uploads the file from source. File name is used to name the file.
             /// @param source Path to upload the file from.
-            bool upload_file(const fslib::Path &source, sys::ProgressTask *task = nullptr) override;
+            bool upload_file(const fslib::Path &source, std::string_view name, sys::ProgressTask *task = nullptr) override;
 
             /// @brief Patches or updates the file on Google Drive.
             /// @param file Pointer to the item containing the data needed to update the file.
@@ -28,7 +28,9 @@ namespace remote
             /// @brief Downloads a file from Google Drive.
             /// @param file Pointer to the item containing data to download the file.
             /// @param destination Location to write the downloaded file to.
-            bool download_file(const remote::Item *file, const fslib::Path &destination) override;
+            bool download_file(const remote::Item *file,
+                               const fslib::Path &destination,
+                               sys::ProgressTask *task = nullptr) override;
 
             /// @brief Deletes an item from Google Drive.
             /// @param item Pointer to item containing data to delete the item.

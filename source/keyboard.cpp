@@ -1,5 +1,7 @@
 #include "keyboard.hpp"
 
+#include "error.hpp"
+
 #include <string>
 
 bool keyboard::get_input(SwkbdType keyboardType,
@@ -8,7 +10,6 @@ bool keyboard::get_input(SwkbdType keyboardType,
                          char *stringOut,
                          size_t stringLength)
 {
-    // Setup keyboard.
     SwkbdConfig keyboard;
     swkbdCreate(&keyboard, 0);
     swkbdConfigSetBlurBackground(&keyboard, true);
@@ -19,12 +20,9 @@ bool keyboard::get_input(SwkbdType keyboardType,
     swkbdConfigSetStringLenMax(&keyboard, stringLength);
     swkbdConfigSetKeySetDisableBitmask(&keyboard, SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Backslash);
 
-    // If it fails, just return.
-    if (R_FAILED(swkbdShow(&keyboard, stringOut, stringLength))) { return false; }
+    const bool swkbdError = error::libnx(swkbdShow(&keyboard, stringOut, stringLength));
+    const bool empty      = std::char_traits<char>::length(stringOut) == 0;
+    if (swkbdError || empty) { return false; }
 
-    // If the string is empty, assume failure or cancel.
-    if (std::char_traits<char>::length(stringOut) == 0) { return false; }
-
-    // I wish this was more like the 3DS keyboard cause that actually returned what button was pressed...
     return true;
 }

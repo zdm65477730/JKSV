@@ -2,6 +2,7 @@
 #include "appstates/BaseState.hpp"
 #include "data/data.hpp"
 #include "fslib.hpp"
+#include "remote/remote.hpp"
 #include "sdl.hpp"
 #include "system/Timer.hpp"
 #include "ui/Menu.hpp"
@@ -53,7 +54,8 @@ class BackupMenuState final : public BaseState
         {
             data::User *user{};
             data::TitleInfo *titleInfo{};
-            fslib::Path path{};
+            fslib::Path path{}; // This and
+            remote::Item *remoteItem{}; // this are set when needed.
             BackupMenuState *spawningState{};
         };
         // clang-format on
@@ -76,6 +78,9 @@ class BackupMenuState final : public BaseState
 
         /// @brief Directory listing of the above.
         fslib::Directory m_directoryListing{};
+
+        /// @brief Remote storage listing of the current parent.
+        remote::Storage::DirectoryListing m_remoteListing{};
 
         /// @brief This is the scrolling text at the top.
         ui::TextScroll m_titleScroll{};
@@ -140,8 +145,9 @@ class BackupMenuState final : public BaseState
         /// @brief Just creates the pop-up that says Save is empty or w/e.
         void pop_save_empty();
 
-        inline bool is_system_save_data()
+        inline bool user_is_system()
         {
-            return m_saveType == FsSaveDataType_System || m_saveType == FsSaveDataType_SystemBcat;
+            const uint8_t saveType = m_user->get_account_save_type();
+            return saveType == FsSaveDataType_System || saveType == FsSaveDataType_SystemBcat;
         }
 };

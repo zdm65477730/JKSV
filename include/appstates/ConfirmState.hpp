@@ -93,6 +93,7 @@ class ConfirmState final : public BaseState
             {
                 m_startingTickCount = SDL_GetTicks64();
                 m_yesText           = m_holdText[0];
+                ConfirmState::center_yes();
             }
             else if (holdSustained)
             {

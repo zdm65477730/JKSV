@@ -162,7 +162,7 @@ void TitleOptionState::update()
                 FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(m_titleInfo->get_application_id());
                 if (fs::is_system_save_data(saveInfo) && !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
                 {
-                    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                                         strings::get_by_name(strings::names::TITLEOPTION_POPS, 6));
                     return;
                 }
@@ -187,7 +187,7 @@ void TitleOptionState::update()
                 FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(m_titleInfo->get_application_id());
                 if (fs::is_system_save_data(saveInfo) && !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
                 {
-                    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                                         strings::get_by_name(strings::names::TITLEOPTION_POPS, 6));
                     return;
                 }
@@ -214,7 +214,7 @@ void TitleOptionState::update()
                 FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(m_titleInfo->get_application_id());
                 if (fs::is_system_save_data(saveInfo) && !config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
                 {
-                    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+                    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                                         strings::get_by_name(strings::names::TITLEOPTION_POPS, 6));
                     return;
                 }
@@ -279,71 +279,61 @@ static void blacklist_title(sys::Task *task, std::shared_ptr<TitleOptionState::D
 
 static void change_output_path(data::TitleInfo *targetTitle)
 {
-    // This is where we're writing the path.
-    char pathBuffer[0x200] = {0};
+    static constexpr size_t SIZE_PATH_BUFFER = 0x200;
+    const char *headerTemplate               = strings::get_by_name(strings::names::KEYBOARD, 7);
+    const int popTicks                       = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popSuccess                   = strings::get_by_name(strings::names::TITLEOPTION_POPS, 1);
+    const char *popFailure                   = strings::get_by_name(strings::names::TITLEOPTION_POPS, 0);
+    const char *pathSafeTitle                = targetTitle->get_path_safe_title();
 
-    // Header string.
-    std::string headerString =
-        stringutil::get_formatted_string(strings::get_by_name(strings::names::KEYBOARD, 7), targetTitle->get_title());
-
-    // Try to get input.
-    if (!keyboard::get_input(SwkbdType_QWERTY, targetTitle->get_path_safe_title(), headerString, pathBuffer, 0x200)) { return; }
-
-    // Try to make sure it will work.
-    if (!stringutil::sanitize_string_for_path(pathBuffer, pathBuffer, 0x200))
+    const std::string headerString    = stringutil::get_formatted_string(headerTemplate, targetTitle->get_title());
+    char pathBuffer[SIZE_PATH_BUFFER] = {0};
+    const bool inputIsValid = keyboard::get_input(SwkbdType_QWERTY, pathSafeTitle, headerString, pathBuffer, SIZE_PATH_BUFFER);
+    const bool sanitized    = inputIsValid && stringutil::sanitize_string_for_path(pathBuffer, pathBuffer, SIZE_PATH_BUFFER);
+    if (!inputIsValid || !sanitized)
     {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 0));
+        ui::PopMessageManager::push_message(popTicks, popFailure);
         return;
     }
 
-    // Rename folder to match so there are no issues.
-    fslib::Path oldPath = config::get_working_directory() / targetTitle->get_path_safe_title();
-    fslib::Path newPath = config::get_working_directory() / pathBuffer;
-    if (fslib::directory_exists(oldPath) && !fslib::rename_directory(oldPath, newPath))
+    const fslib::Path workDir = config::get_working_directory();
+    const fslib::Path oldPath{workDir / targetTitle->get_path_safe_title()};
+    const fslib::Path newPath{workDir / pathBuffer};
+    const bool dirExists    = fslib::directory_exists(oldPath);
+    const bool renameFailed = dirExists && error::fslib(fslib::rename_directory(oldPath, newPath));
+    if (dirExists && renameFailed)
     {
-        // Bail if this fails, because something is really wrong.
-        logger::log("Error setting new output path: %s", fslib::error::get_string());
+        ui::PopMessageManager::push_message(popTicks, popFailure);
         return;
     }
 
-    // Add it to config and set target title to use it.
     targetTitle->set_path_safe_title(pathBuffer, std::strlen(pathBuffer));
     config::add_custom_path(targetTitle->get_application_id(), pathBuffer);
 
-    // Pop so we know stuff happened.
-    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                        strings::get_by_name(strings::names::TITLEOPTION_POPS, 1),
-                                        pathBuffer);
+    const std::string popMessage = stringutil::get_formatted_string(popSuccess, pathBuffer);
+    ui::PopMessageManager::push_message(popTicks, popMessage);
 }
 
 static void delete_all_backups_for_title(sys::Task *task, std::shared_ptr<TitleOptionState::DataStruct> dataStruct)
 {
     if (error::is_null(task)) { return; }
-
     data::TitleInfo *titleInfo = dataStruct->titleInfo;
 
     const char *statusTemplate = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 0);
+    const int popTicks         = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popSuccess     = strings::get_by_name(strings::names::TITLEOPTION_POPS, 0);
+    const char *popFailure     = strings::get_by_name(strings::names::TITLEOPTION_POPS, 1);
 
     {
         const std::string status = stringutil::get_formatted_string(statusTemplate, titleInfo->get_title());
         task->set_status(status);
     }
 
-    fslib::Path titlePath = config::get_working_directory() / titleInfo->get_path_safe_title();
+    const fslib::Path titlePath{config::get_working_directory() / titleInfo->get_path_safe_title()};
+    const bool deleteFailed = error::fslib(fslib::delete_directory_recursively(titlePath));
+    if (deleteFailed) { ui::PopMessageManager::push_message(popTicks, popFailure); }
+    else { const std::string popMessage = stringutil::get_formatted_string(popSuccess, titleInfo->get_title()); }
 
-    // Just call this and nuke the folder.
-    if (!fslib::delete_directory_recursively(titlePath))
-    {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 1));
-    }
-    else
-    {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::TITLEOPTION_POPS, 0),
-                                            titleInfo->get_title());
-    }
     task->finished();
 }
 
@@ -356,7 +346,7 @@ static void reset_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::D
 
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
-    const int popTicks             = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popFailed          = strings::get_by_name(strings::names::TITLEOPTION_POPS, 2);
     const char *popSucceeded       = strings::get_by_name(strings::names::TITLEOPTION_POPS, 3);
 
@@ -419,7 +409,7 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(titleInfo->get_application_id());
     const char *statusTemplate     = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 3);
     const char *keyboardHeader     = strings::get_by_name(strings::names::KEYBOARD, 8);
-    const int popTicks             = ui::PopMessageManager::DEFAULT_MESSAGE_TICKS;
+    const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popSuccess         = strings::get_by_name(strings::names::TITLEOPTION_POPS, 10);
     const char *popFailed          = strings::get_by_name(strings::names::TITLEOPTION_POPS, 11);
     if (error::is_null(task) || error::is_null(saveInfo)) { return; }
@@ -466,7 +456,7 @@ static void export_svi_file(data::TitleInfo *titleInfo)
     {
         logger::log("SVI for %016llX already exists!", titleInfo->get_application_id());
         // Just show this and bail.
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                             strings::get_by_name(strings::names::TITLEOPTION_POPS, 5));
         return;
     }
@@ -476,7 +466,7 @@ static void export_svi_file(data::TitleInfo *titleInfo)
     if (!sviFile)
     {
         logger::log("Error exporting SVI file: %s", fslib::error::get_string());
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                             strings::get_by_name(strings::names::TITLEOPTION_POPS, 5));
     }
 
@@ -489,6 +479,6 @@ static void export_svi_file(data::TitleInfo *titleInfo)
     sviFile.write(titleInfo->get_control_data(), sizeof(NsApplicationControlData));
 
     // Show this so we know things happened.jpg
-    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                         strings::get_by_name(strings::names::TITLEOPTION_POPS, 4));
 }

@@ -2,11 +2,7 @@
 
 remote::Form::Form(const remote::Form &form) { m_form = form.m_form; }
 
-remote::Form::Form(remote::Form &&form)
-{
-    m_form = form.m_form;
-    form.m_form.clear();
-}
+remote::Form::Form(remote::Form &&form) { m_form = std::move(form.m_form); }
 
 remote::Form &remote::Form::operator=(const remote::Form &form)
 {
@@ -16,8 +12,7 @@ remote::Form &remote::Form::operator=(const remote::Form &form)
 
 remote::Form &remote::Form::operator=(remote::Form &&form)
 {
-    m_form = form.m_form;
-    form.m_form.clear();
+    m_form = std::move(form.m_form);
     return *this;
 }
 

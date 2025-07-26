@@ -97,6 +97,9 @@ static void create_save_data(sys::Task *task,
     if (error::is_null(task)) { return; }
 
     const char *statusTemplate = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);
+    const int popTicks         = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popSuccess     = strings::get_by_name(strings::names::SAVECREATE_POPS, 8);
+    const char *popFailed      = strings::get_by_name(strings::names::SAVECREATE_POPS, 9);
 
     {
         const std::string status = stringutil::get_formatted_string(statusTemplate, titleInfo->get_title());
@@ -105,15 +108,10 @@ static void create_save_data(sys::Task *task,
 
     if (fs::create_save_data_for(targetUser, titleInfo))
     {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::SAVECREATE_POPS, 0),
-                                            titleInfo->get_title());
+        const std::string popMessage = stringutil::get_formatted_string(popSuccess, titleInfo->get_title());
+        ui::PopMessageManager::push_message(popTicks, popMessage);
     }
-    else
-    {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
-                                            strings::get_by_name(strings::names::SAVECREATE_POPS, 1));
-    }
+    else { ui::PopMessageManager::push_message(popTicks, popFailed); }
 
     spawningState->data_and_view_refresh_required();
 

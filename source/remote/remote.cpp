@@ -50,7 +50,7 @@ void remote::initialize_google_drive()
     if (!drive->is_initialized()) { return; }
     // Can't forget this.
     drive_set_jksv_root(drive);
-    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                         strings::get_by_name(strings::names::GOOGLE_DRIVE, 1));
 }
 
@@ -60,12 +60,12 @@ void remote::initialize_webdav()
 
     if (s_storage->is_initialized())
     {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                             strings::get_by_name(strings::names::WEBDAV, 0));
     }
     else
     {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                             strings::get_by_name(strings::names::WEBDAV, 1));
     }
 }
@@ -103,12 +103,12 @@ static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
         // Run this quick so the root is set correctly.
         drive_set_jksv_root(drive);
         // Show everyone I did it!
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                             strings::get_by_name(strings::names::GOOGLE_DRIVE, 1));
     }
     else
     {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_MESSAGE_TICKS,
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
                                             strings::get_by_name(strings::names::GOOGLE_DRIVE, 2));
     }
 

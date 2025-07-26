@@ -143,10 +143,10 @@ bool remote::GoogleDrive::create_directory(std::string_view name)
     return true;
 }
 
-bool remote::GoogleDrive::upload_file(const fslib::Path &source, sys::ProgressTask *task)
+bool remote::GoogleDrive::upload_file(const fslib::Path &source, std::string_view name, sys::ProgressTask *task)
 {
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
-    const char *statusTemplate = strings::get_by_name(strings::names::BACKUPMENU_STATUS, 1);
+    const char *statusTemplate = strings::get_by_name(strings::names::IO_STATUSES, 5);
 
     fslib::File sourceFile(source, FsOpenMode_Read);
     if (!sourceFile)
@@ -165,7 +165,7 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source, sys::ProgressTa
 
     // Json to post.
     json::Object postJson  = json::new_object(json_object_new_object);
-    json_object *driveName = json_object_new_string(source.get_filename());
+    json_object *driveName = json_object_new_string(name.data());
     json::add_object(postJson, JSON_KEY_NAME, driveName);
     if (!m_parent.empty())
     {
@@ -304,16 +304,23 @@ bool remote::GoogleDrive::patch_file(remote::Item *file, const fslib::Path &sour
     return true;
 }
 
-bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::Path &destination)
+bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::Path &destination, sys::ProgressTask *task)
 {
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
+    const char *statusTemplate = strings::get_by_name(strings::names::IO_STATUSES, 4);
 
-    // Try to open the file too before continuing. Using a starting size speeds up write calls later.
-    fslib::File destinationFile(destination, FsOpenMode_Create | FsOpenMode_Write, file->get_size());
-    if (!destinationFile)
+    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, file->get_size()};
+    if (!destFile)
     {
         logger::log("Error downloading file: local file could not be opened for writing!");
         return false;
+    }
+
+    if (task)
+    {
+        const std::string status = stringutil::get_formatted_string(statusTemplate, file->get_name().data());
+        task->set_status(status);
+        task->reset(static_cast<double>(file->get_size()));
     }
 
     curl::HeaderList header = curl::new_header_list();
@@ -322,15 +329,20 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
     remote::URL url{URL_DRIVE_FILE_API};
     url.append_path(file->get_id()).append_parameter("alt", "media");
 
-    std::string response;
+    curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = file->get_size()};
     curl::prepare_get(m_curl);
     curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
     curl::set_option(m_curl, CURLOPT_URL, url.get());
     // This is temporary until I get threading figured out again.
-    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_data_to_file);
-    curl::set_option(m_curl, CURLOPT_WRITEDATA, &destinationFile);
+    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::download_file_threaded);
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, &download);
 
+    // curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::download_file_threaded);
+    // curl::set_option(m_curl, CURLOPT_WRITEDATA, &download);
+
+    std::thread writeThread(curl::download_write_thread_function, std::ref(download));
     if (!curl::perform(m_curl)) { return false; }
+    writeThread.join();
 
     return true;
 }
