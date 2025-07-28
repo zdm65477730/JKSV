@@ -13,6 +13,8 @@
 #include "logger.hpp"
 #include "sdl.hpp"
 #include "strings.hpp"
+#include "stringutil.hpp"
+#include "ui/PopMessageManager.hpp"
 
 MainMenuState::MainMenuState()
     : m_renderTarget{sdl::TextureManager::create_load_texture("mainMenuTarget",
@@ -109,9 +111,25 @@ void MainMenuState::initialize_menu()
 
 void MainMenuState::push_target_state()
 {
-    const int selected = m_mainMenu.get_selected();
-    auto &target       = sm_states.at(selected);
+    const int popTicks          = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popNoSaveFormat = strings::get_by_name(strings::names::MAINMENU_POPS, 0);
 
+    const int selected  = m_mainMenu.get_selected();
+    const int userCount = sm_users.size();
+    if (selected < userCount)
+    {
+        const data::User *user = sm_users[selected];
+        const int titleCount   = user->get_total_data_entries();
+        if (titleCount <= 0)
+        {
+            const char *nickname       = user->get_nickname();
+            const std::string popError = stringutil::get_formatted_string(popNoSaveFormat, nickname);
+            ui::PopMessageManager::push_message(popTicks, popError);
+            return;
+        }
+    }
+
+    auto &target = sm_states[selected];
     target->reactivate();
     StateManager::push_state(target);
 }
@@ -120,7 +138,7 @@ void MainMenuState::create_user_options()
 {
     const int selected             = m_mainMenu.get_selected();
     data::User *user               = sm_users.at(selected);
-    TitleSelectCommon *titleSelect = static_cast<TitleSelectCommon *>(sm_states.at(selected).get());
+    TitleSelectCommon *titleSelect = static_cast<TitleSelectCommon *>(sm_states[selected].get());
 
     auto userOptions = std::make_shared<UserOptionState>(user, titleSelect);
     StateManager::push_state(userOptions);

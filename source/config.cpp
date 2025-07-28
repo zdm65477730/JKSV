@@ -256,7 +256,7 @@ bool config::has_custom_path(uint64_t applicationID)
 void config::get_custom_path(uint64_t applicationID, char *pathOut, size_t pathOutSize)
 {
     const auto findPath = s_pathMap.find(applicationID);
-    if (s_pathMap.find(applicationID) == s_pathMap.end()) { return; }
+    if (findPath == s_pathMap.end()) { return; }
     std::memcpy(pathOut, s_pathMap[applicationID].c_str(), s_pathMap[applicationID].length());
 }
 

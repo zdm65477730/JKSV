@@ -81,6 +81,9 @@
         "7: Enter a new output folder name for %s.",
         "8: Enter how much to expand (in MB)."
     ],
+    "MainMenuPops": [
+        "0: `%s` has no save data!"
+    ],
     "OnOff": [
         "0: Off",
         "1: >On>"
