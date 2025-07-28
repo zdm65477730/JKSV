@@ -41,13 +41,13 @@ class ConfirmState final : public BaseState
         /// @param function Function executed on confirmation.
         /// @param dataStruct shared_ptr<StructType> that is passed to function. I tried templating this and it was a nightmare.
         ConfirmState(std::string_view query, bool holdRequired, TaskFunction function, std::shared_ptr<StructType> dataStruct)
-            : BaseState(false)
-            , m_queryString(query)
-            , m_yesText(strings::get_by_name(strings::names::YES_NO, 0))
-            , m_noText(strings::get_by_name(strings::names::YES_NO, 1))
-            , m_holdRequired(holdRequired)
-            , m_function(function)
-            , m_dataStruct(dataStruct)
+            : BaseState{false}
+            , m_queryString{query}
+            , m_yesText{strings::get_by_name(strings::names::YES_NO, 0)}
+            , m_noText{strings::get_by_name(strings::names::YES_NO, 1)}
+            , m_holdRequired{holdRequired}
+            , m_function{function}
+            , m_dataStruct{dataStruct}
         {
             const int noWidth = sdl::text::get_width(22, m_noText);
 

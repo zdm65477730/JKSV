@@ -10,8 +10,8 @@
 #include <cstring>
 
 data::TitleInfo::TitleInfo(uint64_t applicationID)
-    : m_applicationID(applicationID)
-    , m_data(std::make_unique<NsApplicationControlData>())
+    : m_applicationID{applicationID}
+    , m_data{std::make_unique<NsApplicationControlData>()}
 {
     static constexpr size_t SIZE_CTRL_DATA = sizeof(NsApplicationControlData);
     static constexpr size_t SIZE_NACP      = sizeof(NacpStruct);
@@ -50,8 +50,8 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
 
 // To do: Make this safer...
 data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData)
-    : m_applicationID(applicationID)
-    , m_data(std::make_unique<NsApplicationControlData>())
+    : m_applicationID{applicationID}
+    , m_data{std::make_unique<NsApplicationControlData>()}
 {
     NsApplicationControlData *data = m_data.get();
 
@@ -60,6 +60,7 @@ data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &con
     NacpLanguageEntry *entry{};
     const bool entryError = error::libnx(nacpGetLanguageEntry(&data->nacp, &entry));
     if (entryError) { std::snprintf(entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID); }
+
     TitleInfo::get_create_path_safe_title();
     m_icon = sdl::TextureManager::create_load_texture(entry->name, m_data->icon, sizeof(m_data->icon));
 }
@@ -114,11 +115,11 @@ int64_t data::TitleInfo::get_save_data_size(uint8_t saveType) const
     const NacpStruct &nacp = m_data->nacp;
     switch (saveType)
     {
-        case FsSaveDataType_Account: return nacp.user_account_save_data_size;
-        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size;
-        case FsSaveDataType_Device: return nacp.device_save_data_size;
+        case FsSaveDataType_Account:   return nacp.user_account_save_data_size;
+        case FsSaveDataType_Bcat:      return nacp.bcat_delivery_cache_storage_size;
+        case FsSaveDataType_Device:    return nacp.device_save_data_size;
         case FsSaveDataType_Temporary: return nacp.temporary_storage_size;
-        case FsSaveDataType_Cache: return nacp.cache_storage_size;
+        case FsSaveDataType_Cache:     return nacp.cache_storage_size;
     }
     return 0;
 }
@@ -128,11 +129,11 @@ int64_t data::TitleInfo::get_save_data_size_max(uint8_t saveType) const
     const NacpStruct &nacp = m_data->nacp;
     switch (saveType)
     {
-        case FsSaveDataType_Account: return std::max(nacp.user_account_save_data_size, nacp.user_account_save_data_size_max);
-        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size;
-        case FsSaveDataType_Device: return std::max(nacp.device_save_data_size, nacp.device_save_data_size_max);
+        case FsSaveDataType_Account:   return std::max(nacp.user_account_save_data_size, nacp.user_account_save_data_size_max);
+        case FsSaveDataType_Bcat:      return nacp.bcat_delivery_cache_storage_size;
+        case FsSaveDataType_Device:    return std::max(nacp.device_save_data_size, nacp.device_save_data_size_max);
         case FsSaveDataType_Temporary: return nacp.temporary_storage_size;
-        case FsSaveDataType_Cache: return std::max(nacp.cache_storage_size, nacp.cache_storage_data_and_journal_size_max);
+        case FsSaveDataType_Cache:     return std::max(nacp.cache_storage_size, nacp.cache_storage_data_and_journal_size_max);
     }
     return 0;
 }
@@ -142,11 +143,11 @@ int64_t data::TitleInfo::get_journal_size(uint8_t saveType) const
     const NacpStruct &nacp = m_data->nacp;
     switch (saveType)
     {
-        case FsSaveDataType_Account: return nacp.user_account_save_data_journal_size;
-        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size;
-        case FsSaveDataType_Device: return nacp.device_save_data_journal_size;
+        case FsSaveDataType_Account:   return nacp.user_account_save_data_journal_size;
+        case FsSaveDataType_Bcat:      return nacp.bcat_delivery_cache_storage_size;
+        case FsSaveDataType_Device:    return nacp.device_save_data_journal_size;
         case FsSaveDataType_Temporary: return nacp.temporary_storage_size;
-        case FsSaveDataType_Cache: return nacp.cache_storage_journal_size;
+        case FsSaveDataType_Cache:     return nacp.cache_storage_journal_size;
     }
     return 0;
 }
@@ -158,8 +159,8 @@ int64_t data::TitleInfo::get_journal_size_max(uint8_t saveType) const
     {
         case FsSaveDataType_Account:
             return std::max(nacp.user_account_save_data_journal_size, nacp.user_account_save_data_journal_size_max);
-        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size;
-        case FsSaveDataType_Device: return std::max(nacp.device_save_data_journal_size, nacp.device_save_data_journal_size_max);
+        case FsSaveDataType_Bcat:      return nacp.bcat_delivery_cache_storage_size;
+        case FsSaveDataType_Device:    return std::max(nacp.device_save_data_journal_size, nacp.device_save_data_journal_size_max);
         case FsSaveDataType_Temporary: return nacp.temporary_storage_size;
         case FsSaveDataType_Cache:
             return std::max(nacp.cache_storage_journal_size, nacp.cache_storage_data_and_journal_size_max);
@@ -173,9 +174,9 @@ bool data::TitleInfo::has_save_data_type(uint8_t saveType) const
     switch (saveType)
     {
         case FsSaveDataType_Account: return nacp.user_account_save_data_size > 0 || nacp.user_account_save_data_size_max > 0;
-        case FsSaveDataType_Bcat: return nacp.bcat_delivery_cache_storage_size > 0;
-        case FsSaveDataType_Device: return nacp.device_save_data_size > 0 || nacp.device_save_data_size_max > 0;
-        case FsSaveDataType_Cache: return nacp.cache_storage_size > 0 || nacp.cache_storage_data_and_journal_size_max > 0;
+        case FsSaveDataType_Bcat:    return nacp.bcat_delivery_cache_storage_size > 0;
+        case FsSaveDataType_Device:  return nacp.device_save_data_size > 0 || nacp.device_save_data_size_max > 0;
+        case FsSaveDataType_Cache:   return nacp.cache_storage_size > 0 || nacp.cache_storage_data_and_journal_size_max > 0;
     }
     return false;
 }
@@ -194,12 +195,18 @@ void data::TitleInfo::get_create_path_safe_title()
     const uint64_t applicationID = TitleInfo::get_application_id();
     NacpLanguageEntry *entry{};
 
-    const bool hasCustomPath = config::has_custom_path(applicationID);
-    const bool entryError    = !hasCustomPath && error::libnx(nacpGetLanguageEntry(&m_data->nacp, &entry));
-    const bool sanitizeError = !hasCustomPath && !entryError &&
-                               !stringutil::sanitize_string_for_path(entry->name, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE);
-    if (hasCustomPath) { config::get_custom_path(applicationID, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE); }
-    else if (entryError || sanitizeError)
+    const bool hasCustom = config::has_custom_path(applicationID);
+    if (hasCustom)
+    {
+        config::get_custom_path(applicationID, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE);
+        return;
+    }
+
+    const bool useTitleId = config::get_by_key(config::keys::USE_TITLE_IDS);
+    const bool entryError = !useTitleId && error::libnx(nacpGetLanguageEntry(&m_data->nacp, &entry));
+    const bool sanitized =
+        !useTitleId && !entryError && stringutil::sanitize_string_for_path(entry->name, m_pathSafeTitle, SIZE_PATH_SAFE);
+    if (useTitleId || entryError || !sanitized)
     {
         std::snprintf(m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
     }

@@ -42,6 +42,9 @@ class BaseTask : public BaseState
         /// @brief This is used to give the animation its pulsing color.
         ui::ColorMod m_colorMod{};
 
+        /// @brief This is a pointer to the string popped when plus is pressed.
+        const char *m_popUnableExit{};
+
         /// @brief This array holds the glyphs of the loading sequence. I think it's from the Wii?
         static inline std::array<std::string_view, 8> sm_glyphArray =
             {"\ue020", "\ue021", "\ue022", "\ue023", "\ue024", "\ue025", "\ue026", "\ue027"};

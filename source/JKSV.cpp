@@ -3,6 +3,7 @@
 #include "StateManager.hpp"
 #include "appstates/FadeInState.hpp"
 #include "appstates/MainMenuState.hpp"
+#include "appstates/TaskState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
 #include "curl/curl.hpp"
@@ -15,7 +16,9 @@
 #include "strings.hpp"
 #include "ui/PopMessageManager.hpp"
 
+#include <chrono>
 #include <switch.h>
+#include <thread>
 
 // Normally I try to avoid C macros in C++, but this cleans stuff up nicely.
 #define ABORT_ON_FAILURE(x)                                                                                                    \
@@ -24,9 +27,9 @@
 namespace
 {
     /// @brief Build month.
-    constexpr uint8_t BUILD_MON = 6;
+    constexpr uint8_t BUILD_MON = 7;
     /// @brief Build day.
-    constexpr uint8_t BUILD_DAY = 13;
+    constexpr uint8_t BUILD_DAY = 28;
     /// @brief Year.
     constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace

@@ -12,7 +12,7 @@
 namespace curl
 {
     /// @brief JKSV's user agent string.
-    static const char *STRING_USER_AGENT = "JKSV";
+    static constexpr const char *STRING_USER_AGENT = "JKSV";
 
     /// @brief Self cleaning curl handle.
     using Handle = std::unique_ptr<CURL, decltype(&curl_easy_cleanup)>;
@@ -57,6 +57,7 @@ namespace curl
     {
         curl_easy_reset(curl.get());
         curl::set_option(curl, CURLOPT_USERAGENT, curl::STRING_USER_AGENT);
+        curl::set_option(curl, CURLOPT_CONNECTTIMEOUT, 5L);
     }
 
     /// @brief Logged inline wrapper function for curl_easy_perform.

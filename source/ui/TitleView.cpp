@@ -21,87 +21,102 @@ ui::TitleView::TitleView(data::User *user)
 
 void ui::TitleView::update(bool hasFocus)
 {
+    // These are named like this because of where they sit on the screen.
+    static constexpr double UPPER_THRESHOLD = 32.0f;
+    static constexpr double LOWER_THRESHOLD = 388.0f;
+
     if (m_titleTiles.empty()) { return; }
 
     // Update pulse
     if (hasFocus) { m_colorMod.update(); }
 
-    // Input.
-    int totalTiles = m_titleTiles.size() - 1;
-    if (input::button_pressed(HidNpadButton_AnyUp) && (m_selected -= ICON_ROW_SIZE) < 0) { m_selected = 0; }
-    else if (input::button_pressed(HidNpadButton_AnyDown) && (m_selected += ICON_ROW_SIZE) > totalTiles)
-    {
-        m_selected = totalTiles;
-    }
-    else if (input::button_pressed(HidNpadButton_AnyLeft) && m_selected > 0) { --m_selected; }
-    else if (input::button_pressed(HidNpadButton_AnyRight) && m_selected < totalTiles) { ++m_selected; }
-    else if (input::button_pressed(HidNpadButton_L) && (m_selected -= 21) < 0) { m_selected = 0; }
-    else if (input::button_pressed(HidNpadButton_R) && (m_selected += 21) > totalTiles) { m_selected = totalTiles; }
+    const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);
+    const bool downPressed      = input::button_pressed(HidNpadButton_AnyDown);
+    const bool leftPressed      = input::button_pressed(HidNpadButton_AnyLeft);
+    const bool rightPressed     = input::button_pressed(HidNpadButton_AnyRight);
+    const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
+    const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
+    const int totalTiles        = m_titleTiles.size() - 1;
 
-    double scaling = config::get_animation_scaling();
-    if (m_selectedY > 388.0f) { m_y += std::ceil((388.0f - m_selectedY) / scaling); }
-    else if (m_selectedY < 28.0f) { m_y += std::ceil((28.0f - m_selectedY) / scaling); }
+    if (upPressed) { m_selected -= ICON_ROW_SIZE; }
+    else if (leftPressed) { --m_selected; }
+    else if (lShoulderPressed) { m_selected -= ICON_ROW_SIZE * 3; }
+    else if (downPressed) { m_selected += ICON_ROW_SIZE; }
+    else if (rightPressed) { ++m_selected; }
+    else if (rShoulderPressed) { m_selected += ICON_ROW_SIZE * 3; }
 
-    for (size_t i = 0; i < m_titleTiles.size(); i++)
+    if (m_selected < 0) { m_selected = 0; }
+    else if (m_selected > totalTiles) { m_selected = totalTiles; }
+
+    const double scaling = config::get_animation_scaling();
+    if (m_selectedY < UPPER_THRESHOLD) { m_y += std::ceil((UPPER_THRESHOLD - m_selectedY) / scaling); }
+    else if (m_selectedY > LOWER_THRESHOLD) { m_y += std::ceil((LOWER_THRESHOLD - m_selectedY) / scaling); }
+
+    const int tileCount = m_titleTiles.size();
+    for (int i = 0; i < tileCount; i++)
     {
-        m_titleTiles.at(i).update(m_selected == static_cast<int>(i) ? true : false);
+        const bool isSelected = m_selected == i;
+        ui::TitleTile &tile   = m_titleTiles[i];
+
+        tile.update(isSelected);
     }
 }
 
 void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
 {
+    static constexpr int TILE_SPACE_VERT = 144;
+    static constexpr int TILE_SPACE_HOR  = 144;
+
     if (m_titleTiles.empty()) { return; }
 
-    for (int i = 0, tempY = m_y; i < static_cast<int>(m_titleTiles.size()); tempY += 144)
+    const int tileCount = m_titleTiles.size();
+    for (int i = 0, tempY = m_y; i < tileCount; i += ICON_ROW_SIZE, tempY += TILE_SPACE_VERT)
     {
-        int endRow = i + 7;
-        for (int j = i, tempX = 32; j < endRow; j++, i++, tempX += 144)
+        const int endRow = i + ICON_ROW_SIZE;
+        for (int j = i, tempX = 32; j < endRow && j < tileCount; j++, tempX += TILE_SPACE_HOR)
         {
-            if (i >= static_cast<int>(m_titleTiles.size())) { break; }
-
-            // Save the X and Y to render the selected tile over the rest.
-            if (i == m_selected)
+            if (j == m_selected)
             {
                 m_selectedX = tempX;
                 m_selectedY = tempY;
                 continue;
             }
-            // Just render
-            m_titleTiles.at(i).render(target, tempX, tempY);
+
+            ui::TitleTile &tile = m_titleTiles[j];
+            tile.render(target, tempX, tempY);
         }
     }
 
-    // Now render the selected title.
     if (hasFocus)
     {
-        sdl::render_rect_fill(target, m_selectedX - 23, m_selectedY - 23, 174, 174, colors::CLEAR_COLOR);
-        ui::render_bounding_box(target, m_selectedX - 24, m_selectedY - 24, 176, 176, m_colorMod);
+        sdl::render_rect_fill(target, m_selectedX - 29, m_selectedY - 29, 187, 187, colors::CLEAR_COLOR);
+        ui::render_bounding_box(target, m_selectedX - 30, m_selectedY - 30, 188, 188, m_colorMod);
     }
 
-    m_titleTiles.at(m_selected).render(target, m_selectedX, m_selectedY);
+    ui::TitleTile &selectedTile = m_titleTiles.at(m_selected);
+    selectedTile.render(target, m_selectedX, m_selectedY);
 }
 
 int ui::TitleView::get_selected() const { return m_selected; }
 
 void ui::TitleView::refresh()
 {
-    // Clear the current tiles.
     m_titleTiles.clear();
+    const int entryCount = m_user->get_total_data_entries();
 
-    // Loop through the user's data entries.
-    int userEntryCount = m_user->get_total_data_entries();
-
-    for (int i = 0; i < userEntryCount; i++)
+    for (int i = 0; i < entryCount; i++)
     {
-        // Get pointer to data from user save index I.
-        data::TitleInfo *currentTitleInfo = data::get_title_info_by_id(m_user->get_application_id_at(i));
+        const uint64_t applicationID = m_user->get_application_id_at(i);
+        const bool isFavorite        = config::is_favorite(applicationID);
+        data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
+        sdl::SharedTexture icon      = titleInfo->get_icon(); // I don't like this but w/e.
 
-        // Emplace is faster than push
-        m_titleTiles.emplace_back(config::is_favorite(m_user->get_application_id_at(i)), currentTitleInfo->get_icon());
+        m_titleTiles.emplace_back(isFavorite, icon);
     }
 
-    // Just to be sure.
-    if (m_selected > 0 && m_selected >= static_cast<int>(m_titleTiles.size())) { m_selected = m_titleTiles.size() - 1; }
+    const int tileCount = m_titleTiles.size() - 1;
+    if (tileCount <= 0) { m_selected = 0; }
+    else if (m_selected > tileCount) { m_selected = tileCount; }
 }
 
 void ui::TitleView::reset()

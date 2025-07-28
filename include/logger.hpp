@@ -11,5 +11,4 @@ namespace logger
     /// @param arguments Va arguments.
     void log(const char *format, ...);
 
-    void log_straight(std::string_view string);
 } // namespace logger

@@ -2,17 +2,14 @@
 
 #include "JSON.hpp"
 #include "curl/curl.hpp"
+#include "error.hpp"
 #include "logger.hpp"
 #include "remote/remote.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
+#include "ui/PopMessageManager.hpp"
 
 #include <tinyxml2.h>
-
-namespace
-{
-    const char *TAG_XML_HREF = "href";
-} // namespace
 
 // Declarations here. Definitions at bottom.
 /// @brief Gets a XML element by name. This is namespace agnostic.
@@ -33,7 +30,7 @@ static std::string slice_name_from_href(curl::Handle &handle, std::string_view h
 remote::WebDav::WebDav()
     : Storage("[WD]")
 {
-    static const char *STRING_CONFIG_READ_ERROR = "Error initializing WebDav: %s";
+    static constexpr const char *STRING_CONFIG_READ_ERROR = "Error initializing WebDav: %s";
 
     json::Object config = json::new_object(json_object_from_file, remote::PATH_WEBDAV_CONFIG.data());
     if (!config)
@@ -47,8 +44,6 @@ remote::WebDav::WebDav()
     json_object *basepath = json::get_object(config, "basepath");
     json_object *username = json::get_object(config, "username");
     json_object *password = json::get_object(config, "password");
-
-    // This is the bare minimum required to continue.
     if (!origin)
     {
         logger::log(STRING_CONFIG_READ_ERROR, "Config is missing origin!");
@@ -73,20 +68,20 @@ remote::WebDav::WebDav()
 
     // This'll recursively get the full listing of the basepath for the WebDav server.
     std::string xml{};
-    if (!WebDav::prop_find(url, xml) || !WebDav::process_listing(xml))
-    {
-        logger::log(STRING_CONFIG_READ_ERROR, "Error retrieving listing from WebDav server!");
-        return;
-    }
+    const bool propFind     = WebDav::prop_find(url, xml);
+    const bool xmlProcessed = propFind && WebDav::process_listing(xml);
+    if (!propFind || !xmlProcessed) { return; }
+
     m_isInitialized = true;
 }
 
 bool remote::WebDav::create_directory(std::string_view name)
 {
-    static const char *STRING_CREATE_DIR_ERROR = "Error creating WebDav directory: %s";
+    static constexpr const char *STRING_CREATE_DIR_ERROR = "Error creating WebDav directory: %s";
 
-    std::string escapedName;
-    if (!curl::escape_string(m_curl, name, escapedName))
+    std::string escapedName{};
+    const bool nameEscaped = curl::escape_string(m_curl, name, escapedName);
+    if (!nameEscaped)
     {
         logger::log(STRING_CREATE_DIR_ERROR, "Error escaping directory name!");
         return false;
@@ -118,34 +113,24 @@ bool remote::WebDav::create_directory(std::string_view name)
 bool remote::WebDav::upload_file(const fslib::Path &source, std::string_view remoteName, sys::ProgressTask *task)
 {
     static constexpr const char *STRING_ERROR_UPLOADING = "Error uploading to WebDav: %s";
-    const char *statusTemplate                          = strings::get_by_name(strings::names::IO_STATUSES, 5);
 
     fslib::File sourceFile{source, FsOpenMode_Read};
-    if (!sourceFile.is_open())
-    {
-        logger::log(STRING_ERROR_UPLOADING, fslib::error::get_string());
-        return false;
-    }
+    if (error::fslib(sourceFile.is_open())) { return false; }
 
-    std::string escapedName;
-    if (!curl::escape_string(m_curl, remoteName, escapedName))
+    std::string escapedName{};
+    const bool nameEscaped = curl::escape_string(m_curl, remoteName, escapedName);
+    if (!nameEscaped)
     {
         logger::log(STRING_ERROR_UPLOADING, "Failed to escape filename!");
         return false;
     }
 
-    if (task)
-    {
-        const std::string status = stringutil::get_formatted_string(statusTemplate, remoteName.data());
-        task->set_status(status);
-        task->reset(static_cast<double>(sourceFile.get_size()));
-    }
+    if (task) { task->reset(static_cast<double>(sourceFile.get_size())); }
 
     remote::URL url{m_origin};
     url.append_path(m_parent).append_path(escapedName);
 
-    curl::UploadStruct uploadData = {.source = &sourceFile, .task = task};
-
+    curl::UploadStruct uploadData{.source = &sourceFile, .task = task};
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
     curl::set_option(m_curl, CURLOPT_URL, url.get());
@@ -164,52 +149,49 @@ bool remote::WebDav::upload_file(const fslib::Path &source, std::string_view rem
 
 bool remote::WebDav::patch_file(remote::Item *item, const fslib::Path &source, sys::ProgressTask *task)
 {
-    static const char *STRING_ERROR_PATCHING = "Error patching file: %s";
+    static constexpr const char *STRING_ERROR_PATCHING = "Error patching file: %s";
 
-    fslib::File file{source, FsOpenMode_Read};
-    if (!file)
+    fslib::File sourceFile{source, FsOpenMode_Read};
+    if (!sourceFile)
     {
         logger::log(STRING_ERROR_PATCHING, fslib::error::get_string());
         return false;
     }
 
+    if (task) { task->reset(static_cast<double>(sourceFile.get_size())); }
+
     remote::URL url{m_origin};
     url.append_path(item->get_id());
 
+    curl::UploadStruct uploadData{.source = &sourceFile, .task = task};
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
     curl::set_option(m_curl, CURLOPT_URL, url.get());
     curl::set_option(m_curl, CURLOPT_UPLOAD, 1L);
     curl::set_option(m_curl, CURLOPT_UPLOAD_BUFFERSIZE, Storage::SIZE_UPLOAD_BUFFER);
     curl::set_option(m_curl, CURLOPT_READFUNCTION, curl::read_data_from_file);
-    curl::set_option(m_curl, CURLOPT_READDATA, &file);
+    curl::set_option(m_curl, CURLOPT_READDATA, &uploadData);
 
     if (!curl::perform(m_curl)) { return false; }
 
     // Just update the size this time.
-    item->set_size(file.get_size());
+    item->set_size(sourceFile.get_size());
 
     return true;
 }
 
 bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &destination, sys::ProgressTask *task)
 {
-    static const char *STRING_ERROR_DOWNLOADING = "Error downloading file: %s";
-    const char *statusTemplate                  = strings::get_by_name(strings::names::IO_STATUSES, 4);
+    static constexpr const char *STRING_ERROR_DOWNLOADING = "Error downloading file: %s";
 
-    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, item->get_size()};
+    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, static_cast<int64_t>(item->get_size())};
     if (!destFile)
     {
         logger::log(STRING_ERROR_DOWNLOADING, fslib::error::get_string());
         return false;
     }
 
-    if (task)
-    {
-        const std::string status = stringutil::get_formatted_string(statusTemplate, item->get_name().data());
-        task->set_status(status);
-        task->reset(static_cast<double>(item->get_size()));
-    }
+    if (task) { task->reset(static_cast<double>(item->get_size())); }
 
     remote::URL url{m_origin};
     url.append_path(item->get_id());
@@ -224,6 +206,10 @@ bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &
 
     std::thread writeThread{curl::download_write_thread_function, std::ref(download)};
     if (!curl::perform(m_curl)) { return false; }
+
+    // Copied from gd.cpp implementation.
+    // TODO: Not sure how a thread helps if this parent waits here.
+    // TODO: Read and understand what's actually happening before making comments on other's choices.
     writeThread.join();
 
     return true;
@@ -231,7 +217,7 @@ bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &
 
 bool remote::WebDav::delete_item(const remote::Item *item)
 {
-    static const char *STRING_ERROR_DELETING = "Error deleting item: %s";
+    static constexpr const char *STRING_ERROR_DELETING = "Error deleting item: %s";
 
     remote::URL url{m_origin};
     url.append_path(item->get_id());
@@ -284,7 +270,14 @@ bool remote::WebDav::prop_find(const remote::URL &url, std::string &xml)
 
 bool remote::WebDav::process_listing(std::string_view xml)
 {
-    static const char *STRING_ERROR_PROCESSING_XML = "Error processing XML: %s";
+    static constexpr const char *STRING_ERROR_PROCESSING_XML = "Error processing XML: %s";
+    // These are so string_views aren't constructed every loop.
+    static constexpr std::string_view tagHref{"href"};
+    static constexpr std::string_view tagPropStat{"propstat"};
+    static constexpr std::string_view tagProp{"prop"};
+    static constexpr std::string_view tagResourceType{"resourcetype"};
+    static constexpr std::string_view tagCollection{"collection"};
+    static constexpr std::string_view tagGetContentLength{"getcontentlength"};
 
     tinyxml2::XMLDocument listing{};
     if (listing.Parse(xml.data(), xml.length()))
@@ -293,70 +286,54 @@ bool remote::WebDav::process_listing(std::string_view xml)
         return false;
     }
 
-    tinyxml2::XMLElement *root = listing.RootElement();
-
-    // The first element is what we're using as the parent.
-    tinyxml2::XMLElement *parent = root->FirstChildElement();
-
-    tinyxml2::XMLElement *parentLocation = get_element_by_name(parent, TAG_XML_HREF);
+    tinyxml2::XMLElement *root           = listing.RootElement();
+    tinyxml2::XMLElement *parent         = root->FirstChildElement();
+    tinyxml2::XMLElement *parentLocation = get_element_by_name(parent, tagHref);
     if (!parentLocation)
     {
         logger::log(STRING_ERROR_PROCESSING_XML, "Error finding list parent location!");
         return false;
     }
 
-    // There's no point in continuing if this fails. Just return true.
-    tinyxml2::XMLElement *current = parent->NextSiblingElement();
-    if (!current) { return true; }
-
-    do {
+    const char *parentLocationText = parentLocation->GetText(); // Possibly going to need this a lot.
+    tinyxml2::XMLElement *current{};
+    for (current = parent->NextSiblingElement(); current; current = current->NextSiblingElement())
+    {
         // Parsing XML is actually annoying. Even with tinyxml2.
-        tinyxml2::XMLElement *href         = get_element_by_name(current, TAG_XML_HREF);
-        tinyxml2::XMLElement *propstat     = get_element_by_name(current, "propstat");
-        tinyxml2::XMLElement *prop         = get_element_by_name(propstat, "prop");
-        tinyxml2::XMLElement *resourceType = get_element_by_name(prop, "resourcetype");
-        if (!href || !propstat || !prop || !resourceType)
-        {
-            logger::log(STRING_ERROR_PROCESSING_XML, "Element is missing data!");
-            continue;
-        }
+        tinyxml2::XMLElement *href         = get_element_by_name(current, tagHref);
+        tinyxml2::XMLElement *propstat     = get_element_by_name(current, tagPropStat);
+        tinyxml2::XMLElement *prop         = get_element_by_name(propstat, tagProp);
+        tinyxml2::XMLElement *resourceType = get_element_by_name(prop, tagResourceType);
+        if (!href || !propstat || !prop || !resourceType) { continue; }
 
-        // This is the best way to detect a directory.
-        tinyxml2::XMLElement *collection = get_element_by_name(resourceType, "collection");
+        // Avoid redundant calls the GetText later.
+        const char *hrefText             = href->GetText();
+        const std::string name           = slice_name_from_href(m_curl, hrefText);
+        tinyxml2::XMLElement *collection = get_element_by_name(resourceType, tagCollection);
         if (collection)
         {
-            m_list.emplace_back(slice_name_from_href(m_curl, href->GetText()),
-                                href->GetText(),
-                                parentLocation->GetText(),
-                                0,
-                                true);
+            logger::log("%s, %s, %s", name.c_str(), hrefText, parentLocationText);
+
+            m_list.emplace_back(name, hrefText, parentLocationText, 0, true);
 
             remote::URL nextUrl{m_origin};
-            nextUrl.append_path(href->GetText());
+            nextUrl.append_path(hrefText);
 
             std::string xml{};
-            if (!WebDav::prop_find(nextUrl, xml) || !WebDav::process_listing(xml))
-            {
-                logger::log(STRING_ERROR_PROCESSING_XML, href->GetText());
-            }
+            const bool propFind   = WebDav::prop_find(nextUrl, xml);
+            const bool processXml = propFind && WebDav::process_listing(xml);
+            if (!propFind || !processXml) { logger::log(STRING_ERROR_PROCESSING_XML, hrefText); }
         }
         else
         {
-            tinyxml2::XMLElement *getContentLength = get_element_by_name(prop, "getcontentlength");
-            if (!getContentLength)
-            {
-                logger::log(STRING_ERROR_PROCESSING_XML, "Missing needed data for file!");
-                continue;
-            }
+            tinyxml2::XMLElement *getContentLength = get_element_by_name(prop, tagGetContentLength);
+            if (!getContentLength) { continue; }
 
-            m_list.emplace_back(slice_name_from_href(m_curl, href->GetText()),
-                                href->GetText(),
-                                parentLocation->GetText(),
-                                std::strtoll(getContentLength->GetText(), NULL, 10),
-                                false);
+            const char *lengthString    = getContentLength->GetText();
+            const int64_t contentLength = std::strtoll(lengthString, nullptr, 10);
+            m_list.emplace_back(name, hrefText, parentLocationText, contentLength, false);
         }
-    } while ((current = current->NextSiblingElement()));
-
+    }
     return true;
 }
 

@@ -4,6 +4,7 @@
 #include "ui/ColorMod.hpp"
 #include "ui/Element.hpp"
 #include "ui/TitleTile.hpp"
+
 #include <vector>
 
 namespace ui
@@ -40,18 +41,24 @@ namespace ui
 
         private:
             /// @brief Pointer to user passed.
-            data::User *m_user = nullptr;
+            data::User *m_user{};
+
             /// @brief Y coordinate.
-            double m_y = 28.0f;
+            double m_y{32.0f};
+
             /// @brief Currently highlighted/selected title.
-            int m_selected = 0;
+            int m_selected{};
+
             /// @brief X coordinate of the currently selected tile so it can be rendered over top of the rest.
-            double m_selectedX;
+            int m_selectedX{};
+
             /// @brief Y coordinate. Same as above.
-            double m_selectedY;
+            int m_selectedY{};
+
             /// @brief Color mod for bounding/selection pulse.
-            ui::ColorMod m_colorMod;
+            ui::ColorMod m_colorMod{};
+
             /// @brief Vector of selection tiles.
-            std::vector<ui::TitleTile> m_titleTiles;
+            std::vector<ui::TitleTile> m_titleTiles{};
     };
 } // namespace ui

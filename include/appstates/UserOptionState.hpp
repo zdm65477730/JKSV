@@ -54,5 +54,26 @@ class UserOptionState final : public BaseState
         bool m_refreshRequired{};
 
         /// @brief Slide panel all instances shared.
-        static inline std::unique_ptr<ui::SlideOutPanel> m_menuPanel{};
+        static inline std::unique_ptr<ui::SlideOutPanel> sm_menuPanel{};
+
+        /// @brief Creates the panel if it hasn't been yet.
+        void create_menu_panel();
+
+        /// @brief Creates and pushes the strings needed for the menu
+        void load_menu_strings();
+
+        /// @brief Assigns the data within the struct to point where it needs to.
+        void initialize_data_struct();
+
+        /// @brief Starts the backup all operation.
+        void backup_all();
+
+        /// @brief Creates and pushes a new save creation menu.
+        void create_save_create();
+
+        /// @brief Launches the create all save data for use task.
+        void create_all_save_data();
+
+        /// @brief Deletes all save data for the user.
+        void delete_all_save_data();
 };

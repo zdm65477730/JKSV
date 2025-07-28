@@ -201,9 +201,6 @@ static bool read_cache_file()
     constexpr size_t SIZE_UNSIGNED    = sizeof(unsigned int);
     constexpr size_t SIZE_CACHE_ENTRY = sizeof(CacheEntry);
 
-    const fslib::Path cachePath{PATH_CACHE_PATH};
-    const bool cacheExists = fslib::file_exists(cachePath);
-
     fslib::File cache{PATH_CACHE_PATH, FsOpenMode_Read};
     if (error::fslib(cache.is_open())) { return false; }
 
@@ -212,7 +209,8 @@ static bool read_cache_file()
     if (!countRead) { return false; }
 
     auto entryBuffer = std::make_unique<CacheEntry[]>(titleCount); // I've read there might not be any point in error checking.
-    const bool cacheRead = cache.read(entryBuffer.get(), SIZE_CACHE_ENTRY * titleCount) == SIZE_CACHE_ENTRY * titleCount;
+    const bool cacheRead =
+        cache.read(entryBuffer.get(), SIZE_CACHE_ENTRY * titleCount) == static_cast<int64_t>(SIZE_CACHE_ENTRY * titleCount);
     if (!cacheRead) { return false; }
 
     // Loop through the cache entries and emplace them to the map.
@@ -248,6 +246,7 @@ static void create_cache_file()
         const bool idWrite                   = cache.write(&applicationID, SIZE_UINT64) == SIZE_UINT64;
         const bool dataWrite                 = cache.write(data, SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
         if (!idWrite || !dataWrite) { return; }
+
         ++titleCount;
     }
 

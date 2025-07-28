@@ -27,9 +27,9 @@ remote::Item *remote::Storage::get_directory_by_name(std::string_view name)
 
 remote::Storage::DirectoryListing remote::Storage::get_directory_listing()
 {
-    remote::Storage::DirectoryListing listing;
+    remote::Storage::DirectoryListing listing{};
 
-    Storage::List::iterator current = m_list.begin();
+    auto current = m_list.begin();
     while ((current = std::find_if(current,
                                    m_list.end(),
                                    [&](const Item &item) { return item.get_parent_id() == this->m_parent; })) != m_list.end())
@@ -37,7 +37,6 @@ remote::Storage::DirectoryListing remote::Storage::get_directory_listing()
         listing.push_back(&(*current));
         ++current;
     }
-
     return listing;
 }
 

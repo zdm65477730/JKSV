@@ -1,6 +1,8 @@
 #pragma once
+#include "sdl.hpp"
 #include "system/Timer.hpp"
 #include "ui/Element.hpp"
+
 #include <string>
 
 namespace ui
@@ -15,11 +17,20 @@ namespace ui
             /// @brief Constructor for TextScroll.
             /// @param text Text to create the textscroll with.
             /// @param fontSize Size of the font in pixels to use.
-            /// @param availableWidth Available width of the render target.
+            /// @param width Maximum width to use for rendering text.
+            /// @param x X coordinate to render to.
             /// @param y Y coordinate to render to.
             /// @param center Whether or not text should be centered if it's not wide enough for scrolling.
             /// @param color Color to use to render the text.
-            TextScroll(std::string_view text, int fontSize, int availableWidth, int y, bool center, sdl::Color color);
+            TextScroll(std::string_view text,
+                       int x,
+                       int y,
+                       int width,
+                       int height,
+                       int fontSize,
+                       sdl::Color textColor,
+                       sdl::Color clearColor,
+                       bool center = true);
 
             /// @brief Required destructor.
             ~TextScroll() {};
@@ -31,7 +42,21 @@ namespace ui
             /// @param y Y coordinate used to render text.
             /// @param center Whether or not text should be centered if it's not wide enough for scrolling.
             /// @param color Color to use to render text.
-            void create(std::string_view text, int fontSize, int availableWidth, int y, bool center, sdl::Color color);
+            void create(std::string_view text,
+                        int x,
+                        int y,
+                        int width,
+                        int height,
+                        int fontSize,
+                        sdl::Color textColor,
+                        sdl::Color clearColor,
+                        bool center = true);
+
+            /// @brief Sets and allows changing the text scrolled.
+            void set_text(std::string_view text, bool center);
+
+            /// @brief Allows setting of the X and Y render coordinates.
+            void set_xy(int x, int y);
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.
@@ -44,28 +69,45 @@ namespace ui
 
         private:
             /// @brief Text to display.
-            std::string m_text;
+            std::string m_text{};
 
             /// @brief X coordinate to render text at.
-            int m_x;
+            int m_textX{};
 
-            /// @brief Y coordinate to render text at.
-            int m_y;
+            /// @brief Y coordinate to render text at. This is centered vertically.
+            int m_textY{};
+
+            /// @brief The X coordinate the render target is rendered to.
+            int m_renderX{};
+
+            /// @brief Y coordinate to render the target to.
+            int m_renderY{};
 
             /// @brief Font size used to calculate and render text.
-            int m_fontSize = 0;
+            int m_fontSize{};
 
             /// @brief Color used to render the text.
-            sdl::Color m_textColor;
+            sdl::Color m_textColor{};
+
+            /// @brief Color used to clear the render target.
+            sdl::Color m_clearColor{};
 
             /// @brief Width of text in pixels.
-            int m_textWidth = 0;
+            int m_textWidth{};
+
+            /// @brief Width of the render target.
+            int m_targetWidth{};
+
+            /// @brief Height of the render target.
+            int m_targetHeight{};
 
             /// @brief Whether or not text is too wide to fit into the availableWidth passed to the constructor.
-            bool m_textScrolling = false;
+            bool m_textScrolling{};
 
             /// @brief Whether or not a scroll was triggered.
-            bool m_textScrollTriggered = false;
+            bool m_textScrollTriggered{};
+
+            sdl::SharedTexture m_renderTarget{};
 
             /// @brief Timer for scrolling text.
             sys::Timer m_scrollTimer;

@@ -39,19 +39,9 @@ namespace
     std::map<uint64_t, std::string> s_pathMap;
 } // namespace
 
-static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *array)
-{
-    // Just in case. Shouldn't happen though.
-    vector.clear();
-
-    const size_t arrayLength = json_object_array_length(array);
-    for (size_t i = 0; i < arrayLength; i++)
-    {
-        json_object *arrayEntry = json_object_array_get_idx(array, i);
-        if (!arrayEntry) { continue; }
-        vector.push_back(std::strtoull(json_object_get_string(arrayEntry), NULL, 16));
-    }
-}
+// Definitions at bottom.
+static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *array);
+static void save_custom_paths();
 
 void config::initialize()
 {
@@ -128,6 +118,7 @@ void config::reset_to_default()
     s_configMap[config::keys::AUTO_BACKUP_ON_RESTORE.data()]  = 1;
     s_configMap[config::keys::AUTO_NAME_BACKUPS.data()]       = 0;
     s_configMap[config::keys::AUTO_UPLOAD.data()]             = 0;
+    s_configMap[config::keys::USE_TITLE_IDS.data()]           = 0;
     s_configMap[config::keys::HOLD_FOR_DELETION.data()]       = 1;
     s_configMap[config::keys::HOLD_FOR_RESTORATION.data()]    = 1;
     s_configMap[config::keys::HOLD_FOR_OVERWRITE.data()]      = 1;
@@ -153,9 +144,10 @@ void config::save()
         json::add_object(configJSON, config::keys::WORKING_DIRECTORY.data(), workingDirectory);
 
         // Loop through map and add it.
-        for (auto &[key, value] : s_configMap)
+        for (const auto &[key, value] : s_configMap)
         {
             json_object *jsonValue = json_object_new_uint64(value);
+
             json::add_object(configJSON, key.c_str(), jsonValue);
         }
 
@@ -165,45 +157,31 @@ void config::save()
 
         // Favorites
         json_object *favoritesArray = json_object_new_array();
-        for (uint64_t &titleID : s_favorites)
+        for (const uint64_t &titleID : s_favorites)
         {
-            // Need to do it like this or json-c does decimal instead of hex.
-            json_object *newFavorite = json_object_new_string(stringutil::get_formatted_string("%016lX", titleID).c_str());
+            const std::string idHex  = stringutil::get_formatted_string("%016llX", titleID);
+            json_object *newFavorite = json_object_new_string(idHex.c_str());
+
             json_object_array_add(favoritesArray, newFavorite);
         }
         json::add_object(configJSON, config::keys::FAVORITES.data(), favoritesArray);
 
         // Same but blacklist
         json_object *blacklistArray = json_object_new_array();
-        for (uint64_t &titleID : s_blacklist)
+        for (const uint64_t &titleID : s_blacklist)
         {
-            json_object *newBlacklist = json_object_new_string(stringutil::get_formatted_string("%016lX", titleID).c_str());
+            const std::string idHex   = stringutil::get_formatted_string("%016llX", titleID);
+            json_object *newBlacklist = json_object_new_string(idHex.c_str());
+
             json_object_array_add(blacklistArray, newBlacklist);
         }
         json::add_object(configJSON, config::keys::BLACKLIST.data(), blacklistArray);
 
         // Write config file
-        fslib::File configFile{PATH_CONFIG_FILE,
-                               FsOpenMode_Create | FsOpenMode_Write,
-                               std::strlen(json_object_get_string(configJSON.get()))};
-        if (configFile) { configFile << json_object_get_string(configJSON.get()); }
-    }
-
-    if (!s_pathMap.empty())
-    {
-        json::Object pathsJSON = json::new_object(json_object_new_object);
-        for (const auto &[applicationID, path] : s_pathMap)
-        {
-            const std::string idHex = stringutil::get_formatted_string("%016llX", applicationID);
-
-            json_object *pathObject = json_object_new_string(path.c_str());
-            json::add_object(pathsJSON, idHex.c_str(), pathObject);
-        }
-        // Write it.
-        fslib::File pathsFile(PATH_PATHS_PATH,
-                              FsOpenMode_Create | FsOpenMode_Write,
-                              std::strlen(json_object_get_string(pathsJSON.get())));
-        if (pathsFile.is_open()) { pathsFile << json_object_get_string(pathsJSON.get()); }
+        const char *jsonString     = json_object_get_string(configJSON.get());
+        const int64_t configLength = std::char_traits<char>::length(jsonString);
+        fslib::File configFile{PATH_CONFIG_FILE, FsOpenMode_Create | FsOpenMode_Write, configLength};
+        if (configFile) { configFile << jsonString; }
     }
 }
 
@@ -266,6 +244,7 @@ bool config::is_blacklisted(uint64_t applicationID)
 void config::add_custom_path(uint64_t applicationID, std::string_view customPath)
 {
     s_pathMap[applicationID] = customPath.data();
+    save_custom_paths();
 }
 
 bool config::has_custom_path(uint64_t applicationID)
@@ -279,4 +258,39 @@ void config::get_custom_path(uint64_t applicationID, char *pathOut, size_t pathO
     const auto findPath = s_pathMap.find(applicationID);
     if (s_pathMap.find(applicationID) == s_pathMap.end()) { return; }
     std::memcpy(pathOut, s_pathMap[applicationID].c_str(), s_pathMap[applicationID].length());
+}
+
+static void read_array_to_vector(std::vector<uint64_t> &vector, json_object *array)
+{
+    // Just in case. Shouldn't happen though.
+    vector.clear();
+
+    const size_t arrayLength = json_object_array_length(array);
+    for (size_t i = 0; i < arrayLength; i++)
+    {
+        json_object *arrayEntry = json_object_array_get_idx(array, i);
+        if (!arrayEntry) { continue; }
+        vector.push_back(std::strtoull(json_object_get_string(arrayEntry), NULL, 16));
+    }
+}
+
+static void save_custom_paths()
+{
+    json::Object pathsJson = json::new_object(json_object_new_object);
+    if (!pathsJson) { return; }
+
+    for (const auto &[applicationId, path] : s_pathMap)
+    {
+        const std::string titleIdHex = stringutil::get_formatted_string("%016llX", applicationId);
+        json_object *jsonPath        = json_object_new_string(path.c_str());
+
+        json::add_object(pathsJson, titleIdHex, jsonPath);
+    }
+
+    const char *jsonString   = json_object_get_string(pathsJson.get());
+    const int64_t jsonLength = std::char_traits<char>::length(jsonString);
+    fslib::File pathsFile{PATH_PATHS_PATH, FsOpenMode_Create | FsOpenMode_Write, jsonLength};
+    if (error::fslib(pathsFile)) { return; }
+
+    pathsFile << jsonString;
 }

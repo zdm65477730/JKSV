@@ -5,6 +5,7 @@
 #include "ui/Menu.hpp"
 #include "ui/SlideOutPanel.hpp"
 
+#include <atomic>
 #include <memory>
 
 /// @brief This is the state that is spawned when CreateSaveData is selected from the user menu.
@@ -42,7 +43,7 @@ class SaveCreateState final : public BaseState
         std::vector<data::TitleInfo *> m_titleInfoVector{};
 
         /// @brief Whether or not a refresh is required on the next update() call.
-        bool m_refreshRequired{};
+        std::atomic<bool> m_refreshRequired{};
 
         /// @brief Shared slide panel all instances use. There's no point in allocating a new one every time.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};

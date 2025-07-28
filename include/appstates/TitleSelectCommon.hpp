@@ -25,6 +25,9 @@ class TitleSelectCommon : public BaseState
         void render_control_guide();
 
     private:
+        /// @brief Pointer to the control guide string.
+        static inline const char *sm_controlGuide{};
+
         /// @brief X coordinate the control guide is rendered at.
-        static inline int m_titleControlsX{};
+        static inline int sm_controlGuideX{};
 };

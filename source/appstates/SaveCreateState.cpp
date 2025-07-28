@@ -27,9 +27,9 @@ static void create_save_data(sys::Task *task,
 static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB);
 
 SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelect)
-    : m_user(user)
-    , m_titleSelect(titleSelect)
-    , m_saveMenu(8, 8, 624, 22, 720)
+    : m_user{user}
+    , m_titleSelect{titleSelect}
+    , m_saveMenu{8, 8, 624, 22, 720}
 {
     // If the panel is null, create it.
     if (!sm_slidePanel)
@@ -51,14 +51,11 @@ void SaveCreateState::update()
 {
     const bool hasFocus = BaseState::has_focus();
 
-    if (m_refreshRequired)
+    if (m_refreshRequired.load())
     {
-        // There's no other way to get the save info so...
         m_user->load_user_data();
-        // Refresh the view.
         m_titleSelect->refresh();
-        // No more refresh needed.
-        m_refreshRequired = false;
+        m_refreshRequired.store(false);
     }
 
     m_saveMenu.update(hasFocus);
@@ -87,7 +84,7 @@ void SaveCreateState::render()
     sm_slidePanel->render(NULL, hasFocus);
 }
 
-void SaveCreateState::data_and_view_refresh_required() { m_refreshRequired = true; }
+void SaveCreateState::data_and_view_refresh_required() { m_refreshRequired.store(true); }
 
 static void create_save_data(sys::Task *task,
                              data::User *targetUser,
@@ -98,23 +95,24 @@ static void create_save_data(sys::Task *task,
 
     const char *statusTemplate = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);
     const int popTicks         = ui::PopMessageManager::DEFAULT_TICKS;
-    const char *popSuccess     = strings::get_by_name(strings::names::SAVECREATE_POPS, 8);
-    const char *popFailed      = strings::get_by_name(strings::names::SAVECREATE_POPS, 9);
+    const char *popSuccess     = strings::get_by_name(strings::names::SAVECREATE_POPS, 0);
+    const char *popFailed      = strings::get_by_name(strings::names::SAVECREATE_POPS, 1);
 
     {
         const std::string status = stringutil::get_formatted_string(statusTemplate, titleInfo->get_title());
         task->set_status(status);
     }
 
-    if (fs::create_save_data_for(targetUser, titleInfo))
+    const bool created = fs::create_save_data_for(targetUser, titleInfo);
+    if (created)
     {
-        const std::string popMessage = stringutil::get_formatted_string(popSuccess, titleInfo->get_title());
+        const char *title      = titleInfo->get_title();
+        std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
         ui::PopMessageManager::push_message(popTicks, popMessage);
     }
     else { ui::PopMessageManager::push_message(popTicks, popFailed); }
 
     spawningState->data_and_view_refresh_required();
-
     task->finished();
 }
 

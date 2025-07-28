@@ -48,7 +48,7 @@ namespace
 remote::GoogleDrive::GoogleDrive()
     : Storage("[GD]", true)
 {
-    static const char *STRING_ERROR_READING_CONFIG = "Error reading Google Drive config: %s";
+    static constexpr const char *STRING_ERROR_READING_CONFIG = "Error reading Google Drive config: %s";
 
     // Load the json file.
     json::Object clientJson = json::new_object(json_object_from_file, remote::PATH_GOOGLE_DRIVE_CONFIG.data());
@@ -146,7 +146,6 @@ bool remote::GoogleDrive::create_directory(std::string_view name)
 bool remote::GoogleDrive::upload_file(const fslib::Path &source, std::string_view name, sys::ProgressTask *task)
 {
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
-    const char *statusTemplate = strings::get_by_name(strings::names::IO_STATUSES, 5);
 
     fslib::File sourceFile(source, FsOpenMode_Read);
     if (!sourceFile)
@@ -193,12 +192,7 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source, std::string_vie
         return false;
     }
 
-    if (task)
-    {
-        std::string status = stringutil::get_formatted_string(statusTemplate, source.full_path());
-        task->set_status(status);
-        task->reset(static_cast<double>(sourceFile.get_size()));
-    }
+    if (task) { task->reset(static_cast<double>(sourceFile.get_size())); }
 
     std::string response;
     curl::UploadStruct uploadData = {.source = &sourceFile, .task = task};
@@ -242,10 +236,9 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source, std::string_vie
 
 bool remote::GoogleDrive::patch_file(remote::Item *file, const fslib::Path &source, sys::ProgressTask *task)
 {
-    static const char *STRING_PATCH_ERROR = "Error patching file: %s";
+    static constexpr const char *STRING_PATCH_ERROR = "Error patching file: %s";
 
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
-    const char *statusTemplate = strings::get_by_name(strings::names::BACKUPMENU_STATUS, 2);
 
     fslib::File sourceFile(source, FsOpenMode_Read);
     if (!sourceFile)
@@ -281,12 +274,7 @@ bool remote::GoogleDrive::patch_file(remote::Item *file, const fslib::Path &sour
         return false;
     }
 
-    if (task)
-    {
-        const std::string status = stringutil::get_formatted_string(statusTemplate, source.full_path());
-        task->set_status(status);
-        task->reset(static_cast<double>(sourceFile.get_size()));
-    }
+    if (task) { task->reset(static_cast<double>(sourceFile.get_size())); }
 
     // For some reason, this doesn't need the auth header.
     curl::UploadStruct uploadData = {.source = &sourceFile, .task = task};
@@ -307,7 +295,6 @@ bool remote::GoogleDrive::patch_file(remote::Item *file, const fslib::Path &sour
 bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::Path &destination, sys::ProgressTask *task)
 {
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
-    const char *statusTemplate = strings::get_by_name(strings::names::IO_STATUSES, 4);
 
     fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, file->get_size()};
     if (!destFile)
@@ -316,12 +303,7 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
         return false;
     }
 
-    if (task)
-    {
-        const std::string status = stringutil::get_formatted_string(statusTemplate, file->get_name().data());
-        task->set_status(status);
-        task->reset(static_cast<double>(file->get_size()));
-    }
+    if (task) { task->reset(static_cast<double>(file->get_size())); }
 
     curl::HeaderList header = curl::new_header_list();
     curl::append_header(header, m_authHeader);
@@ -393,11 +375,13 @@ bool remote::GoogleDrive::sign_in_required() const { return !m_isInitialized || 
 
 bool remote::GoogleDrive::get_sign_in_data(std::string &message, std::string &code, std::time_t &expiration, int &wait)
 {
-    static const char *STRING_SIGN_IN_ERROR = "Error requesting sign-in data: %s";
+    static constexpr const char *STRING_SIGN_IN_ERROR = "Error requesting sign-in data: %s";
     // This is the the URL for device codes and limited input.
-    static const char *API_URL_DEVICE_CODE = "https://oauth2.googleapis.com/device/code";
+    static constexpr const char *API_URL_DEVICE_CODE = "https://oauth2.googleapis.com/device/code";
     // This is a gimped version of what I used to use.
-    static const char *STRING_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+    static constexpr const char *STRING_DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+
+    const char *messageTemplate = strings::get_by_name(strings::names::GOOGLE_DRIVE, 0);
 
     curl::HeaderList header = curl::new_header_list();
     curl::append_header(header, HEADER_CONTENT_TYPE_FORM);
@@ -426,31 +410,25 @@ bool remote::GoogleDrive::get_sign_in_data(std::string &message, std::string &co
     // These are required and fatal.
     if (!deviceCode || !userCode || !verificationUrl || !expiresIn || !interval)
     {
-        logger::log(STRING_SIGN_IN_ERROR, "Malformed or bad response.");
+        logger::log(STRING_SIGN_IN_ERROR, "Malformed response.");
         return false;
     }
 
-    // I hate how this looks, but whatever.
-    message = stringutil::get_formatted_string(strings::get_by_name(strings::names::GOOGLE_DRIVE, 0),
+    message    = stringutil::get_formatted_string(messageTemplate,
                                                json_object_get_string(verificationUrl),
                                                json_object_get_string(userCode));
-
-    code = json_object_get_string(deviceCode);
-
-    // This is a quick, dirty way to get the expiration time.
+    code       = json_object_get_string(deviceCode);
     expiration = std::time(NULL) + json_object_get_uint64(expiresIn);
-
-    // This should be the time in seconds to wait between verification checks.
-    wait = json_object_get_int64(interval);
+    wait       = json_object_get_int64(interval);
 
     return true;
 }
 
 bool remote::GoogleDrive::poll_sign_in(std::string_view code)
 {
-    static const char *STRING_ERROR_POLLING = "Error polling Google OAuth2: %s";
+    static constexpr const char *STRING_ERROR_POLLING = "Error polling Google OAuth2: %s";
     // I'm just gonna save this pre-escaped instead of wasting time escaping it.
-    static const char *STRING_DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code";
+    static constexpr const char *STRING_DEVICE_GRANT = "urn:ietf:params:oauth:grant-type:device_code";
 
     // I'm not sure how else to make this really work with JKSV's task threading system?
     remote::Form post{};
@@ -489,8 +467,7 @@ bool remote::GoogleDrive::poll_sign_in(std::string_view code)
     m_token        = json_object_get_string(accessToken);
     m_refreshToken = json_object_get_string(refreshToken);
     m_tokenExpires = std::time(NULL) + json_object_get_uint64(expiresIn);
-
-    m_authHeader = std::string(HEADER_AUTH_BEARER) + m_token;
+    m_authHeader   = std::string(HEADER_AUTH_BEARER) + m_token;
 
     json::Object config = json::new_object(json_object_from_file, remote::PATH_GOOGLE_DRIVE_CONFIG.data());
     if (config)
@@ -505,7 +482,6 @@ bool remote::GoogleDrive::poll_sign_in(std::string_view code)
         if (configFile) { configFile << json_object_get_string(config.get()); }
     }
 
-    // Not sure where else to really put this.
     if (!GoogleDrive::get_root_id()) { return false; }
 
     m_isInitialized = true;
@@ -516,7 +492,7 @@ bool remote::GoogleDrive::poll_sign_in(std::string_view code)
 bool remote::GoogleDrive::get_root_id()
 {
     // This is the only place this is used. V3 of the API doesn't allow you to retrieve this for some reason?
-    static const char *API_URL_ABOUT_ROOT_ID = "https://www.googleapis.com/drive/v2/about?fields=rootFolderId";
+    static constexpr const char *API_URL_ABOUT_ROOT_ID = "https://www.googleapis.com/drive/v2/about?fields=rootFolderId";
 
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
 
@@ -584,12 +560,9 @@ bool remote::GoogleDrive::refresh_token()
     json_object *expiresIn   = json::get_object(parser, JSON_KEY_EXPIRES_IN);
     if (!accessToken || !expiresIn) { return false; }
 
-    // Got our new access token.
-    m_token = json_object_get_string(accessToken);
-    // This is better than pinging Google's servers every single time.
+    m_token        = json_object_get_string(accessToken);
     m_tokenExpires = std::time(NULL) + json_object_get_uint64(expiresIn);
-
-    m_authHeader = std::string(HEADER_AUTH_BEARER) + m_token;
+    m_authHeader   = std::string(HEADER_AUTH_BEARER) + m_token;
 
     return true;
 }
@@ -617,7 +590,6 @@ bool remote::GoogleDrive::request_listing()
     // This is used as the loop condition.
     json_object *nextPageToken = nullptr;
     do {
-        // This needs to be cleared for every request.
         response.clear();
 
         if (!curl::perform(m_curl)) { return false; }
@@ -643,7 +615,7 @@ bool remote::GoogleDrive::request_listing()
 
 bool remote::GoogleDrive::process_listing(json::Object &json)
 {
-    static const char *STRING_ERROR_PROCESSING = "Error processing Google Drive listing: %s";
+    static constexpr const char *STRING_ERROR_PROCESSING = "Error processing Google Drive listing: %s";
 
     json_object *files = json::get_object(json, "files");
     if (!files) { return false; }
@@ -659,7 +631,6 @@ bool remote::GoogleDrive::process_listing(json::Object &json)
         json_object *id       = json_object_object_get(currentFile, JSON_KEY_ID);
         json_object *name     = json_object_object_get(currentFile, JSON_KEY_NAME);
         json_object *size     = json_object_object_get(currentFile, "size");
-        // All of these are REQUIRED! Size doesn't exist for folders.
         if (!mimeType || !parents || !id || !name)
         {
             logger::log(STRING_ERROR_PROCESSING, "Malformed or missing data!");
@@ -680,6 +651,7 @@ bool remote::GoogleDrive::process_listing(json::Object &json)
                             size ? json_object_get_uint64(size) : 0,
                             std::strcmp(MIME_TYPE_DIRECTORY, json_object_get_string(mimeType)) == 0);
     }
+
     return true;
 }
 

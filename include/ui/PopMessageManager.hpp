@@ -46,6 +46,7 @@ namespace ui
         private:
             // Only one instance allowed.
             PopMessageManager() = default;
+
             // Returns the only instance.
             static PopMessageManager &get_instance()
             {
@@ -53,10 +54,14 @@ namespace ui
                 return manager;
             }
             // The queue for processing. SDL can't handle things being rendered in multiple threads.
-            std::vector<std::pair<int, std::string>> m_messageQueue;
+            std::vector<std::pair<int, std::string>> m_messageQueue{};
+
             // Actual vector of messages
-            std::vector<ui::PopMessage> m_messages;
+            std::vector<ui::PopMessage> m_messages{};
+
             // Mutex to attempt to make this thread safe.
-            std::mutex m_messageMutex;
+            std::mutex m_messageMutex{};
+
+            std::mutex m_queueMutex{};
     };
 } // namespace ui

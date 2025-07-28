@@ -32,11 +32,10 @@ static void drive_set_jksv_root(remote::GoogleDrive *drive);
 
 void remote::initialize_google_drive()
 {
-    // Create drive instance.
-    s_storage = std::make_unique<remote::GoogleDrive>();
-
-    // Need to cast this for it to work right.
-    remote::GoogleDrive *drive = static_cast<remote::GoogleDrive *>(s_storage.get());
+    s_storage                   = std::make_unique<remote::GoogleDrive>();
+    remote::GoogleDrive *drive  = static_cast<remote::GoogleDrive *>(s_storage.get());
+    const int popTicks          = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popDriveSuccess = strings::get_by_name(strings::names::GOOGLE_DRIVE, 1);
 
     if (drive->sign_in_required())
     {
@@ -48,26 +47,20 @@ void remote::initialize_google_drive()
 
     // To do: Handle this better. Maybe retry somehow?
     if (!drive->is_initialized()) { return; }
-    // Can't forget this.
+
     drive_set_jksv_root(drive);
-    ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
-                                        strings::get_by_name(strings::names::GOOGLE_DRIVE, 1));
+    ui::PopMessageManager::push_message(popTicks, popDriveSuccess);
 }
 
 void remote::initialize_webdav()
 {
-    s_storage = std::make_unique<remote::WebDav>();
+    s_storage                 = std::make_unique<remote::WebDav>();
+    const int popTicks        = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popDavSuccess = strings::get_by_name(strings::names::WEBDAV, 0);
+    const char *popDavFailed  = strings::get_by_name(strings::names::WEBDAV, 1);
 
-    if (s_storage->is_initialized())
-    {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
-                                            strings::get_by_name(strings::names::WEBDAV, 0));
-    }
-    else
-    {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
-                                            strings::get_by_name(strings::names::WEBDAV, 1));
-    }
+    if (s_storage->is_initialized()) { ui::PopMessageManager::push_message(popTicks, popDavSuccess); }
+    else { ui::PopMessageManager::push_message(popTicks, popDavFailed); }
 }
 
 remote::Storage *remote::get_remote_storage()
@@ -78,12 +71,14 @@ remote::Storage *remote::get_remote_storage()
 
 static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
 {
-    static const char *STRING_ERROR_SIGNING_IN = "Error signing into Google Drive: %s";
+    static constexpr const char *STRING_ERROR_SIGNING_IN = "Error signing into Google Drive: %s";
+    const int popTicks                                   = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popDriveSuccess                          = strings::get_by_name(strings::names::GOOGLE_DRIVE, 1);
+    const char *popDriveFailed                           = strings::get_by_name(strings::names::GOOGLE_DRIVE, 2);
 
     std::string message{}, deviceCode{};
-    std::time_t expiration = 0;
-    int pollingInterval    = 0;
-
+    std::time_t expiration{};
+    int pollingInterval{};
     if (!drive->get_sign_in_data(message, deviceCode, expiration, pollingInterval))
     {
         logger::log(STRING_ERROR_SIGNING_IN, "Getting sign in data failed!");
@@ -100,37 +95,25 @@ static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
 
     if (drive->is_initialized())
     {
-        // Run this quick so the root is set correctly.
         drive_set_jksv_root(drive);
-        // Show everyone I did it!
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
-                                            strings::get_by_name(strings::names::GOOGLE_DRIVE, 1));
+        ui::PopMessageManager::push_message(popTicks, popDriveSuccess);
     }
-    else
-    {
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS,
-                                            strings::get_by_name(strings::names::GOOGLE_DRIVE, 2));
-    }
+    else { ui::PopMessageManager::push_message(popTicks, popDriveFailed); }
 
     task->finished();
 }
 
 static void drive_set_jksv_root(remote::GoogleDrive *drive)
 {
-    static const char *STRING_ERROR_SETTING_DIR = "Error creating/setting JKSV directory on Drive: %s";
+    static constexpr const char *STRING_ERROR_SETTING_DIR = "Error creating/setting JKSV directory on Drive: %s";
 
-    if (!drive->directory_exists(STRING_JKSV_DIR) && !drive->create_directory(STRING_JKSV_DIR))
-    {
-        logger::log(STRING_ERROR_SETTING_DIR, "Error finding and/or creating directory!");
-        return;
-    }
+    const bool jksvExists  = drive->directory_exists(STRING_JKSV_DIR);
+    const bool jksvCreated = !jksvExists && drive->create_directory(STRING_JKSV_DIR);
+    if (!jksvExists && !jksvCreated) { return; }
 
-    remote::Item *jksvDir = drive->get_directory_by_name(STRING_JKSV_DIR);
-    if (!jksvDir)
-    {
-        logger::log(STRING_ERROR_SETTING_DIR, "Error locating directory in list! This shouldn't be able to happen!");
-        return;
-    }
+    const remote::Item *jksvDir = drive->get_directory_by_name(STRING_JKSV_DIR);
+    if (!jksvDir) { return; }
+
     drive->set_root_directory(jksvDir);
     drive->change_directory(jksvDir);
 }

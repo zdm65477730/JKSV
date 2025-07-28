@@ -4,7 +4,7 @@
 #include "sdl.hpp"
 
 FadeInState::FadeInState(std::shared_ptr<BaseState> nextState)
-    : m_nextState(nextState)
+    : m_nextState{nextState}
 {
     m_fadeTimer.start(1);
 }

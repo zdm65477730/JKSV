@@ -18,13 +18,16 @@ namespace
     // All of these states share the same render target.
     constexpr std::string_view SECONDARY_TARGET = "SecondaryTarget";
 
+    constexpr std::string_view CONFIG_KEY_NULL = "NULL";
+
     // This is needed to be able to get and set keys by index. Anything "NULL" isn't a key that can be easily toggled.
-    constexpr std::array<std::string_view, 19> CONFIG_KEY_ARRAY = {"NULL",
-                                                                   "NULL",
+    constexpr std::array<std::string_view, 20> CONFIG_KEY_ARRAY = {CONFIG_KEY_NULL,
+                                                                   CONFIG_KEY_NULL,
                                                                    config::keys::INCLUDE_DEVICE_SAVES,
                                                                    config::keys::AUTO_BACKUP_ON_RESTORE,
                                                                    config::keys::AUTO_NAME_BACKUPS,
                                                                    config::keys::AUTO_UPLOAD,
+                                                                   config::keys::USE_TITLE_IDS,
                                                                    config::keys::HOLD_FOR_DELETION,
                                                                    config::keys::HOLD_FOR_RESTORATION,
                                                                    config::keys::HOLD_FOR_OVERWRITE,
@@ -37,29 +40,20 @@ namespace
                                                                    config::keys::JKSM_TEXT_MODE,
                                                                    config::keys::FORCE_ENGLISH,
                                                                    config::keys::ENABLE_TRASH_BIN,
-                                                                   "NULL"};
+                                                                   CONFIG_KEY_NULL};
 } // namespace
 
 SettingsState::SettingsState()
-    : m_settingsMenu(32, 8, 1000, 24, 555)
-    , m_controlGuide(strings::get_by_name(strings::names::CONTROL_GUIDES, 3))
-    , m_controlGuideX(1220 - sdl::text::get_width(22, m_controlGuide))
-    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
+    : m_settingsMenu{32, 8, 1000, 24, 555}
+    , m_controlGuide{strings::get_by_name(strings::names::CONTROL_GUIDES, 3)}
+    , m_controlGuideX{static_cast<int>(1220 - sdl::text::get_width(22, m_controlGuide))}
+    , m_renderTarget{sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
                                                               1080,
                                                               555,
-                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
+                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)}
 {
-
-    for (int i = 0; const char *setting = strings::get_by_name(strings::names::SETTINGS_MENU, i); i++)
-    {
-        m_settingsMenu.add_option(setting);
-    }
-
-    for (int i = 0; const char *onOff = strings::get_by_name(strings::names::ON_OFF, i); i++) { m_onOff[i] = onOff; }
-    for (int i = 0; const char *sortType = strings::get_by_name(strings::names::SORT_TYPES, i); i++)
-    {
-        m_sortTypes[i] = sortType;
-    }
+    SettingsState::load_settings_menu();
+    SettingsState::load_extra_strings();
     SettingsState::update_menu_options();
 }
 
@@ -85,9 +79,26 @@ void SettingsState::render()
     if (hasFocus) { sdl::text::render(NULL, m_controlGuideX, 673, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_controlGuide); }
 }
 
+void SettingsState::load_settings_menu()
+{
+    for (int i = 0; const char *option = strings::get_by_name(strings::names::SETTINGS_MENU, i); i++)
+    {
+        m_settingsMenu.add_option(option);
+    }
+}
+
+void SettingsState::load_extra_strings()
+{
+    for (int i = 0; const char *onOff = strings::get_by_name(strings::names::ON_OFF, i); i++) { m_onOff[i] = onOff; }
+    for (int i = 0; const char *sortType = strings::get_by_name(strings::names::SORT_TYPES, i); i++)
+    {
+        m_sortTypes[i] = sortType;
+    }
+}
+
 void SettingsState::update_menu_options()
 {
-    for (int i : {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 15, 16, 17})
+    for (int i : {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 18})
     {
         const char *optionTemplate = strings::get_by_name(strings::names::SETTINGS_MENU, i);
         const uint8_t value        = config::get_by_key(CONFIG_KEY_ARRAY[i]);
@@ -97,25 +108,25 @@ void SettingsState::update_menu_options()
     }
 
     {
-        const char *zipCompTemplate = strings::get_by_name(strings::names::SETTINGS_MENU, 13);
-        const uint8_t zipLevel      = config::get_by_key(CONFIG_KEY_ARRAY[13]);
+        const char *zipCompTemplate = strings::get_by_name(strings::names::SETTINGS_MENU, 14);
+        const uint8_t zipLevel      = config::get_by_key(CONFIG_KEY_ARRAY[14]);
         const std::string zipOption = stringutil::get_formatted_string(zipCompTemplate, zipLevel);
-        m_settingsMenu.edit_option(13, zipOption);
+        m_settingsMenu.edit_option(14, zipOption);
     }
 
     {
-        const char *titleSortTemplate    = strings::get_by_name(strings::names::SETTINGS_MENU, 14);
-        const uint8_t sortType           = config::get_by_key(CONFIG_KEY_ARRAY[14]);
+        const char *titleSortTemplate    = strings::get_by_name(strings::names::SETTINGS_MENU, 15);
+        const uint8_t sortType           = config::get_by_key(CONFIG_KEY_ARRAY[15]);
         const char *typeText             = SettingsState::get_sort_type_text(sortType);
         const std::string sortTypeOption = stringutil::get_formatted_string(titleSortTemplate, typeText);
-        m_settingsMenu.edit_option(14, sortTypeOption);
+        m_settingsMenu.edit_option(15, sortTypeOption);
     }
 
     {
-        const char *scalingTemplate     = strings::get_by_name(strings::names::SETTINGS_MENU, 18);
+        const char *scalingTemplate     = strings::get_by_name(strings::names::SETTINGS_MENU, 19);
         const double scaling            = config::get_animation_scaling();
         const std::string scalingOption = stringutil::get_formatted_string(scalingTemplate, scaling);
-        m_settingsMenu.edit_option(18, scalingOption);
+        m_settingsMenu.edit_option(19, scalingOption);
     }
 }
 
@@ -124,10 +135,10 @@ void SettingsState::toggle_options()
     const int selected = m_settingsMenu.get_selected();
     switch (selected)
     {
-        case 13: SettingsState::cycle_zip_level(); break;
-        case 14: SettingsState::cycle_sort_type(); break;
-        case 15: SettingsState::toggle_jksm_mode(); break;
-        case 18: SettingsState::cycle_anim_scaling(); break;
+        case 14: SettingsState::cycle_zip_level(); break;
+        case 15: SettingsState::cycle_sort_type(); break;
+        case 16: SettingsState::toggle_jksm_mode(); break;
+        case 19: SettingsState::cycle_anim_scaling(); break;
         default: config::toggle_by_key(CONFIG_KEY_ARRAY[selected]);
     }
     config::save();

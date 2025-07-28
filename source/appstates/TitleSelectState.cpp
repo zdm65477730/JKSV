@@ -78,7 +78,6 @@ void TitleSelectState::create_backup_menu()
     const uint64_t applicationID   = m_user->get_application_id_at(selected);
     const FsSaveDataInfo *saveInfo = m_user->get_save_info_at(selected);
     data::TitleInfo *titleInfo     = data::get_title_info_by_id(applicationID);
-    const FsSaveDataType saveType  = static_cast<FsSaveDataType>(saveInfo->save_data_type);
 
     const bool saveMounted = fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo);
     if (!saveMounted) { return; }

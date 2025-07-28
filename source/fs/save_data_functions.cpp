@@ -5,6 +5,8 @@
 
 bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo)
 {
+    static constexpr FsSaveDataMetaInfo saveMeta = {.size = 0x40060, .type = FsSaveDataMetaType_Thumbnail};
+
     const uint8_t saveType       = targetUser->get_account_save_type();
     const uint64_t applicationID = titleInfo->get_application_id();
     const AccountUid accountID   = saveType == FsSaveDataType_Account ? targetUser->get_account_id() : data::BLANK_ACCOUNT_ID;
@@ -26,11 +28,9 @@ bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo
                                                  .flags              = 0,
                                                  .save_data_space_id = FsSaveDataSpaceId_User};
 
-    const FsSaveDataMetaInfo saveMeta = {.size = 0x40060, .type = FsSaveDataMetaType_Thumbnail};
-
     // I want this recorded.
     const bool createError = error::libnx(fsCreateSaveDataFileSystem(&saveAttributes, &saveCreation, &saveMeta));
-    return createError;
+    return createError == false;
 }
 
 bool fs::delete_save_data(const FsSaveDataInfo *saveInfo)
@@ -49,7 +49,7 @@ bool fs::delete_save_data(const FsSaveDataInfo *saveInfo)
                                                 .save_data_index     = saveInfo->save_data_index};
 
     const bool deleteError = error::libnx(fsDeleteSaveDataFileSystemBySaveDataAttribute(spaceID, &saveAttributes));
-    return deleteError;
+    return deleteError == false;
 }
 
 bool fs::extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t journalSize)
@@ -58,7 +58,7 @@ bool fs::extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t 
     const uint64_t saveID           = saveInfo->save_data_id;
 
     const bool extendError = error::libnx(fsExtendSaveDataFileSystem(spaceID, saveID, size, journalSize));
-    return extendError;
+    return extendError == false;
 }
 
 bool fs::is_system_save_data(const FsSaveDataInfo *saveInfo)

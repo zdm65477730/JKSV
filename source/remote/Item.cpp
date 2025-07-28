@@ -3,11 +3,11 @@
 #include "logger.hpp"
 
 remote::Item::Item(std::string_view name, std::string_view id, std::string_view parent, size_t size, bool directory)
-    : m_name(name)
-    , m_id(id)
-    , m_parent(parent)
-    , m_size(size)
-    , m_isDirectory(directory) {};
+    : m_name{name}
+    , m_id{id}
+    , m_parent{parent}
+    , m_size{size}
+    , m_isDirectory{directory} {};
 
 std::string_view remote::Item::get_name() const { return m_name; }
 

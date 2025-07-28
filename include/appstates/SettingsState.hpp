@@ -36,6 +36,12 @@ class SettingsState final : public BaseState
         /// @brief Render target to render to.
         sdl::SharedTexture m_renderTarget{};
 
+        /// @brief Loads the settings menu strings.
+        void load_settings_menu();
+
+        /// @brief Loads the on/off and sort type strings.
+        void load_extra_strings();
+
         /// @brief Runs a routine to update the menu strings for the menu.
         void update_menu_options();
 

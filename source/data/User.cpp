@@ -34,8 +34,8 @@ namespace
 static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDataEntry &entryB);
 
 data::User::User(AccountUid accountID, FsSaveDataType saveType)
-    : m_accountID(accountID)
-    , m_saveType(saveType)
+    : m_accountID{accountID}
+    , m_saveType{saveType}
 {
     AccountProfile profile{};
     AccountProfileBase profileBase{};
@@ -48,8 +48,8 @@ data::User::User(AccountUid accountID, FsSaveDataType saveType)
 }
 
 data::User::User(AccountUid accountID, std::string_view nickname, std::string_view pathSafeNickname, FsSaveDataType saveType)
-    : m_accountID(accountID)
-    , m_saveType(saveType)
+    : m_accountID{accountID}
+    , m_saveType{saveType}
 {
     m_icon = gfxutil::create_generic_icon(nickname, 48, colors::DIALOG_BOX, colors::WHITE);
     std::memcpy(m_nickname, nickname.data(), nickname.length());

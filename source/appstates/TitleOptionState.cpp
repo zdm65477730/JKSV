@@ -46,10 +46,10 @@ static void extend_save_data(sys::Task *task, std::shared_ptr<TitleOptionState::
 static void export_svi_file(data::TitleInfo *titleInfo);
 
 TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo, TitleSelectCommon *titleSelect)
-    : m_user(user)
-    , m_titleInfo(titleInfo)
-    , m_titleSelect(titleSelect)
-    , m_dataStruct(std::make_shared<TitleOptionState::DataStruct>())
+    : m_user{user}
+    , m_titleInfo{titleInfo}
+    , m_titleSelect{titleSelect}
+    , m_dataStruct{std::make_shared<TitleOptionState::DataStruct>()}
 {
     // Create panel if needed.
     if (!sm_initialized)

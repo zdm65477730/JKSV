@@ -2,6 +2,8 @@
 #include "sdl.hpp"
 #include "ui/ColorMod.hpp"
 #include "ui/Element.hpp"
+#include "ui/TextScroll.hpp"
+
 #include <string>
 #include <vector>
 
@@ -56,34 +58,52 @@ namespace ui
 
         protected:
             /// @brief X coordinate menu is rendered to.
-            double m_x;
+            double m_x{};
+
             /// @brief Y coordinate menu is rendered to.
-            double m_y;
+            double m_y{};
+
             /// @brief Currently selected option.
-            int m_selected = 0;
+            int m_selected{};
+
             /// @brief Color mod for bounding box.
-            ui::ColorMod m_colorMod;
+            ui::ColorMod m_colorMod{};
+
             /// @brief Height of options in pixels.
-            int m_optionHeight;
+            int m_optionHeight{};
+
             /// @brief Target options are rendered to.
-            sdl::SharedTexture m_optionTarget = nullptr;
+            sdl::SharedTexture m_optionTarget{};
 
         private:
             /// @brief This to preserve the original Y coordinate passed.
-            double m_originalY;
+            double m_originalY{};
+
             /// @brief The target Y coordinate the menu should be rendered at.
-            double m_targetY;
+            double m_targetY{};
+
             /// @brief How many options before scrolling happens.
-            int m_scrollLength;
+            int m_scrollLength{};
+
             /// @brief Width of the menu in pixels.
-            int m_width;
+            int m_width{};
+
             /// @brief Font size in pixels.
-            int m_fontSize;
+            int m_fontSize{};
+
+            /// @brief The Y coord text is rendered to on that target.
+            int m_textY{};
+
             /// @brief Vertical size of the destination render target in pixels.
-            int m_renderTargetHeight;
+            int m_renderTargetHeight{};
+
             /// @brief Maximum number of display options render target can show.
-            int m_maxDisplayOptions;
+            int m_maxDisplayOptions{};
+
+            /// @brief Text scroll for when the current option is too long to on screen.
+            ui::TextScroll m_optionScroll{};
+
             /// @brief Vector of options.
-            std::vector<std::string> m_options;
+            std::vector<std::string> m_options{};
     };
 } // namespace ui

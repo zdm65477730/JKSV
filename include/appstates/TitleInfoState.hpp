@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 class TitleInfoState final : public BaseState
 {
@@ -35,42 +36,18 @@ class TitleInfoState final : public BaseState
         /// @brief This is a pointer to the title's icon.
         sdl::SharedTexture m_icon{};
 
-        /// @brief This is the scrolling text for the title.
-        ui::TextScroll m_titleScroll{};
-
-        /// @brief This is the scrolling text for the publisher.
-        ui::TextScroll m_publisherScroll{};
-
-        /// @brief This string holds the application ID.
-        std::string m_applicationID{};
-
-        /// @brief This holds the hex save data id of the file on nand.
-        std::string m_saveDataID{};
-
-        /// @brief This holds the time the game was first played.
-        std::string m_firstPlayed{};
-
-        /// @brief This holds the last played timestamp.
-        std::string m_lastPlayed{};
-
-        /// @brief This holds the play time string.
-        std::string m_playTime{};
-
-        /// @brief This holds the total launches string.
-        std::string m_totalLaunches{};
-
-        /// @brief This holds the save data type string.
-        std::string m_saveDataType{};
-
-        /// @brief Bool to tell whether or not static members are initialized.
-        static inline bool sm_initialized{};
-
-        /// @brief This is the render target for the title text just in case it needs scrolling.
-        static inline sdl::SharedTexture sm_titleTarget{};
-
-        /// @brief This is the render target for the publisher string.
-        static inline sdl::SharedTexture sm_publisherTarget{};
+        /// @brief This controls the clear color of the fields rendered.
+        bool m_fieldClear{};
 
         /// @brief Slide panel.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};
+
+        /// @brief Initializes the static members if they haven't been already.
+        void initialize_static_members();
+
+        /// @brief Creates the scrolling text/cheating fields.
+        void create_info_fields();
+
+        /// @brief Helper function for creating text fields.
+        std::shared_ptr<ui::TextScroll> create_new_field(std::string_view text, int y);
 };

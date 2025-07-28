@@ -3,7 +3,7 @@
 #include <switch.h>
 
 BaseState::BaseState(bool isClosable)
-    : m_isClosable(isClosable)
+    : m_isClosable{isClosable}
 {
     if (m_isClosable) { return; }
     appletBeginBlockingHomeButton(0);

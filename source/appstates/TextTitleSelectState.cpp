@@ -21,13 +21,13 @@ namespace
 } // namespace
 
 TextTitleSelectState::TextTitleSelectState(data::User *user)
-    : TitleSelectCommon()
-    , m_user(user)
-    , m_titleSelectMenu(32, 8, 1000, 20, 555)
-    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
+    : TitleSelectCommon{}
+    , m_user{user}
+    , m_titleSelectMenu{32, 8, 1000, 20, 555}
+    , m_renderTarget{sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
                                                               1080,
                                                               555,
-                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
+                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)}
 {
     TextTitleSelectState::refresh();
 }
