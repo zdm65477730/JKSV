@@ -5,6 +5,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <ctime>
+#include <string>
 #include <switch.h>
 
 namespace
@@ -18,72 +19,63 @@ namespace
 
 std::string stringutil::get_formatted_string(const char *format, ...)
 {
-    char vaBuffer[VA_BUFFER_SIZE] = {0};
+    std::array<char, VA_BUFFER_SIZE> vaBuffer = {0};
 
     std::va_list vaList;
     va_start(vaList, format);
-    vsnprintf(vaBuffer, VA_BUFFER_SIZE, format, vaList);
+    vsnprintf(vaBuffer.data(), VA_BUFFER_SIZE, format, vaList);
     va_end(vaList);
 
-    return std::string(vaBuffer);
+    return std::string(vaBuffer.data());
 }
 
 void stringutil::replace_in_string(std::string &target, std::string_view find, std::string_view replace)
 {
-    size_t stringPosition = 0;
-    while ((stringPosition = target.find(find, stringPosition)) != target.npos)
+    const size_t findLength    = find.length();
+    const size_t replaceLength = replace.length();
+
+    for (size_t i = target.find(find); i != target.npos; i = target.find(find, i + replaceLength))
     {
-        target.replace(stringPosition, find.length(), replace);
+        target.replace(i, findLength, replace);
     }
 }
 
 void stringutil::strip_character(char c, std::string &target)
 {
-    size_t charPosition = 0;
-    while ((charPosition = target.find_first_of(c, charPosition)) != target.npos)
+    for (size_t i = target.find_first_of(c); i != target.npos; i = target.find_first_of(c, i))
     {
-        target.erase(target.begin() + charPosition);
+        target.erase(target.begin() + i);
     }
 }
 
 bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut, size_t stringOutSize)
 {
-    uint32_t codepoint  = 0;
-    size_t stringLength = std::strlen(stringIn);
-    for (size_t i = 0, stringOutOffset = 0; i < stringLength;)
+    uint32_t codepoint{};
+    const size_t length = std::char_traits<char>::length(stringIn);
+    for (size_t i = 0, offset = 0; i < length;)
     {
-        ssize_t unitCount = decode_utf8(&codepoint, reinterpret_cast<const uint8_t *>(&stringIn[i]));
-        if (unitCount <= 0 || i + unitCount >= stringOutSize) { break; }
+        const uint8_t *point  = reinterpret_cast<const uint8_t *>(&stringIn[i]);
+        const ssize_t count   = decode_utf8(&codepoint, point);
+        const bool countCheck = count <= 0 || i + count >= stringOutSize;
+        const bool codeCheck  = codepoint < 0x20 || codepoint > 0x7E;
+        if (countCheck) { break; }
+        else if (codeCheck) { return false; }
 
-        if (codepoint < 0x20 || codepoint > 0x7E)
-        {
-            // Don't even bother. It's not possible.
-            return false;
-        }
-
-        // replace forbidden with spaces.
-        if (std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) !=
-            FORBIDDEN_PATH_CHARACTERS.end())
-        {
-            stringOut[stringOutOffset++] = 0x20;
-        }
-        else if (codepoint == L'é') { stringOut[stringOutOffset++] = 'e'; }
+        const bool forbidden = std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) !=
+                               FORBIDDEN_PATH_CHARACTERS.end();
+        if (forbidden) { stringOut[offset++] = 0x20; }
+        else if (codepoint == L'é') { stringOut[offset++] = 'e'; }
         else
         {
-            // Just memcpy it over. This is a safety thing to be honest. Since it's only Ascii allowed, unitcount should only
-            // be 1.
-            std::memcpy(&stringOut[stringOutOffset], &stringIn[i], static_cast<size_t>(unitCount));
-            stringOutOffset += unitCount;
+            std::memcpy(&stringOut[offset], &stringIn[i], static_cast<size_t>(count));
+            offset += count;
         }
-        i += unitCount;
+        i += count;
     }
 
-    // Loop backwards and trim off spaces and periods.
-    size_t stringOutLength = std::strlen(stringOut);
-    while (stringOut[stringOutLength - 1] == ' ' || stringOut[stringOutLength - 1] == '.')
-    {
-        stringOut[--stringOutLength] = 0x00;
-    }
+    const int outLength = std::char_traits<char>::length(stringOut) - 1;
+    for (int i = outLength; i > 0 && (stringOut[i] == ' ' || stringOut[i] == '.'); --i) { stringOut[i] = '\0'; }
+
     return true;
 }
 

@@ -5,10 +5,15 @@
 
 #include <cmath>
 
+namespace
+{
+    constexpr int SCREEN_WIDTH = 1280;
+}
+
 ui::SlideOutPanel::SlideOutPanel(int width, Side side)
-    : m_x(side == Side::Left ? -width : 1280)
+    : m_x(side == Side::Left ? -width : SCREEN_WIDTH)
     , m_width(width)
-    , m_targetX(side == Side::Left ? 0 : 1280 - m_width)
+    , m_targetX(side == Side::Left ? 0 : SCREEN_WIDTH - m_width)
     , m_side(side)
 {
     static int slidePanelTargetID = 0;
@@ -21,24 +26,18 @@ ui::SlideOutPanel::SlideOutPanel(int width, Side side)
 
 void ui::SlideOutPanel::update(bool hasFocus)
 {
-    double scaling = config::get_animation_scaling();
-
-    // The first two conditions are just a workaround because my math keeps leaving two pixels.
-    if (!m_isOpen && m_side == Side::Left && m_x >= -4)
+    const double scaling        = config::get_animation_scaling();
+    const bool openingFromLeft  = !m_isOpen && m_side == Side::Left && m_x < m_targetX;
+    const bool openingFromRight = !m_isOpen && m_side == Side::Right && m_x > m_targetX;
+    if (openingFromLeft) { m_x -= std::round(m_x / scaling); }
+    else if (openingFromRight)
     {
-        m_x      = 0;
-        m_isOpen = true;
+        const double screenWidth = static_cast<double>(SCREEN_WIDTH);
+        const double width       = static_cast<double>(m_width);
+        const double pixels      = (screenWidth - width - m_x) / scaling;
+        m_x += std::round(pixels);
     }
-    else if (!m_isOpen && m_side == Side::Right && m_x - m_targetX <= 4)
-    {
-        m_x      = 1280 - m_width;
-        m_isOpen = true;
-    }
-    else if (!m_isOpen && m_side == Side::Left && m_x != m_targetX) { m_x -= std::ceil(m_x / scaling); }
-    else if (!m_isOpen && m_side == Side::Right && m_x != m_targetX)
-    {
-        m_x += std::ceil((1280.0f - (static_cast<double>(m_width)) - m_x) / scaling);
-    }
+    else { m_isOpen = true; }
 
     // I'm going to leave it to the individual elements whether they update if the state is active.
     if (m_isOpen)
@@ -58,7 +57,7 @@ void ui::SlideOutPanel::clear_target() { m_renderTarget->clear(colors::SLIDE_PAN
 
 void ui::SlideOutPanel::reset()
 {
-    m_x          = m_side == Side::Left ? -(m_width) : 1280.0f;
+    m_x          = m_side == Side::Left ? -(m_width) : SCREEN_WIDTH;
     m_isOpen     = false;
     m_closePanel = false;
 }
@@ -67,7 +66,18 @@ void ui::SlideOutPanel::close() { m_closePanel = true; }
 
 bool ui::SlideOutPanel::is_open() const { return m_isOpen; }
 
-bool ui::SlideOutPanel::is_closed() const { return m_closePanel && (m_side == Side::Left ? m_x > -(m_width) : m_x < 1280); }
+bool ui::SlideOutPanel::is_closed()
+{
+    // I'm assuming this is going to be called, waiting for the panel to close so.
+    const double scaling    = config::get_animation_scaling();
+    const bool closeToLeft  = m_closePanel && m_side == Side::Left && m_x > -m_width;
+    const bool closeToRight = m_closePanel && m_side == Side::Right && m_x < SCREEN_WIDTH;
+    if (closeToLeft) { m_x += -(m_width - m_x) / scaling; }
+    else if (closeToRight) { m_x += m_x / scaling; }
+
+    const bool closed = m_side == Side::Left ? m_x <= -m_width : m_x >= SCREEN_WIDTH;
+    return m_closePanel && closed;
+}
 
 void ui::SlideOutPanel::push_new_element(std::shared_ptr<ui::Element> newElement) { m_elements.push_back(newElement); }
 

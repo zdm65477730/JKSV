@@ -90,7 +90,7 @@
     ],
     "SaveCreatePops": [
         "0: Save data created for #%s#!",
-        "1: Error creating save data for #%s#!",
+        "1: Error creating save data!",
         "2: Error deleting save data!"
     ],
     "SaveDataTypes": [

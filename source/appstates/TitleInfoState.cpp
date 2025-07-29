@@ -70,7 +70,7 @@ void TitleInfoState::initialize_static_members()
 {
     if (!sm_slidePanel)
     {
-        sm_slidePanel = std::make_unique<ui::SlideOutPanel>(SIZE_PANEL_WIDTH, ui::SlideOutPanel::Side::Right);
+        sm_slidePanel = std::make_unique<ui::SlideOutPanel>(SIZE_PANEL_WIDTH, ui::SlideOutPanel::Side::Left);
     }
 }
 

@@ -4,8 +4,8 @@
 
 namespace
 {
-    sdl::SharedTexture s_dialogCorners       = nullptr;
-    sdl::SharedTexture s_menuBoundingCorners = nullptr;
+    sdl::SharedTexture s_dialogCorners{};
+    sdl::SharedTexture s_menuBoundingCorners{};
 } // namespace
 
 void ui::render_dialog_box(SDL_Texture *target, int x, int y, int width, int height)
@@ -19,8 +19,10 @@ void ui::render_dialog_box(SDL_Texture *target, int x, int y, int width, int hei
     s_dialogCorners->render_part(target, x, y, 0, 0, 16, 16);
     sdl::render_rect_fill(target, x + 16, y, width - 32, 16, colors::DIALOG_BOX);
     s_dialogCorners->render_part(target, (x + width) - 16, y, 16, 0, 16, 16);
+
     // Middle
     sdl::render_rect_fill(NULL, x, y + 16, width, height - 32, colors::DIALOG_BOX);
+
     // Bottom
     s_dialogCorners->render_part(target, x, (y + height) - 16, 0, 16, 16, 16);
     sdl::render_rect_fill(NULL, x + 16, (y + height) - 16, width - 32, 16, colors::DIALOG_BOX);

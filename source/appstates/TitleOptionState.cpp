@@ -282,15 +282,16 @@ static void change_output_path(data::TitleInfo *targetTitle)
     static constexpr size_t SIZE_PATH_BUFFER = 0x200;
     const char *headerTemplate               = strings::get_by_name(strings::names::KEYBOARD, 7);
     const int popTicks                       = ui::PopMessageManager::DEFAULT_TICKS;
-    const char *popSuccess                   = strings::get_by_name(strings::names::TITLEOPTION_POPS, 1);
-    const char *popFailure                   = strings::get_by_name(strings::names::TITLEOPTION_POPS, 0);
+    const char *popSuccess                   = strings::get_by_name(strings::names::TITLEOPTION_POPS, 8);
+    const char *popFailure                   = strings::get_by_name(strings::names::TITLEOPTION_POPS, 9);
     const char *pathSafeTitle                = targetTitle->get_path_safe_title();
 
     const std::string headerString    = stringutil::get_formatted_string(headerTemplate, targetTitle->get_title());
     char pathBuffer[SIZE_PATH_BUFFER] = {0};
     const bool inputIsValid = keyboard::get_input(SwkbdType_QWERTY, pathSafeTitle, headerString, pathBuffer, SIZE_PATH_BUFFER);
     const bool sanitized    = inputIsValid && stringutil::sanitize_string_for_path(pathBuffer, pathBuffer, SIZE_PATH_BUFFER);
-    if (!inputIsValid || !sanitized)
+    const bool notEmpty     = std::char_traits<char>::length(pathBuffer) > 0;
+    if (!inputIsValid || !sanitized || !notEmpty)
     {
         ui::PopMessageManager::push_message(popTicks, popFailure);
         return;

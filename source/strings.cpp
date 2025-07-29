@@ -1,6 +1,7 @@
 #include "strings.hpp"
 
 #include "JSON.hpp"
+#include "error.hpp"
 #include "fslib.hpp"
 #include "stringutil.hpp"
 
@@ -33,41 +34,9 @@ namespace
                                                                    {SetLanguage_PTBR, "PTBR.json"}};
 } // namespace
 
-// This returns the language file to use depending on the system's language.
-static fslib::Path get_file_path()
-{
-    fslib::Path returnPath = "romfs:/Text";
-
-    uint64_t languageCode = 0;
-    Result setError       = setGetLanguageCode(&languageCode);
-    if (R_FAILED(setError)) { return returnPath / s_fileMap.at(SetLanguage_ENUS); }
-
-    SetLanguage language;
-    setError = setMakeLanguage(languageCode, &language);
-    if (R_FAILED(setError)) { return returnPath / s_fileMap.at(SetLanguage_ENUS); }
-    return returnPath / s_fileMap.at(language);
-}
-
-static void replace_buttons_in_string(std::string &target)
-{
-    stringutil::replace_in_string(target, "[A]", "\ue0e0");
-    stringutil::replace_in_string(target, "[B]", "\ue0e1");
-    stringutil::replace_in_string(target, "[X]", "\ue0e2");
-    stringutil::replace_in_string(target, "[Y]", "\ue0e3");
-    stringutil::replace_in_string(target, "[L]", "\ue0e4");
-    stringutil::replace_in_string(target, "[R]", "\ue0e5");
-    stringutil::replace_in_string(target, "[ZL]", "\ue0e6");
-    stringutil::replace_in_string(target, "[ZR]", "\ue0e7");
-    stringutil::replace_in_string(target, "[SL]", "\ue0e8");
-    stringutil::replace_in_string(target, "[SR]", "\ue0e9");
-    stringutil::replace_in_string(target, "[DPAD]", "\ue0ea");
-    stringutil::replace_in_string(target, "[DUP]", "\ue0eb");
-    stringutil::replace_in_string(target, "[DDOWN]", "\ue0ec");
-    stringutil::replace_in_string(target, "[DLEFT]", "\ue0ed");
-    stringutil::replace_in_string(target, "[DRIGHT]", "\ue0ee");
-    stringutil::replace_in_string(target, "[+]", "\ue0ef");
-    stringutil::replace_in_string(target, "[-]", "\ue0f0");
-}
+// Definitions at bottom.
+static fslib::Path get_file_path();
+static void replace_buttons_in_string(std::string &target);
 
 bool strings::initialize()
 {
@@ -90,9 +59,9 @@ bool strings::initialize()
         {
             json_object *string     = json_object_array_get_idx(array, i);
             std::string_view slicer = json_object_get_string(string);
-            const int mapIndex      = i;
-            const auto mapPair      = std::make_pair(name, mapIndex);
-            const size_t begin      = slicer.find(": ");
+            const auto mapPair      = std::make_pair(name, i);
+
+            const size_t begin = slicer.find(": ");
             if (begin != slicer.npos) { slicer = slicer.substr(begin + 2); }
 
             s_stringMap[mapPair] = slicer;
@@ -113,4 +82,41 @@ const char *strings::get_by_name(std::string_view name, int index)
 
     if (findPair == s_stringMap.end()) { return nullptr; }
     return s_stringMap.at(mapPair).c_str();
+}
+
+static fslib::Path get_file_path()
+{
+    static constexpr std::string_view PATH_BASE = "romfs:/Text";
+
+    fslib::Path returnPath{PATH_BASE};
+    uint64_t languageCode{};
+    SetLanguage language{};
+
+    const bool codeError = error::libnx(setGetLanguageCode(&languageCode));
+    const bool langError = !codeError && error::libnx(setMakeLanguage(languageCode, &language));
+    if (codeError || langError) { returnPath /= s_fileMap[SetLanguage_ENUS]; }
+    else { returnPath /= s_fileMap[language]; }
+
+    return returnPath;
+}
+
+static void replace_buttons_in_string(std::string &target)
+{
+    stringutil::replace_in_string(target, "[A]", "\ue0e0");
+    stringutil::replace_in_string(target, "[B]", "\ue0e1");
+    stringutil::replace_in_string(target, "[X]", "\ue0e2");
+    stringutil::replace_in_string(target, "[Y]", "\ue0e3");
+    stringutil::replace_in_string(target, "[L]", "\ue0e4");
+    stringutil::replace_in_string(target, "[R]", "\ue0e5");
+    stringutil::replace_in_string(target, "[ZL]", "\ue0e6");
+    stringutil::replace_in_string(target, "[ZR]", "\ue0e7");
+    stringutil::replace_in_string(target, "[SL]", "\ue0e8");
+    stringutil::replace_in_string(target, "[SR]", "\ue0e9");
+    stringutil::replace_in_string(target, "[DPAD]", "\ue0ea");
+    stringutil::replace_in_string(target, "[DUP]", "\ue0eb");
+    stringutil::replace_in_string(target, "[DDOWN]", "\ue0ec");
+    stringutil::replace_in_string(target, "[DLEFT]", "\ue0ed");
+    stringutil::replace_in_string(target, "[DRIGHT]", "\ue0ee");
+    stringutil::replace_in_string(target, "[+]", "\ue0ef");
+    stringutil::replace_in_string(target, "[-]", "\ue0f0");
 }

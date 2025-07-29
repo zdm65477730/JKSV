@@ -1,6 +1,7 @@
 #pragma once
 #include "sdl.hpp"
 #include "ui/Element.hpp"
+
 #include <vector>
 
 namespace ui
@@ -47,7 +48,7 @@ namespace ui
 
             /// @brief Returns if the panel is fully closed.
             /// @return If the panel is fully closed.
-            bool is_closed() const;
+            bool is_closed();
 
             /// @brief Pushes a new element to the element vector.
             /// @param newElement New element to push.
@@ -62,27 +63,27 @@ namespace ui
 
         private:
             /// @brief Bool for whether panel is fully open or not.
-            bool m_isOpen = false;
+            bool m_isOpen{};
 
             /// @brief Whether or not to close panel.
-            bool m_closePanel = false;
+            bool m_closePanel{};
 
             /// @brief Current X coordinate to render to. Panels are always 720 pixels in height so no Y is required.
-            double m_x;
+            double m_x{};
 
             /// @brief Width of the panel in pixels.
-            int m_width;
+            int m_width{};
 
             /// @brief Target X position of panel.
-            double m_targetX;
+            double m_targetX{};
 
             /// @brief Which side the panel is on.
-            SlideOutPanel::Side m_side;
+            SlideOutPanel::Side m_side{};
 
             /// @brief Render target if panel.
-            sdl::SharedTexture m_renderTarget;
+            sdl::SharedTexture m_renderTarget{};
 
             /// @brief Vector of elements.
-            std::vector<std::shared_ptr<ui::Element>> m_elements;
+            std::vector<std::shared_ptr<ui::Element>> m_elements{};
     };
 } // namespace ui

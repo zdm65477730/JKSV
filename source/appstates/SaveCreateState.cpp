@@ -122,17 +122,19 @@ static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB)
     const char *titleA = infoA->get_title();
     const char *titleB = infoB->get_title();
 
-    size_t titleALength  = std::char_traits<char>::length(titleA);
-    size_t titleBLength  = std::char_traits<char>::length(titleB);
-    size_t shortestTitle = titleALength < titleBLength ? titleALength : titleBLength;
+    const size_t titleALength  = std::char_traits<char>::length(titleA);
+    const size_t titleBLength  = std::char_traits<char>::length(titleB);
+    const size_t shortestTitle = titleALength < titleBLength ? titleALength : titleBLength;
     // To do: This doesn't take into account which is the shortest title. This can still go out-of-bounds.
     for (size_t i = 0, j = 0; i < shortestTitle;)
     {
         uint32_t codepointA = 0;
         uint32_t codepointB = 0;
 
-        ssize_t unitCountA = decode_utf8(&codepointA, reinterpret_cast<const uint8_t *>(&titleA[i]));
-        ssize_t unitCountB = decode_utf8(&codepointB, reinterpret_cast<const uint8_t *>(&titleB[j]));
+        const uint8_t *pointA    = reinterpret_cast<const uint8_t *>(&titleA[i]);
+        const uint8_t *pointB    = reinterpret_cast<const uint8_t *>(&titleB[j]);
+        const ssize_t unitCountA = decode_utf8(&codepointA, pointA);
+        const ssize_t unitCountB = decode_utf8(&codepointB, pointB);
 
         if (unitCountA <= 0 || unitCountB <= 0) { return false; }
 
