@@ -34,58 +34,18 @@ TextTitleSelectState::TextTitleSelectState(data::User *user)
 
 void TextTitleSelectState::update()
 {
+    const bool hasFocus = BaseState::has_focus();
+    const bool aPressed = input::button_pressed(HidNpadButton_A);
+    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool xPressed = input::button_pressed(HidNpadButton_X);
+    const bool yPressed = input::button_pressed(HidNpadButton_Y);
+
     m_titleSelectMenu.update(BaseState::has_focus());
 
-    // Both title selection states work too differently for this stuff to be shared IMO.
-    if (input::button_pressed(HidNpadButton_A))
-    {
-        // Grab selected.
-        int selected = m_titleSelectMenu.get_selected();
-
-        // Grab what we need to continue.
-        uint64_t applicationID     = m_user->get_application_id_at(selected);
-        FsSaveDataInfo *saveInfo   = m_user->get_save_info_by_id(applicationID);
-        data::TitleInfo *titleInfo = data::get_title_info_by_id(m_user->get_application_id_at(selected));
-
-        // Output path.
-        fslib::Path targetPath = config::get_working_directory() / titleInfo->get_path_safe_title();
-
-        if ((fslib::directory_exists(targetPath) || fslib::create_directory(targetPath)) &&
-            fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo))
-        {
-            // State
-            auto backupMenuState = std::make_shared<BackupMenuState>(m_user, titleInfo);
-
-            StateManager::push_state(backupMenuState);
-        }
-        else { logger::log(fslib::error::get_string()); }
-    }
-    else if (input::button_pressed(HidNpadButton_X))
-    {
-        int selected = m_titleSelectMenu.get_selected();
-
-        uint64_t applicationID     = m_user->get_application_id_at(selected);
-        data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
-
-        auto titleOptionState = std::make_shared<TitleOptionState>(m_user, titleInfo, this);
-
-        StateManager::push_state(titleOptionState);
-    }
-    else if (input::button_pressed(HidNpadButton_Y))
-    {
-        uint64_t applicationID = m_user->get_application_id_at(m_titleSelectMenu.get_selected());
-
-        config::add_remove_favorite(applicationID);
-
-        // We need to resort all users, not just this one.
-        data::UserList list;
-        data::get_users(list);
-        for (data::User *user : list) { user->sort_data(); }
-
-        // Let the main menu state take care of this.
-        MainMenuState::refresh_view_states();
-    }
-    else if (input::button_pressed(HidNpadButton_B)) { BaseState::deactivate(); }
+    if (aPressed) { TextTitleSelectState::create_backup_menu(); }
+    else if (xPressed) { TextTitleSelectState::create_title_option_menu(); }
+    else if (yPressed) { TextTitleSelectState::add_remove_favorite(); }
+    else if (bPressed) { BaseState::deactivate(); }
 }
 
 void TextTitleSelectState::render()
@@ -108,4 +68,40 @@ void TextTitleSelectState::refresh()
         else { option = title; }
         m_titleSelectMenu.add_option(option.c_str());
     }
+}
+
+void TextTitleSelectState::create_backup_menu()
+{
+    const int selected             = m_titleSelectMenu.get_selected();
+    const uint64_t applicationID   = m_user->get_application_id_at(selected);
+    const FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
+    data::TitleInfo *titleInfo     = data::get_title_info_by_id(applicationID);
+
+    auto backupMenuState = std::make_shared<BackupMenuState>(m_user, titleInfo);
+    StateManager::push_state(backupMenuState);
+}
+
+void TextTitleSelectState::create_title_option_menu()
+{
+    const int selected           = m_titleSelectMenu.get_selected();
+    const uint64_t applicationID = m_user->get_application_id_at(selected);
+    data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
+
+    auto titleOptionState = std::make_shared<TitleOptionState>(m_user, titleInfo, this);
+    StateManager::push_state(titleOptionState);
+}
+
+void TextTitleSelectState::add_remove_favorite()
+{
+    const int selected           = m_titleSelectMenu.get_selected();
+    const uint64_t applicationID = m_user->get_application_id_at(selected);
+
+    config::add_remove_favorite(applicationID);
+
+    // This applies to all users.
+    data::UserList list{};
+    data::get_users(list);
+    for (data::User *user : list) { user->sort_data(); }
+
+    MainMenuState::refresh_view_states();
 }

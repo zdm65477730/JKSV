@@ -33,4 +33,13 @@ class TextTitleSelectState final : public TitleSelectCommon
 
         /// @brief Target to render to.
         sdl::SharedTexture m_renderTarget{};
+
+        /// @brief Creates a new backup menu instance.
+        void create_backup_menu();
+
+        /// @brief Creates a new instance of the title options menu.
+        void create_title_option_menu();
+
+        /// @brief Adds or removes the current highlighted title to favorites.
+        void add_remove_favorite();
 };

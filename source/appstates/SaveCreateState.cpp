@@ -51,6 +51,14 @@ void SaveCreateState::update()
 {
     const bool hasFocus = BaseState::has_focus();
 
+    m_saveMenu.update(hasFocus);
+    sm_slidePanel->update(hasFocus);
+
+    const bool aPressed    = input::button_pressed(HidNpadButton_A);
+    const bool bPressed    = input::button_pressed(HidNpadButton_B);
+    const bool panelClosed = sm_slidePanel->is_closed();
+    const int selected     = m_saveMenu.get_selected();
+
     if (m_refreshRequired.load())
     {
         m_user->load_user_data();
@@ -58,16 +66,15 @@ void SaveCreateState::update()
         m_refreshRequired.store(false);
     }
 
-    m_saveMenu.update(hasFocus);
-    sm_slidePanel->update(hasFocus);
-
-    if (input::button_pressed(HidNpadButton_A))
+    if (aPressed)
     {
-        data::TitleInfo *targetTitle = m_titleInfoVector.at(m_saveMenu.get_selected());
-        StateManager::push_state(std::make_shared<TaskState>(create_save_data, m_user, targetTitle, this));
+        data::TitleInfo *titleInfo = m_titleInfoVector[selected];
+        auto createTask            = std::make_shared<TaskState>(create_save_data, m_user, titleInfo, this);
+
+        StateManager::push_state(createTask);
     }
-    else if (input::button_pressed(HidNpadButton_B)) { sm_slidePanel->close(); }
-    else if (sm_slidePanel->is_closed())
+    else if (bPressed) { sm_slidePanel->close(); }
+    else if (panelClosed)
     {
         sm_slidePanel->reset();
         BaseState::deactivate();
@@ -135,7 +142,6 @@ static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB)
         const uint8_t *pointB    = reinterpret_cast<const uint8_t *>(&titleB[j]);
         const ssize_t unitCountA = decode_utf8(&codepointA, pointA);
         const ssize_t unitCountB = decode_utf8(&codepointB, pointB);
-
         if (unitCountA <= 0 || unitCountB <= 0) { return false; }
 
         if (codepointA != codepointB) { return codepointA < codepointB; }
