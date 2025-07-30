@@ -295,13 +295,16 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
         }
     }
 
-    const bool resetError  = error::fslib(fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT));
-    const bool commitError = error::fslib(fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT));
-    if (resetError || commitError)
     {
-        ui::PopMessageManager::push_message(popTicks, popErrorResetting);
-        task->finished();
-        return;
+        auto scopedMount       = create_scoped_mount(saveInfo);
+        const bool resetError  = error::fslib(fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT));
+        const bool commitError = error::fslib(fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT));
+        if (resetError || commitError)
+        {
+            ui::PopMessageManager::push_message(popTicks, popErrorResetting);
+            task->finished();
+            return;
+        }
     }
 
     if (!isDir && hasZipExt)
@@ -349,6 +352,7 @@ void tasks::backup::restore_backup_remote(sys::ProgressTask *task, BackupMenuSta
     }
 
     const int popTicks                 = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popErrorResetting      = strings::get_by_name(strings::names::BACKUPMENU_POPS, 2);
     const char *popErrorOpeningZip     = strings::get_by_name(strings::names::BACKUPMENU_POPS, 3);
     const char *popErrorDeleting       = strings::get_by_name(strings::names::BACKUPMENU_POPS, 4);
     const char *popErrorDownloading    = strings::get_by_name(strings::names::BACKUPMENU_POPS, 9);
@@ -388,10 +392,22 @@ void tasks::backup::restore_backup_remote(sys::ProgressTask *task, BackupMenuSta
         return;
     }
 
-    const uint8_t saveType     = user->get_account_save_type();
-    const uint64_t journalSize = titleInfo->get_journal_size(saveType);
+    {
+        auto scopedMount       = create_scoped_mount(saveInfo);
+        const bool deleteError = error::fslib(fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT));
+        const bool commitError = error::fslib(fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT));
+        if (deleteError || commitError)
+        {
+            ui::PopMessageManager::push_message(popTicks, popErrorResetting);
+            task->finished();
+            return;
+        }
+    }
+
     read_and_process_meta(backup, taskData, task);
     {
+        const uint8_t saveType     = user->get_account_save_type();
+        const uint64_t journalSize = titleInfo->get_journal_size(saveType);
         fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
         fs::copy_zip_to_directory(backup, fs::DEFAULT_SAVE_ROOT, journalSize, fs::DEFAULT_SAVE_MOUNT, task);
     }
