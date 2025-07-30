@@ -41,9 +41,6 @@ bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &m
 
 bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaData &meta)
 {
-    const bool closeError = error::fslib(fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT));
-    if (closeError) { return false; }
-
     const FsSaveDataSpaceId spaceID = static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id);
     const uint64_t saveID           = saveInfo->save_data_id;
 
@@ -56,9 +53,6 @@ bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaDa
     const bool needsExtend = extraData.data_size < meta.saveDataSize;
     const bool extended    = needsExtend && fs::extend_save_data(saveInfo, meta.saveDataSize, meta.journalSize);
     if (needsExtend && !extended) { return false; }
-
-    const bool reopenError = error::fslib(fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo));
-    if (reopenError) { return false; }
 
     return true;
 }

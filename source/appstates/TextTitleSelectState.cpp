@@ -40,7 +40,7 @@ void TextTitleSelectState::update()
     const bool xPressed = input::button_pressed(HidNpadButton_X);
     const bool yPressed = input::button_pressed(HidNpadButton_Y);
 
-    m_titleSelectMenu.update(BaseState::has_focus());
+    m_titleSelectMenu.update(hasFocus);
 
     if (aPressed) { TextTitleSelectState::create_backup_menu(); }
     else if (xPressed) { TextTitleSelectState::create_title_option_menu(); }
@@ -58,24 +58,30 @@ void TextTitleSelectState::render()
 
 void TextTitleSelectState::refresh()
 {
+    static constexpr const char *STRING_HEART = "^\uE017^ ";
+
     m_titleSelectMenu.reset();
-    for (size_t i = 0; i < m_user->get_total_data_entries(); i++)
+
+    const size_t totalEntries = m_user->get_total_data_entries();
+    for (size_t i = 0; i < totalEntries; i++)
     {
-        std::string option;
-        uint64_t applicationID = m_user->get_application_id_at(i);
-        const char *title      = data::get_title_info_by_id(applicationID)->get_title();
-        if (config::is_favorite(applicationID)) { option = std::string("^\uE017^ ") + title; }
+        const uint64_t applicationID = m_user->get_application_id_at(i);
+        const bool favorite          = config::is_favorite(applicationID);
+        data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
+        const char *title            = titleInfo->get_title();
+
+        std::string option{};
+        if (favorite) { option = std::string{STRING_HEART} + title; }
         else { option = title; }
-        m_titleSelectMenu.add_option(option.c_str());
+        m_titleSelectMenu.add_option(option);
     }
 }
 
 void TextTitleSelectState::create_backup_menu()
 {
-    const int selected             = m_titleSelectMenu.get_selected();
-    const uint64_t applicationID   = m_user->get_application_id_at(selected);
-    const FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
-    data::TitleInfo *titleInfo     = data::get_title_info_by_id(applicationID);
+    const int selected           = m_titleSelectMenu.get_selected();
+    const uint64_t applicationID = m_user->get_application_id_at(selected);
+    data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
 
     auto backupMenuState = std::make_shared<BackupMenuState>(m_user, titleInfo);
     StateManager::push_state(backupMenuState);

@@ -74,13 +74,9 @@ bool TitleSelectState::title_count_check()
 
 void TitleSelectState::create_backup_menu()
 {
-    const int selected             = m_titleView.get_selected();
-    const uint64_t applicationID   = m_user->get_application_id_at(selected);
-    const FsSaveDataInfo *saveInfo = m_user->get_save_info_at(selected);
-    data::TitleInfo *titleInfo     = data::get_title_info_by_id(applicationID);
-
-    const bool saveMounted = fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo);
-    if (!saveMounted) { return; }
+    const int selected           = m_titleView.get_selected();
+    const uint64_t applicationID = m_user->get_application_id_at(selected);
+    data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
 
     auto backupMenu = std::make_shared<BackupMenuState>(m_user, titleInfo);
     StateManager::push_state(backupMenu);

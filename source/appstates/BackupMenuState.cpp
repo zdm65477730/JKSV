@@ -192,6 +192,11 @@ void BackupMenuState::initialize_info_string()
 
 void BackupMenuState::save_data_check()
 {
+    const uint64_t applicationID   = m_titleInfo->get_application_id();
+    const FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
+    if (error::is_null(saveInfo)) { return; }
+
+    fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
     fslib::Directory saveRoot{fs::DEFAULT_SAVE_ROOT};
     m_saveHasData = saveRoot.is_open() && saveRoot.get_count() > 0;
 }

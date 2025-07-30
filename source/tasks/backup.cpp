@@ -21,6 +21,7 @@ namespace
 // Definitions at bottom.
 static bool read_and_process_meta(const fslib::Path &targetDir, BackupMenuState::TaskData taskData, sys::ProgressTask *task);
 static bool read_and_process_meta(fs::MiniUnzip &unzip, BackupMenuState::TaskData taskData, sys::ProgressTask *task);
+static fs::ScopedSaveMount create_scoped_mount(const FsSaveDataInfo *saveInfo);
 
 void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
                                             data::User *user,
@@ -34,6 +35,7 @@ void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
     const bool hasZipExt           = std::strstr(target.full_path(), STRING_ZIP_EXT);
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
+
     if (error::is_null(saveInfo))
     {
         task->finished();
@@ -57,6 +59,7 @@ void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
             zip.write(&saveMeta, SIZE_SAVE_META);
             zip.close_current_file();
         }
+        auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, zip, task);
     }
     else
@@ -67,8 +70,10 @@ void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
             fslib::File saveMetaFile{saveMetaPath, FsOpenMode_Create | FsOpenMode_Write, SIZE_SAVE_META};
             if (saveMetaFile.is_open()) { saveMetaFile.write(&saveMeta, SIZE_SAVE_META); }
         }
+        auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory(fs::DEFAULT_SAVE_ROOT, target, task);
     }
+
     spawningState->refresh();
     if (killTask) { task->finished(); }
 }
@@ -90,21 +95,20 @@ void tasks::backup::create_new_backup_remote(sys::ProgressTask *task,
 
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
-    const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
-    const char *uploadTemplate     = strings::get_by_name(strings::names::IO_STATUSES, 5);
-    const char *popErrorCreating   = strings::get_by_name(strings::names::BACKUPMENU_POPS, 5);
-    const char *popErrorDeleting   = strings::get_by_name(strings::names::BACKUPMENU_POPS, 4);
-    const char *popMetaFailed      = strings::get_by_name(strings::names::BACKUPMENU_POPS, 8);
-    const char *popErrorUploading  = strings::get_by_name(strings::names::BACKUPMENU_POPS, 10);
-
     if (error::is_null(saveInfo))
     {
         task->finished();
         return;
     }
 
-    // Since we're uploading this right away, no point in it being in the "right" place.
     const fslib::Path tempPath{STRING_JKSV_TEMP};
+    const int popTicks            = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *uploadTemplate    = strings::get_by_name(strings::names::IO_STATUSES, 5);
+    const char *popErrorDeleting  = strings::get_by_name(strings::names::BACKUPMENU_POPS, 4);
+    const char *popErrorCreating  = strings::get_by_name(strings::names::BACKUPMENU_POPS, 5);
+    const char *popMetaFailed     = strings::get_by_name(strings::names::BACKUPMENU_POPS, 8);
+    const char *popErrorUploading = strings::get_by_name(strings::names::BACKUPMENU_POPS, 10);
+
     fs::MiniZip zip{tempPath};
     if (!zip.is_open())
     {
@@ -123,7 +127,10 @@ void tasks::backup::create_new_backup_remote(sys::ProgressTask *task,
         ui::PopMessageManager::push_message(popTicks, popMetaFailed);
     }
 
-    fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, zip, task);
+    {
+        auto scopedMount = create_scoped_mount(saveInfo);
+        fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, zip, task);
+    }
     zip.close();
 
     {
@@ -177,12 +184,12 @@ void tasks::backup::overwrite_backup_remote(sys::ProgressTask *task, BackupMenuS
         return;
     }
 
+    const fslib::Path tempPath{STRING_JKSV_TEMP};
     const int popTicks           = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popErrorDeleting = strings::get_by_name(strings::names::BACKUPMENU_POPS, 4);
     const char *popErrorMeta     = strings::get_by_name(strings::names::BACKUPMENU_POPS, 8);
     const char *statusUploading  = strings::get_by_name(strings::names::IO_STATUSES, 5);
 
-    const fslib::Path tempPath{STRING_JKSV_TEMP};
     fs::MiniZip zip{tempPath};
     if (!zip.is_open())
     {
@@ -201,7 +208,10 @@ void tasks::backup::overwrite_backup_remote(sys::ProgressTask *task, BackupMenuS
         ui::PopMessageManager::push_message(popTicks, popErrorMeta);
     }
 
-    fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, zip, task);
+    {
+        auto scopedMount = create_scoped_mount(saveInfo);
+        fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, zip, task);
+    }
     zip.close();
 
     {
@@ -220,7 +230,6 @@ void tasks::backup::overwrite_backup_remote(sys::ProgressTask *task, BackupMenuS
 void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuState::TaskData taskData)
 {
     static constexpr size_t SIZE_META = sizeof(fs::SaveMetaData);
-
     if (error::is_null(task)) { return; }
 
     remote::Storage *remote        = remote::get_remote_storage();
@@ -228,11 +237,21 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
     data::TitleInfo *titleInfo     = taskData->titleInfo;
     const fslib::Path &target      = taskData->path;
     BackupMenuState *spawningState = taskData->spawningState;
+    if (error::is_null(remote) || error::is_null(user) || error::is_null(titleInfo) || error::is_null(spawningState))
+    {
+        task->finished();
+        return;
+    }
 
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
     const uint8_t saveType         = user->get_account_save_type();
     const uint64_t journalSize     = titleInfo->get_journal_size(saveType);
+    if (error::is_null(saveInfo))
+    {
+        task->finished();
+        return;
+    }
 
     const bool autoBackup = config::get_by_key(config::keys::AUTO_BACKUP_ON_RESTORE);
     const bool autoUpload = config::get_by_key(config::keys::AUTO_UPLOAD);
@@ -261,7 +280,10 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
         autoTarget = target.sub_path(lastSlash) / "AUTO - " + safeNickname + " - " + stringutil::get_date_string();
         if (exportZip) { autoTarget += ".zip"; };
 
-        tasks::backup::create_new_backup_local(task, user, titleInfo, autoTarget, spawningState, false);
+        {
+            auto scopedMount = create_scoped_mount(saveInfo);
+            tasks::backup::create_new_backup_local(task, user, titleInfo, autoTarget, spawningState, false);
+        }
 
         // Not sure if this is really needed here, but I'm sure someone will point it out.
         if (autoUpload && remote)
@@ -293,14 +315,21 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
         }
 
         read_and_process_meta(unzip, taskData, task);
+        auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_zip_to_directory(unzip, fs::DEFAULT_SAVE_ROOT, journalSize, fs::DEFAULT_SAVE_MOUNT, task);
     }
     else if (isDir)
     {
         read_and_process_meta(target, taskData, task);
+        auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory_commit(target, fs::DEFAULT_SAVE_ROOT, fs::DEFAULT_SAVE_MOUNT, journalSize, task);
     }
-    else { fs::copy_file_commit(target, fs::DEFAULT_SAVE_ROOT, fs::DEFAULT_SAVE_MOUNT, journalSize, task); }
+    else
+    {
+        auto scopedMount = create_scoped_mount(saveInfo);
+        fs::copy_file_commit(target, fs::DEFAULT_SAVE_ROOT, fs::DEFAULT_SAVE_MOUNT, journalSize, task);
+    }
+
     spawningState->refresh();
     task->finished();
 }
@@ -308,10 +337,16 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
 void tasks::backup::restore_backup_remote(sys::ProgressTask *task, BackupMenuState::TaskData taskData)
 {
     if (error::is_null(task)) { return; }
+
     data::User *user               = taskData->user;
     data::TitleInfo *titleInfo     = taskData->titleInfo;
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
+    if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(saveInfo))
+    {
+        task->finished();
+        return;
+    }
 
     const int popTicks                 = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popErrorOpeningZip     = strings::get_by_name(strings::names::BACKUPMENU_POPS, 3);
@@ -356,7 +391,10 @@ void tasks::backup::restore_backup_remote(sys::ProgressTask *task, BackupMenuSta
     const uint8_t saveType     = user->get_account_save_type();
     const uint64_t journalSize = titleInfo->get_journal_size(saveType);
     read_and_process_meta(backup, taskData, task);
-    fs::copy_zip_to_directory(backup, fs::DEFAULT_SAVE_ROOT, journalSize, fs::DEFAULT_SAVE_MOUNT, task);
+    {
+        fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
+        fs::copy_zip_to_directory(backup, fs::DEFAULT_SAVE_ROOT, journalSize, fs::DEFAULT_SAVE_MOUNT, task);
+    }
     backup.close();
 
     const bool deleteError = error::fslib(fslib::delete_file(tempPath));
@@ -493,4 +531,14 @@ static bool read_and_process_meta(fs::MiniUnzip &unzip, BackupMenuState::TaskDat
         return false;
     }
     return true;
+}
+
+static fs::ScopedSaveMount create_scoped_mount(const FsSaveDataInfo *saveInfo)
+{
+    const int popTicks           = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popErrorMounting = strings::get_by_name(strings::names::BACKUPMENU_POPS, 14);
+    fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
+    if (!saveMount.is_open()) { ui::PopMessageManager::push_message(popTicks, popErrorMounting); }
+
+    return saveMount;
 }
