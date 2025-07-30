@@ -21,6 +21,8 @@ namespace
 // Definitions at bottom.
 static bool read_and_process_meta(const fslib::Path &targetDir, BackupMenuState::TaskData taskData, sys::ProgressTask *task);
 static bool read_and_process_meta(fs::MiniUnzip &unzip, BackupMenuState::TaskData taskData, sys::ProgressTask *task);
+static void write_meta_file(const fslib::Path &target, const FsSaveDataInfo *saveInfo);
+static void write_meta_zip(fs::MiniZip &zip, const FsSaveDataInfo *saveInfo);
 static fs::ScopedSaveMount create_scoped_mount(const FsSaveDataInfo *saveInfo);
 
 void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
@@ -35,15 +37,12 @@ void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
     const bool hasZipExt           = std::strstr(target.full_path(), STRING_ZIP_EXT);
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
-
     if (error::is_null(saveInfo))
     {
         task->finished();
         return;
     }
 
-    fs::SaveMetaData saveMeta{};
-    const bool hasValidMeta = fs::fill_save_meta_data(saveInfo, saveMeta);
     if (hasZipExt) // At this point, this should have the zip extension appended if needed.
     {
         fs::MiniZip zip{target};
@@ -53,23 +52,13 @@ void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
             return;
         }
 
-        const bool openMeta = hasValidMeta && zip.open_new_file(fs::NAME_SAVE_META);
-        if (openMeta)
-        {
-            zip.write(&saveMeta, SIZE_SAVE_META);
-            zip.close_current_file();
-        }
+        write_meta_zip(zip, saveInfo);
         auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, zip, task);
     }
     else
     {
-        if (hasValidMeta)
-        {
-            const fslib::Path saveMetaPath{target / fs::NAME_SAVE_META};
-            fslib::File saveMetaFile{saveMetaPath, FsOpenMode_Create | FsOpenMode_Write, SIZE_SAVE_META};
-            if (saveMetaFile.is_open()) { saveMetaFile.write(&saveMeta, SIZE_SAVE_META); }
-        }
+        write_meta_file(target, saveInfo);
         auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory(fs::DEFAULT_SAVE_ROOT, target, task);
     }
@@ -86,7 +75,6 @@ void tasks::backup::create_new_backup_remote(sys::ProgressTask *task,
                                              bool killTask)
 {
     remote::Storage *remote = remote::get_remote_storage();
-
     if (error::is_null(task) || error::is_null(user) || error::is_null(titleInfo) || error::is_null(spawningState) ||
         error::is_null(remote))
     {
@@ -106,7 +94,6 @@ void tasks::backup::create_new_backup_remote(sys::ProgressTask *task,
     const char *uploadTemplate    = strings::get_by_name(strings::names::IO_STATUSES, 5);
     const char *popErrorDeleting  = strings::get_by_name(strings::names::BACKUPMENU_POPS, 4);
     const char *popErrorCreating  = strings::get_by_name(strings::names::BACKUPMENU_POPS, 5);
-    const char *popMetaFailed     = strings::get_by_name(strings::names::BACKUPMENU_POPS, 8);
     const char *popErrorUploading = strings::get_by_name(strings::names::BACKUPMENU_POPS, 10);
 
     fs::MiniZip zip{tempPath};
@@ -117,16 +104,7 @@ void tasks::backup::create_new_backup_remote(sys::ProgressTask *task,
         return;
     }
 
-    fs::SaveMetaData saveMeta{};
-    const bool hasMeta     = fs::fill_save_meta_data(saveInfo, saveMeta);
-    const bool metaOpened  = hasMeta && zip.open_new_file(fs::NAME_SAVE_META);
-    const bool metaWritten = metaOpened && zip.write(&saveMeta, SIZE_SAVE_META);
-    const bool metaClosed  = metaWritten && zip.close_current_file();
-    if (hasMeta && (!metaOpened || !metaWritten || !metaClosed)) // This isn't fatal.
-    {
-        ui::PopMessageManager::push_message(popTicks, popMetaFailed);
-    }
-
+    write_meta_zip(zip, saveInfo);
     {
         auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, zip, task);
@@ -197,17 +175,7 @@ void tasks::backup::overwrite_backup_remote(sys::ProgressTask *task, BackupMenuS
         return;
     }
 
-    // This is repetitive but there's no other way to really accomplish this.
-    fs::SaveMetaData saveMeta{};
-    const bool hasMeta     = fs::fill_save_meta_data(saveInfo, saveMeta);
-    const bool metaOpened  = hasMeta && zip.open_new_file(fs::NAME_SAVE_META);
-    const bool metaWritten = metaOpened && zip.write(&saveMeta, SIZE_SAVE_META);
-    const bool metaClosed  = metaWritten && zip.close_current_file();
-    if (hasMeta && (!metaOpened || !metaWritten || !metaClosed))
-    {
-        ui::PopMessageManager::push_message(popTicks, popErrorMeta);
-    }
-
+    write_meta_zip(zip, saveInfo);
     {
         auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, zip, task);
@@ -547,6 +515,38 @@ static bool read_and_process_meta(fs::MiniUnzip &unzip, BackupMenuState::TaskDat
         return false;
     }
     return true;
+}
+
+static void write_meta_file(const fslib::Path &target, const FsSaveDataInfo *saveInfo)
+{
+    const int popTicks              = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popErrorWritingMeta = strings::get_by_name(strings::names::BACKUPMENU_POPS, 8);
+
+    const fslib::Path metaPath{target / fs::NAME_SAVE_META};
+    fs::SaveMetaData saveMeta{};
+    const bool hasMeta = fs::fill_save_meta_data(saveInfo, saveMeta);
+    fslib::File metaFile{metaPath, FsOpenMode_Create | FsOpenMode_Write, SIZE_SAVE_META};
+    if (!metaFile.is_open() || !hasMeta)
+    {
+        ui::PopMessageManager::push_message(popTicks, popErrorWritingMeta);
+        return;
+    }
+
+    const bool metaWritten = metaFile.write(&saveMeta, SIZE_SAVE_META) == SIZE_SAVE_META;
+    if (!metaWritten) { ui::PopMessageManager::push_message(popTicks, popErrorWritingMeta); }
+}
+
+static void write_meta_zip(fs::MiniZip &zip, const FsSaveDataInfo *saveInfo)
+{
+    const int popTicks              = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *popErrorWritingMeta = strings::get_by_name(strings::names::BACKUPMENU_POPS, 8);
+
+    fs::SaveMetaData saveMeta{};
+
+    const bool hasMeta   = fs::fill_save_meta_data(saveInfo, saveMeta);
+    const bool openMeta  = hasMeta && zip.open_new_file(fs::NAME_SAVE_META);
+    const bool writeMeta = openMeta && zip.write(&saveMeta, SIZE_SAVE_META) == SIZE_SAVE_META;
+    const bool closeMeta = openMeta && zip.close_current_file();
 }
 
 static fs::ScopedSaveMount create_scoped_mount(const FsSaveDataInfo *saveInfo)

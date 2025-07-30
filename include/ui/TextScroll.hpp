@@ -52,6 +52,9 @@ namespace ui
                         sdl::Color clearColor,
                         bool center = true);
 
+            /// @brief Returns the current text being used for scrolling.
+            std::string_view get_text() const;
+
             /// @brief Sets and allows changing the text scrolled.
             void set_text(std::string_view text, bool center);
 

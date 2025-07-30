@@ -36,6 +36,10 @@ void ui::Menu::update(bool hasFocus)
 {
     if (m_options.empty()) { return; }
 
+    // Need to task care of updating this somehow for the settings menu.
+    const std::string_view scrollText = m_optionScroll.get_text();
+    if (scrollText != m_options[m_selected]) { m_optionScroll.set_text(m_options[m_selected], false); }
+
     m_optionScroll.update(hasFocus);
 
     const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);

@@ -57,6 +57,8 @@ void ui::TextScroll::create(std::string_view text,
     TextScroll::set_text(text, center);
 }
 
+std::string_view ui::TextScroll::get_text() const { return m_text; }
+
 void ui::TextScroll::set_text(std::string_view text, bool center)
 {
     m_text                = text;
