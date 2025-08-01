@@ -25,6 +25,7 @@ namespace strings
         static constexpr std::string_view IO_STATUSES           = "IOStatuses";
         static constexpr std::string_view IO_POPS               = "IOPops";
         static constexpr std::string_view KEYBOARD              = "KeyboardStrings";
+        static constexpr std::string_view MAINMENU_CONFS        = "MainMenuConfs";
         static constexpr std::string_view MAINMENU_POPS         = "MainMenuPops";
         static constexpr std::string_view ON_OFF                = "OnOff";
         static constexpr std::string_view REMOTE_POPS           = "RemotePops";

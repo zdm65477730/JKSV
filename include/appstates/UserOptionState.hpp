@@ -33,7 +33,7 @@ class UserOptionState final : public BaseState
 
         /// @brief Signals to the main update() function that a refresh is needed.
         /// @note Like this to prevent threading headaches.
-        void data_and_view_refresh_required();
+        void refresh_required();
 
         // clang-format off
         struct DataStruct
@@ -42,6 +42,8 @@ class UserOptionState final : public BaseState
             UserOptionState *spawningState{};
         };
         // clang-format on
+
+        using TaskData = std::shared_ptr<UserOptionState::DataStruct>;
 
     private:
         /// @brief Pointer to the target user.

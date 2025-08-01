@@ -33,6 +33,7 @@ void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
                                             bool killTask)
 {
     if (error::is_null(task)) { return; }
+    if (error::is_null(user) || error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
 
     const bool hasZipExt           = std::strstr(target.full_path(), STRING_ZIP_EXT);
     const uint64_t applicationID   = titleInfo->get_application_id();
@@ -55,7 +56,8 @@ void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
         fs::copy_directory(fs::DEFAULT_SAVE_ROOT, target, task);
     }
 
-    spawningState->refresh();
+    // This is like this so I can reuse this code.
+    if (spawningState) { spawningState->refresh(); }
     if (killTask) { task->finished(); }
 }
 
@@ -66,12 +68,10 @@ void tasks::backup::create_new_backup_remote(sys::ProgressTask *task,
                                              BackupMenuState *spawningState,
                                              bool killTask)
 {
+    if (error::is_null(task)) { return; }
+
     remote::Storage *remote = remote::get_remote_storage();
-    if (error::is_null(task) || error::is_null(user) || error::is_null(titleInfo) || error::is_null(spawningState) ||
-        error::is_null(remote))
-    {
-        return;
-    }
+    if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(remote)) { TASK_FINISH_RETURN(task); }
 
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
@@ -108,7 +108,7 @@ void tasks::backup::create_new_backup_remote(sys::ProgressTask *task,
         ui::PopMessageManager::push_message(popTicks, popErrorUploading);
     }
 
-    spawningState->refresh();
+    if (spawningState) { spawningState->refresh(); }
     if (killTask) { task->finished(); }
 }
 

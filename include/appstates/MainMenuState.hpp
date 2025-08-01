@@ -34,6 +34,15 @@ class MainMenuState final : public BaseState
         /// @brief Calls refresh on on view states in the vector.
         static void refresh_view_states();
 
+        // clang-format off
+        struct DataStruct
+        {
+            data::UserList userList;
+        };
+        // clang-format on
+
+        using TaskData = std::shared_ptr<MainMenuState::DataStruct>;
+
     private:
         /// @brief Render target this state renders to.
         sdl::SharedTexture m_renderTarget{};
@@ -56,6 +65,9 @@ class MainMenuState final : public BaseState
         /// @brief X coordinate of the control guide in the bottom right corner.
         int m_controlGuideX{};
 
+        /// @brief This is the data struct passed to tasks.
+        MainMenuState::TaskData m_dataStruct{};
+
         /// @brief Records the size of the sm_users vector.
         static inline int sm_userCount{};
 
@@ -77,9 +89,15 @@ class MainMenuState final : public BaseState
         /// @brief Pushes the icons to the main menu.
         void initialize_menu();
 
+        /// @brief Initializes the data struct.
+        void initialize_data_struct();
+
         /// @brief Pushes the target state to the vector.
         void push_target_state();
 
         /// @brief Creates the user option state.
         void create_user_options();
+
+        /// @brief Backups up all save data for all users.
+        void backup_all_for_all();
 };

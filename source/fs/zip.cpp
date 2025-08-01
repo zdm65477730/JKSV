@@ -161,7 +161,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
 
 void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
                                const fslib::Path &dest,
-                               uint64_t journalSize,
+                               int64_t journalSize,
                                std::string_view commitDevice,
                                sys::ProgressTask *task)
 {

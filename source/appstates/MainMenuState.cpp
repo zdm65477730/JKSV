@@ -1,6 +1,7 @@
 #include "appstates/MainMenuState.hpp"
 
 #include "StateManager.hpp"
+#include "appstates/ConfirmState.hpp"
 #include "appstates/ExtrasMenuState.hpp"
 #include "appstates/SettingsState.hpp"
 #include "appstates/TextTitleSelectState.hpp"
@@ -14,7 +15,13 @@
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
+#include "tasks/mainmenu.hpp"
 #include "ui/PopMessageManager.hpp"
+
+namespace
+{
+    using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, MainMenuState::DataStruct>;
+}
 
 MainMenuState::MainMenuState()
     : m_renderTarget{sdl::TextureManager::create_load_texture("mainMenuTarget",
@@ -27,10 +34,12 @@ MainMenuState::MainMenuState()
     , m_mainMenu{50, 15, 555}
     , m_controlGuide{strings::get_by_name(strings::names::CONTROL_GUIDES, 0)}
     , m_controlGuideX{static_cast<int>(1220 - sdl::text::get_width(22, m_controlGuide))}
+    , m_dataStruct{std::make_shared<MainMenuState::DataStruct>()}
 {
     MainMenuState::initialize_settings_extras();
     MainMenuState::initialize_menu();
     MainMenuState::initialize_view_states();
+    MainMenuState::initialize_data_struct();
 }
 
 std::shared_ptr<MainMenuState> MainMenuState::create() { return std::make_shared<MainMenuState>(); }
@@ -48,11 +57,13 @@ void MainMenuState::update()
     const bool hasFocus = BaseState::has_focus();
     const bool aPressed = input::button_pressed(HidNpadButton_A);
     const bool xPressed = input::button_pressed(HidNpadButton_X);
+    const bool yPressed = input::button_pressed(HidNpadButton_Y);
 
     const bool toUserOptions = xPressed && selected < sm_userCount;
 
     if (aPressed) { MainMenuState::push_target_state(); }
-    else if (toUserOptions) { MainMenuState::create_user_options(); };
+    else if (toUserOptions) { MainMenuState::create_user_options(); }
+    else if (yPressed) { MainMenuState::backup_all_for_all(); }
 
     m_mainMenu.update(hasFocus);
 }
@@ -118,6 +129,8 @@ void MainMenuState::initialize_menu()
     m_mainMenu.add_option(m_extrasIcon);
 }
 
+void MainMenuState::initialize_data_struct() { m_dataStruct->userList = sm_users; }
+
 void MainMenuState::push_target_state()
 {
     const int popTicks          = ui::PopMessageManager::DEFAULT_TICKS;
@@ -149,6 +162,11 @@ void MainMenuState::create_user_options()
     data::User *user               = sm_users.at(selected);
     TitleSelectCommon *titleSelect = static_cast<TitleSelectCommon *>(sm_states[selected].get());
 
-    auto userOptions = std::make_shared<UserOptionState>(user, titleSelect);
-    StateManager::push_state(userOptions);
+    UserOptionState::create_and_push(user, titleSelect);
+}
+
+void MainMenuState::backup_all_for_all()
+{
+    const char *query = strings::get_by_name(strings::names::MAINMENU_CONFS, 0);
+    ProgressConfirm::create_and_push(query, true, tasks::mainmenu::backup_all_for_all_users, m_dataStruct);
 }

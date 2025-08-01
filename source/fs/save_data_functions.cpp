@@ -35,7 +35,6 @@ bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo
 
 bool fs::delete_save_data(const FsSaveDataInfo *saveInfo)
 {
-    const FsSaveDataType saveType   = static_cast<FsSaveDataType>(saveInfo->save_data_type);
     const FsSaveDataSpaceId spaceID = static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id);
     const bool isSystem             = fs::is_system_save_data(saveInfo);
     if (isSystem) { return false; }

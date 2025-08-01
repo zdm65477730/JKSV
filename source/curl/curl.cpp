@@ -74,7 +74,8 @@ size_t curl::download_file_threaded(const char *buffer, size_t size, size_t coun
     sys::ProgressTask *task              = download->task;
     size_t &offset                       = download->offset;
     int64_t &fileSize                    = download->fileSize;
-    const size_t downloadSize            = size * count;
+
+    const size_t downloadSize = size * count;
     const std::span<const sys::byte> bufferSpan{reinterpret_cast<const sys::byte *>(buffer), downloadSize};
 
     {
@@ -82,8 +83,9 @@ size_t curl::download_file_threaded(const char *buffer, size_t size, size_t coun
         condition.wait(bufferLock, [&]() { return bufferReady == false; });
         sharedBuffer.append_range(bufferSpan);
 
-        const size_t sharedSize = sharedBuffer.size();
-        if (sharedSize >= SIZE_DOWNLOAD_THRESHOLD || offset + downloadSize >= fileSize)
+        const size_t sharedSize  = sharedBuffer.size();
+        const int64_t nextOffset = offset + downloadSize;
+        if (sharedSize >= SIZE_DOWNLOAD_THRESHOLD || nextOffset >= fileSize)
         {
             bufferReady = true;
             condition.notify_one();

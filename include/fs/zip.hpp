@@ -17,7 +17,7 @@ namespace fs
     /// @note Task is optional.
     void copy_zip_to_directory(fs::MiniUnzip &source,
                                const fslib::Path &dest,
-                               uint64_t journalSize,
+                               int64_t journalSize,
                                std::string_view commitDevice,
                                sys::ProgressTask *Task = nullptr);
 

@@ -83,6 +83,9 @@
         "7: Enter a new output folder name for %s.",
         "8: Enter how much to expand (in MB)."
     ],
+    "MainMenuConfs": [
+        "0: Are you sure you want to backup the save data for every user on this system? This can take an *extremely* long time!"
+    ],
     "MainMenuPops": [
         "0: `%s` has no save data!"
     ],
