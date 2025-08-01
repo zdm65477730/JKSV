@@ -33,6 +33,15 @@ MainMenuState::MainMenuState()
     MainMenuState::initialize_view_states();
 }
 
+std::shared_ptr<MainMenuState> MainMenuState::create() { return std::make_shared<MainMenuState>(); }
+
+std::shared_ptr<MainMenuState> MainMenuState::create_and_push()
+{
+    auto newState = MainMenuState::create();
+    StateManager::push_state(newState);
+    return newState;
+}
+
 void MainMenuState::update()
 {
     const int selected  = m_mainMenu.get_selected();

@@ -3,17 +3,19 @@
 #include "colors.hpp"
 #include "logger.hpp"
 
-ui::TitleTile::TitleTile(bool isFavorite, sdl::SharedTexture icon)
+ui::TitleTile::TitleTile(bool isFavorite, int index, sdl::SharedTexture icon)
     : m_isFavorite(isFavorite)
+    , m_index(index)
     , m_icon(icon) {};
 
-void ui::TitleTile::update(bool isSelected)
+void ui::TitleTile::update(int selected)
 {
     static constexpr int BASE_WIDTH   = 128;
     static constexpr int EXPAND_WIDTH = 176;
     static constexpr int INCREASE     = 16;
     static constexpr int DECREASE     = 8;
 
+    const bool isSelected = m_index == selected;
     if (isSelected && m_renderWidth != EXPAND_WIDTH)
     {
         // I think it's safe to assume both are too small.

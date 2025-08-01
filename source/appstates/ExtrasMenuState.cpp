@@ -38,6 +38,8 @@ ExtrasMenuState::ExtrasMenuState()
     ExtrasMenuState::initialize_menu();
 }
 
+std::shared_ptr<ExtrasMenuState> create() { return std::make_shared<ExtrasMenuState>(); }
+
 void ExtrasMenuState::update()
 {
     const bool hasFocus = BaseState::has_focus();

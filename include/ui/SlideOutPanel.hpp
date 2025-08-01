@@ -83,7 +83,16 @@ namespace ui
             /// @brief Render target if panel.
             sdl::SharedTexture m_renderTarget{};
 
+            /// @brief This is so I don't need to fetch the scaling every loop.
+            double m_scaling{};
+
             /// @brief Vector of elements.
             std::vector<std::shared_ptr<ui::Element>> m_elements{};
+
+            void slide_out_left();
+
+            void slide_out_right();
+
+            int get_absolute_x_distance();
     };
 } // namespace ui

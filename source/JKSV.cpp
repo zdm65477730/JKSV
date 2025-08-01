@@ -71,7 +71,7 @@ JKSV::JKSV()
     ABORT_ON_FAILURE(data::initialize(false));
 
     // Push initial main menu state.
-    auto mainMenu = std::make_shared<MainMenuState>();
+    auto mainMenu = MainMenuState::create();
     StateManager::push_state(mainMenu);
 
     // Init drive or webdav.
@@ -165,6 +165,7 @@ bool JKSV::initialize_services()
     serviceInit      = serviceInit && initialize_service(setInitialize, "Set");
     serviceInit      = serviceInit && initialize_service(setsysInitialize, "SetSys");
     serviceInit      = serviceInit && initialize_service(socketInitializeDefault, "Socket");
+    serviceInit      = serviceInit && initialize_service(nifmInitialize, "NIFM", NifmServiceType_User);
     return serviceInit;
 }
 
@@ -206,6 +207,7 @@ void JKSV::add_color_chars()
 
 void JKSV::exit_services()
 {
+    nifmExit();
     socketExit();
     setsysExit();
     setExit();

@@ -36,6 +36,11 @@ namespace remote
             /// @param item Pointer to item containing data to delete the item.
             bool delete_item(const remote::Item *item) override;
 
+            /// @brief Renames an item on Google Drive.
+            /// @param item Item to rename.
+            /// @param newName New name of the item.
+            bool rename_item(remote::Item *item, std::string_view newName) override;
+
             /// @brief Returns whether or not a sign in is required to use drive. AKA the refresh token is missing.
             bool sign_in_required() const;
 

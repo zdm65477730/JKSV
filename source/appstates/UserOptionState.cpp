@@ -15,7 +15,7 @@
 #include "logger.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
-#include "system/system.hpp"
+#include "sys/sys.hpp"
 #include "ui/PopMessageManager.hpp"
 
 namespace
@@ -51,6 +51,18 @@ UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelec
     UserOptionState::create_menu_panel();
     UserOptionState::load_menu_strings();
     UserOptionState::initialize_data_struct();
+}
+
+std::shared_ptr<UserOptionState> UserOptionState::create(data::User *user, TitleSelectCommon *titleSelect)
+{
+    return std::make_shared<UserOptionState>(user, titleSelect);
+}
+
+std::shared_ptr<UserOptionState> UserOptionState::create_and_push(data::User *user, TitleSelectCommon *titleSelect)
+{
+    auto newState = UserOptionState::create(user, titleSelect);
+    StateManager::push_state(newState);
+    return newState;
 }
 
 void UserOptionState::update()
@@ -277,11 +289,7 @@ static void delete_all_save_data_for_user(sys::Task *task, std::shared_ptr<UserO
     std::vector<uint64_t> applicationIDs;
 
     // Check this quick just in case.
-    if (user->get_account_save_type() == FsSaveDataType_System)
-    {
-        task->finished();
-        return;
-    }
+    if (user->get_account_save_type() == FsSaveDataType_System) { TASK_FINISH_RETURN(task); }
 
     for (size_t i = 0; i < totalDataEntries; i++)
     {

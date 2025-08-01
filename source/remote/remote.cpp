@@ -2,6 +2,7 @@
 
 #include "StateManager.hpp"
 #include "appstates/TaskState.hpp"
+#include "error.hpp"
 #include "logger.hpp"
 #include "remote/GoogleDrive.hpp"
 #include "remote/WebDav.hpp"
@@ -30,18 +31,32 @@ static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive);
 /// @param drive Pointer to the drive instance..
 static void drive_set_jksv_root(remote::GoogleDrive *drive);
 
+bool remote::has_internet_connection()
+{
+    NifmInternetConnectionType type{};
+    uint32_t strength{};
+    NifmInternetConnectionStatus status{};
+    const bool getError = error::libnx(nifmGetInternetConnectionStatus(&type, &strength, &status));
+    if (getError || status != NifmInternetConnectionStatus_Connected) { return false; }
+    return true;
+}
+
 void remote::initialize_google_drive()
 {
-    s_storage                   = std::make_unique<remote::GoogleDrive>();
-    remote::GoogleDrive *drive  = static_cast<remote::GoogleDrive *>(s_storage.get());
-    const int popTicks          = ui::PopMessageManager::DEFAULT_TICKS;
-    const char *popDriveSuccess = strings::get_by_name(strings::names::GOOGLE_DRIVE, 1);
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
 
+    if (!remote::has_internet_connection())
+    {
+        const char *popNoInternet = strings::get_by_name(strings::names::REMOTE_POPS, 0);
+        ui::PopMessageManager::push_message(popTicks, popNoInternet);
+        return;
+    }
+
+    s_storage                  = std::make_unique<remote::GoogleDrive>();
+    remote::GoogleDrive *drive = static_cast<remote::GoogleDrive *>(s_storage.get());
     if (drive->sign_in_required())
     {
-        auto signIn = std::make_shared<TaskState>(drive_sign_in, drive);
-        StateManager::push_state(signIn);
-        // We can return here because the task should handle the rest of the setup for us.
+        TaskState::create_and_push(drive_sign_in, drive);
         return;
     }
 
@@ -49,18 +64,26 @@ void remote::initialize_google_drive()
     if (!drive->is_initialized()) { return; }
 
     drive_set_jksv_root(drive);
+    const char *popDriveSuccess = strings::get_by_name(strings::names::GOOGLE_DRIVE, 1);
     ui::PopMessageManager::push_message(popTicks, popDriveSuccess);
 }
 
 void remote::initialize_webdav()
 {
-    s_storage                 = std::make_unique<remote::WebDav>();
-    const int popTicks        = ui::PopMessageManager::DEFAULT_TICKS;
-    const char *popDavSuccess = strings::get_by_name(strings::names::WEBDAV, 0);
-    const char *popDavFailed  = strings::get_by_name(strings::names::WEBDAV, 1);
+    if (!remote::has_internet_connection()) { return; }
 
-    if (s_storage->is_initialized()) { ui::PopMessageManager::push_message(popTicks, popDavSuccess); }
-    else { ui::PopMessageManager::push_message(popTicks, popDavFailed); }
+    s_storage          = std::make_unique<remote::WebDav>();
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
+    if (s_storage->is_initialized())
+    {
+        const char *popDavSuccess = strings::get_by_name(strings::names::WEBDAV, 0);
+        ui::PopMessageManager::push_message(popTicks, popDavSuccess);
+    }
+    else
+    {
+        const char *popDavFailed = strings::get_by_name(strings::names::WEBDAV, 1);
+        ui::PopMessageManager::push_message(popTicks, popDavFailed);
+    }
 }
 
 remote::Storage *remote::get_remote_storage()
@@ -72,18 +95,15 @@ remote::Storage *remote::get_remote_storage()
 static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
 {
     static constexpr const char *STRING_ERROR_SIGNING_IN = "Error signing into Google Drive: %s";
-    const int popTicks                                   = ui::PopMessageManager::DEFAULT_TICKS;
-    const char *popDriveSuccess                          = strings::get_by_name(strings::names::GOOGLE_DRIVE, 1);
-    const char *popDriveFailed                           = strings::get_by_name(strings::names::GOOGLE_DRIVE, 2);
 
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
     std::string message{}, deviceCode{};
     std::time_t expiration{};
     int pollingInterval{};
     if (!drive->get_sign_in_data(message, deviceCode, expiration, pollingInterval))
     {
         logger::log(STRING_ERROR_SIGNING_IN, "Getting sign in data failed!");
-        task->finished();
-        return;
+        TASK_FINISH_RETURN(task);
     }
 
     task->set_status(message.c_str());
@@ -96,17 +116,20 @@ static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
     if (drive->is_initialized())
     {
         drive_set_jksv_root(drive);
+        const char *popDriveSuccess = strings::get_by_name(strings::names::GOOGLE_DRIVE, 1);
         ui::PopMessageManager::push_message(popTicks, popDriveSuccess);
     }
-    else { ui::PopMessageManager::push_message(popTicks, popDriveFailed); }
+    else
+    {
+        const char *popDriveFailed = strings::get_by_name(strings::names::GOOGLE_DRIVE, 2);
+        ui::PopMessageManager::push_message(popTicks, popDriveFailed);
+    }
 
     task->finished();
 }
 
 static void drive_set_jksv_root(remote::GoogleDrive *drive)
 {
-    static constexpr const char *STRING_ERROR_SETTING_DIR = "Error creating/setting JKSV directory on Drive: %s";
-
     const bool jksvExists  = drive->directory_exists(STRING_JKSV_DIR);
     const bool jksvCreated = !jksvExists && drive->create_directory(STRING_JKSV_DIR);
     if (!jksvExists && !jksvCreated) { return; }

@@ -184,19 +184,20 @@ bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &
 {
     static constexpr const char *STRING_ERROR_DOWNLOADING = "Error downloading file: %s";
 
-    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, static_cast<int64_t>(item->get_size())};
+    const int64_t itemSize = item->get_size();
+    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, itemSize};
     if (!destFile)
     {
         logger::log(STRING_ERROR_DOWNLOADING, fslib::error::get_string());
         return false;
     }
 
-    if (task) { task->reset(static_cast<double>(item->get_size())); }
+    if (task) { task->reset(static_cast<double>(itemSize)); }
 
     remote::URL url{m_origin};
     url.append_path(item->get_id());
 
-    curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = item->get_size()};
+    curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = itemSize};
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
     curl::set_option(m_curl, CURLOPT_HTTPGET, 1L);
@@ -222,7 +223,6 @@ bool remote::WebDav::delete_item(const remote::Item *item)
     remote::URL url{m_origin};
     url.append_path(item->get_id());
     if (item->is_directory()) { url.append_slash(); }
-    logger::log(url.get());
 
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
@@ -243,6 +243,48 @@ bool remote::WebDav::delete_item(const remote::Item *item)
 
     m_list.erase(findFile);
     return true;
+}
+
+bool remote::WebDav::rename_item(remote::Item *item, std::string_view newName)
+{
+    std::string escapedName{};
+    const bool escaped = curl::escape_string(m_curl, newName, escapedName);
+    if (!escaped) { return false; }
+
+    remote::URL url{m_origin};
+    url.append_path(item->get_id());
+
+    remote::URL destLocation{m_origin};
+    destLocation.append_path(m_parent).append_path(escapedName);
+    if (item->is_directory())
+    {
+        url.append_slash();
+        destLocation.append_slash();
+    }
+
+    const std::string destHeader = stringutil::get_formatted_string("Destination: %s", destLocation.get());
+    curl::HeaderList header      = curl::new_header_list();
+    curl::append_header(header, destHeader);
+
+    curl::reset_handle(m_curl);
+    WebDav::append_credentials();
+    curl::set_option(m_curl, CURLOPT_CUSTOMREQUEST, "MOVE");
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
+    curl::set_option(m_curl, CURLOPT_URL, url.get());
+
+    if (!curl::perform(m_curl)) { return false; }
+
+    const long code = curl::get_response_code(m_curl);
+    if (code != 403 || code != 409) { return false; }
+
+    std::string newId{};
+    if (item->is_directory()) { newId = m_parent + escapedName + "/"; }
+    else { newId = m_parent + escapedName; }
+
+    item->set_name(newName);
+    item->set_id(newId);
+
+    return false;
 }
 
 void remote::WebDav::append_credentials()
@@ -312,8 +354,6 @@ bool remote::WebDav::process_listing(std::string_view xml)
         tinyxml2::XMLElement *collection = get_element_by_name(resourceType, tagCollection);
         if (collection)
         {
-            logger::log("%s, %s, %s", name.c_str(), hrefText, parentLocationText);
-
             m_list.emplace_back(name, hrefText, parentLocationText, 0, true);
 
             remote::URL nextUrl{m_origin};

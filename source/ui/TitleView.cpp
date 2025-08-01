@@ -3,7 +3,6 @@
 #include "colors.hpp"
 #include "config.hpp"
 #include "input.hpp"
-#include "logger.hpp"
 #include "ui/render_functions.hpp"
 
 #include <cmath>
@@ -21,45 +20,12 @@ ui::TitleView::TitleView(data::User *user)
 
 void ui::TitleView::update(bool hasFocus)
 {
-    // These are named like this because of where they sit on the screen.
-    static constexpr double UPPER_THRESHOLD = 32.0f;
-    static constexpr double LOWER_THRESHOLD = 388.0f;
-
     if (m_titleTiles.empty()) { return; }
 
-    // Update pulse
-    if (hasFocus) { m_colorMod.update(); }
-
-    const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);
-    const bool downPressed      = input::button_pressed(HidNpadButton_AnyDown);
-    const bool leftPressed      = input::button_pressed(HidNpadButton_AnyLeft);
-    const bool rightPressed     = input::button_pressed(HidNpadButton_AnyRight);
-    const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
-    const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
-    const int totalTiles        = m_titleTiles.size() - 1;
-
-    if (upPressed) { m_selected -= ICON_ROW_SIZE; }
-    else if (leftPressed) { --m_selected; }
-    else if (lShoulderPressed) { m_selected -= ICON_ROW_SIZE * 3; }
-    else if (downPressed) { m_selected += ICON_ROW_SIZE; }
-    else if (rightPressed) { ++m_selected; }
-    else if (rShoulderPressed) { m_selected += ICON_ROW_SIZE * 3; }
-
-    if (m_selected < 0) { m_selected = 0; }
-    else if (m_selected > totalTiles) { m_selected = totalTiles; }
-
-    const double scaling = config::get_animation_scaling();
-    if (m_selectedY < UPPER_THRESHOLD) { m_y += std::ceil((UPPER_THRESHOLD - m_selectedY) / scaling); }
-    else if (m_selectedY > LOWER_THRESHOLD) { m_y += std::ceil((LOWER_THRESHOLD - m_selectedY) / scaling); }
-
-    const int tileCount = m_titleTiles.size();
-    for (int i = 0; i < tileCount; i++)
-    {
-        const bool isSelected = m_selected == i;
-        ui::TitleTile &tile   = m_titleTiles[i];
-
-        tile.update(isSelected);
-    }
+    m_colorMod.update();
+    TitleView::handle_input();
+    TitleView::handle_scrolling();
+    TitleView::update_tiles();
 }
 
 void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
@@ -93,7 +59,7 @@ void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
         ui::render_bounding_box(target, m_selectedX - 30, m_selectedY - 30, 188, 188, m_colorMod);
     }
 
-    ui::TitleTile &selectedTile = m_titleTiles.at(m_selected);
+    ui::TitleTile &selectedTile = m_titleTiles[m_selected];
     selectedTile.render(target, m_selectedX, m_selectedY);
 }
 
@@ -111,7 +77,7 @@ void ui::TitleView::refresh()
         data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
         sdl::SharedTexture icon      = titleInfo->get_icon(); // I don't like this but w/e.
 
-        m_titleTiles.emplace_back(isFavorite, icon);
+        m_titleTiles.emplace_back(isFavorite, i, icon);
     }
 
     const int tileCount = m_titleTiles.size() - 1;
@@ -122,4 +88,49 @@ void ui::TitleView::refresh()
 void ui::TitleView::reset()
 {
     for (ui::TitleTile &currentTile : m_titleTiles) { currentTile.reset(); }
+}
+
+void ui::TitleView::handle_input()
+{
+    const int totalTiles        = m_titleTiles.size() - 1;
+    const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);
+    const bool downPressed      = input::button_pressed(HidNpadButton_AnyDown);
+    const bool leftPressed      = input::button_pressed(HidNpadButton_AnyLeft);
+    const bool rightPressed     = input::button_pressed(HidNpadButton_AnyRight);
+    const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
+    const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
+
+    if (upPressed) { m_selected -= ICON_ROW_SIZE; }
+    else if (leftPressed) { --m_selected; }
+    else if (lShoulderPressed) { m_selected -= ICON_ROW_SIZE * 3; }
+    else if (downPressed) { m_selected += ICON_ROW_SIZE; }
+    else if (rightPressed) { ++m_selected; }
+    else if (rShoulderPressed) { m_selected += ICON_ROW_SIZE * 3; }
+
+    if (m_selected < 0) { m_selected = 0; }
+    if (m_selected > totalTiles) { m_selected = totalTiles; }
+}
+
+void ui::TitleView::handle_scrolling()
+{
+    static constexpr double UPPER_THRESHOLD = 32.0f;
+    static constexpr double LOWER_THRESHOLD = 388.0f;
+
+    const double scaling = config::get_animation_scaling();
+
+    if (m_selectedY < UPPER_THRESHOLD)
+    {
+        const double shiftDown = (UPPER_THRESHOLD - m_selectedY) / scaling;
+        m_y += std::round(shiftDown);
+    }
+    else if (m_selectedY > LOWER_THRESHOLD)
+    {
+        const double shiftUp = (LOWER_THRESHOLD - m_selectedY) / scaling;
+        m_y += std::round(shiftUp);
+    }
+}
+
+void ui::TitleView::update_tiles()
+{
+    for (ui::TitleTile &tile : m_titleTiles) { tile.update(m_selected); }
 }

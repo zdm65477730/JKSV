@@ -27,6 +27,7 @@ namespace strings
         static constexpr std::string_view KEYBOARD              = "KeyboardStrings";
         static constexpr std::string_view MAINMENU_POPS         = "MainMenuPops";
         static constexpr std::string_view ON_OFF                = "OnOff";
+        static constexpr std::string_view REMOTE_POPS           = "RemotePops";
         static constexpr std::string_view SAVECREATE_POPS       = "SaveCreatePops";
         static constexpr std::string_view SAVE_DATA_TYPES       = "SaveDataTypes";
         static constexpr std::string_view SETTINGS_DESCRIPTIONS = "SettingsDescriptions";

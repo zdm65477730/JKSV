@@ -38,6 +38,7 @@ void BaseTask::update()
 
 void BaseTask::render_loading_glyph()
 {
-    const char *currentFrame = sm_glyphArray.at(m_currentFrame).data();
+    const char *currentFrame = sm_glyphArray[m_currentFrame].data();
+
     sdl::text::render(NULL, 56, 673, 32, sdl::text::NO_TEXT_WRAP, m_colorMod, currentFrame);
 }

@@ -3,6 +3,11 @@
 #include <string>
 #include <thread>
 
+// This macro helps keep things a bit easier to read and cuts down on repetition.
+#define TASK_FINISH_RETURN(x)                                                                                                  \
+    x->finished();                                                                                                             \
+    return
+
 namespace sys
 {
     /// @brief Class that runs tasks in a thread and automatically deactivates when finished.

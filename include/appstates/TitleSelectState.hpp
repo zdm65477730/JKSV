@@ -15,6 +15,12 @@ class TitleSelectState final : public TitleSelectCommon
         /// @brief Required destructor.
         ~TitleSelectState() {};
 
+        /// @brief Returns a new TitleSelect state.
+        static std::shared_ptr<TitleSelectState> create(data::User *user);
+
+        /// @brief Creates, pushes, and returns a new TitleSelectState.
+        static std::shared_ptr<TitleSelectState> create_and_push(data::User *user);
+
         /// @brief Runs the update routine.
         void update() override;
 

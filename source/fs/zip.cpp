@@ -6,7 +6,7 @@
 #include "logger.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
-#include "system/defines.hpp"
+#include "sys/sys.hpp"
 #include "ui/PopMessageManager.hpp"
 
 #include <condition_variable>
@@ -33,19 +33,19 @@ struct ZipIOStruct
     std::condition_variable condition{};
     ssize_t readSize{};
     bool bufferReady{};
-    std::unique_ptr<byte[]> sharedBuffer{};
+    std::unique_ptr<sys::byte[]> sharedBuffer{};
 };
 // clang-format on
 
 // Function for reading files for Zipping.
 static void zipReadThreadFunction(fslib::File &source, std::shared_ptr<ZipIOStruct> sharedData)
 {
-    std::mutex &lock                      = sharedData->lock;
-    std::condition_variable &condition    = sharedData->condition;
-    ssize_t &readSize                     = sharedData->readSize;
-    bool &bufferReady                     = sharedData->bufferReady;
-    std::unique_ptr<byte[]> &sharedBuffer = sharedData->sharedBuffer;
-    const int64_t fileSize                = source.get_size();
+    std::mutex &lock                           = sharedData->lock;
+    std::condition_variable &condition         = sharedData->condition;
+    ssize_t &readSize                          = sharedData->readSize;
+    bool &bufferReady                          = sharedData->bufferReady;
+    std::unique_ptr<sys::byte[]> &sharedBuffer = sharedData->sharedBuffer;
+    const int64_t fileSize                     = source.get_size();
 
     for (int64_t i = 0; i < fileSize;)
     {
@@ -68,12 +68,12 @@ static void zipReadThreadFunction(fslib::File &source, std::shared_ptr<ZipIOStru
 // Function for reading data from Zip to buffer.
 static void unzipReadThreadFunction(fs::MiniUnzip &unzip, std::shared_ptr<ZipIOStruct> sharedData)
 {
-    std::mutex &lock                      = sharedData->lock;
-    std::condition_variable &condition    = sharedData->condition;
-    ssize_t &readSize                     = sharedData->readSize;
-    bool &bufferReady                     = sharedData->bufferReady;
-    std::unique_ptr<byte[]> &sharedBuffer = sharedData->sharedBuffer;
-    const int64_t fileSize                = unzip.get_uncompressed_size();
+    std::mutex &lock                           = sharedData->lock;
+    std::condition_variable &condition         = sharedData->condition;
+    ssize_t &readSize                          = sharedData->readSize;
+    bool &bufferReady                          = sharedData->bufferReady;
+    std::unique_ptr<sys::byte[]> &sharedBuffer = sharedData->sharedBuffer;
+    const int64_t fileSize                     = unzip.get_uncompressed_size();
 
     for (int64_t i = 0; i < fileSize;)
     {
@@ -113,8 +113,8 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
 
             const int64_t fileSize   = sourceFile.get_size();
             auto sharedData          = std::make_shared<ZipIOStruct>();
-            sharedData->sharedBuffer = std::make_unique<byte[]>(SIZE_ZIP_BUFFER);
-            auto localBuffer         = std::make_unique<byte[]>(SIZE_ZIP_BUFFER);
+            sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_ZIP_BUFFER);
+            auto localBuffer         = std::make_unique<sys::byte[]>(SIZE_ZIP_BUFFER);
 
             if (task)
             {
@@ -195,14 +195,14 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
         }
 
         auto sharedData          = std::make_shared<ZipIOStruct>();
-        sharedData->sharedBuffer = std::make_unique<byte[]>(SIZE_UNZIP_BUFFER);
-        auto localBuffer         = std::make_unique<byte[]>(SIZE_UNZIP_BUFFER);
+        sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_UNZIP_BUFFER);
+        auto localBuffer         = std::make_unique<sys::byte[]>(SIZE_UNZIP_BUFFER);
 
-        std::mutex &lock                      = sharedData->lock;
-        std::condition_variable &condition    = sharedData->condition;
-        ssize_t &readSize                     = sharedData->readSize;
-        bool &bufferReady                     = sharedData->bufferReady;
-        std::unique_ptr<byte[]> &sharedBuffer = sharedData->sharedBuffer;
+        std::mutex &lock                           = sharedData->lock;
+        std::condition_variable &condition         = sharedData->condition;
+        ssize_t &readSize                          = sharedData->readSize;
+        bool &bufferReady                          = sharedData->bufferReady;
+        std::unique_ptr<sys::byte[]> &sharedBuffer = sharedData->sharedBuffer;
 
         std::thread readThread(unzipReadThreadFunction, std::ref(unzip), sharedData);
         int64_t journalCount{};

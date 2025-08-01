@@ -12,13 +12,15 @@
 
 void ProgressState::update()
 {
+    static constexpr double SIZE_BAR_WIDTH = 656.0f;
+
     sys::ProgressTask *task = static_cast<sys::ProgressTask *>(m_task.get());
     const double current    = task->get_progress();
 
     // Base routine.
     BaseTask::update();
 
-    m_progressBarWidth = std::ceil(656.0f * current);
+    m_progressBarWidth = std::ceil(SIZE_BAR_WIDTH * current);
     m_progress         = std::ceil(current * 100);
     m_percentageString = stringutil::get_formatted_string("%u", m_progress);
     m_percentageX      = 640 - (sdl::text::get_width(18, m_percentageString.c_str()));

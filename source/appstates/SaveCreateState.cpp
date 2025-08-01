@@ -9,19 +9,14 @@
 #include "logger.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
-#include "system/Task.hpp"
+#include "sys/sys.hpp"
+#include "tasks/savecreate.hpp"
 #include "ui/PopMessageManager.hpp"
 
 #include <algorithm>
 #include <string>
 #include <switch.h>
 #include <vector>
-
-// Declarations here. Definitions under class.
-static void create_save_data(sys::Task *task,
-                             data::User *targetUser,
-                             data::TitleInfo *titleInfo,
-                             SaveCreateState *spawningState);
 
 // This is the sorting function.
 static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB);
@@ -31,20 +26,21 @@ SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelec
     , m_titleSelect{titleSelect}
     , m_saveMenu{8, 8, 624, 22, 720}
 {
-    // If the panel is null, create it.
-    if (!sm_slidePanel)
-    {
-        // Create panel and menu.
-        sm_slidePanel = std::make_unique<ui::SlideOutPanel>(640, ui::SlideOutPanel::Side::Right);
-    }
+    SaveCreateState::initialize_static_members();
+    SaveCreateState::initialize_title_info_vector();
+    SaveCreateState::initialize_menu();
+}
 
-    // Get title info vector and copy titles to menu.
-    data::get_title_info_by_type(m_user->get_account_save_type(), m_titleInfoVector);
+std::shared_ptr<SaveCreateState> SaveCreateState::create(data::User *user, TitleSelectCommon *titleSelect)
+{
+    return std::make_shared<SaveCreateState>(user, titleSelect);
+}
 
-    // Sort it by alpha
-    std::sort(m_titleInfoVector.begin(), m_titleInfoVector.end(), compare_info);
-
-    for (size_t i = 0; i < m_titleInfoVector.size(); i++) { m_saveMenu.add_option(m_titleInfoVector.at(i)->get_title()); }
+std::shared_ptr<SaveCreateState> SaveCreateState::create_and_push(data::User *user, TitleSelectCommon *titleSelect)
+{
+    auto newState = SaveCreateState::create(user, titleSelect);
+    StateManager::push_state(newState);
+    return newState;
 }
 
 void SaveCreateState::update()
@@ -57,7 +53,6 @@ void SaveCreateState::update()
     const bool aPressed    = input::button_pressed(HidNpadButton_A);
     const bool bPressed    = input::button_pressed(HidNpadButton_B);
     const bool panelClosed = sm_slidePanel->is_closed();
-    const int selected     = m_saveMenu.get_selected();
 
     if (m_refreshRequired.load())
     {
@@ -66,13 +61,7 @@ void SaveCreateState::update()
         m_refreshRequired.store(false);
     }
 
-    if (aPressed)
-    {
-        data::TitleInfo *titleInfo = m_titleInfoVector[selected];
-        auto createTask            = std::make_shared<TaskState>(create_save_data, m_user, titleInfo, this);
-
-        StateManager::push_state(createTask);
-    }
+    if (aPressed) { SaveCreateState::create_save_data_for(); }
     else if (bPressed) { sm_slidePanel->close(); }
     else if (panelClosed)
     {
@@ -91,36 +80,37 @@ void SaveCreateState::render()
     sm_slidePanel->render(NULL, hasFocus);
 }
 
-void SaveCreateState::data_and_view_refresh_required() { m_refreshRequired.store(true); }
+void SaveCreateState::refresh_required() { m_refreshRequired.store(true); }
 
-static void create_save_data(sys::Task *task,
-                             data::User *targetUser,
-                             data::TitleInfo *titleInfo,
-                             SaveCreateState *spawningState)
+void SaveCreateState::initialize_static_members()
 {
-    if (error::is_null(task)) { return; }
+    if (!sm_slidePanel) { sm_slidePanel = std::make_unique<ui::SlideOutPanel>(640, ui::SlideOutPanel::Side::Right); }
+}
 
-    const char *statusTemplate = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);
-    const int popTicks         = ui::PopMessageManager::DEFAULT_TICKS;
-    const char *popSuccess     = strings::get_by_name(strings::names::SAVECREATE_POPS, 0);
-    const char *popFailed      = strings::get_by_name(strings::names::SAVECREATE_POPS, 1);
+void SaveCreateState::initialize_title_info_vector()
+{
+    const FsSaveDataType saveType = m_user->get_account_save_type();
+    data::get_title_info_by_type(saveType, m_titleInfoVector);
 
+    std::sort(m_titleInfoVector.begin(), m_titleInfoVector.end(), compare_info);
+}
+
+void SaveCreateState::initialize_menu()
+{
+    for (data::TitleInfo *titleInfo : m_titleInfoVector)
     {
-        const std::string status = stringutil::get_formatted_string(statusTemplate, titleInfo->get_title());
-        task->set_status(status);
+        const std::string_view title = titleInfo->get_title();
+        m_saveMenu.add_option(title);
     }
+}
 
-    const bool created = fs::create_save_data_for(targetUser, titleInfo);
-    if (created)
-    {
-        const char *title      = titleInfo->get_title();
-        std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
-        ui::PopMessageManager::push_message(popTicks, popMessage);
-    }
-    else { ui::PopMessageManager::push_message(popTicks, popFailed); }
+void SaveCreateState::create_save_data_for()
+{
+    const int selected         = m_saveMenu.get_selected();
+    data::TitleInfo *titleInfo = m_titleInfoVector[selected];
+    auto createTask            = TaskState::create(tasks::savecreate::create_save_data_for, m_user, titleInfo, this);
 
-    spawningState->data_and_view_refresh_required();
-    task->finished();
+    StateManager::push_state(createTask);
 }
 
 static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB)

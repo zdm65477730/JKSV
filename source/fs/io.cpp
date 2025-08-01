@@ -5,7 +5,7 @@
 #include "fslib.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
-#include "system/defines.hpp"
+#include "sys/sys.hpp"
 #include "ui/PopMessageManager.hpp"
 
 #include <condition_variable>
@@ -28,18 +28,18 @@ struct FileThreadStruct
     std::condition_variable condition{};
     bool bufferReady{};
     ssize_t readSize{};
-    std::unique_ptr<byte[]> sharedBuffer{};
+    std::unique_ptr<sys::byte[]> sharedBuffer{};
 };
 // clang-format on
 
 static void readThreadFunction(fslib::File &sourceFile, std::shared_ptr<FileThreadStruct> sharedData)
 {
-    std::mutex &lock                      = sharedData->lock;
-    std::condition_variable &condition    = sharedData->condition;
-    bool &bufferReady                     = sharedData->bufferReady;
-    ssize_t &readSize                     = sharedData->readSize;
-    std::unique_ptr<byte[]> &sharedBuffer = sharedData->sharedBuffer;
-    const int64_t fileSize                = sourceFile.get_size();
+    std::mutex &lock                           = sharedData->lock;
+    std::condition_variable &condition         = sharedData->condition;
+    bool &bufferReady                          = sharedData->bufferReady;
+    ssize_t &readSize                          = sharedData->readSize;
+    std::unique_ptr<sys::byte[]> &sharedBuffer = sharedData->sharedBuffer;
+    const int64_t fileSize                     = sourceFile.get_size();
 
     for (int64_t i = 0; i < fileSize;)
     {
@@ -76,8 +76,8 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
     }
 
     auto sharedData          = std::make_shared<FileThreadStruct>();
-    sharedData->sharedBuffer = std::make_unique<byte[]>(SIZE_FILE_BUFFER);
-    auto localBuffer         = std::make_unique<byte[]>(SIZE_FILE_BUFFER);
+    sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
+    auto localBuffer         = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
 
     std::mutex &lock                   = sharedData->lock;
     std::condition_variable &condition = sharedData->condition;
@@ -132,8 +132,8 @@ void fs::copy_file_commit(const fslib::Path &source,
     }
 
     auto sharedData          = std::make_shared<FileThreadStruct>();
-    auto localBuffer         = std::make_unique<byte[]>(SIZE_FILE_BUFFER);
-    sharedData->sharedBuffer = std::make_unique<byte[]>(SIZE_FILE_BUFFER);
+    auto localBuffer         = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
+    sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
 
     std::mutex &lock                   = sharedData->lock;
     std::condition_variable &condition = sharedData->condition;

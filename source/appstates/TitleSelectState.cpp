@@ -30,6 +30,18 @@ TitleSelectState::TitleSelectState(data::User *user)
                                                               SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
     , m_titleView(m_user) {};
 
+std::shared_ptr<TitleSelectState> TitleSelectState::create(data::User *user)
+{
+    return std::make_shared<TitleSelectState>(user);
+}
+
+std::shared_ptr<TitleSelectState> TitleSelectState::create_and_push(data::User *user)
+{
+    auto newState = TitleSelectState::create(user);
+    StateManager::push_state(newState);
+    return newState;
+}
+
 void TitleSelectState::update()
 {
     if (!TitleSelectState::title_count_check()) { return; }

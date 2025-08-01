@@ -1,7 +1,7 @@
 #pragma once
 #include "appstates/BaseState.hpp"
 #include "data/data.hpp"
-#include "system/Timer.hpp"
+#include "sys/sys.hpp"
 #include "ui/SlideOutPanel.hpp"
 #include "ui/TextScroll.hpp"
 
@@ -19,6 +19,12 @@ class TitleInfoState final : public BaseState
 
         /// @brief Required destructor.
         ~TitleInfoState();
+
+        /// @brief Creates a new TitleInfoState.
+        static std::shared_ptr<TitleInfoState> create(data::User *user, data::TitleInfo *titleInfo);
+
+        /// @brief Creates, pushes, and returns a new TitleInfoState.
+        static std::shared_ptr<TitleInfoState> create_and_push(data::User *user, data::TitleInfo *titleInfo);
 
         /// @brief Runs update routine.
         void update() override;
@@ -46,8 +52,8 @@ class TitleInfoState final : public BaseState
         void initialize_static_members();
 
         /// @brief Creates the scrolling text/cheating fields.
-        void create_info_fields();
+        void create_info_scrolls();
 
         /// @brief Helper function for creating text fields.
-        std::shared_ptr<ui::TextScroll> create_new_field(std::string_view text, int y);
+        std::shared_ptr<ui::TextScroll> create_new_scroll(std::string_view text, int y);
 };

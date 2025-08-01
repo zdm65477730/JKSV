@@ -32,6 +32,18 @@ TextTitleSelectState::TextTitleSelectState(data::User *user)
     TextTitleSelectState::refresh();
 }
 
+std::shared_ptr<TextTitleSelectState> TextTitleSelectState::create(data::User *user)
+{
+    return std::make_shared<TextTitleSelectState>(user);
+}
+
+std::shared_ptr<TextTitleSelectState> TextTitleSelectState::create_and_push(data::User *user)
+{
+    auto newState = TextTitleSelectState::create(user);
+    StateManager::push_state(newState);
+    return newState;
+}
+
 void TextTitleSelectState::update()
 {
     const bool hasFocus = BaseState::has_focus();

@@ -4,7 +4,7 @@
 #include "fslib.hpp"
 #include "remote/remote.hpp"
 #include "sdl.hpp"
-#include "system/Timer.hpp"
+#include "sys/sys.hpp"
 #include "ui/Menu.hpp"
 #include "ui/SlideOutPanel.hpp"
 #include "ui/TextScroll.hpp"
@@ -23,6 +23,12 @@ class BackupMenuState final : public BaseState
 
         /// @brief Destructor. This is required even if it doesn't free or do anything.
         ~BackupMenuState();
+
+        /// @brief Creates and returns a new BackupMenuState.
+        static std::shared_ptr<BackupMenuState> create(data::User *user, data::TitleInfo *titleInfo);
+
+        /// @brief Creates and pushes a new BackupMenuState to the vector.
+        static std::shared_ptr<BackupMenuState> create_and_push(data::User *user, data::TitleInfo *titleInfo);
 
         /// @brief Required. Inherited virtual function from AppState.
         void update() override;

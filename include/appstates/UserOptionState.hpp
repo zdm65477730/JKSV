@@ -19,6 +19,12 @@ class UserOptionState final : public BaseState
         /// @brief Required destructor.
         ~UserOptionState() {};
 
+        /// @brief Returns a new UserOptionState. See constructor.
+        static std::shared_ptr<UserOptionState> create(data::User *user, TitleSelectCommon *titleSelect);
+
+        /// @brief Creates, pushes, and returns a new UserOptionState.
+        static std::shared_ptr<UserOptionState> create_and_push(data::User *user, TitleSelectCommon *titleSelect);
+
         /// @brief Runs the render routine.
         void update() override;
 

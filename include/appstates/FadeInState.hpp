@@ -1,6 +1,6 @@
 #pragma once
 #include "appstates/BaseState.hpp"
-#include "system/Timer.hpp"
+#include "sys/sys.hpp"
 
 #include <memory>
 
@@ -12,6 +12,12 @@ class FadeInState final : public BaseState
         FadeInState(std::shared_ptr<BaseState> nextState);
 
         ~FadeInState() {};
+
+        /// @brief Returns a new fade in state. See constructor.
+        static std::shared_ptr<FadeInState> create(std::shared_ptr<BaseState> nextState);
+
+        /// @brief Creates, returns and pushes a new FadeInState to the statemanager.
+        static std::shared_ptr<FadeInState> create_and_push(std::shared_ptr<BaseState> nextState);
 
         /// @brief Update override.
         void update() override;

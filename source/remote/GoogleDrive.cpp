@@ -296,14 +296,15 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
 {
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
 
-    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, file->get_size()};
+    const int64_t itemSize = file->get_size();
+    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, itemSize};
     if (!destFile)
     {
         logger::log("Error downloading file: local file could not be opened for writing!");
         return false;
     }
 
-    if (task) { task->reset(static_cast<double>(file->get_size())); }
+    if (task) { task->reset(static_cast<double>(itemSize)); }
 
     curl::HeaderList header = curl::new_header_list();
     curl::append_header(header, m_authHeader);
@@ -311,16 +312,13 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
     remote::URL url{URL_DRIVE_FILE_API};
     url.append_path(file->get_id()).append_parameter("alt", "media");
 
-    curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = file->get_size()};
+    curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = itemSize};
     curl::prepare_get(m_curl);
     curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
     curl::set_option(m_curl, CURLOPT_URL, url.get());
     // This is temporary until I get threading figured out again.
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::download_file_threaded);
     curl::set_option(m_curl, CURLOPT_WRITEDATA, &download);
-
-    // curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::download_file_threaded);
-    // curl::set_option(m_curl, CURLOPT_WRITEDATA, &download);
 
     std::thread writeThread(curl::download_write_thread_function, std::ref(download));
     if (!curl::perform(m_curl)) { return false; }
@@ -334,10 +332,9 @@ bool remote::GoogleDrive::delete_item(const remote::Item *item)
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
 
     // Iterator is needed to remove it from the list.
-    auto findItem = std::find_if(m_list.begin(),
-                                 m_list.end(),
-                                 [item](const Item &listItem) { return item->get_id() == listItem.get_id(); });
-
+    const std::string_view itemId = item->get_id();
+    auto findItem =
+        std::find_if(m_list.begin(), m_list.end(), [&](const Item &listItem) { return itemId == listItem.get_id(); });
     if (findItem == m_list.end())
     {
         logger::log("Error deleting item: Item not found in list!");
@@ -348,7 +345,7 @@ bool remote::GoogleDrive::delete_item(const remote::Item *item)
     curl::append_header(header, m_authHeader);
 
     remote::URL url{URL_DRIVE_FILE_API};
-    url.append_path(item->get_id());
+    url.append_path(itemId);
 
     curl::reset_handle(m_curl);
     curl::set_option(m_curl, CURLOPT_CUSTOMREQUEST, "DELETE");
@@ -368,6 +365,42 @@ bool remote::GoogleDrive::delete_item(const remote::Item *item)
     // Erase from the master list.
     m_list.erase(findItem);
 
+    return true;
+}
+
+bool remote::GoogleDrive::rename_item(remote::Item *item, std::string_view newName)
+{
+    if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
+
+    curl::HeaderList header = curl::new_header_list();
+    curl::append_header(header, m_authHeader);
+    curl::append_header(header, HEADER_CONTENT_TYPE_JSON);
+
+    remote::URL url{URL_DRIVE_FILE_API};
+    url.append_path(item->get_id());
+
+    json::Object post = json::new_object(json_object_new_object);
+    json_object *name = json_object_new_string(newName.data());
+    json::add_object(post, "name", name);
+
+    std::string response{};
+    const char *postString = json_object_get_string(post.get());
+    curl::reset_handle(m_curl);
+    curl::set_option(m_curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+    curl::set_option(m_curl, CURLOPT_URL, url.get());
+    curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
+    curl::set_option(m_curl, CURLOPT_POSTFIELDS, HEADER_CONTENT_TYPE_JSON);
+    curl::set_option(m_curl, CURLOPT_POSTFIELDS, postString);
+    curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
+
+    if (!curl::perform(m_curl)) { return false; }
+
+    // We're only doing this to check for errors.
+    json::Object responseParser = json::new_object(json_tokener_parse, response.c_str());
+    if (GoogleDrive::error_occurred(responseParser)) { return false; }
+
+    item->set_name(newName);
     return true;
 }
 

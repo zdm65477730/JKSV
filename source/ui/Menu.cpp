@@ -3,6 +3,7 @@
 #include "colors.hpp"
 #include "config.hpp"
 #include "input.hpp"
+#include "mathutil.hpp"
 #include "ui/render_functions.hpp"
 
 #include <cmath>
@@ -76,7 +77,13 @@ void ui::Menu::update(bool hasFocus)
     else if (m_selected >= endScrollPoint) { m_targetY = m_originalY - (optionsSize - m_maxDisplayOptions) * m_optionHeight; }
     else if (m_selected >= m_scrollLength) { m_targetY = m_originalY - (scrolledItems * m_optionHeight); }
 
-    if (m_y != m_targetY) { m_y += std::ceil((m_targetY - m_y) / scaling); }
+    if (m_y != m_targetY)
+    {
+        m_y += std::round((m_targetY - m_y) / scaling);
+
+        const int distance = math::Util<double>::get_absolute_distance(m_y, m_targetY);
+        if (distance <= 2) { m_y = m_targetY; }
+    }
 }
 
 void ui::Menu::render(SDL_Texture *target, bool hasFocus)

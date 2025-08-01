@@ -57,6 +57,8 @@ SettingsState::SettingsState()
     SettingsState::update_menu_options();
 }
 
+std::shared_ptr<SettingsState> SettingsState::create() { return std::make_shared<SettingsState>(); }
+
 void SettingsState::update()
 {
     const bool hasFocus = BaseState::has_focus();

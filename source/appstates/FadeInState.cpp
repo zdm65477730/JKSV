@@ -9,6 +9,18 @@ FadeInState::FadeInState(std::shared_ptr<BaseState> nextState)
     m_fadeTimer.start(1);
 }
 
+std::shared_ptr<FadeInState> FadeInState::create(std::shared_ptr<BaseState> nextState)
+{
+    return std::make_shared<FadeInState>(nextState);
+}
+
+std::shared_ptr<FadeInState> FadeInState::create_and_push(std::shared_ptr<BaseState> nextState)
+{
+    auto newState = FadeInState::create(nextState);
+    StateManager::push_state(newState);
+    return newState;
+}
+
 void FadeInState::update()
 {
     if (m_alpha == 0x00)

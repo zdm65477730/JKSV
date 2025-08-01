@@ -1,7 +1,6 @@
 #pragma once
 #include "appstates/BaseState.hpp"
-#include "system/Task.hpp"
-#include "system/Timer.hpp"
+#include "sys/sys.hpp"
 #include "ui/ColorMod.hpp"
 
 #include <array>

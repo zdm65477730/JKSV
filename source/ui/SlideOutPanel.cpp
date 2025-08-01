@@ -2,8 +2,10 @@
 
 #include "colors.hpp"
 #include "config.hpp"
+#include "mathutil.hpp"
 
 #include <cmath>
+#include <utility>
 
 namespace
 {
@@ -11,35 +13,27 @@ namespace
 }
 
 ui::SlideOutPanel::SlideOutPanel(int width, Side side)
-    : m_x(side == Side::Left ? -width : SCREEN_WIDTH)
-    , m_width(width)
-    , m_targetX(side == Side::Left ? 0 : SCREEN_WIDTH - m_width)
-    , m_side(side)
+    : m_x{side == Side::Left ? static_cast<double>(-width) : static_cast<double>(SCREEN_WIDTH)}
+    , m_width{width}
+    , m_targetX{side == Side::Left ? 0.0f : static_cast<double>(SCREEN_WIDTH) - m_width}
+    , m_side{side}
+    , m_scaling{config::get_animation_scaling()}
 {
-    static int slidePanelTargetID = 0;
-    std::string panelTargetName   = "PanelTarget_" + std::to_string(slidePanelTargetID++);
-    m_renderTarget                = sdl::TextureManager::create_load_texture(panelTargetName,
-                                                              width,
-                                                              720,
-                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    static constexpr int sdlFlags = SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET;
+
+    static int targetID    = 0;
+    std::string targetName = "panelTarget_" + std::to_string(targetID++);
+    m_renderTarget         = sdl::TextureManager::create_load_texture(targetName, width, 720, sdlFlags);
 }
 
 void ui::SlideOutPanel::update(bool hasFocus)
 {
-    const double scaling        = config::get_animation_scaling();
     const bool openingFromLeft  = !m_isOpen && m_side == Side::Left && m_x < m_targetX;
     const bool openingFromRight = !m_isOpen && m_side == Side::Right && m_x > m_targetX;
-    if (openingFromLeft) { m_x -= std::round(m_x / scaling); }
-    else if (openingFromRight)
-    {
-        const double screenWidth = static_cast<double>(SCREEN_WIDTH);
-        const double width       = static_cast<double>(m_width);
-        const double pixels      = (screenWidth - width - m_x) / scaling;
-        m_x += std::round(pixels);
-    }
-    else { m_isOpen = true; }
 
-    // I'm going to leave it to the individual elements whether they update if the state is active.
+    if (openingFromLeft) { SlideOutPanel::slide_out_left(); }
+    else if (openingFromRight) { SlideOutPanel::slide_out_right(); }
+
     if (m_isOpen)
     {
         for (auto &currentElement : m_elements) { currentElement->update(hasFocus); }
@@ -84,3 +78,31 @@ void ui::SlideOutPanel::push_new_element(std::shared_ptr<ui::Element> newElement
 void ui::SlideOutPanel::clear_elements() { m_elements.clear(); }
 
 SDL_Texture *ui::SlideOutPanel::get_target() { return m_renderTarget->get(); }
+
+void ui::SlideOutPanel::slide_out_left()
+{
+    m_x -= std::round(m_x / m_scaling);
+
+    // This is a workaround for the floating points never lining up quite right.
+    const int distance = math::Util<double>::get_absolute_distance(m_x, m_targetX);
+    if (distance <= 2)
+    {
+        m_x      = m_targetX;
+        m_isOpen = true;
+    }
+}
+
+void ui::SlideOutPanel::slide_out_right()
+{
+    const double screenWidth = static_cast<double>(SCREEN_WIDTH);
+    const double width       = static_cast<double>(m_width);
+    const double pixels      = (screenWidth - width - m_x) / m_scaling;
+    m_x += std::round(pixels);
+
+    const int distance = math::Util<double>::get_absolute_distance(m_x, m_targetX);
+    if (distance <= 2)
+    {
+        m_x      = m_targetX;
+        m_isOpen = true;
+    }
+}

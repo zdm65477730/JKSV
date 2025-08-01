@@ -1,5 +1,6 @@
 #include "appstates/TitleInfoState.hpp"
 
+#include "StateManager.hpp"
 #include "colors.hpp"
 #include "error.hpp"
 #include "input.hpp"
@@ -30,13 +31,25 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo)
     , m_icon{m_titleInfo->get_icon()}
 {
     TitleInfoState::initialize_static_members();
-    TitleInfoState::create_info_fields();
+    TitleInfoState::create_info_scrolls();
 }
 
 TitleInfoState::~TitleInfoState()
 {
     // Clear this so the next time it's called, the vector is cleared.
     sm_slidePanel->clear_elements();
+}
+
+std::shared_ptr<TitleInfoState> TitleInfoState::create(data::User *user, data::TitleInfo *titleInfo)
+{
+    return std::make_shared<TitleInfoState>(user, titleInfo);
+}
+
+std::shared_ptr<TitleInfoState> TitleInfoState::create_and_push(data::User *user, data::TitleInfo *titleInfo)
+{
+    auto newState = TitleInfoState::create(user, titleInfo);
+    StateManager::push_state(newState);
+    return newState;
 }
 
 void TitleInfoState::update()
@@ -74,7 +87,7 @@ void TitleInfoState::initialize_static_members()
     }
 }
 
-void TitleInfoState::create_info_fields()
+void TitleInfoState::create_info_scrolls()
 {
     static constexpr int SIZE_VERT_GAP = SIZE_TEXT_TARGET_HEIGHT + 4;
     static constexpr int COORD_INIT_Y  = 278;
@@ -133,12 +146,12 @@ void TitleInfoState::create_info_fields()
     int y = COORD_INIT_Y;
     for (const std::string_view &string : textVector)
     {
-        auto newField = TitleInfoState::create_new_field(string, (y += SIZE_VERT_GAP));
+        auto newField = TitleInfoState::create_new_scroll(string, (y += SIZE_VERT_GAP));
         sm_slidePanel->push_new_element(newField);
     }
 }
 
-std::shared_ptr<ui::TextScroll> TitleInfoState::create_new_field(std::string_view text, int y)
+std::shared_ptr<ui::TextScroll> TitleInfoState::create_new_scroll(std::string_view text, int y)
 {
     static constexpr int SIZE_FIELD_WIDTH = SIZE_PANEL_WIDTH - SIZE_PANEL_SUB;
     auto textFieldScroll                  = std::make_shared<ui::TextScroll>(text,

@@ -1,6 +1,6 @@
 #pragma once
 #include "sdl.hpp"
-#include "system/Timer.hpp"
+#include "sys/sys.hpp"
 #include "ui/Element.hpp"
 
 #include <string>
@@ -8,7 +8,7 @@
 namespace ui
 {
     /// @brief This is used in multiple places and rewriting it over and over is a waste of time.
-    class TextScroll : public ui::Element
+    class TextScroll final : public ui::Element
     {
         public:
             /// @brief This is only here so I can get around the backup menu having static members.

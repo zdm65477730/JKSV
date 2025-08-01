@@ -1,7 +1,6 @@
 #pragma once
 #include "appstates/BackupMenuState.hpp"
-#include "system/ProgressTask.hpp"
-#include "system/Task.hpp"
+#include "sys/sys.hpp"
 
 #include <string>
 
@@ -37,5 +36,8 @@ namespace tasks
 
         /// @brief Uploads a backup
         void upload_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskData);
+
+        /// @brief Patches a pre-existing backup on the remote storage.
+        void patch_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskData);
     }
 }

@@ -67,15 +67,15 @@ size_t curl::write_data_to_file(const char *buffer, size_t size, size_t count, f
 
 size_t curl::download_file_threaded(const char *buffer, size_t size, size_t count, curl::DownloadStruct *download)
 {
-    std::mutex &lock                   = download->lock;
-    std::condition_variable &condition = download->condition;
-    std::vector<byte> &sharedBuffer    = download->sharedBuffer;
-    bool &bufferReady                  = download->bufferReady;
-    sys::ProgressTask *task            = download->task;
-    size_t &offset                     = download->offset;
-    size_t &fileSize                   = download->fileSize;
-    const size_t downloadSize          = size * count;
-    const std::span<const byte> bufferSpan{reinterpret_cast<const byte *>(buffer), downloadSize};
+    std::mutex &lock                     = download->lock;
+    std::condition_variable &condition   = download->condition;
+    std::vector<sys::byte> &sharedBuffer = download->sharedBuffer;
+    bool &bufferReady                    = download->bufferReady;
+    sys::ProgressTask *task              = download->task;
+    size_t &offset                       = download->offset;
+    int64_t &fileSize                    = download->fileSize;
+    const size_t downloadSize            = size * count;
+    const std::span<const sys::byte> bufferSpan{reinterpret_cast<const sys::byte *>(buffer), downloadSize};
 
     {
         std::unique_lock<std::mutex> bufferLock(lock);
@@ -99,14 +99,14 @@ size_t curl::download_file_threaded(const char *buffer, size_t size, size_t coun
 
 void curl::download_write_thread_function(curl::DownloadStruct &download)
 {
-    std::mutex &lock                   = download.lock;
-    std::condition_variable &condition = download.condition;
-    std::vector<byte> &sharedBuffer    = download.sharedBuffer;
-    bool &bufferReady                  = download.bufferReady;
-    fslib::File *dest                  = download.dest;
-    size_t fileSize                    = download.fileSize;
+    std::mutex &lock                     = download.lock;
+    std::condition_variable &condition   = download.condition;
+    std::vector<sys::byte> &sharedBuffer = download.sharedBuffer;
+    bool &bufferReady                    = download.bufferReady;
+    fslib::File *dest                    = download.dest;
+    size_t fileSize                      = download.fileSize;
 
-    auto localBuffer = std::make_unique<byte[]>(SIZE_DOWNLOAD_THRESHOLD + 0x100000); // Gonna give this some room.
+    auto localBuffer = std::make_unique<sys::byte[]>(SIZE_DOWNLOAD_THRESHOLD + 0x100000); // Gonna give this some room.
 
     for (size_t i = 0; i < fileSize;)
     {

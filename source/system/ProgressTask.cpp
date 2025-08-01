@@ -1,4 +1,4 @@
-#include "system/ProgressTask.hpp"
+#include "sys/ProgressTask.hpp"
 
 void sys::ProgressTask::reset(double goal)
 {

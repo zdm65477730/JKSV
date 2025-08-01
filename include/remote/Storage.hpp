@@ -2,7 +2,7 @@
 #include "curl/curl.hpp"
 #include "fslib.hpp"
 #include "remote/Item.hpp"
-#include "system/ProgressTask.hpp"
+#include "sys/sys.hpp"
 
 #include <ctime>
 #include <string>
@@ -84,6 +84,11 @@ namespace remote
             /// @brief Deletes a file or folder from the remote.
             /// @param item Item to delete.
             virtual bool delete_item(const remote::Item *item) = 0;
+
+            /// @brief Renames a file on the remote server.
+            /// @param item Target item to rename.
+            /// @param newName New name of the target item.
+            virtual bool rename_item(remote::Item *item, std::string_view newName) = 0;
 
             /// @brief Returns whether or not the remote storage type supports UTF-8 for names or requires path safe titles.
             bool supports_utf8() const;

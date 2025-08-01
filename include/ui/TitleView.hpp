@@ -60,5 +60,11 @@ namespace ui
 
             /// @brief Vector of selection tiles.
             std::vector<ui::TitleTile> m_titleTiles{};
+
+            void handle_input();
+
+            void handle_scrolling();
+
+            void update_tiles();
     };
 } // namespace ui

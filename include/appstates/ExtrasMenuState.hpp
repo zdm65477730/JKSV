@@ -13,6 +13,9 @@ class ExtrasMenuState final : public BaseState
         /// @brief Required even if nothing happens.
         ~ExtrasMenuState() {};
 
+        /// @brief Returns a new ExtrasMenuState
+        static std::shared_ptr<ExtrasMenuState> create();
+
         /// @brief Updates the menu.
         void update() override;
 

@@ -18,6 +18,16 @@ class TitleOptionState final : public BaseState
         /// @brief Required destructor.
         ~TitleOptionState() {};
 
+        /// @brief Returns a new TitleOptionState. See constructor.
+        static std::shared_ptr<TitleOptionState> create(data::User *user,
+                                                        data::TitleInfo *titleInfo,
+                                                        TitleSelectCommon *titleSelect);
+
+        /// @brief Creates, pushes, and returns a new TitleOptionState
+        static std::shared_ptr<TitleOptionState> create_and_push(data::User *user,
+                                                                 data::TitleInfo *titleInfo,
+                                                                 TitleSelectCommon *titleSelect);
+
         /// @brief Runs update routine.
         void update() override;
 
@@ -61,12 +71,33 @@ class TitleOptionState final : public BaseState
         /// @brief This stores whether or a not a refresh is required on the next update().
         bool m_refreshRequired{};
 
-        /// @brief This is so it's known whether or not to initialize the static members of this class.
-        static inline bool sm_initialized{};
-
         /// @brief Menu used and shared by all instances.
-        static inline std::unique_ptr<ui::Menu> sm_titleOptionMenu{};
+        static inline std::shared_ptr<ui::Menu> sm_titleOptionMenu{};
 
         /// @brief This is shared by all instances of this class.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};
+
+        void initialize_static_members();
+
+        void initialize_data_struct();
+
+        void create_push_info_state();
+
+        void add_to_blacklist();
+
+        void change_output_directory();
+
+        void create_push_file_mode();
+
+        void delete_all_local_backups();
+
+        void delete_all_remote_backups();
+
+        void reset_save_data();
+
+        void delete_save_from_system();
+
+        void extend_save_container();
+
+        void export_svi_file();
 };

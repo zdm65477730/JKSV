@@ -15,6 +15,12 @@ class TextTitleSelectState final : public TitleSelectCommon
         /// @brief Required destructor.
         ~TextTitleSelectState() {};
 
+        /// @brief Creates and returns a new TextTitleSelect. See constructor.
+        static std::shared_ptr<TextTitleSelectState> create(data::User *user);
+
+        /// @brief Creates, pushes, and returns a new TextTitleSelect.
+        static std::shared_ptr<TextTitleSelectState> create_and_push(data::User *user);
+
         /// @brief Runs update routine.
         void update() override;
 

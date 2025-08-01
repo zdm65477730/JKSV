@@ -13,6 +13,9 @@ class SettingsState final : public BaseState
         /// @brief Required destructor.
         ~SettingsState() {};
 
+        /// @brief Returns a new SettingsState.
+        std::shared_ptr<SettingsState> create();
+
         /// @brief Runs the update routine.
         void update() override;
 

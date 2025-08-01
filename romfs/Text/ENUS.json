@@ -90,6 +90,9 @@
         "0: Off",
         "1: >On>"
     ],
+    "RemotePops": [
+        "0: No internet connection available!"
+    ],
     "SaveCreatePops": [
         "0: Save data created for #%s#!",
         "1: Error creating save data!",
@@ -169,7 +172,7 @@
         "3: Are you sure you want to delete `%s`'s save data for #%s#? *This will permanently delete it from the system.*"
     ],
     "TitleOptionPops": [
-        "0: All backups deleted for `%s`!",
+        "0: All backups deleted for #%s#!",
         "1: Failed to delete all backups!",
         "2: Error resetting save data!",
         "3: Save data successfully reset!",
@@ -193,11 +196,12 @@
         "1: Blacklist Title",
         "2: Change Output folder",
         "3: Open in File Mode",
-        "4: Delete all save backups",
-        "5: Reset save data.",
-        "6: Delete save data from system",
-        "7: Extend save data",
-        "8: Export SVI file"
+        "4: Delete all local backups",
+        "5: Delete all remote backups",
+        "6: Reset save data.",
+        "7: Delete save data from system",
+        "8: Extend save data",
+        "9: Export SVI file"
     ],
     "TranslationInfo": [
         "0: Translated by: %s",

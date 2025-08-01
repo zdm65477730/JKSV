@@ -1,7 +1,6 @@
 #pragma once
 #include "fslib.hpp"
-#include "system/ProgressTask.hpp"
-#include "system/defines.hpp"
+#include "sys/sys.hpp"
 
 #include <condition_variable>
 #include <mutex>
@@ -14,12 +13,12 @@ namespace curl
     {
         std::mutex lock{};
         std::condition_variable condition{};
-        std::vector<byte> sharedBuffer{};
+        std::vector<sys::byte> sharedBuffer{};
         bool bufferReady{};
         fslib::File *dest{};
         sys::ProgressTask *task{};
         size_t offset{};
-        size_t fileSize{};
+        int64_t fileSize{};
     };
     // clang-format on
 }

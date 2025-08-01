@@ -13,7 +13,7 @@
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
-#include "system/system.hpp"
+#include "sys/sys.hpp"
 #include "tasks/backup.hpp"
 #include "ui/PopMessageManager.hpp"
 #include "ui/TextScroll.hpp"
@@ -54,6 +54,18 @@ BackupMenuState::~BackupMenuState()
 
     remote::Storage *remote = remote::get_remote_storage();
     if (remote && remote->is_initialized()) { remote->return_to_root(); }
+}
+
+std::shared_ptr<BackupMenuState> BackupMenuState::create(data::User *user, data::TitleInfo *titleInfo)
+{
+    return std::make_shared<BackupMenuState>(user, titleInfo);
+}
+
+std::shared_ptr<BackupMenuState> BackupMenuState::create_and_push(data::User *user, data::TitleInfo *titleInfo)
+{
+    auto newState = BackupMenuState::create(user, titleInfo);
+    StateManager::push_state(newState);
+    return newState;
 }
 
 void BackupMenuState::update()
@@ -187,7 +199,6 @@ void BackupMenuState::initialize_info_string()
     const std::string infoString = stringutil::get_formatted_string("`%s` - %s", nickname, title);
 
     m_titleScroll.create(infoString, 8, 8, sm_panelWidth - 16, 30, 22, colors::WHITE, colors::TRANSPARENT);
-    // m_titleScroll.create(infoString, 22, sm_panelWidth - 16, 8, 8, true, colors::WHITE, colors::TRANSPARENT);
 }
 
 void BackupMenuState::save_data_check()
@@ -223,37 +234,35 @@ void BackupMenuState::name_and_create_backup()
     static constexpr size_t SIZE_NAME_LENGTH    = 0x80;
     static constexpr const char *STRING_ZIP_EXT = ".zip";
 
-    remote::Storage *remote      = remote::get_remote_storage();
-    const bool autoName          = config::get_by_key(config::keys::AUTO_NAME_BACKUPS);
-    const bool autoUpload        = config::get_by_key(config::keys::AUTO_UPLOAD);
-    const bool exportZip         = autoUpload || config::get_by_key(config::keys::EXPORT_TO_ZIP);
-    const bool zrHeld            = input::button_held(HidNpadButton_ZR);
-    const char *keyboardHeader   = strings::get_by_name(strings::names::KEYBOARD, 0);
-    const bool autoNamed         = (autoName || zrHeld); // This can be eval'd here.
-    const int popTicks           = ui::PopMessageManager::DEFAULT_TICKS;
-    const char *popErrorCreating = strings::get_by_name(strings::names::BACKUPMENU_POPS, 5);
+    remote::Storage *remote = remote::get_remote_storage();
+    const bool autoName     = config::get_by_key(config::keys::AUTO_NAME_BACKUPS);
+    const bool autoUpload   = config::get_by_key(config::keys::AUTO_UPLOAD);
+    const bool exportZip    = autoUpload || config::get_by_key(config::keys::EXPORT_TO_ZIP);
+    const bool zrHeld       = input::button_held(HidNpadButton_ZR);
+    const bool autoNamed    = (autoName || zrHeld); // This can be eval'd here.
+    const int popTicks      = ui::PopMessageManager::DEFAULT_TICKS;
 
     char name[SIZE_NAME_LENGTH + 1] = {0};
-
     {
         const char *nickname   = m_user->get_path_safe_nickname();
         const std::string date = stringutil::get_date_string();
         std::snprintf(name, SIZE_NAME_LENGTH, "%s - %s", nickname, date.c_str());
     }
+
+    const char *keyboardHeader = strings::get_by_name(strings::names::KEYBOARD, 0);
     const bool named = autoNamed || keyboard::get_input(SwkbdType_QWERTY, name, keyboardHeader, name, SIZE_NAME_LENGTH);
     if (!named) { return; }
 
     const bool hasZipExt = std::strstr(name, STRING_ZIP_EXT); // This might not be the best check.
-    std::shared_ptr<ProgressState> backupTask{};
     if (autoUpload && remote)
     {
         if (!hasZipExt) { std::strncat(name, STRING_ZIP_EXT, SIZE_NAME_LENGTH); }
-        backupTask = std::make_shared<ProgressState>(tasks::backup::create_new_backup_remote,
-                                                     m_user,
-                                                     m_titleInfo,
-                                                     std::string{name},
-                                                     this,
-                                                     true);
+        ProgressState::create_and_push(tasks::backup::create_new_backup_remote,
+                                       m_user,
+                                       m_titleInfo,
+                                       std::string{name},
+                                       this,
+                                       true);
     }
     else
     {
@@ -264,14 +273,12 @@ void BackupMenuState::name_and_create_backup()
         if (exportZip && !hasZipExt) { target += STRING_ZIP_EXT; }
         else if (!exportZip && dirNeeded && dirError)
         {
+            const char *popErrorCreating = strings::get_by_name(strings::names::BACKUPMENU_POPS, 5);
             ui::PopMessageManager::push_message(popTicks, popErrorCreating);
             return;
         }
-
-        backupTask =
-            std::make_shared<ProgressState>(tasks::backup::create_new_backup_local, m_user, m_titleInfo, target, this, true);
+        ProgressState::create_and_push(tasks::backup::create_new_backup_local, m_user, m_titleInfo, target, this, true);
     }
-    if (backupTask) { StateManager::push_state(backupTask); }
 }
 
 void BackupMenuState::confirm_overwrite()
@@ -281,47 +288,45 @@ void BackupMenuState::confirm_overwrite()
     const bool holdRequired     = config::get_by_key(config::keys::HOLD_FOR_OVERWRITE);
     const char *confirmTemplate = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 0);
 
-    std::shared_ptr<ProgressConfirm> confirm{};
     if (entry.type == MenuEntryType::Remote)
     {
         m_dataStruct->remoteItem = m_remoteListing.at(entry.index);
         const char *itemName     = m_dataStruct->remoteItem->get_name().data();
         const std::string query  = stringutil::get_formatted_string(confirmTemplate, itemName);
-        confirm = std::make_shared<ProgressConfirm>(query, holdRequired, tasks::backup::overwrite_backup_remote, m_dataStruct);
+        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::overwrite_backup_remote, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Local)
     {
         m_dataStruct->path      = m_directoryPath / m_directoryListing[entry.index];
         const char *targetName  = m_directoryListing[entry.index];
         const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
-        confirm = std::make_shared<ProgressConfirm>(query, holdRequired, tasks::backup::overwrite_backup_local, m_dataStruct);
+        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::overwrite_backup_local, m_dataStruct);
     }
-
-    if (confirm) { StateManager::push_state(confirm); }
 }
 
 void BackupMenuState::confirm_restore()
 {
-    const int selected           = sm_backupMenu->get_selected();
-    const MenuEntry &entry       = m_menuEntries.at(selected);
-    const int popTicks           = ui::PopMessageManager::DEFAULT_TICKS;
-    const bool holdRequired      = config::get_by_key(config::keys::HOLD_FOR_RESTORATION);
-    const char *confirmTemplate  = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 1);
-    const char *popBackupEmpty   = strings::get_by_name(strings::names::BACKUPMENU_POPS, 1);
-    const char *popSysNotAllowed = strings::get_by_name(strings::names::BACKUPMENU_POPS, 6);
+    const int selected     = sm_backupMenu->get_selected();
+    const MenuEntry &entry = m_menuEntries.at(selected);
+
+    const int popTicks          = ui::PopMessageManager::DEFAULT_TICKS;
+    const bool holdRequired     = config::get_by_key(config::keys::HOLD_FOR_RESTORATION);
+    const char *confirmTemplate = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 1);
 
     const bool isSystem       = BackupMenuState::user_is_system();
     const bool allowSystem    = config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM);
     const bool isValidRestore = !isSystem || allowSystem;
     if (!isValidRestore)
     {
+        const char *popSysNotAllowed = strings::get_by_name(strings::names::BACKUPMENU_POPS, 6);
         ui::PopMessageManager::push_message(popTicks, popSysNotAllowed);
         return;
     }
 
-    std::shared_ptr<ProgressConfirm> confirm{};
     if (entry.type == MenuEntryType::Local)
     {
+        const char *popBackupEmpty = strings::get_by_name(strings::names::BACKUPMENU_POPS, 1);
+
         const fslib::Path target     = m_directoryPath / m_directoryListing[entry.index];
         const bool targetIsDirectory = fslib::directory_exists(target);
         const bool backupIsGood      = targetIsDirectory ? fs::directory_has_contents(target) : fs::zip_has_contents(target);
@@ -332,17 +337,17 @@ void BackupMenuState::confirm_restore()
         }
         m_dataStruct->path      = target;
         const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
-        confirm = std::make_shared<ProgressConfirm>(query, holdRequired, tasks::backup::restore_backup_local, m_dataStruct);
+
+        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::restore_backup_local, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Remote)
     {
         remote::Item *target     = m_remoteListing[entry.index];
         const std::string query  = stringutil::get_formatted_string(confirmTemplate, target->get_name().data());
         m_dataStruct->remoteItem = target;
-        confirm = std::make_shared<ProgressConfirm>(query, holdRequired, tasks::backup::restore_backup_remote, m_dataStruct);
-    }
 
-    if (confirm) { StateManager::push_state(confirm); }
+        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::restore_backup_remote, m_dataStruct);
+    }
 }
 
 void BackupMenuState::confirm_delete()
@@ -356,18 +361,19 @@ void BackupMenuState::confirm_delete()
     if (entry.type == MenuEntryType::Local)
     {
         m_dataStruct->path      = m_directoryPath / m_directoryListing[entry.index];
-        const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
-        confirm = std::make_shared<TaskConfirm>(query, holdRequired, tasks::backup::delete_backup_local, m_dataStruct);
+        const char *targetName  = m_directoryListing[entry.index];
+        const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
+
+        TaskConfirm::create_and_push(query, holdRequired, tasks::backup::delete_backup_local, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Remote)
     {
         m_dataStruct->remoteItem = m_remoteListing.at(entry.index);
-        const std::string query =
-            stringutil::get_formatted_string(confirmTemplate, m_dataStruct->remoteItem->get_name().data());
-        confirm = std::make_shared<TaskConfirm>(query, holdRequired, tasks::backup::delete_backup_remote, m_dataStruct);
-    }
+        const char *itemName     = m_dataStruct->remoteItem->get_name().data();
+        const std::string query  = stringutil::get_formatted_string(confirmTemplate, itemName);
 
-    StateManager::push_state(confirm);
+        TaskConfirm::create_and_push(query, holdRequired, tasks::backup::delete_backup_remote, m_dataStruct);
+    }
 }
 
 void BackupMenuState::upload_backup()
@@ -376,22 +382,34 @@ void BackupMenuState::upload_backup()
     if (error::is_null(remote)) { return; }
 
     const int selected     = sm_backupMenu->get_selected();
-    const MenuEntry &entry = m_menuEntries.at(selected);
     const int popTicks     = ui::PopMessageManager::DEFAULT_TICKS;
-    const char *popNotZip  = strings::get_by_name(strings::names::BACKUPMENU_POPS, 13);
+    const MenuEntry &entry = m_menuEntries[selected];
     if (entry.type != BackupMenuState::MenuEntryType::Local) { return; }
 
-    fslib::Path target = m_directoryPath / m_directoryListing[entry.index];
-    const bool isDir   = fslib::directory_exists(target);
+    const char *targetName = m_directoryListing[entry.index];
+    fslib::Path target     = m_directoryPath / targetName;
+    const bool isDir       = fslib::directory_exists(target);
     if (isDir)
     {
+        const char *popNotZip = strings::get_by_name(strings::names::BACKUPMENU_POPS, 13);
         ui::PopMessageManager::push_message(popTicks, popNotZip);
         return;
     }
 
-    m_dataStruct->path = std::move(target);
-    auto upload        = std::make_shared<ProgressState>(tasks::backup::upload_backup, m_dataStruct);
-    StateManager::push_state(upload);
+    m_dataStruct->path              = std::move(target);
+    const std::string_view itemName = m_dataStruct->path.get_filename();
+    const bool exists               = remote->file_exists(itemName);
+    if (exists)
+    {
+        remote::Item *remoteItem = remote->get_file_by_name(itemName);
+        const char *queryFormat  = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 0);
+        const std::string query  = stringutil::get_formatted_string(queryFormat, itemName.data());
+        const bool holdRequired  = config::get_by_key(config::keys::HOLD_FOR_OVERWRITE);
+        m_dataStruct->remoteItem = remoteItem;
+
+        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::patch_backup, m_dataStruct);
+    }
+    else { ProgressState::create_and_push(tasks::backup::upload_backup, m_dataStruct); }
 }
 
 void BackupMenuState::pop_save_empty()

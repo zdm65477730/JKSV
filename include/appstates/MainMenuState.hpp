@@ -16,6 +16,12 @@ class MainMenuState final : public BaseState
         /// @brief Required even if it does nothing.
         ~MainMenuState() {};
 
+        /// @brief Returns a new MainMenuState
+        static std::shared_ptr<MainMenuState> create();
+
+        /// @brief Creates and returns a new MainMenuState. Pushes it automatically.
+        static std::shared_ptr<MainMenuState> create_and_push();
+
         /// @brief Runs update routine.
         void update() override;
 

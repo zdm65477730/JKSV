@@ -2,8 +2,8 @@
 // Major to do: Stop using minizip and finish the ZipFile class.
 #include "fs/MiniUnzip.hpp"
 #include "fs/MiniZip.hpp"
+#include "fs/fs.hpp"
 #include "fslib.hpp"
-#include "system/ProgressTask.hpp"
 
 #include <string_view>
 

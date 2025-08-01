@@ -8,7 +8,7 @@
 #include "logger.hpp"
 #include "sdl.hpp"
 #include "strings.hpp"
-#include "system/Task.hpp"
+#include "sys/sys.hpp"
 #include "ui/render_functions.hpp"
 
 #include <memory>
@@ -62,13 +62,24 @@ class ConfirmState final : public BaseState
         /// @brief Required even if it does nothing.
         ~ConfirmState() {};
 
-        /// @brief Creation function to help clean up code elsewhere.
-        std::shared_ptr<ConfirmState> create(std::string_view query,
-                                             bool holdRequired,
-                                             TaskFunction function,
-                                             std::shared_ptr<StructType> dataStruct)
+        /// @brief Returns a new ConfirmState. See constructor.
+        static std::shared_ptr<ConfirmState> create(std::string_view query,
+                                                    bool holdRequired,
+                                                    TaskFunction function,
+                                                    std::shared_ptr<StructType> dataStruct)
         {
             return std::make_shared<ConfirmState>(query, holdRequired, function, dataStruct);
+        }
+
+        /// @brief Creates and returns a new ConfirmState and pushes it.
+        static std::shared_ptr<ConfirmState> create_and_push(std::string_view query,
+                                                             bool holdRequired,
+                                                             TaskFunction function,
+                                                             std::shared_ptr<StructType> dataStruct)
+        {
+            auto newState = create(query, holdRequired, function, dataStruct);
+            StateManager::push_state(newState);
+            return newState;
         }
 
         /// @brief Just updates the ConfirmState.

@@ -38,6 +38,11 @@ namespace remote
             /// @param item Item to delete.
             bool delete_item(const remote::Item *item) override;
 
+            /// @brief Renames an item on WebDav.
+            /// @param item Item to rename.
+            /// @param newName New name of the item.
+            bool rename_item(remote::Item *item, std::string_view newName) override;
+
         private:
             /// @brief Origin or server address.
             std::string m_origin{};

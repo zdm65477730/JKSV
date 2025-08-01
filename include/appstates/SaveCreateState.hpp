@@ -20,6 +20,12 @@ class SaveCreateState final : public BaseState
         /// @brief Required destructor.
         ~SaveCreateState() {};
 
+        /// @brief Returns a new SaveCreate state. See constructor for arguments.
+        static std::shared_ptr<SaveCreateState> create(data::User *user, TitleSelectCommon *titleSelect);
+
+        /// @brief Creates, pushes, returns and new SaveCreateState.
+        static std::shared_ptr<SaveCreateState> create_and_push(data::User *user, TitleSelectCommon *titleSelect);
+
         /// @brief Runs the update routine.
         void update() override;
 
@@ -27,7 +33,7 @@ class SaveCreateState final : public BaseState
         void render() override;
 
         /// @brief This signals so data and the view can be refreshed on the next update() to avoid threading shenanigans.
-        void data_and_view_refresh_required();
+        void refresh_required();
 
     private:
         /// @brief Pointer to target user.
@@ -47,4 +53,16 @@ class SaveCreateState final : public BaseState
 
         /// @brief Shared slide panel all instances use. There's no point in allocating a new one every time.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};
+
+        /// @brief Initializes static members if they haven't been already.
+        void initialize_static_members();
+
+        /// @brief Retrieves the data needed from data::
+        void initialize_title_info_vector();
+
+        /// @brief Pushes the titles to the menu
+        void initialize_menu();
+
+        /// @brief Launches the save creation task.
+        void create_save_data_for();
 };

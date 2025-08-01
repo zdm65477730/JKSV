@@ -1,6 +1,7 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/BaseTask.hpp"
-#include "system/ProgressTask.hpp"
+#include "sys/sys.hpp"
 
 #include <string>
 #include <switch.h>
@@ -22,6 +23,20 @@ class ProgressState final : public BaseTask
 
         /// @brief Required destructor.
         ~ProgressState() {};
+
+        template <typename... Args>
+        static std::shared_ptr<ProgressState> create(void (*function)(sys::ProgressTask *, Args...), Args... args)
+        {
+            return std::make_shared<ProgressState>(function, std::forward<Args>(args)...);
+        }
+
+        template <typename... Args>
+        static std::shared_ptr<ProgressState> create_and_push(void (*function)(sys::ProgressTask *, Args...), Args... args)
+        {
+            auto newState = ProgressState::create(function, std::forward<Args>(args)...);
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Checks if the thread is finished and deactivates this state.
         void update() override;
