@@ -1,215 +1,236 @@
 {
     "BackupMenu": [
-        "0: Commence New Backup, Wot!"
+        "0: Jolly Good! Create a New Backup"
     ],
     "BackupMenuConfirmations": [
-        "0: Are you quite certain you wish to overwrite #%s#? That would be frightfully final.",
-        "1: Are you absolutely sure you’d like to restore #%s#? No turning back now, old chap.",
-        "2: Are you truly intent on deleting #%s#? It shall vanish into the ether!"
+        "0: Pray, are you quite certain you wish to overwrite #%s#, old chap?",
+        "1: Are you absolutely sure you desire to restore #%s#, dear fellow?",
+        "2: Do you truly wish to delete #%s#, my good man?"
     ],
     "BackupMenuPops": [
-        "0: Oh bother — the save data appears to be dreadfully empty!",
-        "1: Nothing to backup, I’m afraid!",
-        "2: Dash it all! An error occurred whilst resetting the save data!",
-        "3: Egad! Couldn’t open the ZIP file for a spot of reading!",
-        "4: A tragic mishap occurred whilst attempting to delete the backup!",
-        "5: Calamity! The backup couldn’t be created!",
-        "6: Writing to the system is jolly well off-limits!",
-        "7: Blimey! Couldn’t open the zip for reading!"
+        "0: Egad! The save data is utterly empty!",
+        "1: Blimey! The backup appears to be empty!",
+        "2: Dash it! Error resetting the save data!",
+        "3: Tut tut! Could not open the ZIP file for reading!",
+        "4: Confound it! Error occurred whilst deleting the backup!",
+        "5: Alas! Error whilst creating the backup!",
+        "6: Hold your horses! Writing to the system is presently disabled!",
+        "7: Crikey! Unable to open ZIP for reading!",
+        "8: Blast! Error writing the save meta data file!",
+        "9: Gadzooks! Error encountered whilst downloading the file!",
+        "10: Pip pip! Error uploading the file!",
+        "11: By Jove! Error processing the save data meta!",
+        "12: Egad! Error creating the target directory!",
+        "13: Good heavens! Backup must be a proper ZIP to upload!",
+        "14: Fiddlesticks! Error mounting the save data!",
+        "15: Balderdash! Error closing the save data!"
     ],
     "BackupMenuStatus": [
-        "0: Perusing the metadata of the save data, pip pip...",
-        "1: Off it goes! Uploading #%s# to the cloud posthaste...",
-        "2: Spiffing! Updating #%s# on remote storage..."
+        "0: Processing the save data meta file posthaste..."
     ],
     "ControlGuides": [
-        "0: [A] Select   [Y] Dump All Saves   [X] User Options",
-        "1: [A] Select   [L] [R] Skip About   [Y] Favourite   [X] Title Shenanigans  [B] Retreat",
-        "2: [A] Select  [Y] Restore  [X] Obliterate  [ZR] Send Skyward  [B] Close",
-        "3: [A] Toggle   [X] Defaults   [B] Back, Toodle-oo"
+        "0: [A] Select   [Y] Dump All Saves   [X] User Options, old bean",
+        "1: [A] Select   [L] [R] Jump   [Y] Favourite   [X] Title Options  [B] Back, chap",
+        "2: [A] Select  [Y] Restore  [X] Delete  [ZR] Upload  [B] Close, tally-ho!",
+        "3: [A] Toggle   [X] Defaults   [B] Back, cheerio!"
     ],
     "ExtrasMenu": [
-        "0: Give the Data a Good Reinitialise",
-        "1: Peruse SD to SD",
-        "2: ProdInfoF (whatever that is!)",
-        "3: Rather Safe",
-        "4: System, God Save the Queen",
-        "5: User, bless 'em",
-        "6: Terminate the Rascally Process"
+        "0: Reinitialise Data, if you please",
+        "1: SD to SD Browser, old sport",
+        "2: ProdInfoF, dash it all",
+        "3: Safe and Sound",
+        "4: System Settings, guv’nor",
+        "5: User Preferences, pip pip",
+        "6: Terminate Process, posthaste"
     ],
     "ExtrasPops": [
-        "0: Capital! Data has been splendidly reinitialised!",
-        "1: Oh dear — data reinitialisation’s gone all pear-shaped!"
+        "0: Data reinitialised with splendid success!",
+        "1: Data reinitialisation has regrettably failed!"
     ],
     "GeneralPops": [
-        "0: Hold your horses! JKSV won’t be toddling off while tasks are underway!"
+        "0: Unable to exit JKSV whilst important tasks are still underway, old chap!"
     ],
     "GoogleDriveStrings": [
-        "0: Right then! To carry on, nip over to #%s# and pop in >%s> like a proper gent!",
-        "1: Bravo! Successfully signed in to Google Drive!",
-        "2: Dreadfully sorry — couldn’t manage the Google Drive sign-in!"
+        "0: To continue, kindly pop over to #%s# and enter >%s>, if you would be so kind!",
+        "1: Splendid! Successfully signed in to Google Drive!",
+        "2: Oh dear! Google Drive sign in has failed!"
     ],
     "HoldingStrings": [
-        "0: Hold [A], old bean!",
-        "1: Keep holding [A], stiff upper lip and all that!",
-        "2: Almost there, just a tick! [A]"
+        "0: Hold [A], steady now",
+        "1: Keep holding [A], don't be shy!",
+        "2: Nearly there! Hold on tight [A]!"
     ],
     "IOStatuses": [
-        "0: Just copying #%s# — steady on!",
-        "1: Compressing #%s# into a proper ZIP... quite tidy.",
-        "2: Extracting #%s# from ZIP, mind the gap...",
-        "3: Deleting #%s#... off it goes!"
+        "0: Copying #%s#... pip pip!",
+        "1: Compressing #%s# to a smashing ZIP...",
+        "2: Decompressing #%s# from jolly good ZIP...",
+        "3: Deleting #%s#... ta-ta!",
+        "4: Downloading #%s#... tally-ho!",
+        "5: Uploading #%s# to the remote storage, posthaste...",
+        "6: Updating #%s# on the remote storage, old bean..."
     ],
     "IOPops": [
-        "0: By Jove! Couldn’t commit the data to the device!"
+        "0: Confound it! Error committing data to the device!"
     ],
     "KeyboardStrings": [
-        "0: Kindly enter a new name for your backup, won’t you?",
-        "1: Do enter the cache index, there’s a good lad.",
-        "2: Please provide a splendid new output path for JKSV.",
-        "3: Enter the process ID you’d like to, erm, dispatch.",
-        "4: Be a sport and enter a system save ID.",
-        "5: Enter a dashing new name for the target item.",
-        "6: What shall we call this charming new folder?",
-        "7: Pray, enter a new output folder name for %s.",
-        "8: Indicate the expansion size (in MB), tally-ho!"
+        "0: Please enter a new backup name, if you please.",
+        "1: Enter the cache index, chap.",
+        "2: Kindly enter a new output path for JKSV.",
+        "3: Enter the process ID to terminate, good sir.",
+        "4: Enter a system save ID, if you would be so kind.",
+        "5: Enter a new name for the target item, old sport.",
+        "6: Enter a name for the new folder, tally-ho!",
+        "7: Enter a new output folder name for %s, pip pip!",
+        "8: Enter how much to expand (in MB), posthaste."
+    ],
+    "MainMenuConfs": [
+        "0: Are you quite sure you want to backup the save data for every user on this fine system? This may take an *awfully* long time!"
+    ],
+    "MainMenuPops": [
+        "0: `%s` has no save data, old chap!"
     ],
     "OnOff": [
-        "0: Off, naturally",
-        "1: >On, indubitably>"
+        "0: Off, guv’nor",
+        "1: >On<, jolly good!"
+    ],
+    "RemotePops": [
+        "0: No internet connection available, dash it all!"
     ],
     "SaveCreatePops": [
-        "0: Huzzah! Save data created for #%s#!",
-        "1: Dreadful shame — failed to create save data!",
-        "2: Blast! Couldn’t delete the save data!"
+        "0: Save data created for #%s#! Bravo!",
+        "1: Error creating save data! Blast!",
+        "2: Error deleting save data! Tut tut!"
     ],
     "SaveDataTypes": [
-        "0: System (very official)",
-        "1: Account (jolly private)",
-        "2: BCAT (whatever that means)",
-        "3: Device (mind the hardware)",
-        "4: Temporary (like a British summer)",
-        "5: Cache (a secret stash!)",
-        "6: System BCAT (double trouble!)"
+        "0: System, old bean",
+        "1: Account, tally-ho",
+        "2: BCAT, guv’nor",
+        "3: Device, pip pip",
+        "4: Temporary, dash it",
+        "5: Cache, old sport",
+        "6: System BCAT, jolly good"
     ],
     "SettingsDescriptions": [
-        "0: Sets JKSV’s working directory. Default’s `sdmc:/JKSV`, don’t you know.",
-        "1: Lets you strike titles from the blacklist with the wrath of a headmaster.",
-        "2: Includes device saves with users, should you dare.",
-        "3: Makes a backup automagically when restoring — frightfully efficient.",
-        "4: Auto-names backups and bypasses that bothersome keyboard.",
-        "5: Uploads backups to Google Drive or WebDav and bins the originals, jolly smart.",
-        "6: Hold [A] for three whole seconds before deleting, stiff upper thumb required.",
-        "7: Hold [A] for three whole seconds before restoring, for good measure.",
-        "8: Hold [A] again — yes, again! — for three seconds to overwrite, heavens.",
-        "9: Shows only save data that JKSV can open without throwing a tantrum.",
-        "10: Reveals system saves with account IDs, if you’re feeling nosy.",
-        "11: Enables writing to system saves and NAND, frightfully risky business.",
-        "12: Exports save data to ZIPs instead of unpacked nonsense.",
-        "13: Controls the ZIP compression level. 6 is the gentleman’s choice. 0 is just lazy.",
-        "14: Governs how titles are sorted and arranged. Alphabetical, most splendid.",
-        "15: Changes the UI to an old-school text list, retro chic!",
-        "16: Forces English, the Queen’s own, regardless of your rebellious system settings.",
-        "17: Moves deleted backups to _TRASH_ instead of immediate vaporisation.",
-        "18: Sets animation speed — quicker than a fox hunt, if you like."
+        "0: Sets the working directory for JKSV. Default is `sdmc:/JKSV`, what what.",
+        "1: Allows you to remove titles from the blacklist, tally-ho.",
+        "2: Includes device or shared saves with users, old chap.",
+        "3: Creates a backup automatically when restoring another, pip pip.",
+        "4: Auto-names backups and skips the keyboard, dash it all.",
+        "5: Automatically uploads backups to remote and deletes them locally, smashing.",
+        "6: Always uses Application IDs for export folder names, guv’nor.",
+        "7: Whether holding [A] for three seconds is needed to delete backups, old bean.",
+        "8: Whether holding [A] for three seconds is needed to restore backups, cheerio.",
+        "9: Whether holding [A] for three seconds is needed to overwrite backups, tally-ho.",
+        "10: Only shows save data JKSV can successfully open, old sport.",
+        "11: Shows system saves that have an account ID tied to them, pip pip.",
+        "12: Enables restoring system saves and writing to NAND partitions, dash it.",
+        "13: Exports save data to ZIP archives instead of unpacked folders, jolly good.",
+        "14: Compression or deflate level for ZIP writing. Default 6. Lower is faster but less compression. Zero means store, no compression, old chap.",
+        "15: Controls how titles are sorted and displayed, what what.",
+        "16: Displays titles as text menus like original JKSM on 3DS, rather smashing.",
+        "17: Forces English language instead of detected system language, guv’nor.",
+        "18: Moves deleted backups to the _TRASH_ folder instead of permanent deletion, old bean.",
+        "19: Sets transition and animation speed. Lower is quicker, pip pip."
     ],
     "SettingsMenu": [
-        "0: Set JKSV output folder, proper and tidy.",
-        "1: Edit the blacklist — banish those unworthy titles!",
-        "2: Include device saves with users: %s",
-        "3: Auto-backup on restore: %s (clever, that)",
-        "4: Auto-name backups: %s (splendidly efficient)",
-        "5: Auto-upload backups to remote storage: %s",
-        "6: Hold to delete backups: %s (stiff fingers needed!)",
-        "7: Hold to restore backups: %s",
-        "8: Hold to overwrite backups: %s",
-        "9: Only show titles fit to be mounted: %s",
-        "10: Show account system saves: %s (if you must)",
-        "11: Enable writing to system saves and NAND: %s (you daredevil!)",
-        "12: Export saves to ZIP: %s",
-        "13: Zip compression level: %u (very technical!)",
-        "14: Title sort type: %s",
-        "15: Text menu (JKSM) mode: %s (retro is the new posh)",
-        "16: Force English: %s (God Save the UI)",
-        "17: Enable trash bin: %s (less barbaric)",
-        "18: Animation scaling: %.02f (whizz bang!)"
+        "0: Set JKSV output folder, if you please.",
+        "1: Edit Blacklist, old sport",
+        "2: Include Device Saves with users: %s, tally-ho.",
+        "3: Auto-backup on restore: %s, what what.",
+        "4: Auto-name backups: %s, jolly good.",
+        "5: Auto-upload backups to remote storage: %s, pip pip.",
+        "6: Always use Application IDs: %s, guv’nor.",
+        "7: Hold to delete backups: %s, dash it all.",
+        "8: Hold to restore backups: %s, old bean.",
+        "9: Hold to overwrite backups: %s, cheerio.",
+        "10: Only list mountable titles: %s, old chap.",
+        "11: Show account system saves: %s, tally-ho.",
+        "12: Enable writing to system saves and NAND: %s, smashing.",
+        "13: Export saves to ZIP: %s, what what.",
+        "14: Zip compression level: %u, pip pip.",
+        "15: Title sort type: %s, guv’nor.",
+        "16: Text menu (JKSM) mode: %s, jolly good.",
+        "17: Force English: %s, old bean.",
+        "18: Enable trash bin: %s, tally-ho.",
+        "19: Animation scaling: %.02f, dash it."
     ],
     "SortTypes": [
-        "0: Alphabetically — as it should be",
-        "1: Most Played — by the rabble, no doubt",
-        "2: Last Played — how very impulsive"
+        "0: Alphabetically, old sport",
+        "1: Most Played, tally-ho",
+        "2: Last Played, what what"
     ],
     "TitleInfo": [
-        "0: App ID: %016lX (very official)",
-        "1: Save ID: %016lx (by Jove!)",
-        "2: First Played: %x - %X (a grand day)",
-        "3: Last Played: %x - %X (only yesterday!)",
-        "4: Play Time: %02d:%02d:%02d (proper dedication!)",
-        "5: Launches: %i (crikey!)",
-        "6: Save Type: %s (the classy kind)"
+        "0: App ID: %016lX, guv’nor",
+        "1: Save ID: %016lx, pip pip",
+        "2: First Played: %x - %X, old bean",
+        "3: Last Played: %x - %X, jolly good",
+        "4: Play Time: %02d:%02d:%02d, dash it",
+        "5: Launches: %i, tally-ho",
+        "6: Save Type: %s, old chap"
     ],
     "TitleOptionConfirmations": [
-        "0: Are you sure you want to blacklist #%s#? It shan’t appear again, not even at high tea!",
-        "1: Really delete all backups for #%s#? That’s frightfully permanent, old sport!",
-        "2: Reset save data for #%s#? It shall be as though it never trod this Earth!",
-        "3: Delete `%s`’s save data for #%s#? A grim and irreversible act, indeed."
+        "0: Are you sure you wish to add #%s# to your blacklist? Once done, it shall not appear in any list, old chap.",
+        "1: Are you certain you wish to delete all current save backups for #%s#? *This cannot be undone, dash it!*",
+        "2: Are you sure you want to reset the save data for #%s#? *This will delete the current save data as if it were never run, old bean!*",
+        "3: Are you quite sure you want to delete `%s`'s save data for #%s#? *This is permanent, tally-ho!*"
     ],
     "TitleOptionPops": [
-        "0: All backups for `%s` have been jolly well obliterated!",
-        "1: Couldn’t delete all backups — how beastly inconvenient!",
-        "2: Save data reset failed! Bad show!",
-        "3: Save data reset complete! Jolly good!",
-        "4: SVI file exported splendidly!",
-        "5: Exporting SVI file failed — how dreadfully embarrassing!",
-        "6: This option isn’t for system saves, I'm afraid. Too risky!",
-        "7: Path sanitisation failed — what a mess!",
-        "8: Output folder now set to #%s#. Smashing!",
-        "9: Failed to set new output path — how terribly awkward!",
-        "10: Save data extended like a proper estate lawn!",
-        "11: Extension failed — the shame!"
+        "0: All backups deleted for #%s#! Bravo!",
+        "1: Failed to delete all backups! Blast!",
+        "2: Error resetting save data! Tut tut!",
+        "3: Save data successfully reset! Jolly good!",
+        "4: SVI file exported successfully! Pip pip!",
+        "5: Error exporting SVI file! Dash it!",
+        "6: This option is unavailable for system saves, old sport!",
+        "7: Could not sanitize path for use, confound it!",
+        "8: Output folder set to #%s#, smashing!",
+        "9: Error setting new output path! Blast!",
+        "10: Save data successfully extended! Bravo!",
+        "11: Save data extension failed! Tut tut!"
     ],
     "TitleOptionStatus": [
-        "0: Deleting all backups for #%s#... stiff drink required.",
-        "1: Resetting save data for #%s#... good luck!",
-        "2: Deleting `%s`’s save data for #%s#... tally-ho!",
-        "3: Extending `%s`’s save data for #%s#... pip pip!"
+        "0: Deleting all backups for #%s#, old bean.",
+        "1: Resetting save data for #%s#, tally-ho.",
+        "2: Deleting #%s#'s save data for `%s`... jolly good.",
+        "3: Extending `%s`'s save data for #%s#... pip pip."
     ],
     "TitleOptions": [
-        "0: Information, quite informative really",
-        "1: Blacklist Title, toss it out with the rubbish",
-        "2: Change Output folder, spruce things up",
-        "3: Open in File Mode, if you dare",
-        "4: Delete all save backups, like a proper purge",
-        "5: Reset save data. Fresh as a daisy.",
-        "6: Delete save data from system — ruthless!",
-        "7: Extend save data — jolly big of you",
-        "8: Export SVI file — terribly fancy"
+        "0: Information, old sport",
+        "1: Blacklist Title, guv’nor",
+        "2: Change Output folder, dash it",
+        "3: Open in File Mode, tally-ho",
+        "4: Delete all local backups, old chap",
+        "5: Delete all remote backups, pip pip",
+        "6: Reset save data, what what.",
+        "7: Delete save data from system, old bean",
+        "8: Extend save data, smashing",
+        "9: Export SVI file, cheerio"
     ],
     "TranslationInfo": [
-        "0: Translated by: %s (splendid effort!)",
-        "1: NULL (nothing to see here)"
+        "0: Translated by: %s, pip pip",
+        "1: NULL, dash it"
     ],
     "UserOptionConfirmations": [
-        "0: Are you quite sure you want to backup all save data for `%s`? It may take yonks!",
-        "1: Create save data for all titles on your system for `%s`? A daunting task indeed!",
-        "2: Delete all save data for `%s`? Heavens! That’s *utterly irreversible!*"
+        "0: Are you sure you wish to backup all save data for `%s`? This may take a jolly long while.",
+        "1: Are you certain you wish to create save data for all titles found on your system for `%s`? This may take a spot of time.",
+        "2: Are you quite sure you want to delete all save data for `%s`? This is *PERMANENT* and simply cannot be undone!"
     ],
     "UserOptionStatus": [
-        "0: Creating save data for #%s#... good show!",
-        "1: Deleting save data for #%s#... stiff upper lip!"
+        "0: Creating save data for #%s#... tally-ho!",
+        "1: Deleting save data for #%s#... pip pip!"
     ],
     "UserOptions": [
-        "0: Dump all for `%s`, and be done with it",
-        "1: Create Save Data for `%s` (give it life!)",
-        "2: Create All Save Data for `%s`, the whole lot!",
-        "3: Delete All Save Data for `%s`, with finality!"
+        "0: Dump all for `%s`, old sport",
+        "1: Create Save Data for `%s`, guv’nor",
+        "2: Create All Save Data for `%s`, what what",
+        "3: Delete All Save Data for `%s`, dash it"
     ],
     "WebDavStrings": [
-        "0: WebDav is up and running, cheerio!",
-        "1: WebDav’s had a bit of a wobble!"
+        "0: WebDav successfully started! Jolly good!",
+        "1: WebDav failed! Tut tut!"
     ],
     "YesNo": [
-        "0: Yes [A], absolutely",
-        "1: No [B], heavens no!"
+        "0: Yes [A], old bean",
+        "1: No [B], dash it"
     ]
 }

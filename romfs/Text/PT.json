@@ -3,34 +3,40 @@
         "0: Novo Backup"
     ],
     "BackupMenuConfirmations": [
-        "0: Tem a certeza de que quer mesmo substituir #%s#?",
-        "1: Tem a certeza de que quer mesmo restaurar #%s#?",
-        "2: Tem a certeza de que quer mesmo apagar #%s#?"
+        "0: Tem a certeza que quer mesmo sobrescrever #%s#?",
+        "1: Tem a certeza que quer mesmo restaurar #%s#?",
+        "2: Tem a certeza que quer mesmo apagar #%s#?"
     ],
     "BackupMenuPops": [
-        "0: Dados guardados estão vazios!",
-        "1: Backup está vazio!",
-        "2: Erro ao reiniciar dados guardados!",
+        "0: Os dados guardados estão vazios!",
+        "1: O backup está vazio!",
+        "2: Erro ao reiniciar os dados guardados!",
         "3: Erro ao abrir ficheiro ZIP para leitura!",
         "4: Ocorreu um erro ao apagar o backup!",
-        "5: Erro ao criar backup!",
-        "6: Escrita no sistema está desativada!",
-        "7: Incapaz de abrir zip para leitura!"
+        "5: Ocorreu um erro ao criar o backup!",
+        "6: A escrita no sistema está desativada!",
+        "7: Não foi possível abrir o zip para leitura!",
+        "8: Erro ao escrever o ficheiro de meta-dados dos dados guardados!",
+        "9: Erro ao transferir ficheiro!",
+        "10: Erro ao carregar ficheiro!",
+        "11: Erro ao processar os meta-dados dos dados guardados!",
+        "12: Erro ao criar o diretório de destino!",
+        "13: O backup tem de ser um zip para ser carregado!",
+        "14: Erro ao montar os dados guardados!",
+        "15: Erro ao fechar os dados guardados!"
     ],
     "BackupMenuStatus": [
-        "0: A processar ficheiro meta dos dados guardados...",
-        "1: A carregar #%s# para armazenamento remoto...",
-        "2: A atualizar #%s# no armazenamento remoto..."
+        "0: A processar ficheiro meta dos dados guardados..."
     ],
     "ControlGuides": [
-        "0: [A] Selecionar   [Y] Exportar Todos os Saves   [X] Opções do Utilizador",
-        "1: [A] Selecionar   [L] [R] Saltar   [Y] Favorito   [X] Opções do Título  [B] Voltar",
+        "0: [A] Selecionar   [Y] Fazer dump de todos os saves   [X] Opções do utilizador",
+        "1: [A] Selecionar   [L] [R] Saltar   [Y] Favoritos   [X] Opções do título  [B] Voltar",
         "2: [A] Selecionar  [Y] Restaurar  [X] Apagar  [ZR] Carregar  [B] Fechar",
         "3: [A] Alternar   [X] Predefinições   [B] Voltar"
     ],
     "ExtrasMenu": [
         "0: Reinicializar Dados",
-        "1: Navegador SD para SD",
+        "1: Browser SD para SD",
         "2: ProdInfoF",
         "3: Seguro",
         "4: Sistema",
@@ -39,26 +45,29 @@
     ],
     "ExtrasPops": [
         "0: Dados reinicializados!",
-        "1: Falha na reinicialização dos dados!"
+        "1: Falha ao reinicializar dados!"
     ],
     "GeneralPops": [
-        "0: Incapaz de sair do JKSV enquanto tarefas estão em execução!"
+        "0: Incapaz de sair do JKSV enquanto as tarefas estiverem a correr!"
     ],
     "GoogleDriveStrings": [
-        "0: Para continuar, aceda a #%s# e insira >%s>!",
+        "0: Para continuar, aceda a #%s# e introduza >%s<!",
         "1: Sessão iniciada com sucesso no Google Drive!",
         "2: Falha ao iniciar sessão no Google Drive!"
     ],
     "HoldingStrings": [
-        "0: Mantenha [A]",
-        "1: Continue a manter [A]",
+        "0: Mantenha premido [A]",
+        "1: Continue a manter premido [A]",
         "2: Quase lá! [A]"
     ],
     "IOStatuses": [
         "0: A copiar #%s#...",
         "1: A comprimir #%s# para ZIP...",
         "2: A descomprimir #%s# do ZIP...",
-        "3: A apagar #%s#..."
+        "3: A apagar #%s#...",
+        "4: A transferir #%s#...",
+        "5: A carregar #%s# para armazenamento remoto...",
+        "6: A atualizar #%s# no armazenamento remoto..."
     ],
     "IOPops": [
         "0: Erro ao gravar dados no dispositivo!"
@@ -71,12 +80,21 @@
         "4: Introduza um ID de save do sistema",
         "5: Introduza um novo nome para o item alvo.",
         "6: Introduza um nome para a nova pasta.",
-        "7: Introduza um novo nome para a pasta de saída para %s.",
-        "8: Introduza quanto expandir (em MB)."
+        "7: Introduza um novo nome para a pasta de saída de %s.",
+        "8: Introduza o quanto expandir (em MB)."
+    ],
+    "MainMenuConfs": [
+        "0: Tem a certeza que quer fazer backup dos dados guardados de todos os utilizadores deste sistema? Isto pode demorar *muito* tempo!"
+    ],
+    "MainMenuPops": [
+        "0: `%s` não tem dados guardados!"
     ],
     "OnOff": [
         "0: Desligado",
         "1: >Ligado>"
+    ],
+    "RemotePops": [
+        "0: Sem ligação à internet disponível!"
     ],
     "SaveCreatePops": [
         "0: Dados guardados criados para #%s#!",
@@ -90,78 +108,80 @@
         "3: Dispositivo",
         "4: Temporário",
         "5: Cache",
-        "6: BCAT do Sistema"
+        "6: BCAT do sistema"
     ],
     "SettingsDescriptions": [
         "0: Define a diretoria de trabalho para o JKSV. O valor por defeito é `sdmc:/JKSV`.",
-        "1: Permite remover títulos da lista negra.",
-        "2: Inclui saves de dispositivo ou partilhados com utilizadores.",
-        "3: Cria um backup automaticamente ao restaurar outro.",
-        "4: Dá nomes automáticos aos backups e ignora o teclado.",
-        "5: Faz upload automático dos backups para Google Drive ou WebDav e apaga-os localmente.",
-        "6: Define se é necessário manter [A] pressionado por três segundos para apagar backups.",
-        "7: Define se é necessário manter [A] pressionado por três segundos para restaurar backups.",
-        "8: Define se é necessário manter [A] pressionado por três segundos para sobrescrever backups.",
-        "9: Mostra apenas saves que o JKSV consegue abrir com sucesso.",
-        "10: Mostra saves de sistema com ID de conta associada.",
-        "11: Permite restaurar saves de sistema e gravar nas partições NAND.",
-        "12: Exporta saves para ficheiros ZIP em vez de pastas descompactadas.",
-        "13: Nível de compressão ou deflate usado ao escrever para ZIP. O valor padrão é 6. Valores mais baixos são mais rápidos, mas oferecem menos compressão e poupança de espaço. Zero é armazenar, ou sem compressão.",
-        "14: Controla a forma como os títulos são ordenados e exibidos.",
-        "15: Exibe títulos como menus de texto, como no JKSM original do 3DS, em vez de grelhas de ícones.",
-        "16: Força o uso do inglês como idioma em vez do idioma do sistema detectado.",
-        "17: Move backups apagados para a pasta _TRASH_ em vez de os apagar permanentemente.",
-        "18: Define a velocidade a que as transições e animações ocorrem. Valores mais baixos são mais rápidos."
+        "1: Permite remover títulos da blacklist.",
+        "2: Inclui saves de dispositivo, ou partilhados, com utilizadores.",
+        "3: Cria automaticamente um backup ao restaurar outro.",
+        "4: Nomeia backups automaticamente e ignora o teclado.",
+        "5: Carrega automaticamente backups para armazenamento remoto e apaga-os localmente.",
+        "6: Usa sempre IDs de aplicação para nomes de pastas de exportação.",
+        "7: Exige manter premido [A] por três segundos para apagar backups.",
+        "8: Exige manter premido [A] por três segundos para restaurar backups.",
+        "9: Exige manter premido [A] por três segundos para sobrescrever backups.",
+        "10: Apenas mostra saves que o JKSV consegue abrir com sucesso.",
+        "11: Mostra saves do sistema ligados a uma conta.",
+        "12: Ativa a restauração de saves do sistema e escrita nas partições NAND.",
+        "13: Exporta saves para arquivos ZIP em vez de pastas extraídas.",
+        "14: Nível de compressão ou deflate usado ao escrever para ZIP. O valor por defeito é 6. Valores mais baixos são mais rápidos, mas oferecem menos compressão e economia de espaço. Zero significa armazenar, ou sem compressão.",
+        "15: Controla a forma como os títulos são ordenados e exibidos.",
+        "16: Mostra títulos como menus de texto tal como o JKSM original no 3DS em vez de grelhas de ícones.",
+        "17: Obriga a usar inglês como língua em vez da língua do sistema detectada.",
+        "18: Move backups apagados para a pasta _TRASH_ em vez de os apagar permanentemente.",
+        "19: Define a velocidade das transições e animações. Valores mais baixos são mais rápidos."
     ],
     "SettingsMenu": [
         "0: Definir pasta de saída do JKSV.",
-        "1: Editar lista negra",
+        "1: Editar blacklist",
         "2: Incluir saves de dispositivo com utilizadores: %s",
-        "3: Backup automático na restauração: %s",
+        "3: Backup automático ao restaurar: %s",
         "4: Nomear backups automaticamente: %s",
-        "5: Fazer upload automático de backups para armazenamento remoto: %s",
-        "6: Manter para apagar backups: %s",
-        "7: Manter para restaurar backups: %s",
-        "8: Manter para sobrescrever backups: %s",
-        "9: Apenas listar títulos montáveis: %s",
-        "10: Mostrar saves de sistema de conta: %s",
-        "11: Ativar escrita em saves de sistema e NAND: %s",
-        "12: Exportar saves para ZIP: %s",
-        "13: Nível de compressão ZIP: %u",
-        "14: Tipo de ordenação de título: %s",
-        "15: Modo de menu de texto (JKSM): %s",
-        "16: Forçar inglês: %s",
-        "17: Ativar reciclagem: %s",
-        "18: Escala de animação: %.02f"
+        "5: Carregar backups automaticamente para armazenamento remoto: %s",
+        "6: Usar sempre IDs de aplicação: %s",
+        "7: Manter premido para apagar backups: %s",
+        "8: Manter premido para restaurar backups: %s",
+        "9: Manter premido para sobrescrever backups: %s",
+        "10: Mostrar apenas títulos montáveis: %s",
+        "11: Mostrar saves do sistema com conta: %s",
+        "12: Ativar escrita em saves do sistema e NAND: %s",
+        "13: Exportar saves para ZIP: %s",
+        "14: Nível de compressão ZIP: %u",
+        "15: Tipo de ordenação dos títulos: %s",
+        "16: Modo menu de texto (JKSM): %s",
+        "17: Forçar inglês: %s",
+        "18: Ativar contentor de lixo: %s",
+        "19: Escala de animação: %.02f"
     ],
     "SortTypes": [
         "0: Alfabeticamente",
-        "1: Mais Jogados",
-        "2: Últimos Jogados"
+        "1: Mais jogados",
+        "2: Últimos jogados"
     ],
     "TitleInfo": [
-        "0: ID do App: %016lX",
+        "0: ID da App: %016lX",
         "1: ID do Save: %016lx",
-        "2: Primeiro Jogar: %x - %X",
-        "3: Último Jogar: %x - %X",
-        "4: Tempo de Jogo: %02d:%02d:%02d",
-        "5: Inícios: %i",
-        "6: Tipo de Save: %s"
+        "2: Primeiro jogo: %x - %X",
+        "3: Último jogo: %x - %X",
+        "4: Tempo de jogo: %02d:%02d:%02d",
+        "5: Lançamentos: %i",
+        "6: Tipo de save: %s"
     ],
     "TitleOptionConfirmations": [
-        "0: Tem a certeza que quer adicionar #%s# à sua lista negra? Uma vez adicionado, não aparecerá em nenhuma lista ou seleção de títulos.",
+        "0: Tem a certeza que quer adicionar #%s# à sua blacklist? Depois de o fazer, não aparecerá em nenhuma lista ou seleção de títulos.",
         "1: Tem a certeza que quer apagar todos os backups atuais para #%s#? *Isto não pode ser desfeito!*",
-        "2: Tem a certeza que quer reiniciar os dados guardados para #%s#? *Isto apagará os dados guardados como se o título nunca tivesse sido executado!*",
-        "3: Tem a certeza que quer apagar os dados guardados de `%s` para #%s#? *Isto apagará permanentemente do sistema.*"
+        "2: Tem a certeza que quer reiniciar os dados guardados para #%s#? *Isto irá apagar os dados guardados atuais como se o título nunca tivesse sido jogado!*",
+        "3: Tem a certeza que quer apagar os dados guardados de `%s` para #%s#? *Isto irá apagar permanentemente do sistema.*"
     ],
     "TitleOptionPops": [
-        "0: Todos os backups apagados para `%s`!",
+        "0: Todos os backups apagados para #%s#!",
         "1: Falha ao apagar todos os backups!",
-        "2: Erro ao reiniciar dados guardados!",
+        "2: Falha ao reiniciar dados guardados!",
         "3: Dados guardados reiniciados com sucesso!",
         "4: Ficheiro SVI exportado com sucesso!",
-        "5: Erro ao exportar ficheiro SVI!",
-        "6: Esta opção não está disponível para saves de sistema!",
+        "5: Falha ao exportar ficheiro SVI!",
+        "6: Esta opção não está disponível para saves do sistema!",
         "7: Não foi possível sanitizar o caminho para uso!",
         "8: Pasta de saída definida para #%s#.",
         "9: Erro ao definir novo caminho de saída!",
@@ -176,14 +196,15 @@
     ],
     "TitleOptions": [
         "0: Informação",
-        "1: Lista negra do título",
+        "1: Colocar título na blacklist",
         "2: Alterar pasta de saída",
         "3: Abrir em modo ficheiro",
-        "4: Apagar todos os backups guardados",
-        "5: Reiniciar dados guardados.",
-        "6: Apagar dados guardados do sistema",
-        "7: Estender dados guardados",
-        "8: Exportar ficheiro SVI"
+        "4: Apagar todos os backups locais",
+        "5: Apagar todos os backups remotos",
+        "6: Reiniciar dados guardados",
+        "7: Apagar dados guardados do sistema",
+        "8: Estender dados guardados",
+        "9: Exportar ficheiro SVI"
     ],
     "TranslationInfo": [
         "0: Traduzido por: %s",
@@ -199,7 +220,7 @@
         "1: A apagar dados guardados para #%s#..."
     ],
     "UserOptions": [
-        "0: Exportar tudo para `%s`",
+        "0: Fazer dump de tudo para `%s`",
         "1: Criar dados guardados para `%s`",
         "2: Criar todos os dados guardados para `%s`",
         "3: Apagar todos os dados guardados para `%s`"

@@ -3,50 +3,56 @@
         "0: Nuovo backup"
     ],
     "BackupMenuConfirmations": [
-        "0: Sei sicuro di voler davvero sovrascrivere #%s#?",
-        "1: Sei sicuro di voler davvero ripristinare #%s#?",
-        "2: Sei sicuro di voler davvero eliminare #%s#?"
+        "0: Sei sicuro di voler sovrascrivere #%s#?",
+        "1: Sei sicuro di voler ripristinare #%s#?",
+        "2: Sei sicuro di voler eliminare #%s#?"
     ],
     "BackupMenuPops": [
         "0: I dati di salvataggio sono vuoti!",
         "1: Il backup è vuoto!",
         "2: Errore durante il reset dei dati di salvataggio!",
-        "3: Errore nell'apertura del file ZIP per la lettura!",
+        "3: Errore nell'apertura del file ZIP in lettura!",
         "4: Errore durante l'eliminazione del backup!",
         "5: Errore durante la creazione del backup!",
         "6: La scrittura sul sistema è disabilitata!",
-        "7: Impossibile aprire il file zip per la lettura!"
+        "7: Impossibile aprire il file ZIP in lettura!",
+        "8: Errore durante la scrittura del file meta dei dati di salvataggio!",
+        "9: Errore nel download del file!",
+        "10: Errore nell'upload del file!",
+        "11: Errore durante l'elaborazione dei metadati dei dati di salvataggio!",
+        "12: Errore durante la creazione della directory di destinazione!",
+        "13: Il backup deve essere un file ZIP per essere caricato!",
+        "14: Errore nel montaggio dei dati di salvataggio!",
+        "15: Errore nella chiusura dei dati di salvataggio!"
     ],
     "BackupMenuStatus": [
-        "0: Elaborazione del file meta dei dati di salvataggio...",
-        "1: Caricamento di #%s# nello storage remoto...",
-        "2: Aggiornamento di #%s# nello storage remoto..."
+        "0: Elaborazione del file meta dei dati di salvataggio..."
     ],
     "ControlGuides": [
-        "0: [A] Seleziona   [Y] Esporta tutti i salvataggi   [X] Opzioni utente",
+        "0: [A] Seleziona   [Y] Dumpa tutti i salvataggi   [X] Opzioni utente",
         "1: [A] Seleziona   [L] [R] Salta   [Y] Preferito   [X] Opzioni titolo  [B] Indietro",
         "2: [A] Seleziona  [Y] Ripristina  [X] Elimina  [ZR] Carica  [B] Chiudi",
-        "3: [A] Attiva/disattiva   [X] Predefiniti   [B] Indietro"
+        "3: [A] Alterna   [X] Predefiniti   [B] Indietro"
     ],
     "ExtrasMenu": [
         "0: Reinizializza dati",
-        "1: Browser SD verso SD",
+        "1: Browser da SD a SD",
         "2: ProdInfoF",
-        "3: Sicurezza",
+        "3: Sicuro",
         "4: Sistema",
         "5: Utente",
         "6: Termina processo"
     ],
     "ExtrasPops": [
         "0: Dati reinizializzati!",
-        "1: Reinizo dei dati fallito!"
+        "1: Reinizializzazione dati fallita!"
     ],
     "GeneralPops": [
-        "0: Impossibile uscire da JKSV mentre ci sono attività in esecuzione!"
+        "0: Impossibile uscire da JKSV mentre sono in esecuzione operazioni!"
     ],
     "GoogleDriveStrings": [
         "0: Per continuare, vai su #%s# e inserisci >%s>!",
-        "1: Accesso a Google Drive effettuato con successo!",
+        "1: Accesso a Google Drive riuscito!",
         "2: Accesso a Google Drive fallito!"
     ],
     "HoldingStrings": [
@@ -58,30 +64,42 @@
         "0: Copia di #%s# in corso...",
         "1: Compressione di #%s# in ZIP...",
         "2: Decompressione di #%s# da ZIP...",
-        "3: Eliminazione di #%s# in corso..."
+        "3: Eliminazione di #%s#...",
+        "4: Download di #%s#...",
+        "5: Upload di #%s# verso lo storage remoto...",
+        "6: Aggiornamento di #%s# sullo storage remoto..."
     ],
     "IOPops": [
-        "0: Errore durante il salvataggio dei dati sul dispositivo!"
+        "0: Errore nel commit dei dati sul dispositivo!"
     ],
     "KeyboardStrings": [
         "0: Inserisci un nuovo nome per il backup.",
-        "1: Inserisci indice cache.",
+        "1: Inserisci l'indice della cache.",
         "2: Inserisci un nuovo percorso di output per JKSV",
-        "3: Inserisci ID processo da terminare.",
-        "4: Inserisci un ID salvataggio sistema",
-        "5: Inserisci un nuovo nome per l'elemento target.",
+        "3: Inserisci l'ID del processo da terminare.",
+        "4: Inserisci un ID di salvataggio di sistema",
+        "5: Inserisci un nuovo nome per l'elemento di destinazione.",
         "6: Inserisci un nome per la nuova cartella.",
-        "7: Inserisci un nuovo nome per la cartella di output di %s.",
+        "7: Inserisci un nuovo nome per la cartella di output per %s.",
         "8: Inserisci quanto espandere (in MB)."
+    ],
+    "MainMenuConfs": [
+        "0: Sei sicuro di voler fare il backup dei dati di salvataggio per tutti gli utenti su questo sistema? Potrebbe richiedere *molto* tempo!"
+    ],
+    "MainMenuPops": [
+        "0: `%s` non ha dati di salvataggio!"
     ],
     "OnOff": [
         "0: Spento",
         "1: >Acceso>"
     ],
+    "RemotePops": [
+        "0: Connessione internet non disponibile!"
+    ],
     "SaveCreatePops": [
         "0: Dati di salvataggio creati per #%s#!",
-        "1: Errore durante la creazione dei dati di salvataggio!",
-        "2: Errore durante l'eliminazione dei dati di salvataggio!"
+        "1: Errore nella creazione dei dati di salvataggio!",
+        "2: Errore nell'eliminazione dei dati di salvataggio!"
     ],
     "SaveDataTypes": [
         "0: Sistema",
@@ -94,112 +112,115 @@
     ],
     "SettingsDescriptions": [
         "0: Imposta la directory di lavoro per JKSV. Il valore predefinito è `sdmc:/JKSV`.",
-        "1: Permette di rimuovere titoli dalla lista nera.",
-        "2: Include salvataggi di dispositivo o condivisi con gli utenti.",
-        "3: Crea automaticamente un backup quando se ne ripristina un altro.",
-        "4: Nomina automaticamente i backup e salta la tastiera.",
-        "5: Carica automaticamente i backup su Google Drive o WebDav e li elimina localmente.",
-        "6: Indica se tenere premuto [A] per tre secondi è richiesto per eliminare i backup.",
-        "7: Indica se tenere premuto [A] per tre secondi è richiesto per ripristinare i backup.",
-        "8: Indica se tenere premuto [A] per tre secondi è richiesto per sovrascrivere i backup.",
-        "9: Mostra solo i dati di salvataggio che JKSV può aprire con successo.",
-        "10: Mostra i salvataggi di sistema che hanno un ID account associato.",
-        "11: Permette di ripristinare salvataggi di sistema e scrivere sulle partizioni NAND.",
-        "12: Esporta i dati di salvataggio in archivi ZIP invece di cartelle non compresse.",
-        "13: Livello di compressione o deflate usato per scrivere ZIP. Il valore predefinito è 6. Valori più bassi sono più veloci ma offrono meno compressione. Zero significa senza compressione.",
-        "14: Controlla come i titoli sono ordinati e mostrati.",
-        "15: Mostra i titoli come menu di testo come nel JKSM originale su 3DS invece delle griglie di icone.",
-        "16: Forza l’uso dell’inglese come lingua invece di quella di sistema rilevata.",
-        "17: Sposta i backup eliminati nella cartella _TRASH_ invece di eliminarli permanentemente.",
-        "18: Imposta la velocità con cui avvengono transizioni e animazioni. Più basso è più veloce."
+        "1: Permette di rimuovere titoli dalla blacklist.",
+        "2: Include salvataggi di dispositivo, o condivisi, con gli utenti.",
+        "3: Crea un backup automaticamente quando si ripristina un altro.",
+        "4: Assegna automaticamente il nome ai backup e salta la tastiera.",
+        "5: Carica automaticamente i backup sul remoto e li elimina localmente.",
+        "6: Usa sempre gli ID applicazione per i nomi delle cartelle di esportazione.",
+        "7: Richiede di tenere premuto [A] per tre secondi per cancellare i backup.",
+        "8: Richiede di tenere premuto [A] per tre secondi per ripristinare i backup.",
+        "9: Richiede di tenere premuto [A] per tre secondi per sovrascrivere i backup.",
+        "10: Mostra solo i dati di salvataggio che JKSV può aprire con successo.",
+        "11: Mostra i salvataggi di sistema che hanno un ID account associato.",
+        "12: Abilita il ripristino dei salvataggi di sistema e la scrittura nelle partizioni NAND.",
+        "13: Esporta i salvataggi in archivi ZIP invece di cartelle scompattate.",
+        "14: Livello di compressione o deflate usato nella scrittura ZIP. Il valore predefinito è 6. Valori più bassi sono più veloci ma offrono meno compressione e risparmio di spazio. Zero significa archivio, senza compressione.",
+        "15: Controlla il modo in cui i titoli sono ordinati e mostrati.",
+        "16: Mostra i titoli come menu di testo come il JKSM originale su 3DS invece di griglie di icone.",
+        "17: Forza l’inglese come lingua invece della lingua di sistema rilevata.",
+        "18: Sposta i backup cancellati nella cartella _TRASH_ invece di eliminarli definitivamente.",
+        "19: Imposta la velocità con cui avvengono transizioni e animazioni. Più basso è più veloce."
     ],
     "SettingsMenu": [
         "0: Imposta la cartella di output di JKSV.",
-        "1: Modifica lista nera",
+        "1: Modifica blacklist",
         "2: Includi salvataggi dispositivo con gli utenti: %s",
         "3: Backup automatico al ripristino: %s",
-        "4: Nomina automatica backup: %s",
-        "5: Caricamento automatico backup su storage remoto: %s",
-        "6: Tieni premuto per eliminare backup: %s",
-        "7: Tieni premuto per ripristinare backup: %s",
-        "8: Tieni premuto per sovrascrivere backup: %s",
-        "9: Mostra solo titoli montabili: %s",
-        "10: Mostra salvataggi sistema con account: %s",
-        "11: Abilita scrittura su salvataggi sistema e NAND: %s",
-        "12: Esporta salvataggi in ZIP: %s",
-        "13: Livello compressione ZIP: %u",
-        "14: Tipo ordinamento titoli: %s",
-        "15: Modalità menu testo (JKSM): %s",
-        "16: Forza inglese: %s",
-        "17: Abilita cestino: %s",
-        "18: Scala animazioni: %.02f"
+        "4: Nome automatico dei backup: %s",
+        "5: Upload automatico dei backup su storage remoto: %s",
+        "6: Usa sempre ID applicazione: %s",
+        "7: Tieni premuto per cancellare backup: %s",
+        "8: Tieni premuto per ripristinare backup: %s",
+        "9: Tieni premuto per sovrascrivere backup: %s",
+        "10: Mostra solo titoli montabili: %s",
+        "11: Mostra salvataggi di sistema con account: %s",
+        "12: Abilita scrittura su salvataggi sistema e NAND: %s",
+        "13: Esporta salvataggi in ZIP: %s",
+        "14: Livello compressione ZIP: %u",
+        "15: Tipo di ordinamento titoli: %s",
+        "16: Modalità menu testo (JKSM): %s",
+        "17: Forza inglese: %s",
+        "18: Abilita cestino: %s",
+        "19: Scala animazioni: %.02f"
     ],
     "SortTypes": [
         "0: Alfabetico",
         "1: Più giocati",
-        "2: Ultima partita"
+        "2: Ultimo giocato"
     ],
     "TitleInfo": [
         "0: ID App: %016lX",
         "1: ID Salvataggio: %016lx",
-        "2: Prima partita: %x - %X",
-        "3: Ultima partita: %x - %X",
+        "2: Prima esecuzione: %x - %X",
+        "3: Ultima esecuzione: %x - %X",
         "4: Tempo di gioco: %02d:%02d:%02d",
-        "5: Lanci: %i",
+        "5: Avvii: %i",
         "6: Tipo di salvataggio: %s"
     ],
     "TitleOptionConfirmations": [
-        "0: Sei sicuro di voler aggiungere #%s# alla lista nera? Una volta fatto, non apparirà più in nessuna lista o selezione titoli.",
-        "1: Sei sicuro di voler eliminare tutti i backup attuali per #%s#? *Questa azione è irreversibile!*",
-        "2: Sei sicuro di voler resettare i dati di salvataggio per #%s#? *Questo eliminerà i dati come se il titolo non fosse mai stato avviato!*",
-        "3: Sei sicuro di voler eliminare i dati di salvataggio di `%s` per #%s#? *Questa azione li cancellerà definitivamente dal sistema.*"
+        "0: Sei sicuro di voler aggiungere #%s# alla blacklist? Una volta fatto, non apparirà più in nessuna lista o selezione.",
+        "1: Sei sicuro di voler cancellare tutti i backup attuali per #%s#? *Questa azione non può essere annullata!*",
+        "2: Sei sicuro di voler resettare i dati di salvataggio per #%s#? *Questo eliminerà i dati attuali come se il titolo non fosse mai stato avviato!*",
+        "3: Sei sicuro di voler cancellare i dati di salvataggio di `%s` per #%s#? *Questa azione li eliminerà definitivamente dal sistema.*"
     ],
     "TitleOptionPops": [
-        "0: Tutti i backup eliminati per `%s`!",
-        "1: Fallito nell'eliminazione di tutti i backup!",
-        "2: Errore nel reset dei dati di salvataggio!",
+        "0: Tutti i backup eliminati per #%s#!",
+        "1: Fallito nell’eliminare tutti i backup!",
+        "2: Errore nel resettare i dati di salvataggio!",
         "3: Dati di salvataggio resettati con successo!",
         "4: File SVI esportato con successo!",
-        "5: Errore nell'esportazione del file SVI!",
+        "5: Errore nell’esportazione del file SVI!",
         "6: Questa opzione non è disponibile per i salvataggi di sistema!",
-        "7: Impossibile sanificare il percorso per l'uso!",
+        "7: Impossibile sanificare il percorso per l’uso!",
         "8: Cartella di output impostata su #%s#.",
-        "9: Errore nell'impostazione del nuovo percorso di output!",
+        "9: Errore nell’impostare il nuovo percorso di output!",
         "10: Dati di salvataggio estesi con successo!",
-        "11: Estensione dei dati di salvataggio fallita!"
+        "11: Fallito nell’estendere i dati di salvataggio!"
     ],
     "TitleOptionStatus": [
         "0: Eliminazione di tutti i backup per #%s#.",
-        "1: Reset dei dati di salvataggio per #%s#.",
-        "2: Eliminazione dei dati di salvataggio di #%s# per #%s#...",
+        "1: Resettaggio dei dati di salvataggio per #%s#.",
+        "2: Eliminazione dei dati di salvataggio di `%s` per #%s#...",
         "3: Estensione dei dati di salvataggio di `%s` per #%s#..."
     ],
     "TitleOptions": [
         "0: Informazioni",
-        "1: Lista nera titolo",
+        "1: Lista nera",
         "2: Cambia cartella di output",
         "3: Apri in modalità file",
-        "4: Elimina tutti i backup",
-        "5: Resetta dati di salvataggio.",
-        "6: Elimina dati di salvataggio dal sistema",
-        "7: Estendi dati di salvataggio",
-        "8: Esporta file SVI"
+        "4: Elimina tutti i backup locali",
+        "5: Elimina tutti i backup remoti",
+        "6: Resetta dati di salvataggio",
+        "7: Elimina dati di salvataggio dal sistema",
+        "8: Estendi dati di salvataggio",
+        "9: Esporta file SVI"
     ],
     "TranslationInfo": [
         "0: Tradotto da: %s",
         "1: NULL"
     ],
     "UserOptionConfirmations": [
-        "0: Sei sicuro di voler fare il backup dei dati di salvataggio per ogni titolo trovato per `%s`? Questo potrebbe richiedere del tempo.",
-        "1: Sei sicuro di voler creare dati di salvataggio per tutti i titoli trovati sul tuo sistema per `%s`? Questo potrebbe richiedere del tempo.",
-        "2: Sei sicuro di voler eliminare tutti i dati di salvataggio per `%s`? Questa è un’operazione *PERMANENTE* e non può essere annullata."
+        "0: Sei sicuro di voler fare il backup di tutti i dati per `%s`? Potrebbe richiedere un po’ di tempo.",
+        "1: Sei sicuro di voler creare dati di salvataggio per tutti i titoli trovati nel sistema per `%s`? Potrebbe richiedere un po’ di tempo.",
+        "2: Sei sicuro di voler eliminare tutti i dati di salvataggio per `%s`? Questa è un’azione *PERMANENTE* e non reversibile."
     ],
     "UserOptionStatus": [
-        "0: Creazione dei dati di salvataggio per #%s#...",
-        "1: Eliminazione dei dati di salvataggio per #%s#..."
+        "0: Creazione dati di salvataggio per #%s#...",
+        "1: Eliminazione dati di salvataggio per #%s#..."
     ],
     "UserOptions": [
-        "0: Esporta tutto per `%s`",
+        "0: Dumpa tutto per `%s`",
         "1: Crea dati di salvataggio per `%s`",
         "2: Crea tutti i dati di salvataggio per `%s`",
         "3: Elimina tutti i dati di salvataggio per `%s`"
