@@ -9,7 +9,7 @@
 #include "tasks/backup.hpp"
 #include "ui/ui.hpp"
 
-void tasks::useroptions::backup_all_for_user_local(sys::ProgressTask *task, UserOptionState::TaskData taskData, bool killTask)
+void tasks::useroptions::backup_all_for_user_local(sys::ProgressTask *task, UserOptionState::TaskData taskData)
 {
     if (error::is_null(task)) { return; }
 
@@ -37,16 +37,23 @@ void tasks::useroptions::backup_all_for_user_local(sys::ProgressTask *task, User
         const bool createError  = !targetExists && error::fslib(fslib::create_directories_recursively(targetDir));
         if (!targetExists && createError) { continue; }
 
-        fslib::Path target{targetDir / user->get_path_safe_nickname() + " - " + stringutil::get_date_string()};
-        if (exportToZip) { target += ".zip"; }
+        const char *pathSafe         = user->get_path_safe_nickname();
+        const std::string dateString = stringutil::get_date_string();
+        const std::string name       = stringutil::get_formatted_string("%s - %s", pathSafe, dateString.c_str());
+        fslib::Path finalTarget{targetDir / name};
+        if (exportToZip) { finalTarget += ".zip"; }
+        else
+        {
+            const bool createError = error::fslib(fslib::create_directory(finalTarget));
+            if (createError) { continue; }
+        }
 
-        tasks::backup::create_new_backup_local(task, user, titleInfo, target, nullptr, false);
+        tasks::backup::create_new_backup_local(task, user, titleInfo, finalTarget, nullptr, false);
     }
-
-    if (killTask) { task->finished() };
+    task->finished();
 }
 
-void tasks::useroptions::backup_all_for_user_remote(sys::ProgressTask *task, UserOptionState::TaskData taskData, bool killTask)
+void tasks::useroptions::backup_all_for_user_remote(sys::ProgressTask *task, UserOptionState::TaskData taskData)
 {
     if (error::is_null(task)) { return; }
 
@@ -84,8 +91,7 @@ void tasks::useroptions::backup_all_for_user_remote(sys::ProgressTask *task, Use
 
         remote->return_to_root();
     }
-
-    if (killTask) { task->finished() };
+    task->finished();
 }
 
 void tasks::useroptions::create_all_save_data_for_user(sys::Task *task, UserOptionState::TaskData taskData)

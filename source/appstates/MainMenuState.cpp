@@ -12,6 +12,7 @@
 #include "config.hpp"
 #include "input.hpp"
 #include "logger.hpp"
+#include "remote/remote.hpp"
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
@@ -167,6 +168,12 @@ void MainMenuState::create_user_options()
 
 void MainMenuState::backup_all_for_all()
 {
-    const char *query = strings::get_by_name(strings::names::MAINMENU_CONFS, 0);
-    ProgressConfirm::create_and_push(query, true, tasks::mainmenu::backup_all_for_all_users, m_dataStruct);
+    remote::Storage *remote = remote::get_remote_storage();
+    const bool autoUpload   = config::get_by_key(config::keys::AUTO_UPLOAD);
+    const char *query       = strings::get_by_name(strings::names::MAINMENU_CONFS, 0);
+    if (remote && autoUpload)
+    {
+        ProgressConfirm::create_and_push(query, true, tasks::mainmenu::backup_all_for_all_remote, m_dataStruct);
+    }
+    else { ProgressConfirm::create_and_push(query, true, tasks::mainmenu::backup_all_for_all_local, m_dataStruct); }
 }

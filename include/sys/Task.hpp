@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -23,6 +24,7 @@ namespace sys
             Task(void (*function)(sys::Task *, Args...), Args... args)
             {
                 m_thread = std::thread(function, this, std::forward<Args>(args)...);
+                m_isRunning.store(true);
             }
 
             /// @brief Alternate version of the above that allows derived classes to pass themselves to the thread instead.
@@ -34,6 +36,7 @@ namespace sys
             Task(void (*function)(TaskType *, Args...), TaskType *task, Args... args)
             {
                 m_thread = std::thread(function, task, std::forward<Args>(args)...);
+                m_isRunning.store(true);
             }
 
             /// @brief Required destructor.
@@ -56,11 +59,14 @@ namespace sys
 
         private:
             // Whether task is still running.
-            bool m_isRunning = true;
+            std::atomic<bool> m_isRunning;
+
             // Status string the thread can set that the main thread can display.
             std::string m_status;
+
             // Mutex so that string doesn't get messed up.
             std::mutex m_statusLock;
+
             // Thread
             std::thread m_thread;
     };

@@ -3,26 +3,71 @@
 #include "config.hpp"
 #include "data/data.hpp"
 #include "error.hpp"
+#include "fs/fs.hpp"
 #include "remote/remote.hpp"
 #include "stringutil.hpp"
-#include "tasks/useroptions.hpp" // We're going to use the function from here.
+#include "tasks/backup.hpp"
 
-void tasks::mainmenu::backup_all_for_all_users(sys::ProgressTask *task, MainMenuState::TaskData taskData)
+void tasks::mainmenu::backup_all_for_all_local(sys::ProgressTask *task, MainMenuState::TaskData taskData)
 {
     if (error::is_null(task)) { return; }
 
-    remote::Storage *remote  = remote::get_remote_storage();
-    const bool autoUpload    = config::get_by_key(config::keys::AUTO_UPLOAD);
     const bool exportZip     = config::get_by_key(config::keys::EXPORT_TO_ZIP);
     data::UserList &userList = taskData->userList;
 
-    // Using this to make use of the user option functions.
-    auto placeHolder           = std::make_shared<UserOptionState::DataStruct>();
-    placeHolder->spawningState = nullptr;
-
     for (data::User *user : userList)
     {
-        placeHolder->user = user;
+        const int64_t titleCount = user->get_total_data_entries();
+        for (int64_t i = 0; i < titleCount; i++)
+        {
+            if (user->get_account_save_type() == FsSaveDataType_System) { continue; }
+
+            const FsSaveDataInfo *saveInfo = user->get_save_info_at(i);
+            if (error::is_null(saveInfo)) { continue; }
+
+            {
+                fs::ScopedSaveMount scopedMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
+                if (!scopedMount.is_open() || !fs::directory_has_contents(fs::DEFAULT_SAVE_ROOT)) { continue; }
+            }
+
+            const uint64_t applicationID = saveInfo->application_id;
+            data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
+            if (error::is_null(titleInfo)) { continue; }
+
+            const fslib::Path workDir   = config::get_working_directory();
+            const fslib::Path targetDir = workDir / titleInfo->get_path_safe_title();
+            const bool exists           = fslib::directory_exists(targetDir);
+            const bool createError      = !exists && error::fslib(fslib::create_directories_recursively(targetDir));
+            if (!exists && createError) { continue; }
+
+            const char *pathSafe         = user->get_path_safe_nickname();
+            const std::string dateString = stringutil::get_date_string();
+            std::string name             = stringutil::get_formatted_string("%s - %s", pathSafe, dateString.c_str());
+            fslib::Path finalTarget{targetDir / name};
+            if (exportZip) { finalTarget += ".zip"; }
+            else
+            {
+                const bool createError = error::fslib(fslib::create_directory(finalTarget));
+                if (createError) { continue; }
+            }
+
+            tasks::backup::create_new_backup_local(task, user, titleInfo, finalTarget, nullptr, false);
+        }
+    }
+    task->finished();
+}
+
+void tasks::mainmenu::backup_all_for_all_remote(sys::ProgressTask *task, MainMenuState::TaskData taskData)
+{
+    if (error::is_null(task)) { return; }
+
+    remote::Storage *remote = remote::get_remote_storage();
+    if (error::is_null(remote)) { TASK_FINISH_RETURN(task); }
+
+    const data::UserList &userList = taskData->userList;
+    for (data::User *user : userList)
+    {
+        if (user->get_account_save_type() == FsSaveDataType_System) { continue; }
 
         const int64_t titleCount = user->get_total_data_entries();
         for (int64_t i = 0; i < titleCount; i++)
@@ -30,17 +75,31 @@ void tasks::mainmenu::backup_all_for_all_users(sys::ProgressTask *task, MainMenu
             const FsSaveDataInfo *saveInfo = user->get_save_info_at(i);
             if (error::is_null(saveInfo)) { continue; }
 
+            {
+                fs::ScopedSaveMount scopedMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
+                if (!scopedMount.is_open() || !fs::directory_has_contents(fs::DEFAULT_SAVE_ROOT)) { continue; }
+            }
+
             const uint64_t applicationID = saveInfo->application_id;
             data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
             if (error::is_null(titleInfo)) { continue; }
 
-            const std::string name = user->get_path_safe_nickname() + " - " + stringutil::get_date_string();
-            if (exportZip || autoUpload) { name += ".zip"; }
+            const std::string_view remoteTitle =
+                remote->supports_utf8() ? titleInfo->get_title() : titleInfo->get_path_safe_title();
+            const bool exists  = remote->directory_exists(remoteTitle);
+            const bool created = !exists && remote->create_directory(remoteTitle);
+            if (!exists && !created) { continue; }
 
-            if (remote && autoUpload) { tasks::useroptions::backup_all_for_user_remote(task, placeHolder, false); }
-            else { tasks::useroptions::backup_all_for_user_local(task, placeHolder, false); }
+            remote::Item *targetDir = remote->get_directory_by_name(remoteTitle);
+            remote->change_directory(targetDir);
+
+            const char *pathSafe         = user->get_path_safe_nickname();
+            const std::string dateString = stringutil::get_date_string();
+            const std::string remoteName = stringutil::get_formatted_string("%s - %s.zip", pathSafe, dateString.c_str());
+
+            tasks::backup::create_new_backup_remote(task, user, titleInfo, remoteName, nullptr, false);
+            remote->return_to_root();
         }
     }
-
     task->finished();
 }

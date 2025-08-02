@@ -10,9 +10,9 @@ namespace
 
 sys::Task::~Task() { m_thread.join(); }
 
-bool sys::Task::is_running() const { return m_isRunning; }
+bool sys::Task::is_running() const { return m_isRunning.load(); }
 
-void sys::Task::finished() { m_isRunning = false; }
+void sys::Task::finished() { m_isRunning.store(false); }
 
 void sys::Task::set_status(std::string_view status)
 {

@@ -141,9 +141,9 @@ void UserOptionState::backup_all()
     const std::string query = stringutil::get_formatted_string(confirmFormat, nickname);
     if (remote && autoUpload)
     {
-        ProgressConfirm::create_and_push(query, true, tasks::useroptions::backup_all_for_user_remote, m_dataStruct, false);
+        ProgressConfirm::create_and_push(query, true, tasks::useroptions::backup_all_for_user_remote, m_dataStruct);
     }
-    else { ProgressConfirm::create_and_push(query, true, tasks::useroptions::backup_all_for_user_local, m_dataStruct, false); }
+    else { ProgressConfirm::create_and_push(query, true, tasks::useroptions::backup_all_for_user_local, m_dataStruct); }
 }
 
 void UserOptionState::create_save_create() { SaveCreateState::create_and_push(m_user, m_titleSelect); }
