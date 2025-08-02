@@ -192,7 +192,8 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source, std::string_vie
         return false;
     }
 
-    if (task) { task->reset(static_cast<double>(sourceFile.get_size())); }
+    const int64_t sourceSize = sourceFile.get_size();
+    if (task) { task->reset(static_cast<double>(sourceSize)); }
 
     std::string response;
     curl::UploadStruct uploadData = {.source = &sourceFile, .task = task};
@@ -215,22 +216,16 @@ bool remote::GoogleDrive::upload_file(const fslib::Path &source, std::string_vie
 
     json_object *id       = json::get_object(responseParser, JSON_KEY_ID);
     json_object *filename = json::get_object(responseParser, JSON_KEY_NAME);
-    json_object *mimeType = json::get_object(responseParser, JSON_KEY_MIMETYPE);
-    json_object *size     = json::get_object(responseParser, "size");
-    // All of these are needed for the emplace_back.
-    if (!id || !filename || !mimeType)
+    if (!id || !filename)
     {
         logger::log("Error uploading file: server response is missing data required.");
         return false;
     }
 
-    m_list.emplace_back(json_object_get_string(filename),
-                        json_object_get_string(id),
-                        m_parent,
-                        json_object_get_uint64(size),
-                        std::strcmp(MIME_TYPE_DIRECTORY, json_object_get_string(mimeType)) == 0);
+    const char *idString   = json_object_get_string(id);
+    const char *nameString = json_object_get_string(filename);
+    m_list.emplace_back(nameString, idString, m_parent, sourceSize, false);
 
-    // Assume everything is fine!
     return true;
 }
 
@@ -311,12 +306,12 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
 
     remote::URL url{URL_DRIVE_FILE_API};
     url.append_path(file->get_id()).append_parameter("alt", "media");
+    logger::log("%s", url.get());
 
     curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = itemSize};
     curl::prepare_get(m_curl);
     curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
     curl::set_option(m_curl, CURLOPT_URL, url.get());
-    // This is temporary until I get threading figured out again.
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::download_file_threaded);
     curl::set_option(m_curl, CURLOPT_WRITEDATA, &download);
 
