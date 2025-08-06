@@ -48,6 +48,10 @@ class SettingsState final : public BaseState
         /// @brief Runs a routine to update the menu strings for the menu.
         void update_menu_options();
 
+        void change_working_directory();
+
+        void create_push_blacklist_edit();
+
         /// @brief Toggles or executes the code to changed the selected menu option.
         void toggle_options();
 

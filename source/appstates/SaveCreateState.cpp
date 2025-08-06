@@ -22,13 +22,19 @@
 static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB);
 
 SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelect)
-    : m_user{user}
-    , m_titleSelect{titleSelect}
-    , m_saveMenu{8, 8, 624, 22, 720}
+    : m_user(user)
+    , m_titleSelect(titleSelect)
+    , m_saveMenu(ui::Menu::create(8, 8, 624, 22, 720))
 {
     SaveCreateState::initialize_static_members();
     SaveCreateState::initialize_title_info_vector();
     SaveCreateState::initialize_menu();
+}
+
+SaveCreateState::~SaveCreateState()
+{
+    sm_slidePanel->clear_elements();
+    sm_slidePanel->reset();
 }
 
 std::shared_ptr<SaveCreateState> SaveCreateState::create(data::User *user, TitleSelectCommon *titleSelect)
@@ -47,7 +53,6 @@ void SaveCreateState::update()
 {
     const bool hasFocus = BaseState::has_focus();
 
-    m_saveMenu.update(hasFocus);
     sm_slidePanel->update(hasFocus);
 
     const bool aPressed    = input::button_pressed(HidNpadButton_A);
@@ -63,11 +68,7 @@ void SaveCreateState::update()
 
     if (aPressed) { SaveCreateState::create_save_data_for(); }
     else if (bPressed) { sm_slidePanel->close(); }
-    else if (panelClosed)
-    {
-        sm_slidePanel->reset();
-        BaseState::deactivate();
-    }
+    else if (panelClosed) { BaseState::deactivate(); }
 }
 
 void SaveCreateState::render()
@@ -76,8 +77,7 @@ void SaveCreateState::render()
 
     // Clear slide target, render menu, render slide to frame buffer.
     sm_slidePanel->clear_target();
-    m_saveMenu.render(sm_slidePanel->get_target(), hasFocus);
-    sm_slidePanel->render(NULL, hasFocus);
+    sm_slidePanel->render(sdl::Texture::Null, hasFocus);
 }
 
 void SaveCreateState::refresh_required() { m_refreshRequired.store(true); }
@@ -100,13 +100,14 @@ void SaveCreateState::initialize_menu()
     for (data::TitleInfo *titleInfo : m_titleInfoVector)
     {
         const std::string_view title = titleInfo->get_title();
-        m_saveMenu.add_option(title);
+        m_saveMenu->add_option(title);
     }
+    sm_slidePanel->push_new_element(m_saveMenu);
 }
 
 void SaveCreateState::create_save_data_for()
 {
-    const int selected         = m_saveMenu.get_selected();
+    const int selected         = m_saveMenu->get_selected();
     data::TitleInfo *titleInfo = m_titleInfoVector[selected];
     auto createTask            = TaskState::create(tasks::savecreate::create_save_data_for, m_user, titleInfo, this);
 

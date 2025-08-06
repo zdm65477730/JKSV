@@ -3,12 +3,11 @@
 
 namespace logger
 {
-    /// @brief Creates and empties the log file
+    /// @brief Creates the log file if it doesn't exist already.
     void initialize();
 
     /// @brief Logs a formatted string.
     /// @param format Format of string.
     /// @param arguments Va arguments.
     void log(const char *format, ...);
-
 } // namespace logger

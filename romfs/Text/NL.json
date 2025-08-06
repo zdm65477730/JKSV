@@ -12,24 +12,24 @@
         "1: Back-up is leeg!",
         "2: Fout bij het resetten van opslaggegevens!",
         "3: Fout bij het openen van ZIP-bestand om te lezen!",
-        "4: Fout opgetreden bij het verwijderen van back-up!",
-        "5: Fout opgetreden bij het maken van back-up!",
-        "6: Schrijven naar het systeem is uitgeschakeld!",
+        "4: Fout bij het verwijderen van back-up!",
+        "5: Fout bij het maken van back-up!",
+        "6: Schrijven naar systeem is uitgeschakeld!",
         "7: Kan ZIP niet openen om te lezen!",
-        "8: Fout bij het schrijven van meta-gegevens van opslag!",
-        "9: Fout bij het downloaden van bestand!",
-        "10: Fout bij het uploaden van bestand!",
-        "11: Fout bij het verwerken van meta-gegevens opslag!",
-        "12: Fout bij het aanmaken van doelmap!",
+        "8: Fout bij het schrijven van opslagmeta-gegevensbestand!",
+        "9: Fout bij downloaden van bestand!",
+        "10: Fout bij uploaden van bestand!",
+        "11: Fout bij verwerken van opslagmeta-gegevens!",
+        "12: Fout bij het maken van doelmap!",
         "13: Back-up moet een ZIP zijn om te uploaden!",
-        "14: Fout bij het koppelen van opslag!",
-        "15: Fout bij het sluiten van opslag!"
+        "14: Fout bij het mounten van opslaggegevens!",
+        "15: Fout bij het sluiten van opslaggegevens!"
     ],
     "BackupMenuStatus": [
-        "0: Bezig met verwerken van meta-bestand opslag..."
+        "0: Verwerken van opslagmeta-bestand..."
     ],
     "ControlGuides": [
-        "0: [A] Selecteren   [Y] Alles dumpen   [X] Gebruikersopties",
+        "0: [A] Selecteren   [Y] Alle opslaggegevens dumpen   [X] Gebruikersopties",
         "1: [A] Selecteren   [L] [R] Springen   [Y] Favoriet   [X] Titelopties  [B] Terug",
         "2: [A] Selecteren  [Y] Herstellen  [X] Verwijderen  [ZR] Uploaden  [B] Sluiten",
         "3: [A] Wisselen   [X] Standaardwaarden   [B] Terug"
@@ -45,46 +45,46 @@
     ],
     "ExtrasPops": [
         "0: Gegevens opnieuw geïnitialiseerd!",
-        "1: Gegevens opnieuw initialiseren mislukt!"
+        "1: Gegevensinitialisatie mislukt!"
     ],
     "GeneralPops": [
-        "0: JKSV kan niet worden afgesloten terwijl taken bezig zijn!"
+        "0: JKSV kan niet worden afgesloten terwijl er taken worden uitgevoerd!"
     ],
     "GoogleDriveStrings": [
-        "0: Ga naar #%s# en voer >%s< in om door te gaan!",
-        "1: Succesvol ingelogd op Google Drive!",
-        "2: Inloggen op Google Drive mislukt!"
+        "0: Ga naar #%s# en voer >%s> in om verder te gaan!",
+        "1: Succesvol aangemeld bij Google Drive!",
+        "2: Aanmelden bij Google Drive mislukt!"
     ],
     "HoldingStrings": [
         "0: Houd [A] ingedrukt",
         "1: Blijf [A] ingedrukt houden",
-        "2: Bijna daar! [A]"
+        "2: Bijna klaar! [A]"
     ],
     "IOStatuses": [
-        "0: Bezig met kopiëren van #%s#...",
-        "1: Bezig met comprimeren van #%s# naar ZIP...",
-        "2: Bezig met uitpakken van #%s# uit ZIP...",
-        "3: Bezig met verwijderen van #%s#...",
-        "4: Bezig met downloaden van #%s#...",
-        "5: Bezig met uploaden van #%s# naar remote opslag...",
-        "6: Bezig met bijwerken van #%s# op remote opslag..."
+        "0: Kopiëren van #%s#...",
+        "1: Comprimeren van #%s# naar ZIP...",
+        "2: Uitpakken van #%s# uit ZIP...",
+        "3: Verwijderen van #%s#...",
+        "4: Downloaden van #%s#...",
+        "5: Uploaden van #%s# naar externe opslag...",
+        "6: Bijwerken van #%s# op externe opslag..."
     ],
     "IOPops": [
-        "0: Fout bij het wegschrijven van gegevens naar het apparaat!"
+        "0: Fout bij het opslaan van gegevens op apparaat!"
     ],
     "KeyboardStrings": [
-        "0: Voer een nieuwe back-upnaam in.",
-        "1: Voer cache-index in.",
-        "2: Voer een nieuw uitvoerpad voor JKSV in.",
+        "0: Voer een nieuwe naam voor de back-up in.",
+        "1: Voer de cache-index in.",
+        "2: Voer een nieuwe uitvoerlocatie voor JKSV in.",
         "3: Voer het proces-ID in om te beëindigen.",
         "4: Voer een systeemopslag-ID in.",
         "5: Voer een nieuwe naam in voor het doelitem.",
         "6: Voer een naam in voor de nieuwe map.",
         "7: Voer een nieuwe uitvoermapnaam in voor %s.",
-        "8: Voer in hoeveel je wilt uitbreiden (in MB)."
+        "8: Voer in hoeveel er uitgebreid moet worden (in MB)."
     ],
     "MainMenuConfs": [
-        "0: Weet je zeker dat je de opslaggegevens voor alle gebruikers op dit systeem wilt back-uppen? Dit kan *extreem* lang duren!"
+        "0: Weet je zeker dat je de opslaggegevens voor elke gebruiker op dit systeem wilt back-uppen? Dit kan *erg* lang duren!"
     ],
     "MainMenuPops": [
         "0: `%s` heeft geen opslaggegevens!"
@@ -97,8 +97,8 @@
         "0: Geen internetverbinding beschikbaar!"
     ],
     "SaveCreatePops": [
-        "0: Opslaggegevens gemaakt voor #%s#!",
-        "1: Fout bij het maken van opslaggegevens!",
+        "0: Opslaggegevens aangemaakt voor #%s#!",
+        "1: Fout bij het aanmaken van opslaggegevens!",
         "2: Fout bij het verwijderen van opslaggegevens!"
     ],
     "SaveDataTypes": [
@@ -111,48 +111,51 @@
         "6: Systeem BCAT"
     ],
     "SettingsDescriptions": [
-        "0: Stelt de werkmap voor JKSV in. De standaardwaarde is `sdmc:/JKSV`.",
-        "1: Hiermee kunt u titels uit de zwarte lijst verwijderen.",
+        "0: Stelt de werkmap in voor JKSV. De standaardwaarde is `sdmc:/JKSV`.",
+        "1: Hiermee kun je titels van de zwarte lijst verwijderen.",
         "2: Inclusief apparaat- of gedeelde opslag met gebruikers.",
-        "3: Maakt automatisch een back-up wanneer een andere wordt hersteld.",
-        "4: Naam back-ups automatisch en slaat het toetsenbord over.",
-        "5: Uploadt back-ups automatisch naar remote opslag en verwijdert ze lokaal.",
+        "3: Maakt automatisch een back-up bij het herstellen van een andere.",
+        "4: Geeft back-ups automatisch een naam en slaat het toetsenbord over.",
+        "5: Upload back-ups automatisch naar extern en verwijdert ze lokaal.",
         "6: Gebruikt altijd applicatie-ID's voor exportmapnamen.",
-        "7: Vereist het ingedrukt houden van [A] gedurende drie seconden om back-ups te verwijderen.",
-        "8: Vereist het ingedrukt houden van [A] gedurende drie seconden om back-ups te herstellen.",
-        "9: Vereist het ingedrukt houden van [A] gedurende drie seconden om back-ups te overschrijven.",
-        "10: Toont alleen opslaggegevens die JKSV met succes kan openen.",
-        "11: Toont systeemopslag die aan een account-ID is gekoppeld.",
+        "7: Of het vereist is om [A] drie seconden ingedrukt te houden om back-ups te verwijderen.",
+        "8: Of het vereist is om [A] drie seconden ingedrukt te houden om back-ups te herstellen.",
+        "9: Of het vereist is om [A] drie seconden ingedrukt te houden om back-ups te overschrijven.",
+        "10: Toont alleen opslaggegevens die JKSV succesvol kan openen.",
+        "11: Toont systeemopslag met een gekoppeld account-ID.",
         "12: Schakelt het herstellen van systeemopslag en schrijven naar NAND-partities in.",
         "13: Exporteert opslaggegevens naar ZIP-archieven in plaats van uitgepakte mappen.",
-        "14: Compressie- of deflate-niveau gebruikt bij het schrijven naar ZIP. De standaardwaarde is 6. Lagere waarden zijn sneller, maar bieden minder compressie en ruimtebesparing. Nul is opslaan, oftewel geen compressie.",
-        "15: Regelt de manier waarop titels worden gesorteerd en weergegeven.",
-        "16: Toont titels als tekstmenu's zoals de originele JKSM op 3DS in plaats van pictogrid.",
-        "17: Dwingt Engels af als taal in plaats van de gedetecteerde systeemtaal.",
-        "18: Verplaatst verwijderde back-ups naar de _TRASH_-map in plaats van ze permanent te verwijderen.",
+        "14: Compressie- of deflate-niveau dat wordt gebruikt bij het schrijven naar ZIP. De standaardwaarde is 6. Lagere waarden zijn sneller, maar bieden minder compressie en ruimtebesparing. Nul is opslaan, of geen compressie.",
+        "15: Regelt hoe titels worden gesorteerd en weergegeven.",
+        "16: Toont titels als tekstmenu's zoals de originele JKSM op 3DS in plaats van pictogramroosters.",
+        "17: Forceert Engels als taal in plaats van de gedetecteerde systeemt taal.",
+        "18: Verplaatst verwijderde back-ups naar de _TRASH_ map in plaats van ze permanent te verwijderen.",
         "19: Stelt de snelheid in waarmee overgangen en animaties plaatsvinden. Lager is sneller."
     ],
     "SettingsMenu": [
-        "0: Stel de uitvoermap van JKSV in.",
+        "0: Stel JKSV-uitvoermap in.",
         "1: Bewerk zwarte lijst",
-        "2: Apparaatopslag opnemen met gebruikers: %s",
-        "3: Automatische back-up bij herstel: %s",
+        "2: Inclusief apparaatopslag met gebruikers: %s",
+        "3: Automatische back-up bij herstellen: %s",
         "4: Automatische naamgeving back-ups: %s",
-        "5: Automatisch uploaden van back-ups naar remote opslag: %s",
+        "5: Automatisch uploaden van back-ups naar externe opslag: %s",
         "6: Altijd applicatie-ID's gebruiken: %s",
         "7: Houd ingedrukt om back-ups te verwijderen: %s",
         "8: Houd ingedrukt om back-ups te herstellen: %s",
         "9: Houd ingedrukt om back-ups te overschrijven: %s",
-        "10: Alleen mountbare titels tonen: %s",
-        "11: Account systeemopslag tonen: %s",
+        "10: Alleen monteerbare titels weergeven: %s",
+        "11: Toon account systeemopslag: %s",
         "12: Schakel schrijven naar systeemopslag en NAND in: %s",
         "13: Exporteer opslag naar ZIP: %s",
-        "14: ZIP compressieniveau: %u",
-        "15: Soort titel sortering: %s",
+        "14: ZIP-compressieniveau: %u",
+        "15: Type titel sortering: %s",
         "16: Tekstmenu (JKSM) modus: %s",
         "17: Forceer Engels: %s",
         "18: Schakel prullenbak in: %s",
         "19: Animatieschaal: %.02f"
+    ],
+    "SettingsPops": [
+        "0: Zwarte lijst is leeg!"
     ],
     "SortTypes": [
         "0: Alfabetisch",
@@ -160,39 +163,39 @@
         "2: Laatst gespeeld"
     ],
     "TitleInfo": [
-        "0: App-ID: %016lX",
-        "1: Opslag-ID: %016lx",
+        "0: App ID: %016lX",
+        "1: Opslag ID: %016lx",
         "2: Eerste keer gespeeld: %x - %X",
         "3: Laatste keer gespeeld: %x - %X",
         "4: Speeltijd: %02d:%02d:%02d",
-        "5: Aantal keer gestart: %i",
+        "5: Aantal keren gestart: %i",
         "6: Opslagtype: %s"
     ],
     "TitleOptionConfirmations": [
-        "0: Weet je zeker dat je #%s# aan je zwarte lijst wilt toevoegen? Zodra je dit doet, verschijnt het niet meer in een titellijst of selectie.",
-        "1: Weet je zeker dat je alle huidige back-ups voor #%s# wilt verwijderen? *Dit kan niet ongedaan gemaakt worden!*",
-        "2: Weet je zeker dat je de opslaggegevens voor #%s# wilt resetten? *Dit verwijdert de huidige opslaggegevens alsof het spel nog nooit is gestart!*",
-        "3: Weet je zeker dat je `%s`'s opslaggegevens voor #%s# wilt verwijderen? *Dit verwijdert het permanent van het systeem.*"
+        "0: Weet je zeker dat je #%s# aan je zwarte lijst wilt toevoegen? Hierdoor verschijnt het niet meer in titellijsten of selecties.",
+        "1: Weet je zeker dat je alle huidige back-ups voor #%s# wilt verwijderen? *Dit kan niet ongedaan worden gemaakt!*",
+        "2: Weet je zeker dat je de opslaggegevens voor #%s# wilt resetten? *Dit verwijdert de huidige opslaggegevens alsof het spel nooit is gestart!*",
+        "3: Weet je zeker dat je de opslaggegevens van `%s` voor #%s# wilt verwijderen? *Dit verwijdert het permanent van het systeem.*"
     ],
     "TitleOptionPops": [
-        "0: Alle back-ups verwijderd voor #%s#!",
+        "0: Alle back-ups voor #%s# verwijderd!",
         "1: Verwijderen van alle back-ups mislukt!",
-        "2: Resetten van opslaggegevens mislukt!",
+        "2: Fout bij het resetten van opslaggegevens!",
         "3: Opslaggegevens succesvol gereset!",
         "4: SVI-bestand succesvol geëxporteerd!",
-        "5: Fout bij exporteren van SVI-bestand!",
+        "5: Fout bij het exporteren van SVI-bestand!",
         "6: Deze optie is niet beschikbaar voor systeemopslag!",
-        "7: Kon het pad niet saniteren voor gebruik!",
+        "7: Pad kon niet worden gesaneerd voor gebruik!",
         "8: Uitvoermap ingesteld op #%s#.",
-        "9: Fout bij instellen van nieuw uitvoerpad!",
+        "9: Fout bij het instellen van nieuwe uitvoerlocatie!",
         "10: Opslaggegevens succesvol uitgebreid!",
-        "11: Uitbreiden opslaggegevens mislukt!"
+        "11: Uitbreiden van opslaggegevens mislukt!"
     ],
     "TitleOptionStatus": [
-        "0: Alle back-ups voor #%s# verwijderen.",
-        "1: Opslaggegevens voor #%s# resetten.",
-        "2: `%s`'s opslaggegevens voor #%s# verwijderen...",
-        "3: `%s`'s opslaggegevens voor #%s# uitbreiden..."
+        "0: Alle back-ups voor #%s# worden verwijderd.",
+        "1: Opslaggegevens voor #%s# worden gereset.",
+        "2: Opslaggegevens voor `%s` van #%s# worden verwijderd...",
+        "3: Opslaggegevens voor `%s` van #%s# worden uitgebreid..."
     ],
     "TitleOptions": [
         "0: Informatie",
@@ -200,9 +203,9 @@
         "2: Uitvoermap wijzigen",
         "3: Openen in bestandsmodus",
         "4: Alle lokale back-ups verwijderen",
-        "5: Alle remote back-ups verwijderen",
-        "6: Opslaggegevens resetten",
-        "7: Opslaggegevens verwijderen van systeem",
+        "5: Alle externe back-ups verwijderen",
+        "6: Opslaggegevens resetten.",
+        "7: Opslaggegevens van systeem verwijderen",
         "8: Opslaggegevens uitbreiden",
         "9: SVI-bestand exporteren"
     ],
@@ -211,13 +214,13 @@
         "1: NULL"
     ],
     "UserOptionConfirmations": [
-        "0: Weet je zeker dat je opslaggegevens voor elke titel gevonden voor `%s` wilt back-uppen? Dit kan een tijdje duren.",
-        "1: Weet je zeker dat je opslaggegevens wilt aanmaken voor alle titels gevonden op je systeem voor `%s`? Dit kan een tijdje duren.",
-        "2: Weet je zeker dat je alle opslaggegevens voor `%s` wilt verwijderen? Dit is *PERMANENT* en kan niet ongedaan gemaakt worden."
+        "0: Weet je zeker dat je de opslaggegevens voor alle titels gevonden voor `%s` wilt back-uppen? Dit kan even duren.",
+        "1: Weet je zeker dat je opslaggegevens wilt aanmaken voor alle titels gevonden op je systeem voor `%s`? Dit kan even duren.",
+        "2: Weet je zeker dat je alle opslaggegevens voor `%s` wilt verwijderen? Dit is *PERMANENT* en kan niet ongedaan worden gemaakt."
     ],
     "UserOptionStatus": [
-        "0: Opslaggegevens aanmaken voor #%s#...",
-        "1: Opslaggegevens verwijderen voor #%s#..."
+        "0: Opslaggegevens voor #%s# aan het aanmaken...",
+        "1: Opslaggegevens voor #%s# aan het verwijderen..."
     ],
     "UserOptions": [
         "0: Alles dumpen voor `%s`",

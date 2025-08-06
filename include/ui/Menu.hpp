@@ -1,9 +1,11 @@
 #pragma once
 #include "sdl.hpp"
+#include "ui/BoundingBox.hpp"
 #include "ui/ColorMod.hpp"
 #include "ui/Element.hpp"
 #include "ui/TextScroll.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -24,14 +26,16 @@ namespace ui
             /// @brief Required destructor.
             ~Menu() {};
 
+            static std::shared_ptr<ui::Menu> create(int x, int y, int width, int fontSize, int renderTargetHeight);
+
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.
-            void update(bool HasFocus);
+            void update(bool HasFocus) override;
 
             /// @brief Renders the menu.
             /// @param target Target to render to.
             /// @param hasFocus Whether or not the calling state has focus.
-            void render(SDL_Texture *target, bool hasFocus);
+            void render(sdl::SharedTexture &target, bool hasFocus) override;
 
             /// @brief Adds and option to the menu.
             /// @param newOption Option to add to menu.
@@ -66,14 +70,14 @@ namespace ui
             /// @brief Currently selected option.
             int m_selected{};
 
-            /// @brief Color mod for bounding box.
-            ui::ColorMod m_colorMod{};
-
             /// @brief Height of options in pixels.
             int m_optionHeight{};
 
             /// @brief Target options are rendered to.
             sdl::SharedTexture m_optionTarget{};
+
+            /// @brief Bounding box for the selected option.
+            std::shared_ptr<ui::BoundingBox> m_boundingBox{};
 
         private:
             /// @brief This to preserve the original Y coordinate passed.
@@ -100,10 +104,16 @@ namespace ui
             /// @brief Maximum number of display options render target can show.
             int m_maxDisplayOptions{};
 
-            /// @brief Text scroll for when the current option is too long to on screen.
-            ui::TextScroll m_optionScroll{};
-
             /// @brief Vector of options.
             std::vector<std::string> m_options{};
+
+            /// @brief Text scroll for when the current option is too long to on screen.
+            std::shared_ptr<ui::TextScroll> m_optionScroll{};
+
+            void update_scroll_text();
+
+            void update_scrolling();
+
+            void handle_input();
     };
 } // namespace ui

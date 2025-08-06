@@ -51,8 +51,13 @@ namespace remote
             remote::Item *get_directory_by_name(std::string_view name);
 
             /// @brief Retrieves a listing of the items in the current parent directory.
-            /// @param out List to fill.
-            remote::Storage::DirectoryListing get_directory_listing();
+            /// @param listOut List to fill.
+            void get_directory_listing(Storage::DirectoryListing &listOut);
+
+            /// @brief Same as above, but allows any parent to be used.
+            /// @param item Item that is to be treated as a parent.
+            /// @param listOut List to fill.
+            void get_directory_listing_with_parent(const remote::Item *item, Storage::DirectoryListing &listOut);
 
             // File functions.
             /// @brief Returns whether a file with name exists within the current directory.
@@ -131,5 +136,10 @@ namespace remote
             /// @brief Searches to find if a file with name exists within the current parent.
             /// @param name Name of the file to search for.
             Storage::List::iterator find_file_by_name(std::string_view name);
+
+            /// @brief Searches starting with the iterator start for items that belong to parentID
+            /// @param start Beginning iterator for search.
+            /// @param parentID ParentID to match.
+            Storage::List::iterator find_by_parent_id(Storage::List::iterator start, std::string_view parentID);
     };
 } // namespace remote

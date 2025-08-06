@@ -9,16 +9,15 @@
 
 #include <algorithm>
 #include <array>
+#include <mutex>
 #include <string_view>
 #include <switch.h>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
 namespace
 {
-    // This is easer to read imo
-    using UserIDPair = std::pair<AccountUid, data::User>;
-
     /// @brief Struct used for reading the cache from file.
     // clang-format off
     typedef struct
@@ -28,11 +27,10 @@ namespace
     } CacheEntry;
     // clang-format on
 
-    // User vector to preserve order.
-    std::vector<UserIDPair> s_userVector;
+    std::vector<data::User> s_users{};
 
     // Map of Title info paired with its title/application
-    std::unordered_map<uint64_t, data::TitleInfo> s_titleInfoMap;
+    std::unordered_map<uint64_t, data::TitleInfo> s_titleinfo;
 
     /// @brief Path used for cacheing title information since NS got slow on 20.0+
     constexpr std::string_view PATH_CACHE_PATH = "sdmc:/config/JKSV/cache.bin";
@@ -68,54 +66,50 @@ bool data::initialize(bool clearCache)
     const bool cacheClearFailed = clearCache && cacheExists && error::fslib(fslib::delete_file(cachePath));
     if (clearCache && cacheClearFailed) { return false; }
 
-    const bool needsUsers  = s_userVector.empty();
-    const bool usersLoaded = needsUsers && load_create_user_accounts();
-    if (needsUsers && !usersLoaded) { return false; }
+    const bool usersLoaded = s_users.empty() && load_create_user_accounts();
+    if (!usersLoaded && s_users.empty()) { return false; }
 
-    const bool cacheRead = read_cache_file();
-    if (!cacheRead)
+    if (!read_cache_file())
     {
-        s_titleInfoMap.clear();
+        s_titleinfo.clear();
         load_application_records();
         import_svi_files();
     }
 
-    for (auto &[accountID, user] : s_userVector) { user.load_user_data(); }
+    for (data::User &user : s_users) { user.load_user_data(); }
 
-    const bool needsCacheBuild = !fslib::file_exists(cachePath);
-    if (needsCacheBuild) { create_cache_file(); }
+    const bool needsCache = !fslib::file_exists(cachePath);
+    if (needsCache) { create_cache_file(); }
 
     return true;
 }
 
 void data::get_users(data::UserList &userList)
 {
-    userList.clear();
-    for (auto &[accountID, userData] : s_userVector) { userList.push_back(&userData); }
+    for (data::User &user : s_users) { userList.push_back(&user); }
 }
 
 data::TitleInfo *data::get_title_info_by_id(uint64_t applicationID)
 {
-    auto findTitle = s_titleInfoMap.find(applicationID);
-    if (findTitle == s_titleInfoMap.end()) { return nullptr; }
+    auto findTitle = s_titleinfo.find(applicationID);
+    if (findTitle == s_titleinfo.end()) { return nullptr; }
     return &findTitle->second;
 }
 
-void data::load_title_to_map(uint64_t applicationID) { s_titleInfoMap.emplace(applicationID, applicationID); }
+void data::load_title_to_map(uint64_t applicationID) { s_titleinfo.emplace(applicationID, applicationID); }
 
-bool data::title_exists_in_map(uint64_t applicationID) { return s_titleInfoMap.find(applicationID) != s_titleInfoMap.end(); }
+bool data::title_exists_in_map(uint64_t applicationID) { return s_titleinfo.find(applicationID) != s_titleinfo.end(); }
 
-std::unordered_map<uint64_t, data::TitleInfo> &data::get_title_info_map() { return s_titleInfoMap; }
-
-void data::get_title_info_by_type(FsSaveDataType saveType, std::vector<data::TitleInfo *> &vectorOut)
+void data::get_title_info_list(data::TitleInfoList &listOut)
 {
-    // Clear vector JIC
-    vectorOut.clear();
+    for (auto &[applicationID, titleInfo] : s_titleinfo) { listOut.push_back(&titleInfo); }
+}
 
-    // Loop and push pointers
-    for (auto &[applicationID, titleInfo] : s_titleInfoMap)
+void data::get_title_info_by_type(FsSaveDataType saveType, data::TitleInfoList &listOut)
+{
+    for (auto &[applicationID, titleInfo] : s_titleinfo)
     {
-        if (titleInfo.has_save_data_type(saveType)) { vectorOut.push_back(&titleInfo); }
+        if (titleInfo.has_save_data_type(saveType)) { listOut.push_back(&titleInfo); }
     }
 }
 
@@ -133,21 +127,11 @@ static bool load_create_user_accounts()
     if (accountError || noAccounts) { return false; }
 
     // Loop and load the account data.
-    for (int i = 0; i < total; i++)
-    {
-        auto userPair = std::make_pair(accounts[i], std::move(data::User(accounts[i], FsSaveDataType_Account)));
-        s_userVector.push_back(std::move(userPair));
-    }
-
-    // Create and push the system type users. Path safe names are hard coded to English for these.
-    auto devicePair = std::make_pair(ID_DEVICE_USER, data::User(ID_DEVICE_USER, deviceName, "Device", FsSaveDataType_Device));
-    auto bcatPair   = std::make_pair(ID_BCAT_USER, data::User(ID_BCAT_USER, bcatName, "BCAT", FsSaveDataType_Bcat));
-    auto cachePair  = std::make_pair(ID_CACHE_USER, data::User(ID_CACHE_USER, cacheName, "Cache", FsSaveDataType_Cache));
-    auto systemPair = std::make_pair(ID_SYSTEM_USER, data::User(ID_SYSTEM_USER, systemName, "System", FsSaveDataType_System));
-    s_userVector.push_back(std::move(devicePair));
-    s_userVector.push_back(std::move(bcatPair));
-    s_userVector.push_back(std::move(cachePair));
-    s_userVector.push_back(std::move(systemPair));
+    for (int i = 0; i < total; i++) { s_users.emplace_back(accounts[i], FsSaveDataType_Account); }
+    s_users.emplace_back(ID_DEVICE_USER, deviceName, "Device", FsSaveDataType_Device);
+    s_users.emplace_back(ID_BCAT_USER, bcatName, "BCAT", FsSaveDataType_Bcat);
+    s_users.emplace_back(ID_CACHE_USER, cacheName, "Cache", FsSaveDataType_Cache);
+    s_users.emplace_back(ID_SYSTEM_USER, systemName, "System", FsSaveDataType_System);
 
     return true;
 }
@@ -162,7 +146,7 @@ static void load_application_records()
     do {
         listError = error::libnx(nsListApplicationRecord(&record, 1, offset++, &count)) || count <= 0;
         if (listError) { break; }
-        s_titleInfoMap.emplace(record.application_id, record.application_id);
+        s_titleinfo.emplace(record.application_id, record.application_id);
     } while (!listError);
 }
 
@@ -192,7 +176,7 @@ static void import_svi_files()
         if (!idReadGood || !dataReadGood) { continue; }
 
         data::TitleInfo newInfo{applicationID, controlData};
-        s_titleInfoMap.emplace(applicationID, std::move(newInfo));
+        s_titleinfo.emplace(applicationID, std::move(newInfo));
     }
 }
 
@@ -209,8 +193,8 @@ static bool read_cache_file()
     if (!countRead) { return false; }
 
     auto entryBuffer = std::make_unique<CacheEntry[]>(titleCount); // I've read there might not be any point in error checking.
-    const bool cacheRead =
-        cache.read(entryBuffer.get(), SIZE_CACHE_ENTRY * titleCount) == static_cast<int64_t>(SIZE_CACHE_ENTRY * titleCount);
+    const int64_t cacheSize = SIZE_CACHE_ENTRY * titleCount;
+    const bool cacheRead    = cache.read(entryBuffer.get(), cacheSize) == cacheSize;
     if (!cacheRead) { return false; }
 
     // Loop through the cache entries and emplace them to the map.
@@ -219,7 +203,7 @@ static bool read_cache_file()
         CacheEntry &entry = entryBuffer[i];
 
         data::TitleInfo newInfo{entry.applicationID, entry.data};
-        s_titleInfoMap.emplace(entry.applicationID, std::move(newInfo));
+        s_titleinfo.emplace(entry.applicationID, std::move(newInfo));
     }
     return true;
 }
@@ -238,7 +222,7 @@ static void create_cache_file()
     const bool countWrite = cache.write(&titleCount, SIZE_UNSIGNED) == SIZE_UNSIGNED;
     if (!countWrite) { return; }
 
-    for (auto &[applicationID, titleInfo] : s_titleInfoMap)
+    for (auto &[applicationID, titleInfo] : s_titleinfo)
     {
         if (!titleInfo.has_control_data()) { continue; }
 

@@ -24,10 +24,7 @@ namespace
 TitleSelectState::TitleSelectState(data::User *user)
     : TitleSelectCommon()
     , m_user(user)
-    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
-                                                              1080,
-                                                              555,
-                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
+    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
     , m_titleView(m_user) {};
 
 std::shared_ptr<TitleSelectState> TitleSelectState::create(data::User *user)
@@ -65,9 +62,9 @@ void TitleSelectState::render()
     const bool hasFocus = BaseState::has_focus();
 
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleView.render(m_renderTarget->get(), hasFocus);
+    m_titleView.render(m_renderTarget, hasFocus);
     TitleSelectCommon::render_control_guide();
-    m_renderTarget->render(NULL, 201, 91);
+    m_renderTarget->render(sdl::Texture::Null, 201, 91);
 }
 
 void TitleSelectState::refresh() { m_titleView.refresh(); }
@@ -121,6 +118,16 @@ void TitleSelectState::add_remove_favorite()
     data::UserList userList;
     data::get_users(userList);
     for (data::User *user : userList) { user->sort_data(); }
+
+    // This is dirty, but it's the only way to pull it off without rewriting tons of code.
+    const int count = m_user->get_total_data_entries();
+    int i{};
+    for (i = 0; i < count; i++)
+    {
+        const uint64_t appIDAt = m_user->get_application_id_at(i);
+        if (appIDAt == applicationID) { break; }
+    }
+    m_titleView.set_selected(i);
 
     MainMenuState::refresh_view_states();
 }

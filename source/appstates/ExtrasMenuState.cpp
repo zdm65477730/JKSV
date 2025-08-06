@@ -29,11 +29,8 @@ namespace
 } // namespace
 
 ExtrasMenuState::ExtrasMenuState()
-    : m_extrasMenu{32, 8, 1000, 24, 555}
-    , m_renderTarget{sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
-                                                              1080,
-                                                              555,
-                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)}
+    : m_extrasMenu(32, 8, 1000, 24, 555)
+    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     ExtrasMenuState::initialize_menu();
 }
@@ -63,8 +60,8 @@ void ExtrasMenuState::render()
     const bool hasFocus = BaseState::has_focus();
 
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_extrasMenu.render(m_renderTarget->get(), hasFocus);
-    m_renderTarget->render(NULL, 201, 91);
+    m_extrasMenu.render(m_renderTarget, hasFocus);
+    m_renderTarget->render(sdl::Texture::Null, 201, 91);
 }
 
 void ExtrasMenuState::initialize_menu()

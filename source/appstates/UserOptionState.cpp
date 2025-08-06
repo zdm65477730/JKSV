@@ -37,10 +37,10 @@ namespace
 } // namespace
 
 UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelect)
-    : m_user{user}
-    , m_titleSelect{titleSelect}
-    , m_userOptionMenu{8, 8, 460, 22, 720}
-    , m_dataStruct{std::make_shared<UserOptionState::DataStruct>()}
+    : m_user(user)
+    , m_titleSelect(titleSelect)
+    , m_userOptionMenu(8, 8, 460, 22, 720)
+    , m_dataStruct(std::make_shared<UserOptionState::DataStruct>())
 {
     UserOptionState::create_menu_panel();
     UserOptionState::load_menu_strings();
@@ -62,10 +62,13 @@ std::shared_ptr<UserOptionState> UserOptionState::create_and_push(data::User *us
 void UserOptionState::update()
 {
     const bool hasFocus = BaseState::has_focus();
+    sm_menuPanel->update(hasFocus);
+
+    const bool isOpen = sm_menuPanel->is_open();
+    if (!isOpen) { return; }
+
     const bool aPressed = input::button_pressed(HidNpadButton_A);
     const bool bPressed = input::button_pressed(HidNpadButton_B);
-
-    sm_menuPanel->update(hasFocus);
 
     // See if this needs to be done.
     if (m_refreshRequired)
@@ -77,7 +80,9 @@ void UserOptionState::update()
 
     if (aPressed)
     {
-        switch (m_userOptionMenu.get_selected())
+        const int selected = m_userOptionMenu.get_selected();
+
+        switch (selected)
         {
             case BACKUP_ALL:      UserOptionState::backup_all(); break;
             case CREATE_SAVE:     UserOptionState::create_save_create(); break;
@@ -99,11 +104,12 @@ void UserOptionState::render()
 {
     // Render target user's title selection screen.
     m_titleSelect->render();
+    sdl::SharedTexture &panelTarget = sm_menuPanel->get_target();
 
     // Render panel.
     sm_menuPanel->clear_target();
-    m_userOptionMenu.render(sm_menuPanel->get_target(), BaseState::has_focus());
-    sm_menuPanel->render(NULL, BaseState::has_focus());
+    m_userOptionMenu.render(panelTarget, BaseState::has_focus());
+    sm_menuPanel->render(sdl::Texture::Null, BaseState::has_focus());
 }
 
 void UserOptionState::refresh_required() { m_refreshRequired = true; }

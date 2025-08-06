@@ -26,9 +26,9 @@ namespace
 } // namespace
 
 TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo)
-    : m_user{user}
-    , m_titleInfo{titleInfo}
-    , m_icon{m_titleInfo->get_icon()}
+    : m_user(user)
+    , m_titleInfo(titleInfo)
+    , m_icon(m_titleInfo->get_icon())
 {
     TitleInfoState::initialize_static_members();
     TitleInfoState::create_info_scrolls();
@@ -72,11 +72,11 @@ void TitleInfoState::render()
 {
     const bool hasFocus = BaseState::has_focus();
     sm_slidePanel->clear_target();
-    SDL_Texture *panelTarget = sm_slidePanel->get_target();
+    sdl::SharedTexture &panelTarget = sm_slidePanel->get_target();
 
     m_icon->render_stretched(panelTarget, 88, 8, 304, 304);
 
-    sm_slidePanel->render(NULL, hasFocus);
+    sm_slidePanel->render(sdl::Texture::Null, hasFocus);
 }
 
 void TitleInfoState::initialize_static_members()

@@ -1,5 +1,7 @@
 #pragma once
 #include "sys/sys.hpp"
+#include "ui/DialogBox.hpp"
+#include "ui/PopMessage.hpp"
 
 #include <mutex>
 #include <string>
@@ -7,22 +9,7 @@
 
 namespace ui
 {
-    // This is the actual struct containing data for a message.
-    typedef struct
-    {
-            // Y coordinate
-            double y{};
-            // Target Y coordinate
-            double targetY{};
-            // Width of the message.
-            size_t width{};
-            // Message string.
-            std::string message{};
-            // Timer.
-            sys::Timer timer{};
-    } PopMessage;
-
-    class PopMessageManager
+    class PopMessageManager final
     {
         public:
             // No copying.
@@ -53,6 +40,7 @@ namespace ui
                 static PopMessageManager manager;
                 return manager;
             }
+
             // The queue for processing. SDL can't handle things being rendered in multiple threads.
             std::vector<std::pair<int, std::string>> m_messageQueue{};
 

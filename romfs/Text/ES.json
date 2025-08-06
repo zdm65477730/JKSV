@@ -1,11 +1,11 @@
 {
     "BackupMenu": [
-        "0: Nueva copia de seguridad"
+        "0: Copia de seguridad nueva"
     ],
     "BackupMenuConfirmations": [
-        "0: ¿Estás seguro de que quieres sobrescribir #%s#?",
-        "1: ¿Estás seguro de que quieres restaurar #%s#?",
-        "2: ¿Estás seguro de que quieres eliminar #%s#?"
+        "0: ¿Seguro que deseas sobrescribir #%s#?",
+        "1: ¿Seguro que deseas restaurar #%s#?",
+        "2: ¿Seguro que deseas eliminar #%s#?"
     ],
     "BackupMenuPops": [
         "0: ¡Los datos guardados están vacíos!",
@@ -16,23 +16,23 @@
         "5: ¡Error al crear la copia de seguridad!",
         "6: ¡La escritura en el sistema está deshabilitada!",
         "7: ¡No se puede abrir el ZIP para lectura!",
-        "8: ¡Error al escribir el archivo de metadatos guardados!",
+        "8: ¡Error al escribir el archivo de metadatos de guardado!",
         "9: ¡Error al descargar el archivo!",
         "10: ¡Error al subir el archivo!",
-        "11: ¡Error al procesar los metadatos de los datos guardados!",
-        "12: ¡Error al crear el directorio destino!",
+        "11: ¡Error al procesar los metadatos del guardado!",
+        "12: ¡Error al crear el directorio de destino!",
         "13: ¡La copia de seguridad debe ser un ZIP para subirla!",
         "14: ¡Error al montar los datos guardados!",
         "15: ¡Error al cerrar los datos guardados!"
     ],
     "BackupMenuStatus": [
-        "0: Procesando el archivo de metadatos de los datos guardados..."
+        "0: Procesando archivo de metadatos de guardado…"
     ],
     "ControlGuides": [
-        "0: [A] Seleccionar   [Y] Volcar todos los guardados   [X] Opciones de usuario",
+        "0: [A] Seleccionar   [Y] Volcar todas las partidas   [X] Opciones de usuario",
         "1: [A] Seleccionar   [L] [R] Saltar   [Y] Favorito   [X] Opciones de título  [B] Atrás",
-        "2: [A] Seleccionar  [Y] Restaurar  [X] Eliminar  [ZR] Subir  [B] Cerrar",
-        "3: [A] Alternar   [X] Predeterminado   [B] Atrás"
+        "2: [A] Seleccionar  [Y] Restaurar  [X] Borrar  [ZR] Subir  [B] Cerrar",
+        "3: [A] Alternar   [X] Valores predeterminados   [B] Atrás"
     ],
     "ExtrasMenu": [
         "0: Reinicializar datos",
@@ -45,61 +45,61 @@
     ],
     "ExtrasPops": [
         "0: ¡Datos reinicializados!",
-        "1: ¡Error al reinicializar datos!"
+        "1: ¡Reinicialización de datos falló!"
     ],
     "GeneralPops": [
         "0: ¡No se puede salir de JKSV mientras hay tareas en ejecución!"
     ],
     "GoogleDriveStrings": [
         "0: Para continuar, ve a #%s# e introduce >%s>!",
-        "1: ¡Inicio de sesión en Google Drive exitoso!",
-        "2: ¡Error en el inicio de sesión de Google Drive!"
+        "1: ¡Sesión en Google Drive iniciada con éxito!",
+        "2: ¡Error al iniciar sesión en Google Drive!"
     ],
     "HoldingStrings": [
-        "0: Mantén pulsado [A]",
-        "1: Sigue manteniendo pulsado [A]",
-        "2: ¡Casi ahí! [A]"
+        "0: Mantén [A]",
+        "1: Sigue manteniendo [A]",
+        "2: ¡Casi lo tienes! [A]"
     ],
     "IOStatuses": [
-        "0: Copiando #%s#...",
-        "1: Comprimiendo #%s# a ZIP...",
-        "2: Descomprimiendo #%s# desde ZIP...",
-        "3: Eliminando #%s#...",
-        "4: Descargando #%s#...",
-        "5: Subiendo #%s# al almacenamiento remoto...",
-        "6: Actualizando #%s# en el almacenamiento remoto..."
+        "0: Copiando #%s#…",
+        "1: Comprimiendo #%s# a ZIP…",
+        "2: Descomprimiendo #%s# desde ZIP…",
+        "3: Borrando #%s#…",
+        "4: Descargando #%s#…",
+        "5: Subiendo #%s# al almacenamiento remoto…",
+        "6: Actualizando #%s# en el almacenamiento remoto…"
     ],
     "IOPops": [
-        "0: ¡Error al guardar los datos en el dispositivo!"
+        "0: ¡Error al confirmar los datos en el dispositivo!"
     ],
     "KeyboardStrings": [
         "0: Introduce un nuevo nombre para la copia de seguridad.",
         "1: Introduce el índice de caché.",
-        "2: Introduce una nueva ruta de salida para JKSV",
-        "3: Introduce el ID del proceso a terminar.",
-        "4: Introduce un ID de guardado del sistema",
-        "5: Introduce un nuevo nombre para el objeto objetivo.",
-        "6: Introduce un nombre para la nueva carpeta.",
-        "7: Introduce un nuevo nombre para la carpeta de salida de %s.",
+        "2: Introduce una nueva ruta de salida para JKSV.",
+        "3: Introduce el ID de proceso a finalizar.",
+        "4: Introduce un ID de guardado del sistema.",
+        "5: Introduce un nuevo nombre para el elemento destino.",
+        "6: Introduce un nombre para la carpeta nueva.",
+        "7: Introduce un nuevo nombre de carpeta de salida para %s.",
         "8: Introduce cuánto ampliar (en MB)."
     ],
     "MainMenuConfs": [
-        "0: ¿Estás seguro de que quieres hacer copia de seguridad de los datos guardados para todos los usuarios de este sistema? ¡Esto puede tardar muchísimo!"
+        "0: ¿Segurо que quieres hacer copia de seguridad de los datos guardados para todos los usuarios de este sistema? ¡Esto puede tardar *muchísimo*!"
     ],
     "MainMenuPops": [
-        "0: `%s` no tiene datos guardados."
+        "0: ¡`%s` no tiene datos guardados!"
     ],
     "OnOff": [
         "0: Apagado",
         "1: >Encendido>"
     ],
     "RemotePops": [
-        "0: ¡No hay conexión a internet disponible!"
+        "0: ¡No hay conexión a Internet disponible!"
     ],
     "SaveCreatePops": [
         "0: ¡Datos guardados creados para #%s#!",
         "1: ¡Error al crear los datos guardados!",
-        "2: ¡Error al eliminar los datos guardados!"
+        "2: ¡Error al borrar los datos guardados!"
     ],
     "SaveDataTypes": [
         "0: Sistema",
@@ -111,98 +111,101 @@
         "6: BCAT del sistema"
     ],
     "SettingsDescriptions": [
-        "0: Establece el directorio de trabajo para JKSV. El valor por defecto es `sdmc:/JKSV`.",
+        "0: Establece el directorio de trabajo para JKSV. El valor predeterminado es `sdmc:/JKSV`.",
         "1: Permite eliminar títulos de la lista negra.",
-        "2: Incluye guardados de dispositivo o compartidos con usuarios.",
+        "2: Incluye partidas del dispositivo o compartidas con usuarios.",
         "3: Crea una copia de seguridad automáticamente al restaurar otra.",
-        "4: Nombra las copias automáticamente y omite el teclado.",
-        "5: Sube automáticamente las copias al almacenamiento remoto y las elimina localmente.",
-        "6: Siempre usa IDs de aplicación para los nombres de las carpetas de exportación.",
-        "7: Si es necesario mantener pulsado [A] durante tres segundos para eliminar copias.",
-        "8: Si es necesario mantener pulsado [A] durante tres segundos para restaurar copias.",
-        "9: Si es necesario mantener pulsado [A] durante tres segundos para sobrescribir copias.",
-        "10: Muestra solo datos guardados que JKSV puede abrir correctamente.",
-        "11: Muestra guardados del sistema que tienen un ID de cuenta asociado.",
-        "12: Habilita la restauración de guardados del sistema y escritura en particiones NAND.",
-        "13: Exporta guardados a archivos ZIP en lugar de carpetas sin comprimir.",
-        "14: Nivel de compresión o deflación al escribir ZIP. Por defecto es 6. Valores menores son más rápidos pero comprimen menos. Cero es almacenar, sin compresión.",
+        "4: Nombra automáticamente las copias y omite el teclado.",
+        "5: Sube automáticamente las copias a almacenamiento remoto y las elimina localmente.",
+        "6: Siempre usa IDs de aplicación para los nombres de carpeta de exportación.",
+        "7: Si hay que mantener [A] durante tres segundos para borrar copias.",
+        "8: Si hay que mantener [A] durante tres segundos para restaurar copias.",
+        "9: Si hay que mantener [A] durante tres segundos para sobrescribir copias.",
+        "10: Muestra solo partidas que JKSV puede abrir correctamente.",
+        "11: Muestra partidas del sistema con ID de cuenta.",
+        "12: Permite restaurar partidas del sistema y escribir en particiones NAND.",
+        "13: Exporta datos guardados como archivos ZIP en lugar de carpetas sin comprimir.",
+        "14: Nivel de compresión ZIP usado al escribir. El valor predeterminado es 6. Valores bajos son más rápidos pero comprimen menos. Cero significa guardar sin comprimir.",
         "15: Controla cómo se ordenan y muestran los títulos.",
-        "16: Muestra los títulos como menús de texto como el JKSM original en 3DS en lugar de cuadrículas de iconos.",
-        "17: Fuerza el uso del inglés como idioma en lugar del idioma del sistema detectado.",
-        "18: Mueve las copias eliminadas a la carpeta _TRASH_ en lugar de eliminarlas permanentemente.",
-        "19: Establece la velocidad a la que ocurren las transiciones y animaciones. Menor es más rápido."
+        "16: Muestra los títulos como menús de texto como en el JKSM original de 3DS en vez de mosaicos de iconos.",
+        "17: Fuerza el uso de inglés en lugar del idioma del sistema detectado.",
+        "18: Mueve las copias eliminadas a la carpeta _TRASH_ en lugar de eliminarlas definitivamente.",
+        "19: Establece la velocidad de las transiciones y animaciones. Valores bajos son más rápidos."
     ],
     "SettingsMenu": [
         "0: Establecer carpeta de salida de JKSV.",
         "1: Editar lista negra",
-        "2: Incluir guardados de dispositivo con usuarios: %s",
+        "2: Incluir partidas de dispositivo con usuarios: %s",
         "3: Copia automática al restaurar: %s",
-        "4: Nombre automático para copias: %s",
-        "5: Subir copias automáticamente al almacenamiento remoto: %s",
+        "4: Nombres automáticos para copias: %s",
+        "5: Subida automática a almacenamiento remoto: %s",
         "6: Usar siempre IDs de aplicación: %s",
-        "7: Mantener pulsado para eliminar copias: %s",
-        "8: Mantener pulsado para restaurar copias: %s",
-        "9: Mantener pulsado para sobrescribir copias: %s",
-        "10: Mostrar solo títulos montables: %s",
-        "11: Mostrar guardados del sistema con cuenta: %s",
-        "12: Permitir escritura en guardados del sistema y NAND: %s",
-        "13: Exportar guardados a ZIP: %s",
+        "7: Mantener para borrar copias: %s",
+        "8: Mantener para restaurar copias: %s",
+        "9: Mantener para sobrescribir copias: %s",
+        "10: Solo mostrar títulos montables: %s",
+        "11: Mostrar partidas del sistema con ID de cuenta: %s",
+        "12: Habilitar escritura en partidas del sistema y NAND: %s",
+        "13: Exportar partidas a ZIP: %s",
         "14: Nivel de compresión ZIP: %u",
-        "15: Tipo de ordenación de títulos: %s",
+        "15: Tipo de ordenación de título: %s",
         "16: Modo menú de texto (JKSM): %s",
         "17: Forzar inglés: %s",
-        "18: Activar papelera de reciclaje: %s",
-        "19: Escala de animación: %.02f"
+        "18: Activar papelera: %s",
+        "19: Escalado de animaciones: %.02f"
+    ],
+    "SettingsPops": [
+        "0: ¡La lista negra está vacía!"
     ],
     "SortTypes": [
         "0: Alfabéticamente",
-        "1: Más jugados",
-        "2: Último jugado"
+        "1: Más jugado",
+        "2: Última vez jugado"
     ],
     "TitleInfo": [
-        "0: ID de app: %016lX",
-        "1: ID de guardado: %016lx",
-        "2: Primera vez jugado: %x - %X",
-        "3: Última vez jugado: %x - %X",
+        "0: ID de la App: %016lX",
+        "1: ID del guardado: %016lx",
+        "2: Primera vez jugado: %x – %X",
+        "3: Última vez jugado: %x – %X",
         "4: Tiempo de juego: %02d:%02d:%02d",
-        "5: Lanzamientos: %i",
+        "5: Inicios: %i",
         "6: Tipo de guardado: %s"
     ],
     "TitleOptionConfirmations": [
-        "0: ¿Estás seguro de que quieres añadir #%s# a la lista negra? Una vez hecho, no aparecerá en ninguna lista ni selección.",
-        "1: ¿Estás seguro de que quieres eliminar todas las copias guardadas actuales para #%s#? *¡Esto no se puede deshacer!*",
-        "2: ¿Estás seguro de que quieres reiniciar los datos guardados para #%s#? *¡Esto borrará los datos guardados actuales como si nunca hubieras jugado!*",
-        "3: ¿Estás seguro de que quieres eliminar los datos guardados de `%s` para #%s#? *Esto los eliminará permanentemente del sistema.*"
+        "0: ¿Estás seguro de que quieres añadir #%s# a la lista negra? Una vez hecho, ya no aparecerá en ninguna lista de títulos.",
+        "1: ¿Estás seguro de que deseas eliminar todos los backups actuales para #%s#? *¡Esto no se puede deshacer!*",
+        "2: ¿Estás seguro de que quieres restablecer los datos guardados para #%s#? *¡Esto eliminará los datos actuales como si nunca se hubiera ejecutado!*",
+        "3: ¿Estás seguro de que quieres borrar los datos guardados de `%s` para #%s#? *¡Esto lo eliminará permanentemente del sistema!*"
     ],
     "TitleOptionPops": [
-        "0: ¡Todas las copias eliminadas para #%s#!",
-        "1: ¡No se pudieron eliminar todas las copias!",
-        "2: ¡Error al reiniciar los datos guardados!",
-        "3: ¡Datos guardados reiniciados con éxito!",
+        "0: ¡Todos los backups eliminados para #%s#!",
+        "1: ¡Error al eliminar todos los backups!",
+        "2: ¡Error al restablecer los datos guardados!",
+        "3: ¡Datos guardados restablecidos con éxito!",
         "4: ¡Archivo SVI exportado con éxito!",
-        "5: ¡Error al exportar archivo SVI!",
+        "5: ¡Error al exportar el archivo SVI!",
         "6: ¡Esta opción no está disponible para guardados del sistema!",
         "7: ¡No se pudo sanear la ruta para su uso!",
-        "8: Carpeta de salida establecida en #%s#.",
-        "9: ¡Error al establecer nueva ruta de salida!",
+        "8: ¡Carpeta de salida establecida en #%s#!",
+        "9: ¡Error al establecer la nueva ruta de salida!",
         "10: ¡Datos guardados ampliados con éxito!",
         "11: ¡Error al ampliar los datos guardados!"
     ],
     "TitleOptionStatus": [
-        "0: Eliminando todas las copias para #%s#.",
-        "1: Reiniciando los datos guardados para #%s#.",
-        "2: Eliminando los datos guardados de `%s` para #%s#...",
-        "3: Ampliando los datos guardados de `%s` para #%s#..."
+        "0: Eliminando todos los backups para #%s#.",
+        "1: Restableciendo los datos guardados para #%s#.",
+        "2: Borrando los datos guardados de `%s` para #%s#…",
+        "3: Ampliando los datos guardados de `%s` para #%s#…"
     ],
     "TitleOptions": [
         "0: Información",
-        "1: Añadir a lista negra",
+        "1: Añadir título a la lista negra",
         "2: Cambiar carpeta de salida",
         "3: Abrir en modo archivo",
-        "4: Eliminar todas las copias locales",
-        "5: Eliminar todas las copias remotas",
-        "6: Reiniciar datos guardados",
-        "7: Eliminar datos guardados del sistema",
+        "4: Eliminar todos los backups locales",
+        "5: Eliminar todos los backups remotos",
+        "6: Restablecer datos guardados",
+        "7: Borrar datos guardados del sistema",
         "8: Ampliar datos guardados",
         "9: Exportar archivo SVI"
     ],
@@ -211,13 +214,13 @@
         "1: NULL"
     ],
     "UserOptionConfirmations": [
-        "0: ¿Estás seguro de que quieres hacer copia de seguridad de todos los datos guardados para `%s`? Esto puede tardar un rato.",
-        "1: ¿Estás seguro de que quieres crear datos guardados para todos los títulos encontrados en tu sistema para `%s`? Esto puede tardar un rato.",
-        "2: ¿Estás seguro de que quieres eliminar todos los datos guardados para `%s`? Esto es *PERMANENTE* y no se puede deshacer."
+        "0: ¿Estás seguro de que deseas hacer copia de los datos guardados de todos los títulos encontrados para `%s`? Esto puede tardar un tiempo.",
+        "1: ¿Estás seguro de que deseas crear datos guardados para todos los títulos encontrados en tu sistema para `%s`? Esto puede tardar un tiempo.",
+        "2: ¿Estás seguro de que deseas eliminar todos los datos guardados para `%s`? Esto es *PERMANENTE* y no puede deshacerse."
     ],
     "UserOptionStatus": [
-        "0: Creando datos guardados para #%s#...",
-        "1: Eliminando datos guardados para #%s#..."
+        "0: Creando datos guardados para #%s#…",
+        "1: Eliminando datos guardados para #%s#…"
     ],
     "UserOptions": [
         "0: Volcar todo para `%s`",

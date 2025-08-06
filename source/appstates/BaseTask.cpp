@@ -12,8 +12,8 @@ namespace
 } // namespace
 
 BaseTask::BaseTask()
-    : BaseState{false}
-    , m_popUnableExit{strings::get_by_name(strings::names::GENERAL_POPS, 0)}
+    : BaseState(false)
+    , m_popUnableExit(strings::get_by_name(strings::names::GENERAL_POPS, 0))
 {
     m_frameTimer.start(TICKS_GLYPH_TRIGGER);
 }
@@ -38,7 +38,5 @@ void BaseTask::update()
 
 void BaseTask::render_loading_glyph()
 {
-    const char *currentFrame = sm_glyphArray[m_currentFrame].data();
-
-    sdl::text::render(NULL, 56, 673, 32, sdl::text::NO_TEXT_WRAP, m_colorMod, currentFrame);
+    sdl::text::render(sdl::Texture::Null, 56, 673, 32, sdl::text::NO_WRAP, m_colorMod, sm_glyphArray[m_currentFrame]);
 }

@@ -3,7 +3,6 @@
 #include "colors.hpp"
 #include "config.hpp"
 #include "input.hpp"
-#include "ui/render_functions.hpp"
 
 #include <cmath>
 
@@ -14,6 +13,7 @@ namespace
 
 ui::TitleView::TitleView(data::User *user)
     : m_user(user)
+    , m_bounding(ui::BoundingBox::create(0, 0, 188, 188))
 {
     TitleView::refresh();
 }
@@ -22,13 +22,13 @@ void ui::TitleView::update(bool hasFocus)
 {
     if (m_titleTiles.empty()) { return; }
 
-    m_colorMod.update();
+    m_bounding->update(hasFocus);
     TitleView::handle_input();
     TitleView::handle_scrolling();
     TitleView::update_tiles();
 }
 
-void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
+void ui::TitleView::render(sdl::SharedTexture &target, bool hasFocus)
 {
     static constexpr int TILE_SPACE_VERT = 144;
     static constexpr int TILE_SPACE_HOR  = 144;
@@ -55,8 +55,9 @@ void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
 
     if (hasFocus)
     {
-        sdl::render_rect_fill(target, m_selectedX - 29, m_selectedY - 29, 187, 187, colors::CLEAR_COLOR);
-        ui::render_bounding_box(target, m_selectedX - 30, m_selectedY - 30, 188, 188, m_colorMod);
+        m_bounding->set_xy(m_selectedX - 30, m_selectedY - 30);
+        sdl::render_rect_fill(target, m_selectedX - 28, m_selectedY - 28, 184, 184, colors::CLEAR_COLOR);
+        m_bounding->render(target, hasFocus);
     }
 
     ui::TitleTile &selectedTile = m_titleTiles[m_selected];
@@ -64,6 +65,13 @@ void ui::TitleView::render(SDL_Texture *target, bool hasFocus)
 }
 
 int ui::TitleView::get_selected() const { return m_selected; }
+
+void ui::TitleView::set_selected(int selected)
+{
+    const int tilesCount = m_titleTiles.size();
+    if (selected < 0 || selected >= tilesCount) { return; }
+    m_selected = selected;
+}
 
 void ui::TitleView::refresh()
 {

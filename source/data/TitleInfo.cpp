@@ -44,7 +44,7 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
         m_hasData             = true;
 
         TitleInfo::get_create_path_safe_title();
-        m_icon = sdl::TextureManager::create_load_texture(entry->name, m_data->icon, iconSize);
+        m_icon = sdl::TextureManager::create_load_texture(entry->name, data->icon, iconSize);
     }
 }
 
@@ -183,11 +183,13 @@ bool data::TitleInfo::has_save_data_type(uint8_t saveType) const
 
 sdl::SharedTexture data::TitleInfo::get_icon() const { return m_icon; }
 
-void data::TitleInfo::set_path_safe_title(const char *newPathSafe, size_t newPathLength)
+void data::TitleInfo::set_path_safe_title(const char *newPathSafe)
 {
-    if (newPathLength >= TitleInfo::SIZE_PATH_SAFE) { return; }
+    const int length = std::char_traits<char>::length(newPathSafe);
+    if (length >= TitleInfo::SIZE_PATH_SAFE) { return; }
+
     std::memset(m_pathSafeTitle, 0x00, TitleInfo::SIZE_PATH_SAFE);
-    std::memcpy(m_pathSafeTitle, newPathSafe, newPathLength);
+    std::memcpy(m_pathSafeTitle, newPathSafe, length);
 }
 
 void data::TitleInfo::get_create_path_safe_title()

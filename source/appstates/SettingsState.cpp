@@ -1,5 +1,6 @@
 #include "appstates/SettingsState.hpp"
 
+#include "appstates/BlacklistEditState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
@@ -19,6 +20,16 @@ namespace
     constexpr std::string_view SECONDARY_TARGET = "SecondaryTarget";
 
     constexpr std::string_view CONFIG_KEY_NULL = "NULL";
+
+    enum
+    {
+        CHANGE_WORK_DIR = 0,
+        EDIT_BLACKLIST  = 1,
+        CYCLE_ZIP       = 14,
+        CYCLE_SORT_TYPE = 15,
+        TOGGLE_JKSM     = 16,
+        CYCLE_SCALING   = 19
+    };
 
     // This is needed to be able to get and set keys by index. Anything "NULL" isn't a key that can be easily toggled.
     constexpr std::array<std::string_view, 20> CONFIG_KEY_ARRAY = {CONFIG_KEY_NULL,
@@ -44,13 +55,10 @@ namespace
 } // namespace
 
 SettingsState::SettingsState()
-    : m_settingsMenu{32, 8, 1000, 24, 555}
-    , m_controlGuide{strings::get_by_name(strings::names::CONTROL_GUIDES, 3)}
-    , m_controlGuideX{static_cast<int>(1220 - sdl::text::get_width(22, m_controlGuide))}
-    , m_renderTarget{sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
-                                                              1080,
-                                                              555,
-                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)}
+    : m_settingsMenu(32, 8, 1000, 24, 555)
+    , m_controlGuide(strings::get_by_name(strings::names::CONTROL_GUIDES, 3))
+    , m_controlGuideX(1220 - sdl::text::get_width(22, m_controlGuide))
+    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     SettingsState::load_settings_menu();
     SettingsState::load_extra_strings();
@@ -75,10 +83,13 @@ void SettingsState::render()
     const bool hasFocus = BaseState::has_focus();
 
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_settingsMenu.render(m_renderTarget->get(), hasFocus);
-    m_renderTarget->render(NULL, 201, 91);
+    m_settingsMenu.render(m_renderTarget, hasFocus);
+    m_renderTarget->render(sdl::Texture::Null, 201, 91);
 
-    if (hasFocus) { sdl::text::render(NULL, m_controlGuideX, 673, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_controlGuide); }
+    if (hasFocus)
+    {
+        sdl::text::render(sdl::Texture::Null, m_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
+    }
 }
 
 void SettingsState::load_settings_menu()
@@ -132,16 +143,34 @@ void SettingsState::update_menu_options()
     }
 }
 
+void SettingsState::change_working_directory() {}
+
+void SettingsState::create_push_blacklist_edit()
+{
+    const bool isEmpty = config::blacklist_is_empty();
+    if (isEmpty)
+    {
+        const int popTicks   = ui::PopMessageManager::DEFAULT_TICKS;
+        const char *popEmpty = strings::get_by_name(strings::names::SETTINGS_POPS, 0);
+        ui::PopMessageManager::push_message(popTicks, popEmpty);
+        return;
+    }
+
+    BlacklistEditState::create_and_push();
+}
+
 void SettingsState::toggle_options()
 {
     const int selected = m_settingsMenu.get_selected();
     switch (selected)
     {
-        case 14: SettingsState::cycle_zip_level(); break;
-        case 15: SettingsState::cycle_sort_type(); break;
-        case 16: SettingsState::toggle_jksm_mode(); break;
-        case 19: SettingsState::cycle_anim_scaling(); break;
-        default: config::toggle_by_key(CONFIG_KEY_ARRAY[selected]);
+        case CHANGE_WORK_DIR: SettingsState::change_working_directory(); break;
+        case EDIT_BLACKLIST:  SettingsState::create_push_blacklist_edit(); break;
+        case CYCLE_ZIP:       SettingsState::cycle_zip_level(); break;
+        case CYCLE_SORT_TYPE: SettingsState::cycle_sort_type(); break;
+        case TOGGLE_JKSM:     SettingsState::toggle_jksm_mode(); break;
+        case CYCLE_SCALING:   SettingsState::cycle_anim_scaling(); break;
+        default:              config::toggle_by_key(CONFIG_KEY_ARRAY[selected]); break;
     }
     config::save();
     SettingsState::update_menu_options();

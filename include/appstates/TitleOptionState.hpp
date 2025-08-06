@@ -16,7 +16,7 @@ class TitleOptionState final : public BaseState
         TitleOptionState(data::User *user, data::TitleInfo *titleInfo, TitleSelectCommon *titleSelect);
 
         /// @brief Required destructor.
-        ~TitleOptionState() {};
+        ~TitleOptionState();
 
         /// @brief Returns a new TitleOptionState. See constructor.
         static std::shared_ptr<TitleOptionState> create(data::User *user,

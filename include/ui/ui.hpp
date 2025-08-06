@@ -1,5 +1,7 @@
 #pragma once
+#include "ui/BoundingBox.hpp"
 #include "ui/ColorMod.hpp"
+#include "ui/DialogBox.hpp"
 #include "ui/Element.hpp"
 #include "ui/IconMenu.hpp"
 #include "ui/Menu.hpp"
@@ -8,4 +10,3 @@
 #include "ui/TextScroll.hpp"
 #include "ui/TitleTile.hpp"
 #include "ui/TitleView.hpp"
-#include "ui/render_functions.hpp"

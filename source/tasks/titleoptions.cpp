@@ -88,7 +88,8 @@ void tasks::titleoptions::delete_all_remote_backups_for_title(sys::Task *task, T
 
     remote::Item *workDir = remote->get_directory_by_name(remoteTitle);
     remote->change_directory(workDir);
-    remote::Storage::DirectoryListing remoteListing = remote->get_directory_listing();
+    remote::Storage::DirectoryListing remoteListing{};
+    remote->get_directory_listing(remoteListing);
 
     {
         const char *statusFormat = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 0);

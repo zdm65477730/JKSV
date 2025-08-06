@@ -102,16 +102,17 @@ void tasks::useroptions::create_all_save_data_for_user(sys::Task *task, UserOpti
     UserOptionState *spawningState = taskData->spawningState;
     if (error::is_null(user) || error::is_null(spawningState)) { TASK_FINISH_RETURN(task); }
 
-    auto &titleInfoMap       = data::get_title_info_map();
+    data::TitleInfoList infoList{};
+    data::get_title_info_list(infoList);
     const int popTicks       = ui::PopMessageManager::DEFAULT_TICKS;
     const char *statusFormat = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);
     const char *popFailure   = strings::get_by_name(strings::names::SAVECREATE_POPS, 1);
     const uint8_t saveType   = user->get_account_save_type();
 
-    for (auto &[applicationID, titleInfo] : titleInfoMap)
+    for (data::TitleInfo *titleInfo : infoList)
     {
-        const char *title      = titleInfo.get_title();
-        const bool hasSaveType = titleInfo.has_save_data_type(saveType);
+        const char *title      = titleInfo->get_title();
+        const bool hasSaveType = titleInfo->has_save_data_type(saveType);
         if (!hasSaveType) { continue; }
 
         {
@@ -119,7 +120,7 @@ void tasks::useroptions::create_all_save_data_for_user(sys::Task *task, UserOpti
             task->set_status(status);
         }
 
-        const bool saveCreated = fs::create_save_data_for(user, &titleInfo);
+        const bool saveCreated = fs::create_save_data_for(user, titleInfo);
         if (!saveCreated)
         {
             const std::string popMessage = stringutil::get_formatted_string(popFailure, title);

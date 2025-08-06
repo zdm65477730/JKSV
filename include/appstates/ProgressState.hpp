@@ -2,7 +2,9 @@
 #include "StateManager.hpp"
 #include "appstates/BaseTask.hpp"
 #include "sys/sys.hpp"
+#include "ui/ui.hpp"
 
+#include <memory>
 #include <string>
 #include <switch.h>
 
@@ -16,13 +18,14 @@ class ProgressState final : public BaseTask
         /// @note All functions passed to this must follow this signature: void function(sys::ProgressTask *, <arguments>)
         template <typename... Args>
         ProgressState(void (*function)(sys::ProgressTask *, Args...), Args... args)
-            : BaseTask{}
+            : BaseTask()
         {
+            ProgressState::initialize_static_members();
             m_task = std::make_unique<sys::ProgressTask>(function, std::forward<Args>(args)...);
         }
 
         /// @brief Required destructor.
-        ~ProgressState() {};
+        ~ProgressState();
 
         template <typename... Args>
         static std::shared_ptr<ProgressState> create(void (*function)(sys::ProgressTask *, Args...), Args... args)
@@ -56,4 +59,9 @@ class ProgressState final : public BaseTask
 
         /// @brief Percentage as a string for printing to screen.
         std::string m_percentageString{};
+
+        /// @brief This is the dialog box everything is rendered to.
+        static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
+
+        void initialize_static_members();
 };

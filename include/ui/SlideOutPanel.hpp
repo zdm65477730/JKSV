@@ -2,11 +2,12 @@
 #include "sdl.hpp"
 #include "ui/Element.hpp"
 
+#include <memory>
 #include <vector>
 
 namespace ui
 {
-    class SlideOutPanel : public ui::Element
+    class SlideOutPanel final : public ui::Element
     {
         public:
             /// @brief Enum for which side of the screen the panel slides from.
@@ -24,14 +25,16 @@ namespace ui
             /// @brief Required destructor.
             ~SlideOutPanel() {};
 
+            std::shared_ptr<ui::SlideOutPanel> create(int width, SlideOutPanel::Side side);
+
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.
-            void update(bool hasFocus);
+            void update(bool hasFocus) override;
 
             /// @brief Runs the render routine.
             /// @param target Target to render to.
             /// @param hasFocus Whether or the the calling state has focus.
-            void render(SDL_Texture *target, bool hasFocus);
+            void render(sdl::SharedTexture &target, bool hasFocus) override;
 
             /// @brief Clears the target to a semi-transparent black. To do: Maybe not hard coded color.
             void clear_target();
@@ -59,7 +62,7 @@ namespace ui
 
             /// @brief Returns a pointer to the render target of the panel.
             /// @return Raw SDL_Texture pointer to target.
-            SDL_Texture *get_target();
+            sdl::SharedTexture &get_target();
 
         private:
             /// @brief Bool for whether panel is fully open or not.
@@ -82,9 +85,6 @@ namespace ui
 
             /// @brief Render target if panel.
             sdl::SharedTexture m_renderTarget{};
-
-            /// @brief This is so I don't need to fetch the scaling every loop.
-            double m_scaling{};
 
             /// @brief Vector of elements.
             std::vector<std::shared_ptr<ui::Element>> m_elements{};

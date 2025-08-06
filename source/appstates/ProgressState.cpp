@@ -1,43 +1,70 @@
 #include "appstates/ProgressState.hpp"
 
+#include "appstates/FadeState.hpp"
 #include "colors.hpp"
 #include "input.hpp"
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
-#include "ui/render_functions.hpp"
 
 #include <cmath>
 
+namespace
+{
+    constexpr int COORD_BAR_X = 312;
+    constexpr int COORD_BAR_Y = 462;
+
+    constexpr int COORD_TEXT_Y = 468;
+
+    constexpr int COORD_DISPLAY_CENTER = 640;
+    constexpr double SIZE_BAR_WIDTH    = 656.0f;
+    constexpr int SIZE_FONT_SIZE       = 18;
+}
+
+ProgressState::~ProgressState() { FadeState::create_and_push(colors::DIM_BACKGROUND, 0x88, 0x00, nullptr); }
+
 void ProgressState::update()
 {
-    static constexpr double SIZE_BAR_WIDTH = 656.0f;
-
     sys::ProgressTask *task = static_cast<sys::ProgressTask *>(m_task.get());
     const double current    = task->get_progress();
 
     // Base routine.
     BaseTask::update();
 
-    m_progressBarWidth = std::ceil(SIZE_BAR_WIDTH * current);
-    m_progress         = std::ceil(current * 100);
-    m_percentageString = stringutil::get_formatted_string("%u", m_progress);
-    m_percentageX      = 640 - (sdl::text::get_width(18, m_percentageString.c_str()));
+    m_progressBarWidth        = std::round(SIZE_BAR_WIDTH * current);
+    m_progress                = std::round(current * 100);
+    m_percentageString        = stringutil::get_formatted_string("%u%%", m_progress);
+    const int percentageWidth = sdl::text::get_width(18, m_percentageString.c_str());
+    m_percentageX             = COORD_DISPLAY_CENTER - percentageWidth;
 }
 
 void ProgressState::render()
 {
+    const bool hasFocus      = BaseState::has_focus();
+    const int barWidth       = static_cast<int>(SIZE_BAR_WIDTH);
     const std::string status = m_task->get_status();
-    const char *percentage   = m_percentageString.c_str();
 
-    sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
+    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
+    sm_dialog->render(sdl::Texture::Null, hasFocus);
+    sdl::text::render(sdl::Texture::Null, 312, 288, 18, 656, colors::WHITE, status);
 
-    ui::render_dialog_box(NULL, 280, 262, 720, 256);
-    sdl::text::render(NULL, 312, 288, 18, 648, colors::WHITE, status.c_str());
-    sdl::render_rect_fill(NULL, 312, 462, 656, 32, colors::BLACK);
-    sdl::render_rect_fill(NULL, 312, 462, m_progressBarWidth, 32, colors::GREEN);
-    sdl::text::render(NULL, m_percentageX, 468, 18, sdl::text::NO_TEXT_WRAP, colors::WHITE, "%s%%", percentage);
+    sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, barWidth, 32, colors::BLACK);
+    sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, m_progressBarWidth, 32, colors::GREEN);
+    sdl::text::render(sdl::Texture::Null,
+                      m_percentageX,
+                      COORD_TEXT_Y,
+                      SIZE_FONT_SIZE,
+                      sdl::text::NO_WRAP,
+                      colors::WHITE,
+                      m_percentageString);
 
     BaseTask::render_loading_glyph();
+}
+
+void ProgressState::initialize_static_members()
+{
+    if (sm_dialog) { return; }
+
+    sm_dialog = ui::DialogBox::create(280, 262, 720, 256);
 }

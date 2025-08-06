@@ -1,6 +1,7 @@
 #pragma once
 #include "data/data.hpp"
 #include "sdl.hpp"
+#include "ui/BoundingBox.hpp"
 #include "ui/ColorMod.hpp"
 #include "ui/Element.hpp"
 #include "ui/TitleTile.hpp"
@@ -10,7 +11,7 @@
 namespace ui
 {
     /// @brief Presents a grid of icons to select a title from.
-    class TitleView : public ui::Element
+    class TitleView final : public ui::Element
     {
         public:
             /// @brief Creates a title view using passed user pointer.
@@ -22,16 +23,19 @@ namespace ui
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether the calling state has focus.
-            void update(bool hasFocus);
+            void update(bool hasFocus) override;
 
             /// @brief Runs the render routine.
             /// @param target Target to render to.
             /// @param hasFocus Whether or not the calling state has focus.
-            void render(SDL_Texture *target, bool hasFocus);
+            void render(sdl::SharedTexture &target, bool hasFocus) override;
 
             /// @brief Returns index of the currently selected tile.
             /// @return Index of currently selected tile.
             int get_selected() const;
+
+            /// @brief Sets the currently selected item.
+            void set_selected(int selected);
 
             /// @brief Forces a refresh of the view.
             void refresh();
@@ -61,10 +65,16 @@ namespace ui
             /// @brief Vector of selection tiles.
             std::vector<ui::TitleTile> m_titleTiles{};
 
+            /// @brief Bounding box rendered around the selected title.
+            std::shared_ptr<ui::BoundingBox> m_bounding{};
+
+            /// @brief Performs the input routine.
             void handle_input();
 
+            /// @brief Performs the "scrolling" routine.
             void handle_scrolling();
 
+            /// @brief Updates the tiles.
             void update_tiles();
     };
 } // namespace ui

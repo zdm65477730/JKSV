@@ -25,19 +25,29 @@ remote::Item *remote::Storage::get_directory_by_name(std::string_view name)
     return &(*findDirectory);
 }
 
-remote::Storage::DirectoryListing remote::Storage::get_directory_listing()
+void remote::Storage::get_directory_listing(remote::Storage::DirectoryListing &listOut)
 {
-    remote::Storage::DirectoryListing listing{};
+    listOut.clear();
 
     auto current = m_list.begin();
-    while ((current = std::find_if(current,
-                                   m_list.end(),
-                                   [&](const Item &item) { return item.get_parent_id() == this->m_parent; })) != m_list.end())
+    while ((current = Storage::find_by_parent_id(current, m_parent)) != m_list.end())
     {
-        listing.push_back(&(*current));
+        listOut.push_back(&(*current));
         ++current;
     }
-    return listing;
+}
+
+void remote::Storage::get_directory_listing_with_parent(const remote::Item *item, remote::Storage::DirectoryListing &listOut)
+{
+    listOut.clear();
+
+    const std::string_view parentId = item->get_id();
+    auto current                    = m_list.begin();
+    while ((current = Storage::find_by_parent_id(current, parentId)) != m_list.end())
+    {
+        listOut.push_back(&(*current));
+        ++current;
+    }
 }
 
 bool remote::Storage::file_exists(std::string_view name) { return Storage::find_file_by_name(name) != m_list.end(); }
@@ -55,16 +65,24 @@ std::string_view remote::Storage::get_prefix() const { return m_prefix; }
 
 remote::Storage::List::iterator remote::Storage::find_directory_by_name(std::string_view name)
 {
-    return std::find_if(m_list.begin(),
-                        m_list.end(),
-                        [&](const Item &item)
-                        { return item.is_directory() && item.get_parent_id() == this->m_parent && item.get_name() == name; });
+    auto is_match = [&](const Item &item)
+    { return item.is_directory() && item.get_parent_id() == m_parent && item.get_name() == name; };
+
+    return std::find_if(m_list.begin(), m_list.end(), is_match);
 }
 
 remote::Storage::List::iterator remote::Storage::find_file_by_name(std::string_view name)
 {
-    return std::find_if(m_list.begin(),
-                        m_list.end(),
-                        [&](const Item &item)
-                        { return !item.is_directory() && item.get_parent_id() == this->m_parent && item.get_name() == name; });
+    auto is_match = [&](const Item &item)
+    { return !item.is_directory() && item.get_parent_id() == m_parent && item.get_name() == name; };
+
+    return std::find_if(m_list.begin(), m_list.end(), is_match);
+}
+
+remote::Storage::List::iterator remote::Storage::find_by_parent_id(remote::Storage::List::iterator start,
+                                                                   std::string_view parentID)
+{
+    auto is_match = [&](const Item &item) { return item.get_parent_id() == parentID; };
+
+    return std::find_if(start, m_list.end(), is_match);
 }

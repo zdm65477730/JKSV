@@ -1,7 +1,6 @@
 #include "JKSV.hpp"
 
 #include "StateManager.hpp"
-#include "appstates/FadeInState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TaskState.hpp"
 #include "colors.hpp"
@@ -14,6 +13,7 @@
 #include "remote/remote.hpp"
 #include "sdl.hpp"
 #include "strings.hpp"
+#include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
 
 #include <chrono>
@@ -49,6 +49,8 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
 // This can't really have an initializer list since it sets everything up.
 JKSV::JKSV()
 {
+    const std::time_t beginTime = std::time(nullptr);
+
     appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad);
     ABORT_ON_FAILURE(JKSV::initialize_services());
     ABORT_ON_FAILURE(JKSV::initialize_filesystem());
@@ -57,9 +59,12 @@ JKSV::JKSV()
 
     ABORT_ON_FAILURE(curl::initialize());
     ABORT_ON_FAILURE(strings::initialize()); // This is fatal now.
-    m_translation         = strings::get_by_name(strings::names::TRANSLATION, 0);
-    m_author              = strings::get_by_name(strings::names::TRANSLATION, 1);
-    m_showTranslationInfo = std::char_traits<char>::compare(m_author, "NULL", 4) != 0; // This is whether or not to show.
+
+    const char *translationFormat = strings::get_by_name(strings::names::TRANSLATION, 0);
+    const char *author            = strings::get_by_name(strings::names::TRANSLATION, 1);
+    m_showTranslationInfo         = std::char_traits<char>::compare(author, "NULL", 4) != 0; // This is whether or not to show.
+    m_translationInfo             = stringutil::get_formatted_string(translationFormat, author);
+    m_buildString                 = stringutil::get_formatted_string("v. %02d.%02d.%04d", BUILD_MON, BUILD_DAY, BUILD_YEAR);
 
     input::initialize();
     config::initialize();
@@ -77,6 +82,10 @@ JKSV::JKSV()
     // Init drive or webdav.
     if (fslib::file_exists(remote::PATH_GOOGLE_DRIVE_CONFIG)) { remote::initialize_google_drive(); }
     else if (fslib::file_exists(remote::PATH_WEBDAV_CONFIG)) { remote::initialize_webdav(); }
+
+    const std::time_t endTime = std::time(nullptr);
+    const double diff         = std::difftime(endTime, beginTime);
+    logger::log("Boot time: %.02f seconds.", diff);
 
     m_isRunning = true;
 }
@@ -111,32 +120,20 @@ void JKSV::render()
     sdl::frame_begin(colors::CLEAR_COLOR);
 
     // Top and bottom divider lines.
-    sdl::render_line(NULL, 30, 88, 1250, 88, colors::WHITE);
-    sdl::render_line(NULL, 30, 648, 1250, 648, colors::WHITE);
-
+    sdl::render_line(sdl::Texture::Null, 30, 88, 1250, 88, colors::WHITE);
+    sdl::render_line(sdl::Texture::Null, 30, 648, 1250, 648, colors::WHITE);
     // Icon
-    m_headerIcon->render(NULL, 66, 27);
-
+    m_headerIcon->render(sdl::Texture::Null, 66, 27);
     // "JKSV"
-    sdl::text::render(NULL, 130, 32, 34, sdl::text::NO_TEXT_WRAP, colors::WHITE, "JKSV");
+    sdl::text::render(sdl::Texture::Null, 130, 32, 34, sdl::text::NO_WRAP, colors::WHITE, "JKSV");
 
     // Translation info in bottom left.
     if (m_showTranslationInfo)
     {
-        sdl::text::render(NULL, 8, 680, 14, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_translation, m_author);
+        sdl::text::render(sdl::Texture::Null, 8, 680, 14, sdl::text::NO_WRAP, colors::WHITE, m_translationInfo);
     }
-
     // Build date
-    sdl::text::render(NULL,
-                      8,
-                      700,
-                      14,
-                      sdl::text::NO_TEXT_WRAP,
-                      colors::WHITE,
-                      "v. %02d.%02d.%04d",
-                      BUILD_MON,
-                      BUILD_DAY,
-                      BUILD_YEAR);
+    sdl::text::render(sdl::Texture::Null, 8, 700, 14, sdl::text::NO_WRAP, colors::WHITE, m_buildString);
 
     StateManager::render();
     ui::PopMessageManager::render();

@@ -35,9 +35,11 @@ class JKSV
         /// @brief JKSV icon in upper left corner.
         sdl::SharedTexture m_headerIcon{};
 
-        /// @brief These are pointers to the translation info.
-        const char *m_translation{};
-        const char *m_author{};
+        /// @brief Stores the translation string.
+        std::string m_translationInfo{};
+
+        /// @brief Stores the build string.
+        std::string m_buildString{};
 
         /// @brief Initializes fslib and takes care of a few other things.
         bool initialize_filesystem();

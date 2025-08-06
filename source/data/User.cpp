@@ -4,7 +4,7 @@
 #include "config.hpp"
 #include "data/data.hpp"
 #include "error.hpp"
-#include "fs/save_mount.hpp"
+#include "fs/fs.hpp"
 #include "gfxutil.hpp"
 #include "logger.hpp"
 #include "sdl.hpp"
@@ -182,10 +182,14 @@ void data::User::load_user_data()
 
                 const bool isBlacklisted = config::is_blacklisted(applicationID);
                 const bool systemFilter  = (!accountSys && isAccountUser && isSystemSave);
-                const bool mounted       = !isBlacklisted && !systemFilter && enforceMount &&
-                                     fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, saveInfo);
+
+                bool mounted{};
+                if (!isBlacklisted && !systemFilter && enforceMount)
+                {
+                    fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, &saveInfo, false};
+                    mounted = saveMount.is_open();
+                }
                 if (isBlacklisted || systemFilter || (enforceMount && !mounted)) { continue; }
-                if (mounted) { fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT); }
 
                 const bool titleFound = data::title_exists_in_map(applicationID);
                 if (!titleFound) { data::load_title_to_map(applicationID); }

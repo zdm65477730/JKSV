@@ -154,6 +154,9 @@
         "18: Enable trash bin: %s",
         "19: Animation scaling: %.02f"
     ],
+    "SettingsPops": [
+        "0: Blacklist is empty!"
+    ],
     "SortTypes": [
         "0: Alphabetically",
         "1: Most Played",

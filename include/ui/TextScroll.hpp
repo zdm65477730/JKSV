@@ -35,6 +35,17 @@ namespace ui
             /// @brief Required destructor.
             ~TextScroll() {};
 
+            /// @brief Creates and returns a new TextScroll. See constructor.
+            static std::shared_ptr<ui::TextScroll> create(std::string_view text,
+                                                          int x,
+                                                          int y,
+                                                          int width,
+                                                          int height,
+                                                          int fontSize,
+                                                          sdl::Color textColor,
+                                                          sdl::Color clearColor,
+                                                          bool center = true);
+
             /// @brief Creates/sets the text and parameters for TextScroll.
             /// @param text Text to display/scroll.
             /// @param fontSize Font size to use when rendering.
@@ -42,15 +53,24 @@ namespace ui
             /// @param y Y coordinate used to render text.
             /// @param center Whether or not text should be centered if it's not wide enough for scrolling.
             /// @param color Color to use to render text.
-            void create(std::string_view text,
-                        int x,
-                        int y,
-                        int width,
-                        int height,
-                        int fontSize,
-                        sdl::Color textColor,
-                        sdl::Color clearColor,
-                        bool center = true);
+            void initialize(std::string_view text,
+                            int x,
+                            int y,
+                            int width,
+                            int height,
+                            int fontSize,
+                            sdl::Color textColor,
+                            sdl::Color clearColor,
+                            bool center = true);
+
+            /// @brief Runs the update routine.
+            /// @param hasFocus Whether or not the calling state has focus.
+            void update(bool hasFocus) override;
+
+            /// @brief Runs the render routine.
+            /// @param target Target to render to.
+            /// @param hasFocus Whether or not the calling state has focus.
+            void render(sdl::SharedTexture &target, bool hasFocus) override;
 
             /// @brief Returns the current text being used for scrolling.
             std::string_view get_text() const;
@@ -60,15 +80,6 @@ namespace ui
 
             /// @brief Allows setting of the X and Y render coordinates.
             void set_xy(int x, int y);
-
-            /// @brief Runs the update routine.
-            /// @param hasFocus Whether or not the calling state has focus.
-            void update(bool hasFocus);
-
-            /// @brief Runs the render routine.
-            /// @param target Target to render to.
-            /// @param hasFocus Whether or not the calling state has focus.
-            void render(SDL_Texture *target, bool hasFocus);
 
         private:
             /// @brief Text to display.

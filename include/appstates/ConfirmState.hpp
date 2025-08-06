@@ -1,6 +1,7 @@
 #pragma once
 #include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
+#include "appstates/FadeState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "appstates/TaskState.hpp"
 #include "colors.hpp"
@@ -9,7 +10,7 @@
 #include "sdl.hpp"
 #include "strings.hpp"
 #include "sys/sys.hpp"
-#include "ui/render_functions.hpp"
+#include "ui/ui.hpp"
 
 #include <memory>
 #include <string>
@@ -42,21 +43,17 @@ class ConfirmState final : public BaseState
         /// @param dataStruct shared_ptr<StructType> that is passed to function. I tried templating this and it was a nightmare.
         ConfirmState(std::string_view query, bool holdRequired, TaskFunction function, std::shared_ptr<StructType> dataStruct)
             : BaseState{false}
-            , m_queryString{query}
-            , m_yesText{strings::get_by_name(strings::names::YES_NO, 0)}
-            , m_noText{strings::get_by_name(strings::names::YES_NO, 1)}
-            , m_holdRequired{holdRequired}
-            , m_function{function}
-            , m_dataStruct{dataStruct}
+            , m_query(query)
+            , m_yesText(strings::get_by_name(strings::names::YES_NO, 0))
+            , m_noText(strings::get_by_name(strings::names::YES_NO, 1))
+            , m_holdRequired(holdRequired)
+            , m_function(function)
+            , m_dataStruct(dataStruct)
         {
-            const int noWidth = sdl::text::get_width(22, m_noText);
-
-            // This stays the same from here on out.
-            m_noX = COORD_NO_X - (noWidth / 2);
+            ConfirmState::initialize_static_members();
+            ConfirmState::center_no();
             ConfirmState::center_yes();
-
-            // Gonna loop to do this.
-            for (int i = 0; i < 3; i++) { m_holdText[i] = strings::get_by_name(strings::names::HOLDING_STRINGS, i); }
+            ConfirmState::load_holding_strings();
         }
 
         /// @brief Required even if it does nothing.
@@ -77,8 +74,9 @@ class ConfirmState final : public BaseState
                                                              TaskFunction function,
                                                              std::shared_ptr<StructType> dataStruct)
         {
-            auto newState = create(query, holdRequired, function, dataStruct);
-            StateManager::push_state(newState);
+            // I'm gonna use a sneaky trick here. This shouldn't do this because it's confusing.
+            auto newState  = create(query, holdRequired, function, dataStruct);
+            auto fadeState = FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, newState);
             return newState;
         }
 
@@ -95,66 +93,33 @@ class ConfirmState final : public BaseState
             const bool holdTriggered = m_triggerGuard && aPressed && m_holdRequired;
             const bool holdSustained = m_triggerGuard && aHeld && m_holdRequired;
 
-            if (noHoldTrigger)
-            {
-                ConfirmState::create_push_state();
-                BaseState::deactivate();
-            }
-            else if (holdTriggered)
-            {
-                m_startingTickCount = SDL_GetTicks64();
-                m_yesText           = m_holdText[0];
-                ConfirmState::center_yes();
-            }
-            else if (holdSustained)
-            {
-                const uint64_t totalTicks = SDL_GetTicks64() - m_startingTickCount;
-                const bool threeSeconds   = totalTicks >= 3000;
-                const bool twoSeconds     = totalTicks >= 2000;
-                const bool oneSecond      = totalTicks >= 1000;
-
-                if (threeSeconds)
-                {
-                    ConfirmState::create_push_state();
-                    BaseState::deactivate();
-                }
-                else if (twoSeconds)
-                {
-                    m_yesText = m_holdText[2];
-                    ConfirmState::center_yes();
-                }
-                else if (oneSecond)
-                {
-                    m_yesText = m_holdText[1];
-                    ConfirmState::center_yes();
-                }
-            }
-            else if (aReleased)
-            {
-                m_yesText = strings::get_by_name(strings::names::YES_NO, 0);
-                ConfirmState::center_yes();
-            }
-            else if (bPressed) { BaseState::deactivate(); }
+            if (noHoldTrigger) { ConfirmState::confirmed(); }
+            else if (holdTriggered) { ConfirmState::hold_triggered(); }
+            else if (holdSustained) { ConfirmState::hold_sustained(); }
+            else if (aReleased) { ConfirmState::hold_released(); }
+            else if (bPressed) { ConfirmState::cancelled(); }
         }
 
         /// @brief Renders the state to screen.
         void render() override
         {
-            sdl::render_rect_fill(NULL, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
-            ui::render_dialog_box(NULL, 280, 262, 720, 256);
+            const bool hasFocus = BaseState::has_focus();
 
-            sdl::text::render(NULL, 312, 288, 18, 656, colors::WHITE, m_queryString.c_str());
+            sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
 
-            sdl::render_line(NULL, 280, 454, 999, 454, colors::WHITE);
-            sdl::render_line(NULL, 640, 454, 640, 517, colors::WHITE);
+            sm_dialog->render(sdl::Texture::Null, hasFocus);
+            sdl::text::render(sdl::Texture::Null, 312, 288, 18, 656, colors::WHITE, m_query);
 
-            sdl::text::render(NULL, m_yesX, 476, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_yesText);
-            sdl::text::render(NULL, m_noX, 476, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_noText);
+            sdl::render_line(sdl::Texture::Null, 280, 454, 999, 454, colors::WHITE);
+            sdl::render_line(sdl::Texture::Null, 640, 454, 640, 517, colors::WHITE);
+
+            sdl::text::render(sdl::Texture::Null, m_yesX, 476, 22, sdl::text::NO_WRAP, colors::WHITE, m_yesText);
+            sdl::text::render(sdl::Texture::Null, m_noX, 476, 22, sdl::text::NO_WRAP, colors::WHITE, m_noText);
         }
 
     private:
-        /// @brief String displayed
-        const std::string m_queryString{};
+        /// @brief This stores the query text.
+        std::string m_query{};
 
         /// @brief These are pointers to the strings used to avoid call strings::get_by_name so much.
         const char *m_yesText{}, *m_noText{};
@@ -174,22 +139,85 @@ class ConfirmState final : public BaseState
         /// @brief Keep track of the ticks/time needed to confirm.
         uint64_t m_startingTickCount{};
 
+        /// @brief Keeps track of which
+        int m_stage{};
+
         /// @brief Function to execute if action is confirmed.
         const TaskFunction m_function{};
 
         /// @brief Pointer to data struct passed to ^
         const std::shared_ptr<StructType> m_dataStruct{};
 
-        void create_push_state()
+        static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
+
+        void initialize_static_members()
         {
-            auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
-            StateManager::push_state(newState);
+            if (sm_dialog) { return; }
+
+            sm_dialog = ui::DialogBox::create(280, 262, 720, 256);
         }
 
         // This just centers the Yes or holding text.
         void center_yes()
         {
-            const size_t yesWidth = sdl::text::get_width(22, m_yesText);
-            m_yesX                = COORD_YES_X - (yesWidth / 2);
+            const int yesWidth = sdl::text::get_width(22, m_yesText);
+            m_yesX             = COORD_YES_X - (yesWidth / 2);
+        }
+
+        void center_no()
+        {
+            const int noWidth = sdl::text::get_width(22, m_noText);
+            m_noX             = COORD_NO_X - (noWidth / 2);
+        }
+
+        void load_holding_strings()
+        {
+            for (int i = 0; const char *string = strings::get_by_name(strings::names::HOLDING_STRINGS, i); i++)
+            {
+                m_holdText[i] = string;
+            }
+        }
+
+        void confirmed()
+        {
+            auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
+            StateManager::push_state(newState);
+            BaseState::deactivate();
+        }
+
+        void hold_triggered()
+        {
+            m_startingTickCount = SDL_GetTicks64();
+            ConfirmState::change_holding_text(0);
+        }
+
+        void hold_sustained()
+        {
+            const uint64_t totalTicks = SDL_GetTicks64() - m_startingTickCount;
+            const bool threeSeconds   = totalTicks >= 3000;
+            const bool twoSeconds     = totalTicks >= 2000;
+            const bool oneSecond      = totalTicks >= 1000;
+
+            if (threeSeconds) { ConfirmState::confirmed(); }
+            else if (twoSeconds) { ConfirmState::change_holding_text(2); }
+            else if (oneSecond) { ConfirmState::change_holding_text(1); }
+        }
+
+        void hold_released()
+        {
+            m_yesText = strings::get_by_name(strings::names::YES_NO, 0);
+            ConfirmState::center_yes();
+        }
+
+        void cancelled()
+        {
+            FadeState::create_and_push(colors::DIM_BACKGROUND, 0x88, 0x00, nullptr);
+            BaseState::deactivate();
+        }
+
+        void change_holding_text(int index)
+        {
+            m_yesText = m_holdText[index];
+            ConfirmState::center_yes();
         }
 };

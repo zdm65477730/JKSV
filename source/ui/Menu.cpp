@@ -4,94 +4,57 @@
 #include "config.hpp"
 #include "input.hpp"
 #include "mathutil.hpp"
-#include "ui/render_functions.hpp"
+#include "ui/BoundingBox.hpp"
 
 #include <cmath>
 
 ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     : m_x(x)
     , m_y(y)
-    , m_optionHeight(std::ceil(static_cast<double>(fontSize) * 1.8f))
+    , m_optionHeight(std::round(static_cast<double>(fontSize) * 1.8f))
     , m_originalY(y)
     , m_targetY(y)
     , m_width(width)
     , m_fontSize(fontSize)
-    , m_textY((m_optionHeight / 2) - (m_fontSize / 2) - 1) // This seems to be the best alignment.
+    , m_textY((m_optionHeight / 2) - (m_fontSize / 2)) // This seems to be the best alignment.
     , m_renderTargetHeight(renderTargetHeight)
-    , m_optionScroll("temp", 16, 0, m_width - 6, m_optionHeight, m_fontSize, colors::BLUE_GREEN, colors::TRANSPARENT)
+    , m_optionScroll(
+          ui::TextScroll::create("temp", 16, 0, m_width, m_optionHeight, m_fontSize, colors::BLUE_GREEN, colors::TRANSPARENT))
 {
     // Create render target for options
     static int MENU_ID         = 0;
     std::string menuTargetName = "MENU_" + std::to_string(MENU_ID++);
-    m_optionTarget             = sdl::TextureManager::create_load_texture(menuTargetName,
-                                                              m_width,
-                                                              m_optionHeight,
-                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    m_optionTarget =
+        sdl::TextureManager::create_load_texture(menuTargetName, m_width, m_optionHeight, SDL_TEXTUREACCESS_TARGET);
+
+    // Outside the initializer list because I'm tired and don't wanna deal with the headache.
+    m_boundingBox = ui::BoundingBox::create(0, 0, m_width + 12, m_optionHeight + 12);
 
     // Calculate around how many options can be shown on the render target at once.
     m_maxDisplayOptions = (renderTargetHeight - m_originalY) / m_optionHeight;
     m_scrollLength      = std::floor(static_cast<double>(m_maxDisplayOptions) / 2.0f);
 }
 
+std::shared_ptr<ui::Menu> ui::Menu::create(int x, int y, int width, int fontSize, int renderTargetHeight)
+{
+    return std::make_shared<ui::Menu>(x, y, width, fontSize, renderTargetHeight);
+}
+
 void ui::Menu::update(bool hasFocus)
 {
     if (m_options.empty()) { return; }
 
-    // Need to task care of updating this somehow for the settings menu.
-    const std::string_view scrollText = m_optionScroll.get_text();
-    if (scrollText != m_options[m_selected]) { m_optionScroll.set_text(m_options[m_selected], false); }
+    m_boundingBox->update(hasFocus);
+    m_optionScroll->update(hasFocus);
 
-    m_optionScroll.update(hasFocus);
-
-    const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);
-    const bool downPressed      = input::button_pressed(HidNpadButton_AnyDown);
-    const bool leftPressed      = input::button_pressed(HidNpadButton_AnyLeft);
-    const bool rightPressed     = input::button_pressed(HidNpadButton_AnyRight);
-    const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
-    const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
-    const int optionsSize       = m_options.size();
-    const int prevSelected      = m_selected;
-
-    if (upPressed) { --m_selected; }
-    else if (downPressed) { ++m_selected; }
-    else if (leftPressed) { m_selected -= m_scrollLength; }
-    else if (rightPressed) { m_selected += m_scrollLength; }
-    else if (lShoulderPressed) { m_selected -= m_scrollLength * 3; }
-    else if (rShoulderPressed) { m_selected += m_scrollLength * 3; }
-
-    if (m_selected < 0) { m_selected = 0; }
-    else if (m_selected >= optionsSize) { m_selected = optionsSize - 1; }
-
-    // This needs updating.
-    if (m_selected != prevSelected) { m_optionScroll.set_text(m_options[m_selected], false); }
-
-    // Don't bother continuing further if there's no reason to scroll.
-    if (optionsSize <= m_maxDisplayOptions) { return; }
-
-    // These are to make things slightly easier to read down here.
-    const int endScrollPoint = optionsSize - (m_maxDisplayOptions - m_scrollLength);
-    const int scrolledItems  = m_selected - m_scrollLength;
-    const double scaling     = config::get_animation_scaling();
-
-    if (m_selected < m_scrollLength) { m_targetY = m_originalY; } // Don't bother. There's no point.
-    else if (m_selected >= endScrollPoint) { m_targetY = m_originalY - (optionsSize - m_maxDisplayOptions) * m_optionHeight; }
-    else if (m_selected >= m_scrollLength) { m_targetY = m_originalY - (scrolledItems * m_optionHeight); }
-
-    if (m_y != m_targetY)
-    {
-        m_y += std::round((m_targetY - m_y) / scaling);
-
-        const int distance = math::Util<double>::get_absolute_distance(m_y, m_targetY);
-        if (distance <= 2) { m_y = m_targetY; }
-    }
+    Menu::handle_input();
+    Menu::update_scrolling();
+    Menu::update_scroll_text();
 }
 
-void ui::Menu::render(SDL_Texture *target, bool hasFocus)
+void ui::Menu::render(sdl::SharedTexture &target, bool hasFocus)
 {
     if (m_options.empty()) { return; }
-    SDL_Texture *optionTarget = m_optionTarget->get();
-
-    m_colorMod.update();
 
     // I hate doing this.
     const int optionSize = m_options.size();
@@ -104,15 +67,15 @@ void ui::Menu::render(SDL_Texture *target, bool hasFocus)
 
         if (i == m_selected)
         {
-            if (hasFocus) { ui::render_bounding_box(target, m_x - 4, tempY - 4, m_width + 8, m_optionHeight + 8, m_colorMod); }
-            sdl::render_rect_fill(optionTarget, 8, 8, 4, m_optionHeight - 16, colors::BLUE_GREEN);
-            m_optionScroll.render(optionTarget, hasFocus);
+            if (hasFocus)
+            {
+                m_boundingBox->set_xy(m_x - 4, tempY - 5);
+                m_boundingBox->render(target, hasFocus);
+            }
+            sdl::render_rect_fill(m_optionTarget, 8, 8, 4, m_optionHeight - 16, colors::BLUE_GREEN);
+            m_optionScroll->render(m_optionTarget, hasFocus);
         }
-        else
-        {
-            const char *option = m_options[i].c_str();
-            sdl::text::render(optionTarget, 24, m_textY, m_fontSize, sdl::text::NO_TEXT_WRAP, colors::WHITE, option);
-        }
+        else { sdl::text::render(m_optionTarget, 24, m_textY, m_fontSize, sdl::text::NO_WRAP, colors::WHITE, m_options[i]); }
         // render target to target
         m_optionTarget->render(target, m_x, tempY);
     }
@@ -121,7 +84,7 @@ void ui::Menu::render(SDL_Texture *target, bool hasFocus)
 void ui::Menu::add_option(std::string_view newOption)
 {
     // This is needed. The initialization is just a temporary one.
-    if (m_options.empty()) { m_optionScroll.set_text(newOption, false); }
+    if (m_options.empty()) { m_optionScroll->set_text(newOption, false); }
     m_options.push_back(newOption.data());
 }
 
@@ -134,7 +97,11 @@ void ui::Menu::edit_option(int index, std::string_view newOption)
 
 int ui::Menu::get_selected() const { return m_selected; }
 
-void ui::Menu::set_selected(int selected) { m_selected = selected; }
+void ui::Menu::set_selected(int selected)
+{
+    m_selected = selected;
+    Menu::update_scroll_text();
+}
 
 void ui::Menu::set_width(int width) { m_width = width; }
 
@@ -143,4 +110,54 @@ void ui::Menu::reset()
     m_selected = 0;
     m_y        = m_originalY;
     m_options.clear();
+}
+
+void ui::Menu::update_scroll_text()
+{
+    const std::string_view text   = m_optionScroll->get_text();
+    const std::string_view option = m_options[m_selected];
+    if (text != option) { m_optionScroll->set_text(option, false); }
+}
+
+void ui::Menu::handle_input()
+{
+    const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);
+    const bool downPressed      = input::button_pressed(HidNpadButton_AnyDown);
+    const bool leftPressed      = input::button_pressed(HidNpadButton_AnyLeft);
+    const bool rightPressed     = input::button_pressed(HidNpadButton_AnyRight);
+    const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
+    const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
+    const int optionsSize       = m_options.size();
+
+    if (upPressed) { --m_selected; }
+    else if (downPressed) { ++m_selected; }
+    else if (leftPressed) { m_selected -= m_scrollLength; }
+    else if (rightPressed) { m_selected += m_scrollLength; }
+    else if (lShoulderPressed) { m_selected -= m_scrollLength * 3; }
+    else if (rShoulderPressed) { m_selected += m_scrollLength * 3; }
+
+    if (m_selected < 0) { m_selected = 0; }
+    else if (m_selected >= optionsSize) { m_selected = optionsSize - 1; }
+}
+
+void ui::Menu::update_scrolling()
+{
+    const int optionsSize = m_options.size();
+    if (optionsSize <= m_maxDisplayOptions) { return; }
+
+    const int endScrollPoint = optionsSize - (m_maxDisplayOptions - m_scrollLength);
+    const int scrolledItems  = m_selected - m_scrollLength;
+    const double scaling     = config::get_animation_scaling();
+
+    if (m_selected < m_scrollLength) { m_targetY = m_originalY; } // Don't bother. There's no point.
+    else if (m_selected >= endScrollPoint) { m_targetY = m_originalY - (optionsSize - m_maxDisplayOptions) * m_optionHeight; }
+    else if (m_selected >= m_scrollLength) { m_targetY = m_originalY - (scrolledItems * m_optionHeight); }
+
+    if (m_y != m_targetY)
+    {
+        m_y += std::round((m_targetY - m_y) / scaling);
+
+        const int distance = math::Util<double>::absolute_distance(m_y, m_targetY);
+        if (distance <= 2) { m_y = m_targetY; }
+    }
 }

@@ -18,6 +18,6 @@ void TitleSelectCommon::render_control_guide()
 
     if (hasFocus)
     {
-        sdl::text::render(NULL, sm_controlGuideX, 673, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, sm_controlGuide);
+        sdl::text::render(sdl::Texture::Null, sm_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, sm_controlGuide);
     }
 }

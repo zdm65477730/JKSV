@@ -3,57 +3,57 @@
         "0: Novo Backup"
     ],
     "BackupMenuConfirmations": [
-        "0: Tem certeza que quer realmente sobrescrever #%s#?",
-        "1: Tem certeza que quer realmente restaurar #%s#?",
-        "2: Tem certeza que quer realmente deletar #%s#?"
+        "0: Tem certeza de que deseja realmente sobrescrever #%s#?",
+        "1: Tem certeza de que deseja realmente restaurar #%s#?",
+        "2: Tem certeza de que deseja realmente excluir #%s#?"
     ],
     "BackupMenuPops": [
-        "0: Os dados salvos estão vazios!",
-        "1: O backup está vazio!",
+        "0: Dados salvos estão vazios!",
+        "1: Backup está vazio!",
         "2: Erro ao resetar os dados salvos!",
         "3: Erro ao abrir arquivo ZIP para leitura!",
-        "4: Ocorreu um erro ao deletar o backup!",
-        "5: Ocorreu um erro ao criar o backup!",
-        "6: Gravar no sistema está desabilitado!",
-        "7: Não foi possível abrir o zip para leitura!",
-        "8: Erro ao escrever o arquivo de meta dados dos saves!",
+        "4: Erro ao deletar backup!",
+        "5: Erro ao criar backup!",
+        "6: Escrita no sistema está desativada!",
+        "7: Incapaz de abrir zip para leitura!",
+        "8: Erro ao escrever arquivo de metadados de salvamento!",
         "9: Erro ao baixar arquivo!",
         "10: Erro ao enviar arquivo!",
-        "11: Erro ao processar meta dados dos saves!",
-        "12: Erro ao criar diretório alvo!",
-        "13: O backup precisa ser um zip para fazer upload!",
+        "11: Erro ao processar metadados dos dados salvos!",
+        "12: Erro ao criar diretório de destino!",
+        "13: O backup deve ser um zip para upload!",
         "14: Erro ao montar dados salvos!",
         "15: Erro ao fechar dados salvos!"
     ],
     "BackupMenuStatus": [
-        "0: Processando arquivo meta dos dados salvos..."
+        "0: Processando arquivo de metadados dos dados salvos..."
     ],
     "ControlGuides": [
-        "0: [A] Selecionar   [Y] Descartar Todos os Saves   [X] Opções do Usuário",
-        "1: [A] Selecionar   [L] [R] Pular   [Y] Favorito   [X] Opções do Título  [B] Voltar",
-        "2: [A] Selecionar  [Y] Restaurar  [X] Deletar  [ZR] Enviar  [B] Fechar",
+        "0: [A] Selecionar   [Y] Descartar todos os saves   [X] Opções do usuário",
+        "1: [A] Selecionar   [L] [R] Pular   [Y] Favorito   [X] Opções do título  [B] Voltar",
+        "2: [A] Selecionar  [Y] Restaurar  [X] Excluir  [ZR] Enviar  [B] Fechar",
         "3: [A] Alternar   [X] Padrões   [B] Voltar"
     ],
     "ExtrasMenu": [
-        "0: Reinicializar Dados",
-        "1: Navegador SD para SD",
+        "0: Reinicializar dados",
+        "1: SD para navegador SD",
         "2: ProdInfoF",
         "3: Seguro",
         "4: Sistema",
         "5: Usuário",
-        "6: Terminar Processo"
+        "6: Terminar processo"
     ],
     "ExtrasPops": [
         "0: Dados reinicializados!",
-        "1: Falha ao reinicializar dados!"
+        "1: Falha na reinicialização dos dados!"
     ],
     "GeneralPops": [
         "0: Não é possível sair do JKSV enquanto tarefas estão em execução!"
     ],
     "GoogleDriveStrings": [
-        "0: Para continuar, acesse #%s# e digite >%s<!",
-        "1: Conectado com sucesso ao Google Drive!",
-        "2: Falha ao conectar no Google Drive!"
+        "0: Para continuar, vá para #%s# e digite >%s>!",
+        "1: Login no Google Drive bem-sucedido!",
+        "2: Falha no login do Google Drive!"
     ],
     "HoldingStrings": [
         "0: Segure [A]",
@@ -62,9 +62,9 @@
     ],
     "IOStatuses": [
         "0: Copiando #%s#...",
-        "1: Comprimindo #%s# para ZIP...",
-        "2: Descomprimindo #%s# do ZIP...",
-        "3: Deletando #%s#...",
+        "1: Compactando #%s# para ZIP...",
+        "2: Descompactando #%s# de ZIP...",
+        "3: Excluindo #%s#...",
         "4: Baixando #%s#...",
         "5: Enviando #%s# para armazenamento remoto...",
         "6: Atualizando #%s# no armazenamento remoto..."
@@ -75,19 +75,19 @@
     "KeyboardStrings": [
         "0: Digite um novo nome para o backup.",
         "1: Digite o índice do cache.",
-        "2: Digite um novo caminho de saída para o JKSV",
+        "2: Digite um novo caminho de saída para o JKSV.",
         "3: Digite o ID do processo para terminar.",
-        "4: Digite um ID de save do sistema",
+        "4: Digite um ID de save do sistema.",
         "5: Digite um novo nome para o item alvo.",
         "6: Digite um nome para a nova pasta.",
         "7: Digite um novo nome para a pasta de saída de %s.",
-        "8: Digite quanto deseja expandir (em MB)."
+        "8: Digite o quanto expandir (em MB)."
     ],
     "MainMenuConfs": [
-        "0: Tem certeza que quer fazer backup dos dados salvos para todos os usuários deste sistema? Isso pode levar um tempo *extremamente* longo!"
+        "0: Tem certeza de que deseja fazer backup dos dados salvos de todos os usuários deste sistema? Isso pode levar *muito* tempo!"
     ],
     "MainMenuPops": [
-        "0: `%s` não tem dados salvos!"
+        "0: `%s` não possui dados salvos!"
     ],
     "OnOff": [
         "0: Desligado",
@@ -99,7 +99,7 @@
     "SaveCreatePops": [
         "0: Dados salvos criados para #%s#!",
         "1: Erro ao criar dados salvos!",
-        "2: Erro ao deletar dados salvos!"
+        "2: Erro ao excluir dados salvos!"
     ],
     "SaveDataTypes": [
         "0: Sistema",
@@ -111,98 +111,101 @@
         "6: BCAT do sistema"
     ],
     "SettingsDescriptions": [
-        "0: Define a pasta de trabalho do JKSV. O valor padrão é `sdmc:/JKSV`.",
+        "0: Define o diretório de trabalho para o JKSV. O valor padrão é `sdmc:/JKSV`.",
         "1: Permite remover títulos da lista negra.",
-        "2: Inclui saves de dispositivo, ou compartilhados, com usuários.",
+        "2: Inclui saves de dispositivo ou compartilhados com usuários.",
         "3: Cria backup automaticamente ao restaurar outro.",
-        "4: Nomes de backup automáticos e pula o teclado.",
-        "5: Envia backups automaticamente para armazenamento remoto e os apaga localmente.",
-        "6: Sempre usa IDs de aplicativo para nomes de pastas de exportação.",
-        "7: Exige segurar [A] por três segundos para deletar backups.",
-        "8: Exige segurar [A] por três segundos para restaurar backups.",
-        "9: Exige segurar [A] por três segundos para sobrescrever backups.",
-        "10: Mostra apenas saves que o JKSV consegue abrir com sucesso.",
-        "11: Mostra saves do sistema vinculados a uma conta.",
-        "12: Habilita restauração de saves do sistema e escrita em partições NAND.",
-        "13: Exporta saves para arquivos ZIP em vez de pastas descompactadas.",
-        "14: Nível de compressão usado ao gravar ZIP. O padrão é 6. Valores menores são mais rápidos, mas oferecem menos compressão. Zero é armazenar, ou sem compressão.",
-        "15: Controla como os títulos são ordenados e exibidos.",
-        "16: Exibe títulos como menus de texto, como o JKSM original no 3DS, em vez de grade de ícones.",
+        "4: Nomeia backups automaticamente e pula o teclado.",
+        "5: Envia backups automaticamente para o remoto e os apaga localmente.",
+        "6: Sempre usa IDs de Aplicação para nomes de pasta de exportação.",
+        "7: Se é necessário segurar [A] por três segundos para deletar backups.",
+        "8: Se é necessário segurar [A] por três segundos para restaurar backups.",
+        "9: Se é necessário segurar [A] por três segundos para sobrescrever backups.",
+        "10: Mostra somente saves que o JKSV pode abrir com sucesso.",
+        "11: Mostra saves de sistema com ID de conta atrelada.",
+        "12: Permite restaurar saves de sistema e escrever em partições NAND.",
+        "13: Exporta dados salvos para arquivos ZIP em vez de pastas descompactadas.",
+        "14: Nível de compressão usado ao escrever em ZIP. O padrão é 6. Valores menores são mais rápidos, porém oferecem menos compressão e economia de espaço. Zero é armazenar, ou sem compressão.",
+        "15: Controla como os títulos são classificados e exibidos.",
+        "16: Exibe títulos como menus de texto, como o JKSM original no 3DS, em vez de grades de ícones.",
         "17: Força o uso do inglês como idioma em vez do idioma detectado do sistema.",
         "18: Move backups deletados para a pasta _TRASH_ em vez de deletá-los permanentemente.",
-        "19: Define a velocidade de transições e animações. Valores menores são mais rápidos."
+        "19: Define a velocidade das transições e animações. Valores menores são mais rápidos."
     ],
     "SettingsMenu": [
         "0: Definir pasta de saída do JKSV.",
         "1: Editar lista negra",
         "2: Incluir saves de dispositivo com usuários: %s",
         "3: Backup automático ao restaurar: %s",
-        "4: Nomeação automática de backups: %s",
+        "4: Nomear backups automaticamente: %s",
         "5: Enviar backups automaticamente para armazenamento remoto: %s",
-        "6: Sempre usar IDs de aplicativo: %s",
+        "6: Sempre usar IDs de Aplicação: %s",
         "7: Segurar para deletar backups: %s",
         "8: Segurar para restaurar backups: %s",
         "9: Segurar para sobrescrever backups: %s",
         "10: Mostrar apenas títulos montáveis: %s",
-        "11: Mostrar saves do sistema com conta: %s",
-        "12: Habilitar escrita em saves do sistema e NAND: %s",
+        "11: Mostrar saves de sistema com conta: %s",
+        "12: Permitir escrita em saves de sistema e NAND: %s",
         "13: Exportar saves para ZIP: %s",
         "14: Nível de compressão ZIP: %u",
-        "15: Tipo de ordenação dos títulos: %s",
+        "15: Tipo de ordenação de títulos: %s",
         "16: Modo menu texto (JKSM): %s",
         "17: Forçar inglês: %s",
         "18: Habilitar lixeira: %s",
         "19: Escala de animação: %.02f"
     ],
+    "SettingsPops": [
+        "0: Lista negra está vazia!"
+    ],
     "SortTypes": [
         "0: Alfabeticamente",
         "1: Mais jogados",
-        "2: Últimos jogados"
+        "2: Última vez jogado"
     ],
     "TitleInfo": [
         "0: ID do App: %016lX",
         "1: ID do Save: %016lx",
-        "2: Primeiro jogado: %x - %X",
-        "3: Último jogado: %x - %X",
-        "4: Tempo de jogo: %02d:%02d:%02d",
+        "2: Primeiro jogo: %x - %X",
+        "3: Último jogo: %x - %X",
+        "4: Tempo jogado: %02d:%02d:%02d",
         "5: Lançamentos: %i",
         "6: Tipo de save: %s"
     ],
     "TitleOptionConfirmations": [
-        "0: Tem certeza que quer adicionar #%s# à sua lista negra? Uma vez feito, ele não aparecerá mais em nenhuma lista ou seleção de títulos.",
-        "1: Tem certeza que quer deletar todos os backups atuais para #%s#? *Isto não pode ser desfeito!*",
-        "2: Tem certeza que quer resetar os dados salvos para #%s#? *Isto vai deletar os dados atuais como se o título nunca tivesse sido jogado!*",
-        "3: Tem certeza que quer deletar os dados salvos de `%s` para #%s#? *Isto vai deletar permanentemente do sistema.*"
+        "0: Tem certeza de que deseja adicionar #%s# à sua lista negra? Depois disso, ele não aparecerá em nenhuma lista ou seleção de títulos.",
+        "1: Tem certeza de que deseja excluir todos os backups atuais para #%s#? *Isso não pode ser desfeito!*",
+        "2: Tem certeza de que deseja resetar os dados salvos para #%s#? *Isso deletará os dados salvos atuais como se nunca tivesse sido jogado!*",
+        "3: Tem certeza de que deseja deletar os dados salvos de `%s` para #%s#? *Isso o deletará permanentemente do sistema.*"
     ],
     "TitleOptionPops": [
         "0: Todos os backups deletados para #%s#!",
         "1: Falha ao deletar todos os backups!",
-        "2: Falha ao resetar dados salvos!",
+        "2: Erro ao resetar os dados salvos!",
         "3: Dados salvos resetados com sucesso!",
         "4: Arquivo SVI exportado com sucesso!",
-        "5: Falha ao exportar arquivo SVI!",
-        "6: Esta opção não está disponível para saves do sistema!",
+        "5: Erro ao exportar arquivo SVI!",
+        "6: Esta opção não está disponível para saves de sistema!",
         "7: Não foi possível sanitizar o caminho para uso!",
-        "8: Pasta de saída configurada para #%s#.",
-        "9: Erro ao configurar novo caminho de saída!",
+        "8: Pasta de saída definida para #%s#.",
+        "9: Erro ao definir novo caminho de saída!",
         "10: Dados salvos estendidos com sucesso!",
         "11: Falha ao estender dados salvos!"
     ],
     "TitleOptionStatus": [
-        "0: Deletando todos os backups para #%s#.",
+        "0: Excluindo todos os backups para #%s#.",
         "1: Resetando dados salvos para #%s#.",
-        "2: Deletando dados salvos de `%s` para #%s#...",
+        "2: Excluindo dados salvos de `%s` para #%s#...",
         "3: Estendendo dados salvos de `%s` para #%s#..."
     ],
     "TitleOptions": [
-        "0: Informações",
-        "1: Colocar título na lista negra",
+        "0: Informação",
+        "1: Adicionar título à lista negra",
         "2: Alterar pasta de saída",
         "3: Abrir no modo arquivo",
-        "4: Deletar todos os backups locais",
-        "5: Deletar todos os backups remotos",
-        "6: Resetar dados salvos",
-        "7: Deletar dados salvos do sistema",
+        "4: Excluir todos os backups locais",
+        "5: Excluir todos os backups remotos",
+        "6: Resetar dados salvos.",
+        "7: Excluir dados salvos do sistema",
         "8: Estender dados salvos",
         "9: Exportar arquivo SVI"
     ],
@@ -211,19 +214,19 @@
         "1: NULL"
     ],
     "UserOptionConfirmations": [
-        "0: Tem certeza que quer fazer backup dos dados salvos de todos os títulos encontrados para `%s`? Isso pode levar um tempo.",
-        "1: Tem certeza que quer criar dados salvos para todos os títulos encontrados no seu sistema para `%s`? Isso pode levar um tempo.",
-        "2: Tem certeza que quer deletar todos os dados salvos para `%s`? Isso é *PERMANENTE* e não pode ser desfeito."
+        "0: Tem certeza de que deseja fazer backup dos dados salvos para todos os títulos encontrados para `%s`? Isso pode demorar um pouco.",
+        "1: Tem certeza de que deseja criar dados salvos para todos os títulos encontrados no seu sistema para `%s`? Isso pode demorar um pouco.",
+        "2: Tem certeza de que deseja excluir todos os dados salvos para `%s`? Isso é *PERMANENTE* e não pode ser desfeito."
     ],
     "UserOptionStatus": [
         "0: Criando dados salvos para #%s#...",
-        "1: Deletando dados salvos para #%s#..."
+        "1: Excluindo dados salvos para #%s#..."
     ],
     "UserOptions": [
         "0: Descartar tudo para `%s`",
         "1: Criar dados salvos para `%s`",
         "2: Criar todos os dados salvos para `%s`",
-        "3: Deletar todos os dados salvos para `%s`"
+        "3: Excluir todos os dados salvos para `%s`"
     ],
     "WebDavStrings": [
         "0: WebDav iniciado com sucesso!",

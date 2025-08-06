@@ -211,6 +211,8 @@ void config::add_remove_favorite(uint64_t applicationID)
     auto findTitle = std::find(s_favorites.begin(), s_favorites.end(), applicationID);
     if (findTitle == s_favorites.end()) { s_favorites.push_back(applicationID); }
     else { s_favorites.erase(findTitle); }
+
+    config::save();
 }
 
 bool config::is_favorite(uint64_t applicationID)
@@ -223,12 +225,22 @@ void config::add_remove_blacklist(uint64_t applicationID)
     auto findTitle = std::find(s_blacklist.begin(), s_blacklist.end(), applicationID);
     if (findTitle == s_blacklist.end()) { s_blacklist.push_back(applicationID); }
     else { s_blacklist.erase(findTitle); }
+
+    config::save();
+}
+
+void config::get_blacklisted_titles(std::vector<uint64_t> &listOut)
+{
+    listOut.clear();
+    listOut.assign(s_blacklist.begin(), s_blacklist.end());
 }
 
 bool config::is_blacklisted(uint64_t applicationID)
 {
     return std::find(s_blacklist.begin(), s_blacklist.end(), applicationID) != s_blacklist.end();
 }
+
+bool config::blacklist_is_empty() { return s_blacklist.size() <= 0; }
 
 void config::add_custom_path(uint64_t applicationID, std::string_view customPath)
 {

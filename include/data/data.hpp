@@ -9,7 +9,8 @@
 namespace data
 {
     /// @brief Declaration for user list/user pointer vector.
-    using UserList = std::vector<data::User *>;
+    using UserList      = std::vector<data::User *>;
+    using TitleInfoList = std::vector<data::TitleInfo *>;
 
     /// @brief Initializes data. Loads user accounts from system and save data info.
     /// @param clearCache Whether or not the current cache file should be deleted from the SD card first.
@@ -25,9 +26,9 @@ namespace data
     /// @return Pointer to data. nullptr if it's not found.
     data::TitleInfo *get_title_info_by_id(uint64_t applicationID);
 
-    /// @brief Returns a reference to the title info map.
-    /// @return Reference to TitleInfoMap.
-    std::unordered_map<uint64_t, data::TitleInfo> &get_title_info_map();
+    /// @brief Gets a vector of pointers to the title info.
+    /// @param listOut List to store pointers in.
+    void get_title_info_list(data::TitleInfoList &listOut);
 
     /// @brief Uses the application ID passed to add/load a title to the map.
     /// @param applicationID Application/System save data ID to add.
@@ -41,5 +42,5 @@ namespace data
     /// @brief Gets a vector of pointers with all titles with saveType.
     /// @param saveType Save data type to check for.
     /// @param vectorOut Vector to push pointers to.
-    void get_title_info_by_type(FsSaveDataType saveType, std::vector<data::TitleInfo *> &vectorOut);
+    void get_title_info_by_type(FsSaveDataType saveType, data::TitleInfoList &listOut);
 } // namespace data

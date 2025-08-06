@@ -20,6 +20,6 @@ namespace ui
             /// @brief Virtual render method. All derived classes must have this.
             /// @param target Target to render to.
             /// @param hasFocus Whether or not the containing state has focus.
-            virtual void render(SDL_Texture *target, bool hasFocus) = 0;
+            virtual void render(sdl::SharedTexture &target, bool hasFocus) = 0;
     };
 } // namespace ui

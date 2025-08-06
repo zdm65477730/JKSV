@@ -10,7 +10,8 @@ namespace fs
             /// @brief Opens a scope save mount using the FsSaveDataInfo passed.
             /// @param mount Mount point.
             /// @param info Save info to mount.
-            ScopedSaveMount(std::string_view mount, const FsSaveDataInfo *saveInfo);
+            /// @param log Optional. Whether or not logging errors is wanted. True by default.
+            ScopedSaveMount(std::string_view mount, const FsSaveDataInfo *saveInfo, bool log = true);
 
             ScopedSaveMount(ScopedSaveMount &&scopedSaveMount);
             ScopedSaveMount &operator=(ScopedSaveMount &&scopedSaveMount);
@@ -30,5 +31,7 @@ namespace fs
 
             /// @brief Stores whether or not mounting the save was successful.
             bool m_isOpen{};
+
+            bool m_log{};
     };
 }

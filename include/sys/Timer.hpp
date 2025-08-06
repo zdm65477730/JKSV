@@ -28,9 +28,9 @@ namespace sys
 
         private:
             /// @brief Tick count when the timer starts.
-            uint64_t m_startingTicks;
+            uint64_t m_startingTicks{};
 
             /// @brief Number of ticks to trigger on.
-            uint64_t m_triggerTicks;
+            uint64_t m_triggerTicks{};
     };
 } // namespace sys

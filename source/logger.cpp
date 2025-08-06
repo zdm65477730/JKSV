@@ -3,6 +3,7 @@
 #include "config.hpp"
 #include "fslib.hpp"
 
+#include <array>
 #include <cstdarg>
 #include <fstream>
 #include <mutex>
@@ -10,35 +11,42 @@
 
 namespace
 {
-    /// @brief This is the path to the log file.
-    fslib::Path s_logFilePath{};
+    constexpr const char *PATH_JKSV_LOG = "sdmc:/config/JKSV/JKSV.log";
 
     /// @brief This is the buffer size for log strings.
     constexpr size_t VA_BUFFER_SIZE = 0x1000;
+
+    constexpr int64_t SIZE_LOG_LIMIT = 0x10000;
 } // namespace
 
 void logger::initialize()
 {
-    // Create log path and empty the log for this run.
-    s_logFilePath = "sdmc:/config/JKSV/JKSV.log";
-
-    // Just opening it like this to nuke and restart.
-    fslib::File LogFile(s_logFilePath, FsOpenMode_Create | FsOpenMode_Write);
+    // Can't really log errors for the log before it exists?
+    const fslib::Path logPath{PATH_JKSV_LOG};
+    const bool exists = fslib::file_exists(logPath);
+    if (!exists) { fslib::create_file(logPath); }
 }
 
 void logger::log(const char *format, ...)
 {
     static std::mutex logLock{};
 
-    char vaBuffer[VA_BUFFER_SIZE] = {0};
-
-    std::va_list vaList;
+    std::array<char, VA_BUFFER_SIZE> vaBuffer = {};
+    std::va_list vaList{};
     va_start(vaList, format);
-    vsnprintf(vaBuffer, VA_BUFFER_SIZE, format, vaList);
+    vsnprintf(vaBuffer.data(), VA_BUFFER_SIZE, format, vaList);
     va_end(vaList);
 
     std::lock_guard<std::mutex> logGuard(logLock);
-    fslib::File logFile(s_logFilePath, FsOpenMode_Append);
-    logFile << vaBuffer << "\n";
+    const fslib::Path logPath{PATH_JKSV_LOG};
+    fslib::File logFile(logPath, FsOpenMode_Append);
+    if (logFile.is_open() && logFile.get_size() >= SIZE_LOG_LIMIT)
+    {
+        logFile.close();
+        logFile.open(logPath, FsOpenMode_Create | FsOpenMode_Write);
+    }
+
+    if (!logFile.is_open()) { return; }
+    logFile << vaBuffer.data() << "\n";
     logFile.flush();
 }

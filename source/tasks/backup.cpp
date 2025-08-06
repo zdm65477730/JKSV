@@ -51,6 +51,10 @@ void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
     }
     else
     {
+        const bool needsDir    = !fslib::directory_exists(target);
+        const bool createError = needsDir && error::fslib(fslib::create_directory(target));
+        if (needsDir && createError) { TASK_FINISH_RETURN(task); }
+
         write_meta_file(target, saveInfo);
         auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory(fs::DEFAULT_SAVE_ROOT, target, task);
@@ -189,10 +193,7 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
     const fslib::Path &target      = taskData->path;
     BackupMenuState *spawningState = taskData->spawningState;
     remote::Storage *remote        = remote::get_remote_storage();
-    if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(spawningState) || error::is_null(remote))
-    {
-        TASK_FINISH_RETURN(task);
-    }
+    if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(spawningState)) { TASK_FINISH_RETURN(task); }
 
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
@@ -209,7 +210,6 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
     const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
     if (autoBackup)
     {
-        fslib::Path autoTarget{};
         const size_t lastSlash = target.find_last_of('/');
         if (lastSlash == target.NOT_FOUND)
         {
@@ -218,8 +218,10 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
             TASK_FINISH_RETURN(task);
         }
 
-        const char *safeNickname = user->get_path_safe_nickname();
-        autoTarget = target.sub_path(lastSlash) / "AUTO - " + safeNickname + " - " + stringutil::get_date_string();
+        const char *safeNickname     = user->get_path_safe_nickname();
+        const std::string dateString = stringutil::get_date_string();
+        const std::string autoName   = stringutil::get_formatted_string("AUTO - %s - %s", safeNickname, dateString.c_str());
+        fslib::Path autoTarget       = target.sub_path(lastSlash) / autoName;
         if (exportZip) { autoTarget += ".zip"; };
         tasks::backup::create_new_backup_local(task, user, titleInfo, autoTarget, spawningState, false);
 

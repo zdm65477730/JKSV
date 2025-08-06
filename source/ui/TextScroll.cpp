@@ -21,18 +21,31 @@ ui::TextScroll::TextScroll(std::string_view text,
                            sdl::Color clearColor,
                            bool center)
 {
-    TextScroll::create(text, x, y, width, height, fontSize, textColor, clearColor, center);
+    TextScroll::initialize(text, x, y, width, height, fontSize, textColor, clearColor, center);
 }
 
-void ui::TextScroll::create(std::string_view text,
-                            int x,
-                            int y,
-                            int width,
-                            int height,
-                            int fontSize,
-                            sdl::Color textColor,
-                            sdl::Color clearColor,
-                            bool center)
+std::shared_ptr<ui::TextScroll> ui::TextScroll::create(std::string_view text,
+                                                       int x,
+                                                       int y,
+                                                       int width,
+                                                       int height,
+                                                       int fontSize,
+                                                       sdl::Color textColor,
+                                                       sdl::Color clearColor,
+                                                       bool center)
+{
+    return std::make_shared<ui::TextScroll>(text, x, y, width, height, fontSize, textColor, clearColor, center);
+}
+
+void ui::TextScroll::initialize(std::string_view text,
+                                int x,
+                                int y,
+                                int width,
+                                int height,
+                                int fontSize,
+                                sdl::Color textColor,
+                                sdl::Color clearColor,
+                                bool center)
 {
     static int TARGET_ID{};
 
@@ -48,10 +61,8 @@ void ui::TextScroll::create(std::string_view text,
 
     {
         const std::string targetName = "textScroll_" + std::to_string(TARGET_ID++);
-        m_renderTarget               = sdl::TextureManager::create_load_texture(targetName,
-                                                                  m_targetWidth,
-                                                                  m_targetHeight,
-                                                                  SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+        m_renderTarget =
+            sdl::TextureManager::create_load_texture(targetName, m_targetWidth, m_targetHeight, SDL_TEXTUREACCESS_TARGET);
     }
 
     TextScroll::set_text(text, center);
@@ -112,26 +123,25 @@ void ui::TextScroll::set_xy(int x, int y)
     m_renderY = y;
 }
 
-void ui::TextScroll::render(SDL_Texture *target, bool hasFocus)
+void ui::TextScroll::render(sdl::SharedTexture &target, bool hasFocus)
 {
     m_renderTarget->clear(m_clearColor);
-    SDL_Texture *renderTarget = m_renderTarget->get();
 
     if (!m_textScrolling)
     {
-        sdl::text::render(renderTarget, m_textX, m_textY, m_fontSize, sdl::text::NO_TEXT_WRAP, m_textColor, m_text.c_str());
+        sdl::text::render(m_renderTarget, m_textX, m_textY, m_fontSize, sdl::text::NO_WRAP, m_textColor, m_text);
     }
     else
     {
         // We're going to render text twice so it looks like it's scrolling and doesn't end. Ever.
-        sdl::text::render(renderTarget, m_textX, m_textY, m_fontSize, sdl::text::NO_TEXT_WRAP, m_textColor, m_text.c_str());
-        sdl::text::render(renderTarget,
+        sdl::text::render(m_renderTarget, m_textX, m_textY, m_fontSize, sdl::text::NO_WRAP, m_textColor, m_text);
+        sdl::text::render(m_renderTarget,
                           m_textX + m_textWidth + 8,
                           m_textY,
                           m_fontSize,
-                          sdl::text::NO_TEXT_WRAP,
+                          sdl::text::NO_WRAP,
                           m_textColor,
-                          m_text.c_str());
+                          m_text);
     }
     m_renderTarget->render(target, m_renderX, m_renderY);
 }

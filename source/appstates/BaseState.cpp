@@ -1,18 +1,20 @@
 #include "appstates/BaseState.hpp"
 
+#include "error.hpp"
+
 #include <switch.h>
 
 BaseState::BaseState(bool isClosable)
-    : m_isClosable{isClosable}
+    : m_isClosable(isClosable)
 {
     if (m_isClosable) { return; }
-    appletBeginBlockingHomeButton(0);
+    error::libnx(appletBeginBlockingHomeButton(0));
 }
 
 BaseState::~BaseState()
 {
     if (m_isClosable) { return; }
-    appletEndBlockingHomeButton();
+    error::libnx(appletEndBlockingHomeButton());
 }
 
 void BaseState::deactivate() { m_isActive = false; }

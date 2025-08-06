@@ -15,7 +15,8 @@ void sys::Timer::start(uint64_t triggerTicks)
 bool sys::Timer::is_triggered()
 {
     const uint64_t currentTicks = SDL_GetTicks64();
-    const bool triggered        = (currentTicks - m_startingTicks) >= m_triggerTicks;
+    const bool started          = m_startingTicks != 0 && m_triggerTicks != 0;
+    const bool triggered        = started && (currentTicks - m_startingTicks) >= m_triggerTicks;
     if (!triggered) { return false; }
 
     m_startingTicks = currentTicks;

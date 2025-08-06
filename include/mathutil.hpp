@@ -6,6 +6,6 @@ namespace math
     class Util
     {
         public:
-            static inline Type get_absolute_distance(Type a, Type b) { return a > b ? a - b : b - a; }
+            static inline Type absolute_distance(Type a, Type b) { return a > b ? a - b : b - a; }
     };
 }

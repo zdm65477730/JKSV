@@ -43,13 +43,19 @@ namespace
 } // namespace
 
 TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo, TitleSelectCommon *titleSelect)
-    : m_user{user}
-    , m_titleInfo{titleInfo}
-    , m_titleSelect{titleSelect}
-    , m_dataStruct{std::make_shared<TitleOptionState::DataStruct>()}
+    : m_user(user)
+    , m_titleInfo(titleInfo)
+    , m_titleSelect(titleSelect)
+    , m_dataStruct(std::make_shared<TitleOptionState::DataStruct>())
 {
     TitleOptionState::initialize_static_members();
     TitleOptionState::initialize_data_struct();
+}
+
+TitleOptionState::~TitleOptionState()
+{
+    sm_slidePanel->reset();
+    sm_titleOptionMenu->set_selected(0);
 }
 
 std::shared_ptr<TitleOptionState> TitleOptionState::create(data::User *user,
@@ -71,6 +77,11 @@ std::shared_ptr<TitleOptionState> TitleOptionState::create_and_push(data::User *
 void TitleOptionState::update()
 {
     const bool hasFocus = BaseState::has_focus();
+
+    sm_slidePanel->update(hasFocus);
+    const bool isOpen = sm_slidePanel->is_open();
+    if (!isOpen) { return; }
+
     const bool aPressed = input::button_pressed(HidNpadButton_A);
     const bool bPressed = input::button_pressed(HidNpadButton_B);
     const int selected  = sm_titleOptionMenu->get_selected();
@@ -86,7 +97,6 @@ void TitleOptionState::update()
     }
     if (m_exitRequired) { sm_slidePanel->close(); }
 
-    sm_slidePanel->update(hasFocus);
     if (aPressed)
     {
         switch (selected)
@@ -104,14 +114,7 @@ void TitleOptionState::update()
         }
     }
     else if (bPressed) { sm_slidePanel->close(); }
-    else if (sm_slidePanel->is_closed())
-    {
-        // Reset static members.
-        sm_slidePanel->reset();
-        sm_titleOptionMenu->set_selected(0);
-        // Deactivate and allow state to be purged.
-        BaseState::deactivate();
-    }
+    else if (sm_slidePanel->is_closed()) { BaseState::deactivate(); }
 }
 
 void TitleOptionState::render()
@@ -119,7 +122,7 @@ void TitleOptionState::render()
     const bool hasFocus = BaseState::has_focus();
 
     sm_slidePanel->clear_target();
-    sm_slidePanel->render(NULL, hasFocus);
+    sm_slidePanel->render(sdl::Texture::Null, hasFocus);
 }
 
 void TitleOptionState::close_on_update() { m_exitRequired = true; }
@@ -207,7 +210,7 @@ void TitleOptionState::change_output_directory()
     }
 
     const uint64_t applicationID = m_titleInfo->get_application_id();
-    m_titleInfo->set_path_safe_title(pathBuffer.data(), SIZE_PATH_BUFFER);
+    m_titleInfo->set_path_safe_title(pathBuffer.data());
     config::add_custom_path(applicationID, pathBuffer.data());
 
     const char *popSuccessFormat = strings::get_by_name(strings::names::TITLEOPTION_POPS, 8);

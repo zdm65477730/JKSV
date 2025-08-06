@@ -85,8 +85,7 @@ namespace data
 
             /// @brief Allows the path safe title to be set to a new path.
             /// @param newPathSafe Buffer containing the new safe path to use.
-            /// @param newPathLength Size of the buffer passed.
-            void set_path_safe_title(const char *newPathSafe, size_t newPathLength);
+            void set_path_safe_title(const char *newPathSafe);
 
         private:
             /// @brief This defines how long the buffer is for the path safe version of the title.

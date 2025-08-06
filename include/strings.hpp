@@ -33,6 +33,7 @@ namespace strings
         static constexpr std::string_view SAVE_DATA_TYPES       = "SaveDataTypes";
         static constexpr std::string_view SETTINGS_DESCRIPTIONS = "SettingsDescriptions";
         static constexpr std::string_view SETTINGS_MENU         = "SettingsMenu";
+        static constexpr std::string_view SETTINGS_POPS         = "SettingsPops";
         static constexpr std::string_view SORT_TYPES            = "SortTypes";
         static constexpr std::string_view TITLEINFO             = "TitleInfo";
         static constexpr std::string_view TITLEOPTION_CONFS     = "TitleOptionConfirmations";

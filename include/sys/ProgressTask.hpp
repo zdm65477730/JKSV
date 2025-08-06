@@ -1,6 +1,8 @@
 #pragma once
 #include "sys/Task.hpp"
 
+#include <memory>
+
 namespace sys
 {
     /// @brief Derived class of Task that has methods for tracking progress.

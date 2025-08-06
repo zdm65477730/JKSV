@@ -29,16 +29,15 @@ void ui::TitleTile::update(int selected)
     }
 }
 
-void ui::TitleTile::render(SDL_Texture *target, int x, int y)
+void ui::TitleTile::render(sdl::SharedTexture &target, int x, int y)
 {
+    static constexpr std::string_view HEART_CHAR = "\uE017";
+
     const int renderX = x - ((m_renderWidth - 128) / 2);
     const int renderY = y - ((m_renderHeight - 128) / 2);
 
     m_icon->render_stretched(target, renderX, renderY, m_renderWidth, m_renderHeight);
-    if (m_isFavorite)
-    {
-        sdl::text::render(target, renderX + 2, renderY + 2, 28, sdl::text::NO_TEXT_WRAP, colors::PINK, "\uE017");
-    }
+    if (m_isFavorite) { sdl::text::render(target, renderX + 2, renderY + 2, 28, sdl::text::NO_WRAP, colors::PINK, HEART_CHAR); }
 }
 
 void ui::TitleTile::reset()

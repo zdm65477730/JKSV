@@ -21,13 +21,10 @@ namespace
 } // namespace
 
 TextTitleSelectState::TextTitleSelectState(data::User *user)
-    : TitleSelectCommon{}
-    , m_user{user}
-    , m_titleSelectMenu{32, 8, 1000, 20, 555}
-    , m_renderTarget{sdl::TextureManager::create_load_texture(SECONDARY_TARGET,
-                                                              1080,
-                                                              555,
-                                                              SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)}
+    : TitleSelectCommon()
+    , m_user(user)
+    , m_titleSelectMenu(32, 8, 1000, 20, 555)
+    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     TextTitleSelectState::refresh();
 }
@@ -63,9 +60,9 @@ void TextTitleSelectState::update()
 void TextTitleSelectState::render()
 {
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleSelectMenu.render(m_renderTarget->get(), BaseState::has_focus());
+    m_titleSelectMenu.render(m_renderTarget, BaseState::has_focus());
     TitleSelectCommon::render_control_guide();
-    m_renderTarget->render(NULL, 201, 91);
+    m_renderTarget->render(sdl::Texture::Null, 201, 91);
 }
 
 void TextTitleSelectState::refresh()
@@ -120,6 +117,15 @@ void TextTitleSelectState::add_remove_favorite()
     data::UserList list{};
     data::get_users(list);
     for (data::User *user : list) { user->sort_data(); }
+
+    const int count = m_user->get_total_data_entries();
+    int i{};
+    for (i = 0; i < count; i++)
+    {
+        const uint64_t appIDAt = m_user->get_application_id_at(i);
+        if (appIDAt == applicationID) { break; }
+    }
+    m_titleSelectMenu.set_selected(i);
 
     MainMenuState::refresh_view_states();
 }

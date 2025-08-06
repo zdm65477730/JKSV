@@ -97,7 +97,8 @@ bool remote::WebDav::create_directory(std::string_view name)
 
     if (!curl::perform(m_curl)) { return false; }
 
-    if (curl::get_response_code(m_curl) != 201)
+    const long code = curl::get_response_code(m_curl);
+    if (code != 201)
     {
         logger::log(STRING_CREATE_DIR_ERROR, name.data());
         return false;
@@ -275,10 +276,18 @@ bool remote::WebDav::rename_item(remote::Item *item, std::string_view newName)
     if (!curl::perform(m_curl)) { return false; }
 
     const long code = curl::get_response_code(m_curl);
-    if (code != 403 || code != 409) { return false; }
+    if (code != 201 && code != 204) { return false; }
 
     std::string newId{};
-    if (item->is_directory()) { newId = m_parent + escapedName + "/"; }
+    if (item->is_directory())
+    {
+        newId = m_parent + escapedName + "/";
+
+        // Need to make sure the parents match too.
+        remote::Storage::DirectoryListing dirListing{};
+        Storage::get_directory_listing_with_parent(item, dirListing);
+        for (remote::Item *item : dirListing) { item->set_parent_id(newId); }
+    }
     else { newId = m_parent + escapedName; }
 
     item->set_name(newName);

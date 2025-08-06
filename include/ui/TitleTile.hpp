@@ -4,7 +4,7 @@
 namespace ui
 {
     /// @brief Tile for Titleview.
-    class TitleTile
+    class TitleTile final
     {
         public:
             /// @brief Constructor.
@@ -20,7 +20,7 @@ namespace ui
             /// @param target Target to render to.
             /// @param x X coordinate to render to.
             /// @param y Y coordinate to render to.
-            void render(SDL_Texture *target, int x, int y);
+            void render(sdl::SharedTexture &target, int x, int y);
 
             /// @brief Resets the width and height of the tile.
             void reset();

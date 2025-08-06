@@ -18,7 +18,7 @@ class SaveCreateState final : public BaseState
         SaveCreateState(data::User *user, TitleSelectCommon *titleSelect);
 
         /// @brief Required destructor.
-        ~SaveCreateState() {};
+        ~SaveCreateState();
 
         /// @brief Returns a new SaveCreate state. See constructor for arguments.
         static std::shared_ptr<SaveCreateState> create(data::User *user, TitleSelectCommon *titleSelect);
@@ -43,7 +43,7 @@ class SaveCreateState final : public BaseState
         TitleSelectCommon *m_titleSelect{};
 
         /// @brief Menu populated with every title found on the system.
-        ui::Menu m_saveMenu;
+        std::shared_ptr<ui::Menu> m_saveMenu{};
 
         /// @brief Vector of pointers to the title info. This allows sorting them alphabetically and other things.
         std::vector<data::TitleInfo *> m_titleInfoVector{};

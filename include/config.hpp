@@ -2,6 +2,7 @@
 #include "fslib.hpp"
 
 #include <string_view>
+#include <vector>
 
 namespace config
 {
@@ -53,10 +54,17 @@ namespace config
     /// @param applicationID Application ID to add or remove.
     void add_remove_blacklist(uint64_t applicationID);
 
+    /// @brief Gets the currently blacklisted application IDs.
+    /// @param listOut Vector to store application IDs to.
+    void get_blacklisted_titles(std::vector<uint64_t> &listOut);
+
     /// @brief Returns if the title is found in the blacklist.
     /// @param applicationID Application ID to search for.
     /// @return True if found. False if not.
     bool is_blacklisted(uint64_t applicationID);
+
+    /// @brief Returns whether or not the blacklist is empty.
+    bool blacklist_is_empty();
 
     /// @brief Adds a custom output path for the title.
     /// @param applicationID Application ID of title to add a path for.

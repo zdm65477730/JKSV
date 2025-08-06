@@ -44,7 +44,7 @@ bool error::is_null(const void *pointer, const std::source_location &location)
     std::string_view file{}, function{};
     prep_locations(file, function, location);
 
-    logger::log("%s::%s::%u::%u::%s", file.data(), function.data(), location.line(), location.column(), "nullptr received!");
+    logger::log("%s::%s::%u::%u::nullptr!", file.data(), function.data(), location.line(), location.column());
 
     return true;
 }

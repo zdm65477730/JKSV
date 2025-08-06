@@ -2,6 +2,7 @@
 
 #include "StateManager.hpp"
 #include "appstates/ConfirmState.hpp"
+#include "appstates/FadeState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
@@ -28,12 +29,12 @@ namespace
 } // namespace
 
 BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo)
-    : m_user{user}
-    , m_titleInfo{titleInfo}
-    , m_saveType{m_user->get_account_save_type()}
-    , m_directoryPath{config::get_working_directory() / m_titleInfo->get_path_safe_title()}
-    , m_dataStruct{std::make_shared<BackupMenuState::DataStruct>()}
-    , m_controlGuide{strings::get_by_name(strings::names::CONTROL_GUIDES, 2)}
+    : m_user(user)
+    , m_titleInfo(titleInfo)
+    , m_saveType(m_user->get_account_save_type())
+    , m_directoryPath(config::get_working_directory() / m_titleInfo->get_path_safe_title())
+    , m_dataStruct(std::make_shared<BackupMenuState::DataStruct>())
+    , m_controlGuide(strings::get_by_name(strings::names::CONTROL_GUIDES, 2))
 {
     BackupMenuState::initialize_static_members();
     BackupMenuState::ensure_target_directory();
@@ -46,14 +47,12 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo)
 
 BackupMenuState::~BackupMenuState()
 {
-    fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT);
-
     sm_slidePanel->clear_elements();
     sm_slidePanel->reset();
     sm_backupMenu->reset();
 
     remote::Storage *remote = remote::get_remote_storage();
-    if (remote && remote->is_initialized()) { remote->return_to_root(); }
+    if (remote) { remote->return_to_root(); }
 }
 
 std::shared_ptr<BackupMenuState> BackupMenuState::create(data::User *user, data::TitleInfo *titleInfo)
@@ -70,7 +69,11 @@ std::shared_ptr<BackupMenuState> BackupMenuState::create_and_push(data::User *us
 
 void BackupMenuState::update()
 {
-    const bool hasFocus  = BaseState::has_focus();
+    const bool hasFocus = BaseState::has_focus();
+    const bool isOpen   = sm_slidePanel->is_open();
+    sm_slidePanel->update(hasFocus);
+    if (!isOpen) { return; }
+
     const int selected   = sm_backupMenu->get_selected();
     const bool aPressed  = input::button_pressed(HidNpadButton_A);
     const bool bPressed  = input::button_pressed(HidNpadButton_B);
@@ -96,27 +99,26 @@ void BackupMenuState::update()
     else if (sm_slidePanel->is_closed()) { BaseState::deactivate(); }
 
     m_titleScroll.update(hasFocus);
-    sm_slidePanel->update(hasFocus);
     sm_backupMenu->update(hasFocus);
 }
 
 void BackupMenuState::render()
 {
-    const bool hasFocus = BaseState::has_focus();
-    SDL_Texture *target = sm_slidePanel->get_target();
+    const bool hasFocus        = BaseState::has_focus();
+    sdl::SharedTexture &target = sm_slidePanel->get_target();
 
     sm_slidePanel->clear_target();
     m_titleScroll.render(target, hasFocus);
 
     sdl::render_line(target, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
     sdl::render_line(target, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
-    sdl::text::render(target, 32, 673, 22, sdl::text::NO_TEXT_WRAP, colors::WHITE, m_controlGuide);
+    sdl::text::render(target, 32, 673, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
 
     sm_menuRenderTarget->clear(colors::TRANSPARENT);
-    sm_backupMenu->render(sm_menuRenderTarget->get(), hasFocus);
+    sm_backupMenu->render(sm_menuRenderTarget, hasFocus);
     sm_menuRenderTarget->render(target, 0, 43);
 
-    sm_slidePanel->render(NULL, hasFocus);
+    sm_slidePanel->render(sdl::Texture::Null, hasFocus);
 }
 
 void BackupMenuState::refresh()
@@ -124,19 +126,18 @@ void BackupMenuState::refresh()
     const bool autoUpload   = config::get_by_key(config::keys::AUTO_UPLOAD);
     remote::Storage *remote = remote::get_remote_storage();
     m_directoryListing.open(m_directoryPath);
-    if (!autoUpload && !m_directoryListing) { return; }
-    const char *optionNew = strings::get_by_name(strings::names::BACKUPMENU_MENU, 0);
-
+    if (!autoUpload && !m_directoryListing.is_open()) { return; }
     sm_backupMenu->reset();
     m_menuEntries.clear();
 
+    const char *optionNew = strings::get_by_name(strings::names::BACKUPMENU_MENU, 0);
     sm_backupMenu->add_option(optionNew);
     m_menuEntries.push_back({MenuEntryType::Null, 0});
 
-    if (remote && remote->is_initialized())
+    if (remote)
     {
         const std::string_view prefix = remote->get_prefix();
-        m_remoteListing               = remote->get_directory_listing();
+        remote->get_directory_listing(m_remoteListing);
         int index{};
         for (const remote::Item *item : m_remoteListing)
         {
@@ -163,13 +164,13 @@ void BackupMenuState::save_data_written()
 
 void BackupMenuState::initialize_static_members()
 {
-    constexpr int SDL_TEX_FLAGS = SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET;
     if (sm_backupMenu && sm_slidePanel && sm_menuRenderTarget && sm_panelWidth) { return; }
 
-    sm_panelWidth       = sdl::text::get_width(22, m_controlGuide) + 64;
-    sm_backupMenu       = std::make_shared<ui::Menu>(8, 8, sm_panelWidth - 14, 24, 600);
-    sm_slidePanel       = std::make_unique<ui::SlideOutPanel>(sm_panelWidth, ui::SlideOutPanel::Side::Right);
-    sm_menuRenderTarget = sdl::TextureManager::create_load_texture("backupMenuTarget", sm_panelWidth, 600, SDL_TEX_FLAGS);
+    sm_panelWidth = sdl::text::get_width(22, m_controlGuide) + 64;
+    sm_backupMenu = std::make_shared<ui::Menu>(8, 8, sm_panelWidth - 16, 24, 600);
+    sm_slidePanel = std::make_unique<ui::SlideOutPanel>(sm_panelWidth, ui::SlideOutPanel::Side::Right);
+    sm_menuRenderTarget =
+        sdl::TextureManager::create_load_texture("backupMenuTarget", sm_panelWidth, 600, SDL_TEXTUREACCESS_TARGET);
 }
 
 void BackupMenuState::ensure_target_directory()
@@ -198,7 +199,7 @@ void BackupMenuState::initialize_info_string()
     const char *title            = m_titleInfo->get_title();
     const std::string infoString = stringutil::get_formatted_string("`%s` - %s", nickname, title);
 
-    m_titleScroll.create(infoString, 8, 8, sm_panelWidth - 16, 30, 22, colors::WHITE, colors::TRANSPARENT);
+    m_titleScroll.initialize(infoString, 8, 8, sm_panelWidth - 16, 30, 22, colors::WHITE, colors::TRANSPARENT);
 }
 
 void BackupMenuState::save_data_check()
@@ -240,7 +241,6 @@ void BackupMenuState::name_and_create_backup()
     const bool exportZip    = autoUpload || config::get_by_key(config::keys::EXPORT_TO_ZIP);
     const bool zrHeld       = input::button_held(HidNpadButton_ZR);
     const bool autoNamed    = (autoName || zrHeld); // This can be eval'd here.
-    const int popTicks      = ui::PopMessageManager::DEFAULT_TICKS;
 
     char name[SIZE_NAME_LENGTH + 1] = {0};
     {
@@ -267,16 +267,8 @@ void BackupMenuState::name_and_create_backup()
     else
     {
         fslib::Path target{m_directoryPath / name};
-        const bool dirNeeded = !exportZip && !fslib::directory_exists(target);
-        const bool dirError  = dirNeeded && error::fslib(fslib::create_directory(target));
+        if (!hasZipExt && (autoUpload || exportZip)) { target += STRING_ZIP_EXT; } // We're going to append zip either way.
 
-        if (exportZip && !hasZipExt) { target += STRING_ZIP_EXT; }
-        else if (!exportZip && dirNeeded && dirError)
-        {
-            const char *popErrorCreating = strings::get_by_name(strings::names::BACKUPMENU_POPS, 5);
-            ui::PopMessageManager::push_message(popTicks, popErrorCreating);
-            return;
-        }
         ProgressState::create_and_push(tasks::backup::create_new_backup_local, m_user, m_titleInfo, target, this, true);
     }
 }
@@ -338,7 +330,8 @@ void BackupMenuState::confirm_restore()
         m_dataStruct->path      = target;
         const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
 
-        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::restore_backup_local, m_dataStruct);
+        auto confirm = ProgressConfirm::create(query, holdRequired, tasks::backup::restore_backup_local, m_dataStruct);
+        FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, confirm);
     }
     else if (entry.type == MenuEntryType::Remote)
     {
@@ -346,7 +339,8 @@ void BackupMenuState::confirm_restore()
         const std::string query  = stringutil::get_formatted_string(confirmTemplate, target->get_name().data());
         m_dataStruct->remoteItem = target;
 
-        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::restore_backup_remote, m_dataStruct);
+        auto confirm = ProgressConfirm::create(query, holdRequired, tasks::backup::restore_backup_remote, m_dataStruct);
+        FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, confirm);
     }
 }
 

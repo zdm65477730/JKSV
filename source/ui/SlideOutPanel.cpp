@@ -13,17 +13,14 @@ namespace
 }
 
 ui::SlideOutPanel::SlideOutPanel(int width, Side side)
-    : m_x{side == Side::Left ? static_cast<double>(-width) : static_cast<double>(SCREEN_WIDTH)}
-    , m_width{width}
-    , m_targetX{side == Side::Left ? 0.0f : static_cast<double>(SCREEN_WIDTH) - m_width}
-    , m_side{side}
-    , m_scaling{config::get_animation_scaling()}
+    : m_x(side == Side::Left ? static_cast<double>(-width) : static_cast<double>(SCREEN_WIDTH))
+    , m_width(width)
+    , m_targetX(side == Side::Left ? 0.0f : static_cast<double>(SCREEN_WIDTH) - m_width)
+    , m_side(side)
 {
-    static constexpr int sdlFlags = SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET;
-
     static int targetID    = 0;
     std::string targetName = "panelTarget_" + std::to_string(targetID++);
-    m_renderTarget         = sdl::TextureManager::create_load_texture(targetName, width, 720, sdlFlags);
+    m_renderTarget         = sdl::TextureManager::create_load_texture(targetName, width, 720, SDL_TEXTUREACCESS_TARGET);
 }
 
 void ui::SlideOutPanel::update(bool hasFocus)
@@ -40,11 +37,11 @@ void ui::SlideOutPanel::update(bool hasFocus)
     }
 }
 
-void ui::SlideOutPanel::render(SDL_Texture *Target, bool hasFocus)
+void ui::SlideOutPanel::render(sdl::SharedTexture &target, bool hasFocus)
 {
-    for (auto &currentElement : m_elements) { currentElement->render(m_renderTarget->get(), hasFocus); }
+    for (auto &currentElement : m_elements) { currentElement->render(m_renderTarget, hasFocus); }
 
-    m_renderTarget->render(NULL, m_x, 0);
+    m_renderTarget->render(target, m_x, 0);
 }
 
 void ui::SlideOutPanel::clear_target() { m_renderTarget->clear(colors::SLIDE_PANEL_CLEAR); }
@@ -77,14 +74,16 @@ void ui::SlideOutPanel::push_new_element(std::shared_ptr<ui::Element> newElement
 
 void ui::SlideOutPanel::clear_elements() { m_elements.clear(); }
 
-SDL_Texture *ui::SlideOutPanel::get_target() { return m_renderTarget->get(); }
+sdl::SharedTexture &ui::SlideOutPanel::get_target() { return m_renderTarget; }
 
 void ui::SlideOutPanel::slide_out_left()
 {
-    m_x -= std::round(m_x / m_scaling);
+    const double scaling = config::get_animation_scaling();
+
+    m_x -= std::round(m_x / scaling);
 
     // This is a workaround for the floating points never lining up quite right.
-    const int distance = math::Util<double>::get_absolute_distance(m_x, m_targetX);
+    const int distance = math::Util<double>::absolute_distance(m_x, m_targetX);
     if (distance <= 2)
     {
         m_x      = m_targetX;
@@ -94,12 +93,13 @@ void ui::SlideOutPanel::slide_out_left()
 
 void ui::SlideOutPanel::slide_out_right()
 {
+    const double scaling     = config::get_animation_scaling();
     const double screenWidth = static_cast<double>(SCREEN_WIDTH);
     const double width       = static_cast<double>(m_width);
-    const double pixels      = (screenWidth - width - m_x) / m_scaling;
+    const double pixels      = (screenWidth - width - m_x) / scaling;
     m_x += std::round(pixels);
 
-    const int distance = math::Util<double>::get_absolute_distance(m_x, m_targetX);
+    const int distance = math::Util<double>::absolute_distance(m_x, m_targetX);
     if (distance <= 2)
     {
         m_x      = m_targetX;
