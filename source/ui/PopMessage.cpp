@@ -19,6 +19,8 @@ ui::PopMessage::PopMessage(int ticks, std::string_view message)
 void ui::PopMessage::update(double targetY)
 {
     update_y(targetY);
+    if (m_y != targetY) { return; }
+
     update_width();
     update_text_offset();
     if (m_displayTimer.is_triggered()) { m_finished = true; }
@@ -46,6 +48,10 @@ void ui::PopMessage::update_y(double targetY)
     const double scaling  = config::get_animation_scaling();
     const double increase = (targetY - m_y) / scaling;
     m_y += increase;
+
+    const int distance = math::Util<double>::absolute_distance(targetY, m_y);
+    if (distance <= 2) { m_y = targetY; }
+
     m_dialog->set_xy(m_dialog->NO_SET, m_y - 6);
 }
 
