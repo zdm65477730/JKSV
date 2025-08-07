@@ -29,7 +29,7 @@ void ui::PopMessage::render()
     if (!m_yMet) { return; }
     // This avoids allocating and returning another std::string.
     const std::string_view message(m_message.c_str(), m_substrOffset);
-    sdl::text::render(sdl::Texture::Null, PopMessage::PERMA_X + 16, m_y + 4, 22, sdl::text::NO_WRAP, colors::BLACK, message);
+    sdl::text::render(sdl::Texture::Null, PopMessage::PERMA_X + 16, m_y + 5, 22, sdl::text::NO_WRAP, colors::BLACK, message);
 }
 
 bool ui::PopMessage::finished() const { return m_finished; }

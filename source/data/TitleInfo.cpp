@@ -185,7 +185,7 @@ sdl::SharedTexture data::TitleInfo::get_icon() const { return m_icon; }
 
 void data::TitleInfo::set_path_safe_title(const char *newPathSafe)
 {
-    const int length = std::char_traits<char>::length(newPathSafe);
+    const size_t length = std::char_traits<char>::length(newPathSafe);
     if (length >= TitleInfo::SIZE_PATH_SAFE) { return; }
 
     std::memset(m_pathSafeTitle, 0x00, TitleInfo::SIZE_PATH_SAFE);
