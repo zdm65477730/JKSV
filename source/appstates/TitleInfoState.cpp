@@ -161,7 +161,7 @@ std::shared_ptr<ui::TextScroll> TitleInfoState::create_new_scroll(std::string_vi
                                                             SIZE_TEXT_TARGET_HEIGHT,
                                                             SIZE_FONT,
                                                             colors::WHITE,
-                                                            m_fieldClear ? colors::CLEAR_COLOR : colors::DIALOG_BOX,
+                                                            m_fieldClear ? colors::CLEAR_COLOR : colors::DIALOG_DARK,
                                                             false);
     m_fieldClear                          = m_fieldClear ? false : true;
     return textFieldScroll;

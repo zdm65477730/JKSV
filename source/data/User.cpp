@@ -51,7 +51,7 @@ data::User::User(AccountUid accountID, std::string_view nickname, std::string_vi
     : m_accountID{accountID}
     , m_saveType{saveType}
 {
-    m_icon = gfxutil::create_generic_icon(nickname, 48, colors::DIALOG_BOX, colors::WHITE);
+    m_icon = gfxutil::create_generic_icon(nickname, 48, colors::DIALOG_DARK, colors::WHITE);
     std::memcpy(m_nickname, nickname.data(), nickname.length());
     std::memcpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
 }
@@ -236,7 +236,7 @@ void data::User::load_account(AccountProfile &profile, AccountProfileBase &profi
 void data::User::create_account()
 {
     const std::string idString = stringutil::get_formatted_string("Acc_%04X", m_accountID.uid[0] & 0xFFFF);
-    m_icon                     = gfxutil::create_generic_icon(idString, SIZE_ICON_FONT, colors::DIALOG_BOX, colors::WHITE);
+    m_icon                     = gfxutil::create_generic_icon(idString, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE);
     std::memcpy(m_nickname, idString.c_str(), idString.length());
     std::memcpy(m_pathSafeNickname, idString.c_str(), idString.length());
 }

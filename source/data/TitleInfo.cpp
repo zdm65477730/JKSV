@@ -35,7 +35,7 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
 
         std::memset(data, 0x00, SIZE_CTRL_DATA);
         std::snprintf(name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
-        m_icon = gfxutil::create_generic_icon(appIDHex, 48, colors::DIALOG_BOX, colors::WHITE);
+        m_icon = gfxutil::create_generic_icon(appIDHex, 48, colors::DIALOG_DARK, colors::WHITE);
         TitleInfo::get_create_path_safe_title();
     }
     else if (!getError && !entryError)

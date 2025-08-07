@@ -9,21 +9,28 @@ namespace ui
     class DialogBox final : public ui::Element
     {
         public:
+            enum class Type
+            {
+                Light,
+                Dark
+            };
+
             /// @brief Creates a new dialog box instance.
             /// @param width Width of the dialog box in pixels.
             /// @param height Height of the dialog box in pixels.
             /// @param text Text to display on the dialog box.
-            DialogBox(int x, int y, int width, int height);
+            /// @param type Optional. The type of box. Default is dark since JKSV rewrite doesn't do theme detection.
+            DialogBox(int x, int y, int width, int height, DialogBox::Type type = DialogBox::Type::Dark);
 
             /// @brief Required destructor.
             ~DialogBox() {};
 
-            /// @brief Creates and returns a new DialogBox instance.
-            /// @param x X coord to render to.
-            /// @param y Y coord to render to.
-            /// @param width Width of the box.
-            /// @param height Height of the box.
-            static std::shared_ptr<ui::DialogBox> create(int x, int y, int width, int height);
+            /// @brief Creates and returns a new DialogBox instance. See constructor.
+            static std::shared_ptr<ui::DialogBox> create(int x,
+                                                         int y,
+                                                         int width,
+                                                         int height,
+                                                         DialogBox::Type type = DialogBox::Type::Dark);
 
             /// @brief Update override. This does NOTHING!
             void update(bool hasFocus) override {};
@@ -55,8 +62,14 @@ namespace ui
             /// @brief Height of the dialog.
             int m_height{};
 
-            /// @brief All instances shared this.
-            static inline sdl::SharedTexture sm_corners{};
+            /// @brief Stores which type and corners should be used.
+            DialogBox::Type m_type{};
+
+            /// @brief All instances shared this and the other.
+            static inline sdl::SharedTexture sm_darkCorners{};
+
+            /// @brief This is the light cer
+            static inline sdl::SharedTexture sm_lightCorners{};
 
             /// @brief Initializes and loads the corners texture.
             void initialize_static_members();

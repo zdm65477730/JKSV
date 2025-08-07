@@ -10,7 +10,11 @@ ui::PopMessage::PopMessage(int ticks, std::string_view message)
     , m_message(message)
     , m_y(PopMessage::START_Y)
     , m_width(PopMessage::START_WIDTH)
-    , m_dialog(ui::DialogBox::create(PopMessage::PERMA_X, m_y - 6, PopMessage::START_WIDTH, PopMessage::PERMA_HEIGHT)) {};
+    , m_dialog(ui::DialogBox::create(PopMessage::PERMA_X,
+                                     m_y - 6,
+                                     PopMessage::START_WIDTH,
+                                     PopMessage::PERMA_HEIGHT,
+                                     ui::DialogBox::Type::Light)) {};
 
 void ui::PopMessage::update(double targetY)
 {
@@ -25,7 +29,7 @@ void ui::PopMessage::render()
     if (!m_yMet) { return; }
     // This avoids allocating and returning another std::string.
     const std::string_view message(m_message.c_str(), m_substrOffset);
-    sdl::text::render(sdl::Texture::Null, PopMessage::PERMA_X + 16, m_y + 4, 22, sdl::text::NO_WRAP, colors::WHITE, message);
+    sdl::text::render(sdl::Texture::Null, PopMessage::PERMA_X + 16, m_y + 4, 22, sdl::text::NO_WRAP, colors::BLACK, message);
 }
 
 bool ui::PopMessage::finished() const { return m_finished; }
