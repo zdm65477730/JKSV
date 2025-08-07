@@ -10,18 +10,11 @@ ui::PopMessage::PopMessage(int ticks, std::string_view message)
     , m_message(message)
     , m_y(PopMessage::START_Y)
     , m_width(PopMessage::START_WIDTH)
-    , m_dialog(ui::DialogBox::create(PopMessage::PERMA_X, m_y - 6, PopMessage::START_WIDTH, PopMessage::PERMA_HEIGHT))
-{
-    const int messageWidth = sdl::text::get_width(22, m_message);
-    m_targetWidth          = messageWidth + 32;
-}
+    , m_dialog(ui::DialogBox::create(PopMessage::PERMA_X, m_y - 6, PopMessage::START_WIDTH, PopMessage::PERMA_HEIGHT)) {};
 
 void ui::PopMessage::update(double targetY)
 {
     update_y(targetY);
-    if (m_y != targetY) { return; }
-
-    update_width();
     update_text_offset();
     if (m_displayTimer.is_triggered()) { m_finished = true; }
 }
@@ -29,14 +22,10 @@ void ui::PopMessage::update(double targetY)
 void ui::PopMessage::render()
 {
     m_dialog->render(sdl::Texture::Null, false);
-    if (!m_expanded) { return; }
-    sdl::text::render(sdl::Texture::Null,
-                      PopMessage::PERMA_X + 16,
-                      m_y + 4,
-                      22,
-                      sdl::text::NO_WRAP,
-                      colors::WHITE,
-                      m_message.substr(0, m_substrOffset));
+    if (!m_yMet) { return; }
+    // This avoids allocating and returning another std::string.
+    const std::string_view message(m_message.c_str(), m_substrOffset);
+    sdl::text::render(sdl::Texture::Null, PopMessage::PERMA_X + 16, m_y + 4, 22, sdl::text::NO_WRAP, colors::WHITE, message);
 }
 
 bool ui::PopMessage::finished() const { return m_finished; }
@@ -50,35 +39,19 @@ void ui::PopMessage::update_y(double targetY)
     m_y += increase;
 
     const int distance = math::Util<double>::absolute_distance(targetY, m_y);
-    if (distance <= 2) { m_y = targetY; }
-
-    m_dialog->set_xy(m_dialog->NO_SET, m_y - 6);
-}
-
-void ui::PopMessage::update_width()
-{
-    if (m_expanded) { return; }
-
-    const int gap = math::Util<int>::absolute_distance(m_targetWidth, m_width);
-    if (gap <= 4)
+    if (distance <= 2)
     {
+        m_y    = targetY;
+        m_yMet = true;
         m_typeTimer.start(5);
-        m_width    = m_targetWidth;
-        m_expanded = true;
-        m_dialog->set_width_height(m_width, m_dialog->NO_SET);
-        return;
     }
-
-    const double scaling = config::get_animation_scaling();
-    const int expand     = static_cast<double>(gap) / scaling;
-    m_width += expand;
-    m_dialog->set_width_height(m_width, m_dialog->NO_SET);
+    m_dialog->set_xy(m_dialog->NO_SET, m_y - 6);
 }
 
 void ui::PopMessage::update_text_offset()
 {
     const int messageLength = m_message.length();
-    if (!m_expanded || m_substrOffset >= messageLength) { return; }
+    if (!m_yMet || m_substrOffset >= messageLength || !m_typeTimer.is_triggered()) { return; }
 
     // This is slightly more technical than I originally thought, but I liked the effect so.
     uint32_t codepoint{};
@@ -88,5 +61,8 @@ void ui::PopMessage::update_text_offset()
     if (unitCount <= 0) { return; }
 
     m_substrOffset += unitCount;
+    const std::string_view subMessage(message, m_substrOffset);
+    const int dialogWidth = sdl::text::get_width(22, subMessage) + 32;
+    m_dialog->set_width_height(dialogWidth, m_dialog->NO_SET);
     if (m_substrOffset >= messageLength) { m_displayTimer.start(m_ticks); }
 }

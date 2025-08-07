@@ -25,7 +25,7 @@ namespace ui
             // Every message begins off screen.
             static inline constexpr int PERMA_X      = 20;
             static inline constexpr double START_Y   = 720;
-            static inline constexpr int START_WIDTH  = 16;
+            static inline constexpr int START_WIDTH  = 32;
             static inline constexpr int PERMA_HEIGHT = 48;
 
             /// @brief Ticks to start timer with.
@@ -40,11 +40,8 @@ namespace ui
             /// @brief Current width;
             int m_width{};
 
-            /// @brief Target width;
-            int m_targetWidth{};
-
-            /// @brief Stores whether or not the dialog is fully expanded.
-            bool m_expanded{};
+            /// @brief Whether or not the targetY coordinate was met.
+            bool m_yMet{};
 
             /// @brief Returns whether or not the message has reached the end of its life.
             bool m_finished{};
@@ -63,9 +60,6 @@ namespace ui
 
             /// @brief Updates the Y Coord to match the target passed.
             void update_y(double targetY);
-
-            /// @brief Updates and expands the dialog width.
-            void update_width();
 
             /// @brief Updates the current end offset of the text.
             void update_text_offset();
