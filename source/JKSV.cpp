@@ -27,9 +27,9 @@
 namespace
 {
     /// @brief Build month.
-    constexpr uint8_t BUILD_MON = 7;
+    constexpr uint8_t BUILD_MON = 8;
     /// @brief Build day.
-    constexpr uint8_t BUILD_DAY = 28;
+    constexpr uint8_t BUILD_DAY = 7;
     /// @brief Year.
     constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace
@@ -195,7 +195,7 @@ bool JKSV::create_directories()
 void JKSV::add_color_chars()
 {
     sdl::text::add_color_character(L'#', colors::BLUE);
-    sdl::text::add_color_character(L'*', colors::RED);
+    sdl::text::add_color_character(L'*', colors::DARK_RED);
     sdl::text::add_color_character(L'<', colors::YELLOW);
     sdl::text::add_color_character(L'>', colors::GREEN);
     sdl::text::add_color_character(L'`', colors::BLUE_GREEN);

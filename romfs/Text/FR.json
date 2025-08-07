@@ -8,18 +8,18 @@
         "2: Êtes-vous sûr de vouloir vraiment supprimer #%s# ?"
     ],
     "BackupMenuPops": [
-        "0: Les données de sauvegarde sont vides !",
+        "0: Les données sauvegardées sont vides !",
         "1: La sauvegarde est vide !",
         "2: Erreur lors de la réinitialisation des données sauvegardées !",
         "3: Erreur lors de l'ouverture du fichier ZIP en lecture !",
-        "4: Une erreur est survenue lors de la suppression de la sauvegarde !",
+        "4: Erreur lors de la suppression de la sauvegarde !",
         "5: Erreur lors de la création de la sauvegarde !",
-        "6: L’écriture dans le système est désactivée !",
-        "7: Impossible d’ouvrir le zip en lecture !",
-        "8: Erreur lors de l’écriture du fichier méta des données sauvegardées !",
+        "6: L'écriture dans le système est désactivée !",
+        "7: Impossible d'ouvrir le zip en lecture !",
+        "8: Erreur lors de l'écriture du fichier méta des données sauvegardées !",
         "9: Erreur lors du téléchargement du fichier !",
-        "10: Erreur lors de l’envoi du fichier !",
-        "11: Erreur lors du traitement des métadonnées de sauvegarde !",
+        "10: Erreur lors de l'envoi du fichier !",
+        "11: Erreur lors du traitement des méta-données des sauvegardes !",
         "12: Erreur lors de la création du répertoire cible !",
         "13: La sauvegarde doit être un zip pour être téléversée !",
         "14: Erreur lors du montage des données sauvegardées !",
@@ -32,13 +32,13 @@
         "0: [A] Sélectionner   [Y] Exporter toutes les sauvegardes   [X] Options utilisateur",
         "1: [A] Sélectionner   [L] [R] Sauter   [Y] Favori   [X] Options du titre  [B] Retour",
         "2: [A] Sélectionner  [Y] Restaurer  [X] Supprimer  [ZR] Téléverser  [B] Fermer",
-        "3: [A] Basculer   [X] Défauts   [B] Retour"
+        "3: [A] Basculer  [-] Description   [X] Valeurs par défaut   [B] Retour"
     ],
     "ExtrasMenu": [
         "0: Réinitialiser les données",
         "1: Navigateur SD vers SD",
         "2: ProdInfoF",
-        "3: Sécurité",
+        "3: Sécurisé",
         "4: Système",
         "5: Utilisateur",
         "6: Terminer le processus"
@@ -48,17 +48,17 @@
         "1: Échec de la réinitialisation des données !"
     ],
     "GeneralPops": [
-        "0: Impossible de quitter JKSV tant que des tâches sont en cours !"
+        "0: Impossible de quitter JKSV pendant que des tâches sont en cours !"
     ],
     "GoogleDriveStrings": [
-        "0: Pour continuer, allez sur #%s# et saisissez >%s> !",
-        "1: Connexion réussie à Google Drive !",
+        "0: Pour continuer, rendez-vous sur #%s# et entrez >%s> !",
+        "1: Connexion à Google Drive réussie !",
         "2: Échec de la connexion à Google Drive !"
     ],
     "HoldingStrings": [
         "0: Maintenez [A]",
         "1: Continuez à maintenir [A]",
-        "2: Presque là ! [A]"
+        "2: Presque prêt ! [A]"
     ],
     "IOStatuses": [
         "0: Copie de #%s# en cours...",
@@ -70,36 +70,36 @@
         "6: Mise à jour de #%s# sur le stockage distant..."
     ],
     "IOPops": [
-        "0: Erreur lors de l’écriture des données sur l’appareil !"
+        "0: Erreur lors de la validation des données sur l'appareil !"
     ],
     "KeyboardStrings": [
         "0: Entrez un nouveau nom pour la sauvegarde.",
-        "1: Entrez l’index du cache.",
+        "1: Entrez l'indice du cache.",
         "2: Entrez un nouveau chemin de sortie pour JKSV",
-        "3: Entrez l’ID du processus à terminer.",
+        "3: Entrez l'ID du processus à terminer.",
         "4: Entrez un ID de sauvegarde système",
-        "5: Entrez un nouveau nom pour l’élément cible.",
+        "5: Entrez un nouveau nom pour l'élément cible.",
         "6: Entrez un nom pour le nouveau dossier.",
         "7: Entrez un nouveau nom de dossier de sortie pour %s.",
-        "8: Entrez la taille d’expansion (en Mo)."
+        "8: Entrez la taille d'expansion (en Mo)."
     ],
     "MainMenuConfs": [
-        "0: Êtes-vous sûr de vouloir sauvegarder les données pour tous les utilisateurs de ce système ? Cela peut prendre *beaucoup* de temps !"
+        "0: Êtes-vous sûr de vouloir sauvegarder les données de sauvegarde de tous les utilisateurs de ce système ? Cela peut prendre *beaucoup* de temps !"
     ],
     "MainMenuPops": [
-        "0: `%s` n’a pas de données sauvegardées !"
+        "0: #%s# n'a pas de données sauvegardées !"
     ],
     "OnOff": [
         "0: Désactivé",
         "1: >Activé>"
     ],
     "RemotePops": [
-        "0: Aucune connexion Internet disponible !"
+        "0: Pas de connexion internet disponible !"
     ],
     "SaveCreatePops": [
         "0: Données sauvegardées créées pour #%s#!",
-        "1: Erreur lors de la création des données sauvegardées !",
-        "2: Erreur lors de la suppression des données sauvegardées !"
+        "1: Échec de la création des données sauvegardées !",
+        "2: Échec de la suppression des données sauvegardées !"
     ],
     "SaveDataTypes": [
         "0: Système",
@@ -112,59 +112,59 @@
     ],
     "SettingsDescriptions": [
         "0: Définit le répertoire de travail pour JKSV. La valeur par défaut est `sdmc:/JKSV`.",
-        "1: Permet de retirer des titres de la liste noire.",
-        "2: Inclut les sauvegardes de l’appareil, ou partagées, avec les utilisateurs.",
-        "3: Crée automatiquement une sauvegarde lors de la restauration d’une autre.",
-        "4: Nomme automatiquement les sauvegardes et évite le clavier.",
-        "5: Téléverse automatiquement les sauvegardes sur un stockage distant et les supprime localement.",
-        "6: Utilise toujours les IDs d’application pour les noms des dossiers d’exportation.",
+        "1: Permet de supprimer des titres de la liste noire.",
+        "2: Inclut les sauvegardes de l'appareil ou partagées avec les utilisateurs.",
+        "3: Crée une sauvegarde automatiquement lors de la restauration d'une autre.",
+        "4: Nomme automatiquement les sauvegardes et ignore le clavier.",
+        "5: Téléverse automatiquement les sauvegardes vers un stockage distant et les supprime localement.",
+        "6: Utilise toujours les IDs d'application pour les noms des dossiers d'exportation.",
         "7: Indique si maintenir [A] pendant trois secondes est requis pour supprimer les sauvegardes.",
         "8: Indique si maintenir [A] pendant trois secondes est requis pour restaurer les sauvegardes.",
         "9: Indique si maintenir [A] pendant trois secondes est requis pour écraser les sauvegardes.",
-        "10: Affiche uniquement les données que JKSV peut ouvrir correctement.",
-        "11: Affiche les sauvegardes système liées à un ID de compte.",
-        "12: Permet de restaurer les sauvegardes système et d’écrire dans les partitions NAND.",
-        "13: Exporte les données sauvegardées dans des archives ZIP au lieu de dossiers décompressés.",
-        "14: Niveau de compression ou décompression utilisé lors de l’écriture en ZIP. La valeur par défaut est 6. Les valeurs basses sont plus rapides, mais compressent moins et économisent moins d’espace. Zéro signifie stocker sans compression.",
-        "15: Contrôle la manière dont les titres sont triés et affichés.",
-        "16: Affiche les titres sous forme de menus texte comme JKSM original sur 3DS au lieu de grilles d’icônes.",
-        "17: Force l’utilisation de l’anglais comme langue plutôt que la langue système détectée.",
-        "18: Déplace les sauvegardes supprimées vers le dossier _TRASH_ au lieu de les supprimer définitivement.",
-        "19: Définit la vitesse des transitions et animations. Plus bas est plus rapide."
+        "10: N'affiche que les données sauvegardées que JKSV peut ouvrir au démarrage.",
+        "11: Affiche les sauvegardes système liées à un compte.",
+        "12: Permet de restaurer les sauvegardes système et d'écrire dans les partitions NAND. *Cela peut être dangereux.*",
+        "13: Exporte les données sauvegardées vers des archives ZIP au lieu de dossiers décompressés.",
+        "14: Niveau de compression ou deflate utilisé lors de l'écriture dans ZIP. La valeur par défaut est 6. Les valeurs plus basses sont plus rapides mais compressent moins. Zéro signifie stocker, sans compression.",
+        "15: Contrôle la façon dont les titres sont triés et affichés.",
+        "16: Affiche les titres comme des menus texte à la manière de JKSM original sur 3DS au lieu de grilles d'icônes.",
+        "17: Force l'utilisation de l'anglais comme langue au lieu de la langue système détectée.",
+        "18: Déplace les sauvegardes supprimées dans le dossier _TRASH_ au lieu de les supprimer définitivement. Ceci n'affecte que les sauvegardes locales.",
+        "19: Définit la vitesse à laquelle les transitions et animations se produisent. Plus bas est plus rapide. Un est instantané, quatre est le plus lent avant que les problèmes ne commencent."
     ],
     "SettingsMenu": [
         "0: Définir le dossier de sortie JKSV.",
-        "1: Éditer la liste noire",
-        "2: Inclure les sauvegardes de l’appareil avec les utilisateurs : %s",
+        "1: Modifier la liste noire",
+        "2: Inclure les sauvegardes de l'appareil avec les utilisateurs : %s",
         "3: Sauvegarde automatique lors de la restauration : %s",
-        "4: Nom automatique des sauvegardes : %s",
-        "5: Téléversement automatique des sauvegardes sur stockage distant : %s",
-        "6: Toujours utiliser les IDs d’application : %s",
+        "4: Nommer automatiquement les sauvegardes : %s",
+        "5: Téléversement automatique des sauvegardes vers un stockage distant : %s",
+        "6: Toujours utiliser les IDs d'application : %s",
         "7: Maintenir pour supprimer les sauvegardes : %s",
         "8: Maintenir pour restaurer les sauvegardes : %s",
         "9: Maintenir pour écraser les sauvegardes : %s",
-        "10: Lister uniquement les titres montables : %s",
-        "11: Afficher les sauvegardes liées à un compte : %s",
-        "12: Autoriser l’écriture dans les sauvegardes système et NAND : %s",
-        "13: Exporter les sauvegardes en ZIP : %s",
+        "10: N'afficher que les titres montables : %s",
+        "11: Afficher les sauvegardes système du compte : %s",
+        "12: Activer l'écriture sur les sauvegardes système et NAND : %s",
+        "13: Exporter les sauvegardes vers ZIP : %s",
         "14: Niveau de compression ZIP : %u",
         "15: Type de tri des titres : %s",
         "16: Mode menu texte (JKSM) : %s",
-        "17: Forcer l’anglais : %s",
+        "17: Forcer l'anglais : %s",
         "18: Activer la corbeille : %s",
-        "19: Échelle d’animation : %.02f"
+        "19: Échelle d'animation : %.02f"
     ],
     "SettingsPops": [
         "0: La liste noire est vide !"
     ],
     "SortTypes": [
-        "0: Alphabétique",
-        "1: Plus joué",
-        "2: Dernière fois joué"
+        "0: Alphabétiquement",
+        "1: Plus joués",
+        "2: Derniers joués"
     ],
     "TitleInfo": [
-        "0: ID d’application : %016lX",
-        "1: ID de sauvegarde : %016lx",
+        "0: ID de l'app : %016lX",
+        "1: ID de la sauvegarde : %016lx",
         "2: Première partie : %x - %X",
         "3: Dernière partie : %x - %X",
         "4: Temps de jeu : %02d:%02d:%02d",
@@ -172,9 +172,9 @@
         "6: Type de sauvegarde : %s"
     ],
     "TitleOptionConfirmations": [
-        "0: Êtes-vous sûr de vouloir ajouter #%s# à votre liste noire ? Une fois fait, il n’apparaîtra plus dans aucune liste ou sélection de titres.",
-        "1: Êtes-vous sûr de vouloir supprimer toutes les sauvegardes actuelles pour #%s# ? *Cela ne peut pas être annulé !*",
-        "2: Êtes-vous sûr de vouloir réinitialiser les données sauvegardées pour #%s# ? *Cela supprimera les données actuelles comme si le titre n’avait jamais été lancé !*",
+        "0: Êtes-vous sûr de vouloir ajouter #%s# à votre liste noire ? Une fois fait, il n'apparaîtra plus dans aucune liste ou sélection de titres.",
+        "1: Êtes-vous sûr de vouloir supprimer toutes les sauvegardes actuelles pour #%s# ? *Ceci est irréversible !*",
+        "2: Êtes-vous sûr de vouloir réinitialiser les données sauvegardées pour #%s# ? *Cela supprimera les données actuelles comme si le titre n'avait jamais été joué !*",
         "3: Êtes-vous sûr de vouloir supprimer les données sauvegardées de `%s` pour #%s# ? *Cela les supprimera définitivement du système.*"
     ],
     "TitleOptionPops": [
@@ -183,23 +183,23 @@
         "2: Erreur lors de la réinitialisation des données sauvegardées !",
         "3: Données sauvegardées réinitialisées avec succès !",
         "4: Fichier SVI exporté avec succès !",
-        "5: Erreur lors de l’export du fichier SVI !",
-        "6: Cette option n’est pas disponible pour les sauvegardes système !",
-        "7: Impossible de nettoyer le chemin pour l’utiliser !",
+        "5: Erreur lors de l'exportation du fichier SVI !",
+        "6: Cette option n'est pas disponible pour les sauvegardes système !",
+        "7: Impossible de nettoyer le chemin pour utilisation !",
         "8: Dossier de sortie défini à #%s#.",
         "9: Erreur lors de la définition du nouveau chemin de sortie !",
         "10: Données sauvegardées étendues avec succès !",
-        "11: Échec de l’extension des données sauvegardées !"
+        "11: Échec de l'extension des données sauvegardées !"
     ],
     "TitleOptionStatus": [
         "0: Suppression de toutes les sauvegardes pour #%s#.",
         "1: Réinitialisation des données sauvegardées pour #%s#.",
-        "2: Suppression des données de `%s` pour #%s#...",
-        "3: Extension des données de `%s` pour #%s#..."
+        "2: Suppression des données sauvegardées de #%s# pour #%s#...",
+        "3: Extension des données sauvegardées de `%s` pour #%s#..."
     ],
     "TitleOptions": [
         "0: Informations",
-        "1: Liste noire du titre",
+        "1: Ajouter le titre à la liste noire",
         "2: Changer le dossier de sortie",
         "3: Ouvrir en mode fichier",
         "4: Supprimer toutes les sauvegardes locales",
@@ -214,9 +214,9 @@
         "1: NULL"
     ],
     "UserOptionConfirmations": [
-        "0: Êtes-vous sûr de vouloir sauvegarder les données pour tous les titres trouvés pour `%s` ? Cela peut prendre un moment.",
+        "0: Êtes-vous sûr de vouloir sauvegarder toutes les données pour tous les titres trouvés pour `%s` ? Cela peut prendre un moment.",
         "1: Êtes-vous sûr de vouloir créer des données sauvegardées pour tous les titres trouvés sur votre système pour `%s` ? Cela peut prendre un moment.",
-        "2: Êtes-vous sûr de vouloir supprimer toutes les données sauvegardées pour `%s` ? C’est *DÉFINITIF* et ne peut pas être annulé."
+        "2: Êtes-vous sûr de vouloir supprimer toutes les données sauvegardées de `%s` ? Ceci est *PERMANENT* et ne peut pas être annulé."
     ],
     "UserOptionStatus": [
         "0: Création des données sauvegardées pour #%s#...",
@@ -232,8 +232,9 @@
         "0: WebDav démarré avec succès !",
         "1: Échec de WebDav !"
     ],
-    "YesNo": [
+    "YesNoOK": [
         "0: Oui [A]",
-        "1: Non [B]"
+        "1: Non [B]",
+        "2: OK [A]"
     ]
 }

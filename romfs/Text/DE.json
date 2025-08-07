@@ -1,42 +1,42 @@
 {
     "BackupMenu": [
-        "0: Neuer Backup"
+        "0: Neues Backup"
     ],
     "BackupMenuConfirmations": [
-        "0: Bist du sicher, dass du #%s# wirklich überschreiben möchtest?",
-        "1: Bist du sicher, dass du #%s# wirklich wiederherstellen möchtest?",
-        "2: Bist du sicher, dass du #%s# wirklich löschen möchtest?"
+        "0: Sind Sie sicher, dass Sie #%s# wirklich überschreiben möchten?",
+        "1: Sind Sie sicher, dass Sie #%s# wirklich wiederherstellen möchten?",
+        "2: Sind Sie sicher, dass Sie #%s# wirklich löschen möchten?"
     ],
     "BackupMenuPops": [
-        "0: Speicherstand ist leer!",
+        "0: Speicherdaten sind leer!",
         "1: Backup ist leer!",
-        "2: Fehler beim Zurücksetzen der Speicherstände!",
-        "3: Fehler beim Öffnen der ZIP‑Datei zum Lesen!",
+        "2: Fehler beim Zurücksetzen der Speicherdaten!",
+        "3: Fehler beim Öffnen der ZIP-Datei zum Lesen!",
         "4: Fehler beim Löschen des Backups!",
         "5: Fehler beim Erstellen des Backups!",
         "6: Schreiben ins System ist deaktiviert!",
-        "7: Kann ZIP nicht zum Lesen öffnen!",
-        "8: Fehler beim Schreiben der Metadaten‑Datei!",
+        "7: Konnte ZIP zum Lesen nicht öffnen!",
+        "8: Fehler beim Schreiben der Metadaten der Speicherdaten!",
         "9: Fehler beim Herunterladen der Datei!",
         "10: Fehler beim Hochladen der Datei!",
-        "11: Fehler bei der Verarbeitung der Speicherstand‑Metadaten!",
+        "11: Fehler bei der Verarbeitung der Metadaten der Speicherdaten!",
         "12: Fehler beim Erstellen des Zielverzeichnisses!",
-        "13: Backup muss eine ZIP‑Datei zum Hochladen sein!",
-        "14: Fehler beim Einbinden der Speicherstände!",
-        "15: Fehler beim Schließen der Speicherstände!"
+        "13: Backup muss eine ZIP sein, um hochgeladen zu werden!",
+        "14: Fehler beim Einbinden der Speicherdaten!",
+        "15: Fehler beim Schließen der Speicherdaten!"
     ],
     "BackupMenuStatus": [
-        "0: Verarbeite Speicherstand‑Metadaten…"
+        "0: Verarbeite Metadatei der Speicherdaten..."
     ],
     "ControlGuides": [
-        "0: [A] Auswählen   [Y] Alle Speicherdaten sichern   [X] Benutzer‑Optionen",
-        "1: [A] Auswählen   [L] [R] Springen   [Y] Favorit   [X] Titel‑Optionen  [B] Zurück",
+        "0: [A] Auswählen   [Y] Alle Speicherdaten dumpen   [X] Benutzeroptionen",
+        "1: [A] Auswählen   [L] [R] Springen   [Y] Favorit   [X] Titeloptionen  [B] Zurück",
         "2: [A] Auswählen  [Y] Wiederherstellen  [X] Löschen  [ZR] Hochladen  [B] Schließen",
-        "3: [A] Umschalten   [X] Standardwerte   [B] Zurück"
+        "3: [A] Umschalten  [-] Beschreibung   [X] Standardwerte   [B] Zurück"
     ],
     "ExtrasMenu": [
         "0: Daten neu initialisieren",
-        "1: SD‑zu‑SD‑Browser",
+        "1: SD zu SD Browser",
         "2: ProdInfoF",
         "3: Sicher",
         "4: System",
@@ -45,59 +45,59 @@
     ],
     "ExtrasPops": [
         "0: Daten neu initialisiert!",
-        "1: Dateninitialisierung fehlgeschlagen!"
+        "1: Daten-Neuinitialisierung fehlgeschlagen!"
     ],
     "GeneralPops": [
-        "0: JKSV kann nicht beendet werden, während Aufgaben laufen!"
+        "0: JKSV kann nicht beendet werden, solange Aufgaben laufen!"
     ],
     "GoogleDriveStrings": [
         "0: Um fortzufahren, gehe zu #%s# und gib >%s> ein!",
-        "1: Anmeldung bei Google Drive erfolgreich!",
+        "1: Erfolgreich bei Google Drive angemeldet!",
         "2: Anmeldung bei Google Drive fehlgeschlagen!"
     ],
     "HoldingStrings": [
-        "0: Halte [A]",
-        "1: Halte weiterhin [A]",
-        "2: Fast da! [A]"
+        "0: Halte [A] gedrückt",
+        "1: Halte weiterhin [A] gedrückt",
+        "2: Fast geschafft! [A]"
     ],
     "IOStatuses": [
-        "0: Kopiere #%s#…",
-        "1: Komprimiere #%s# zu ZIP…",
-        "2: Dekomprimiere #%s# aus ZIP…",
-        "3: Lösche #%s#…",
-        "4: Lade #%s# herunter…",
-        "5: Lade #%s# in den Remote‑Speicher hoch…",
-        "6: Aktualisiere #%s# im Remote‑Speicher…"
+        "0: Kopiere #%s#...",
+        "1: Komprimiere #%s# zu ZIP...",
+        "2: Dekomprimiere #%s# von ZIP...",
+        "3: Lösche #%s#...",
+        "4: Lade #%s# herunter...",
+        "5: Lade #%s# auf Remote-Speicher hoch...",
+        "6: Aktualisiere #%s# auf Remote-Speicher..."
     ],
     "IOPops": [
-        "0: Fehler beim Commit der Daten auf das Gerät!"
+        "0: Fehler beim Übertragen der Daten auf das Gerät!"
     ],
     "KeyboardStrings": [
-        "0: Gib einen neuen Backup‑Namen ein.",
-        "1: Gib den Cache‑Index ein.",
-        "2: Gib einen neuen Ausgabe‑Pfad für JKSV ein.",
-        "3: Gib die Prozess‑ID ein, die beendet werden soll.",
-        "4: Gib eine System‑Speicherstand‑ID ein.",
+        "0: Gib einen neuen Backup-Namen ein.",
+        "1: Cache-Index eingeben.",
+        "2: Gib einen neuen Ausgabepfad für JKSV ein",
+        "3: Prozess-ID zum Beenden eingeben.",
+        "4: System-Save-ID eingeben",
         "5: Gib einen neuen Namen für das Zielobjekt ein.",
         "6: Gib einen Namen für den neuen Ordner ein.",
-        "7: Gib einen neuen Ausgabefolder‑Namen für %s ein.",
-        "8: Gib an, um wie viel (in MB) erweitert werden soll."
+        "7: Gib einen neuen Ausgabeordnernamen für %s ein.",
+        "8: Gib an, wie viel erweitert werden soll (in MB)."
     ],
     "MainMenuConfs": [
-        "0: Bist du sicher, dass du die Speicherdaten für jeden Benutzer dieses Systems sichern willst? Das kann *extrem* lange dauern!"
+        "0: Sind Sie sicher, dass Sie die Speicherdaten für alle Benutzer auf diesem System sichern möchten? Dies kann *extrem* lange dauern!"
     ],
     "MainMenuPops": [
-        "0: `%s` hat keine Speicherdaten!"
+        "0: #%s# hat keine Speicherdaten!"
     ],
     "OnOff": [
         "0: Aus",
-        "1: >Ein>"
+        "1: >An>"
     ],
     "RemotePops": [
         "0: Keine Internetverbindung verfügbar!"
     ],
     "SaveCreatePops": [
-        "0: Speicherdaten erstellt für #%s#!",
+        "0: Speicherdaten für #%s# erstellt!",
         "1: Fehler beim Erstellen der Speicherdaten!",
         "2: Fehler beim Löschen der Speicherdaten!"
     ],
@@ -108,123 +108,123 @@
         "3: Gerät",
         "4: Temporär",
         "5: Cache",
-        "6: System‑BCAT"
+        "6: System BCAT"
     ],
     "SettingsDescriptions": [
-        "0: Setzt das Arbeitsverzeichnis für JKSV. Der Standardwert ist `sdmc:/JKSV`.",
+        "0: Legt das Arbeitsverzeichnis für JKSV fest. Der Standardwert ist `sdmc:/JKSV`.",
         "1: Ermöglicht das Entfernen von Titeln aus der Blacklist.",
-        "2: Bezieht Geräte‑ oder geteilte Speicherstände mit Benutzern ein.",
-        "3: Erstellt beim Wiederherstellen automatisch ein Backup.",
-        "4: Auto‑Benennung von Backups und Überspringen der Tastatur.",
-        "5: Lädt Backups automatisch in die Cloud hoch und löscht sie lokal.",
-        "6: Verwendet immer Application‑IDs für Exportordner‑Namen.",
-        "7: Ob [A] für drei Sekunden gehalten werden muss, um Backups zu löschen.",
-        "8: Ob [A] für drei Sekunden gehalten werden muss, um Backups wiederherzustellen.",
-        "9: Ob [A] für drei Sekunden gehalten werden muss, um Backups zu überschreiben.",
-        "10: Zeigt nur Speicherstände, die JKSV öffnen kann.",
-        "11: Zeigt System‑Saves mit Benutzerkonto‑ID.",
-        "12: Aktiviert das Wiederherstellen von System‑Saves und das Schreiben in NAND‑Partitionen.",
-        "13: Exportiert Speicherdaten als ZIP‑Archive statt entpackter Ordner.",
-        "14: Kompressionsniveau für ZIP. Standard ist 6. Niedrigere Werte sind schneller, bieten aber weniger Kompression. 0 bedeutet speichern ohne Kompression.",
-        "15: Steuerung, wie Titel sortiert und angezeigt werden.",
-        "16: Zeigt Titel als Textmenüs wie im originalen JKSM auf der 3DS statt als Icon‑Raster.",
-        "17: Erzwingt Englisch als Sprache statt der Systemsprache.",
-        "18: Verschiebt gelöschte Backups in den _TRASH_‑Ordner statt sie endgültig zu löschen.",
-        "19: Legt die Geschwindigkeit der Transitionen und Animationen fest. Niedrigere Werte sind schneller."
+        "2: Bezieht Geräte- oder gemeinsame Speicherstände mit Benutzern ein.",
+        "3: Erstellt automatisch ein Backup beim Wiederherstellen eines anderen.",
+        "4: Benennt Backups automatisch und überspringt die Tastatur.",
+        "5: Lädt Backups automatisch auf Remote hoch und löscht sie lokal.",
+        "6: Verwendet immer Anwendungs-IDs für Exportordnernamen.",
+        "7: Ob das Halten von [A] für drei Sekunden zum Löschen von Backups erforderlich ist.",
+        "8: Ob das Halten von [A] für drei Sekunden zum Wiederherstellen von Backups erforderlich ist.",
+        "9: Ob das Halten von [A] für drei Sekunden zum Überschreiben von Backups erforderlich ist.",
+        "10: Zeigt nur Speicherdaten, die JKSV beim Start erfolgreich öffnen kann.",
+        "11: Zeigt Systemspeicherstände, die an ein Konto gebunden sind.",
+        "12: Ermöglicht das Wiederherstellen von Systemspeicherständen und das Schreiben auf NAND-Partitionen. *Dies kann gefährlich sein.*",
+        "13: Exportiert Speicherdaten in ZIP-Archive statt in entpackte Ordner.",
+        "14: Kompressions- oder Deflate-Level beim Schreiben in ZIP. Standard ist 6. Niedrigere Werte sind schneller, bieten aber weniger Kompression. Null ist speichern, also keine Kompression.",
+        "15: Steuert, wie Titel sortiert und angezeigt werden.",
+        "16: Zeigt Titel als Textmenüs wie im originalen JKSM auf 3DS statt als Icon-Gitter an.",
+        "17: Erzwingt die Verwendung von Englisch anstelle der erkannten Systemsprache.",
+        "18: Verschiebt gelöschte Backups in den _TRASH_-Ordner statt sie dauerhaft zu löschen. Betrifft nur lokale Backups.",
+        "19: Legt die Geschwindigkeit für Übergänge und Animationen fest. Niedriger ist schneller. Eins ist sofort, vier ist am langsamsten, bevor Fehler auftreten."
     ],
     "SettingsMenu": [
-        "0: Setze JKSV Ausgabeordner.",
+        "0: JKSV-Ausgabeordner festlegen.",
         "1: Blacklist bearbeiten",
-        "2: Geräte‑Saves mit Nutzern einbeziehen: %s",
-        "3: Auto‑Backup beim Wiederherstellen: %s",
-        "4: Auto‑Benennung von Backups: %s",
-        "5: Automatisches Hochladen der Backups: %s",
-        "6: Immer Application‑IDs verwenden: %s",
+        "2: Geräte-Saves mit Benutzern einbeziehen: %s",
+        "3: Automatisches Backup beim Wiederherstellen: %s",
+        "4: Backups automatisch benennen: %s",
+        "5: Backups automatisch auf Remote-Speicher hochladen: %s",
+        "6: Immer Anwendungs-IDs verwenden: %s",
         "7: Halten zum Löschen von Backups: %s",
         "8: Halten zum Wiederherstellen von Backups: %s",
         "9: Halten zum Überschreiben von Backups: %s",
-        "10: Nur mountbare Titel anzeigen: %s",
-        "11: Zeige System‑Saves mit Konto‑ID: %s",
-        "12: Enable writing to system saves and NAND: %s",
-        "13: Exporte Saves zu ZIP: %s",
-        "14: ZIP‑Kompressionsniveau: %u",
-        "15: Titel‑Sortierung: %s",
+        "10: Nur mountbare Titel auflisten: %s",
+        "11: Konto-Systemspeicherstände anzeigen: %s",
+        "12: Schreiben auf System-Saves und NAND aktivieren: %s",
+        "13: Speicherdaten in ZIP exportieren: %s",
+        "14: ZIP-Kompressionslevel: %u",
+        "15: Titel-Sortierart: %s",
         "16: Textmenü (JKSM) Modus: %s",
         "17: Englisch erzwingen: %s",
         "18: Papierkorb aktivieren: %s",
-        "19: Animationsskalierung: %.02f"
+        "19: Animations-Skalierung: %.02f"
     ],
     "SettingsPops": [
         "0: Blacklist ist leer!"
     ],
     "SortTypes": [
         "0: Alphabetisch",
-        "1: Meist gespielt",
+        "1: Am häufigsten gespielt",
         "2: Zuletzt gespielt"
     ],
     "TitleInfo": [
-        "0: App‑ID: %016lX",
-        "1: Save‑ID: %016lx",
-        "2: Erstes Spielen: %x – %X",
-        "3: Zuletzt gespielt: %x – %X",
+        "0: App-ID: %016lX",
+        "1: Save-ID: %016lx",
+        "2: Erstes Spielen: %x - %X",
+        "3: Zuletzt gespielt: %x - %X",
         "4: Spielzeit: %02d:%02d:%02d",
         "5: Starts: %i",
-        "6: Save‑Typ: %s"
+        "6: Speichertyp: %s"
     ],
     "TitleOptionConfirmations": [
-        "0: Bist du sicher, dass du #%s# zur Blacklist hinzufügen möchtest? Danach erscheint es nicht mehr in Titellisten.",
-        "1: Bist du sicher, dass du alle aktuellen Speicher‑Backups für #%s# löschen möchtest? *Das kann nicht rückgängig gemacht werden!*",
-        "2: Bist du sicher, dass du die Speicherdaten für #%s# zurücksetzen möchtest? *Das löscht die aktuellen Speicherdaten wie bei einem Neuanfang!*",
-        "3: Bist du sicher, dass du `%s`’s Speicherdaten für #%s# löschen möchtest? *Das wird dauerhaft vom System entfernt.*"
+        "0: Sind Sie sicher, dass Sie #%s# zur Blacklist hinzufügen möchten? Danach erscheint es in keiner Titelliste oder Auswahl mehr.",
+        "1: Sind Sie sicher, dass Sie alle aktuellen Backup-Daten für #%s# löschen möchten? *Das kann nicht rückgängig gemacht werden!*",
+        "2: Sind Sie sicher, dass Sie die Speicherdaten für #%s# zurücksetzen möchten? *Das löscht die aktuellen Speicherdaten, als wäre das Spiel nie gestartet worden!*",
+        "3: Sind Sie sicher, dass Sie `%s`'s Speicherdaten für #%s# löschen möchten? *Das löscht sie dauerhaft vom System.*"
     ],
     "TitleOptionPops": [
         "0: Alle Backups für #%s# gelöscht!",
         "1: Löschen aller Backups fehlgeschlagen!",
         "2: Fehler beim Zurücksetzen der Speicherdaten!",
         "3: Speicherdaten erfolgreich zurückgesetzt!",
-        "4: SVI‑Datei erfolgreich exportiert!",
-        "5: Fehler beim Export der SVI‑Datei!",
-        "6: Diese Option ist für System‑Saves nicht verfügbar!",
+        "4: SVI-Datei erfolgreich exportiert!",
+        "5: Fehler beim Exportieren der SVI-Datei!",
+        "6: Diese Option ist für Systemspeicherstände nicht verfügbar!",
         "7: Pfad konnte nicht bereinigt werden!",
-        "8: Ausgabefolder gesetzt auf #%s#.",
-        "9: Fehler beim Festlegen des neuen Ausgabepfads!",
+        "8: Ausgabeordner auf #%s# gesetzt.",
+        "9: Fehler beim Setzen des neuen Ausgabeordners!",
         "10: Speicherdaten erfolgreich erweitert!",
-        "11: Erweiterung der Speicherdaten ist fehlgeschlagen!"
+        "11: Erweiterung der Speicherdaten fehlgeschlagen!"
     ],
     "TitleOptionStatus": [
         "0: Lösche alle Backups für #%s#.",
         "1: Setze Speicherdaten für #%s# zurück.",
-        "2: Lösche `%s`’s Speicherdaten für #%s#…",
-        "3: Erweitere `%s`’s Speicherdaten für #%s#…"
+        "2: Lösche `%s`'s Speicherdaten für #%s#...",
+        "3: Erweitere `%s`'s Speicherdaten für #%s#..."
     ],
     "TitleOptions": [
         "0: Informationen",
         "1: Titel zur Blacklist hinzufügen",
         "2: Ausgabeordner ändern",
-        "3: Datei‑Modus öffnen",
+        "3: Im Datei-Modus öffnen",
         "4: Alle lokalen Backups löschen",
-        "5: Alle entfernten Backups löschen",
-        "6: Speicherdaten zurücksetzen",
+        "5: Alle Remote-Backups löschen",
+        "6: Speicherdaten zurücksetzen.",
         "7: Speicherdaten vom System löschen",
         "8: Speicherdaten erweitern",
-        "9: SVI‑Datei exportieren"
+        "9: SVI-Datei exportieren"
     ],
     "TranslationInfo": [
         "0: Übersetzt von: %s",
         "1: NULL"
     ],
     "UserOptionConfirmations": [
-        "0: Bist du sicher, dass du alle Speicherdaten für `%s` sichern möchtest? Das kann eine Weile dauern.",
-        "1: Bist du sicher, dass du für `%s` Speicherdaten für alle auf dem System gefundenen Titel erstellen möchtest? Das kann eine Weile dauern.",
-        "2: Bist du sicher, dass du alle Speicherdaten für `%s` löschen möchtest? Das ist *ENDGÜLTIG* und kann nicht rückgängig gemacht werden."
+        "0: Sind Sie sicher, dass Sie alle gefundenen Speicherdaten für `%s` sichern möchten? Das kann eine Weile dauern.",
+        "1: Sind Sie sicher, dass Sie Speicherdaten für alle auf Ihrem System gefundenen Titel für `%s` erstellen möchten? Das kann eine Weile dauern.",
+        "2: Sind Sie sicher, dass Sie alle Speicherdaten für `%s` löschen möchten? Das ist *PERMANENT* und kann nicht rückgängig gemacht werden."
     ],
     "UserOptionStatus": [
-        "0: Erstelle Speicherdaten für #%s#…",
-        "1: Lösche Speicherdaten für #%s#…"
+        "0: Erstelle Speicherdaten für #%s#...",
+        "1: Lösche Speicherdaten für #%s#..."
     ],
     "UserOptions": [
-        "0: Alles sichern für `%s`",
-        "1: Speicherdaten erstellen für `%s`",
+        "0: Alle für `%s` dumpen",
+        "1: Speicherdaten für `%s` erstellen",
         "2: Alle Speicherdaten für `%s` erstellen",
         "3: Alle Speicherdaten für `%s` löschen"
     ],
@@ -232,8 +232,9 @@
         "0: WebDav erfolgreich gestartet!",
         "1: WebDav fehlgeschlagen!"
     ],
-    "YesNo": [
+    "YesNoOK": [
         "0: Ja [A]",
-        "1: Nein [B]"
+        "1: Nein [B]",
+        "2: OK [A]"
     ]
 }

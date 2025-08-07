@@ -16,33 +16,33 @@ namespace
     constexpr std::string_view HEADER_AUTH_BEARER = "Authorization: Bearer ";
 
     // Content type headers used.
-    const char *HEADER_CONTENT_TYPE_JSON = "Content-Type: application/json";
-    const char *HEADER_CONTENT_TYPE_FORM = "Content-Type: application/x-www-form-urlencoded";
+    constexpr const char *HEADER_CONTENT_TYPE_JSON = "Content-Type: application/json";
+    constexpr const char *HEADER_CONTENT_TYPE_FORM = "Content-Type: application/x-www-form-urlencoded";
 
     // This is used for upload/patch for grabbing the upload location.
     constexpr std::string_view HEADER_UPLOAD_LOCATION = "Location";
 
     // These are API endpoints used in multiple request calls.
-    const char *URL_OAUTH2_TOKEN_URL = "https://oauth2.googleapis.com/token";
-    const char *URL_DRIVE_FILE_API   = "https://www.googleapis.com/drive/v3/files";
-    const char *URL_DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
+    constexpr const char *URL_OAUTH2_TOKEN_URL = "https://oauth2.googleapis.com/token";
+    constexpr const char *URL_DRIVE_FILE_API   = "https://www.googleapis.com/drive/v3/files";
+    constexpr const char *URL_DRIVE_UPLOAD_API = "https://www.googleapis.com/upload/drive/v3/files";
 
     // These are json keys that are used for various requests.
-    const char *JSON_KEY_ACCESS_TOKEN  = "access_token";
-    const char *JSON_KEY_CLIENT_ID     = "client_id";
-    const char *JSON_KEY_CLIENT_SECRET = "client_secret";
-    const char *JSON_KEY_DEVICE_CODE   = "device_code";
-    const char *JSON_KEY_EXPIRES_IN    = "expires_in";
-    const char *JSON_KEY_GRANT_TYPE    = "grant_type";
-    const char *JSON_KEY_ID            = "id";
-    const char *JSON_KEY_INSTALLED     = "installed";
-    const char *JSON_KEY_MIMETYPE      = "mimeType";
-    const char *JSON_KEY_NAME          = "name";
-    const char *JSON_KEY_PARENTS       = "parents";
-    const char *JSON_KEY_REFRESH_TOKEN = "refresh_token";
+    constexpr const char *JSON_KEY_ACCESS_TOKEN  = "access_token";
+    constexpr const char *JSON_KEY_CLIENT_ID     = "client_id";
+    constexpr const char *JSON_KEY_CLIENT_SECRET = "client_secret";
+    constexpr const char *JSON_KEY_DEVICE_CODE   = "device_code";
+    constexpr const char *JSON_KEY_EXPIRES_IN    = "expires_in";
+    constexpr const char *JSON_KEY_GRANT_TYPE    = "grant_type";
+    constexpr const char *JSON_KEY_ID            = "id";
+    constexpr const char *JSON_KEY_INSTALLED     = "installed";
+    constexpr const char *JSON_KEY_MIMETYPE      = "mimeType";
+    constexpr const char *JSON_KEY_NAME          = "name";
+    constexpr const char *JSON_KEY_PARENTS       = "parents";
+    constexpr const char *JSON_KEY_REFRESH_TOKEN = "refresh_token";
 
     /// @brief Folder mimetype string.
-    const char *MIME_TYPE_DIRECTORY = "application/vnd.google-apps.folder";
+    constexpr const char *MIME_TYPE_DIRECTORY = "application/vnd.google-apps.folder";
 } // namespace
 
 remote::GoogleDrive::GoogleDrive()

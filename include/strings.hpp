@@ -45,6 +45,6 @@ namespace strings
         static constexpr std::string_view USEROPTION_STATUS     = "UserOptionStatus";
         static constexpr std::string_view USEROPTION_MENU       = "UserOptions";
         static constexpr std::string_view WEBDAV                = "WebDavStrings";
-        static constexpr std::string_view YES_NO                = "YesNo";
+        static constexpr std::string_view YES_NO_OK             = "YesNoOK";
     } // namespace names
 } // namespace strings

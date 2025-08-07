@@ -48,19 +48,28 @@ class SettingsState final : public BaseState
         /// @brief Runs a routine to update the menu strings for the menu.
         void update_menu_options();
 
+        /// @brief Changes the current output directory of JKSV.
         void change_working_directory();
 
+        /// @brief Creates and pushes the blacklist editing panel/state.
         void create_push_blacklist_edit();
 
         /// @brief Toggles or executes the code to changed the selected menu option.
         void toggle_options();
 
+        /// @brief Creates and pushes the message with the description.
+        void create_push_description_message();
+
+        /// @brief Cycles and wraps the Zip compression level.
         void cycle_zip_level();
 
+        /// @brief Cycles and wraps the title sort type.
         void cycle_sort_type();
 
+        /// @brief Toggles JKSM mode and calls the main menu to reinitialize the views.
         void toggle_jksm_mode();
 
+        /// @brief Cycles and wraps the animation scaling (1.0 to 4.0);
         void cycle_anim_scaling();
 
         // Returns On/Off depending on the value passed.

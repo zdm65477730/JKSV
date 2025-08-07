@@ -10,8 +10,8 @@
 #include <cstring>
 
 data::TitleInfo::TitleInfo(uint64_t applicationID)
-    : m_applicationID{applicationID}
-    , m_data{std::make_unique<NsApplicationControlData>()}
+    : m_applicationID(applicationID)
+    , m_data(std::make_unique<NsApplicationControlData>())
 {
     static constexpr size_t SIZE_CTRL_DATA = sizeof(NsApplicationControlData);
     static constexpr size_t SIZE_NACP      = sizeof(NacpStruct);
@@ -27,7 +27,7 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
                                                                                 data,
                                                                                 SIZE_CTRL_DATA,
                                                                                 &controlSize));
-    const bool entryError = !isSystem && !getError && error::libnx(nacpGetLanguageEntry(&data->nacp, &entry));
+    const bool entryError = !getError && error::libnx(nacpGetLanguageEntry(&data->nacp, &entry));
     if (isSystem || getError)
     {
         const std::string appIDHex = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
@@ -50,8 +50,8 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
 
 // To do: Make this safer...
 data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData)
-    : m_applicationID{applicationID}
-    , m_data{std::make_unique<NsApplicationControlData>()}
+    : m_applicationID(applicationID)
+    , m_data(std::make_unique<NsApplicationControlData>())
 {
     NsApplicationControlData *data = m_data.get();
 

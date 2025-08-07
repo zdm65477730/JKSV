@@ -17,7 +17,7 @@
 namespace
 {
     /// @brief This is just the string for finding and creating the JKSV dir.
-    const char *STRING_JKSV_DIR = "JKSV";
+    constexpr const char *STRING_JKSV_DIR = "JKSV";
 
     /// @brief This is the single (for now) instance of a storage class.
     std::unique_ptr<remote::Storage> s_storage{};

@@ -44,8 +44,8 @@ class ConfirmState final : public BaseState
         ConfirmState(std::string_view query, bool holdRequired, TaskFunction function, std::shared_ptr<StructType> dataStruct)
             : BaseState{false}
             , m_query(query)
-            , m_yesText(strings::get_by_name(strings::names::YES_NO, 0))
-            , m_noText(strings::get_by_name(strings::names::YES_NO, 1))
+            , m_yesText(strings::get_by_name(strings::names::YES_NO_OK, 0))
+            , m_noText(strings::get_by_name(strings::names::YES_NO_OK, 1))
             , m_holdRequired(holdRequired)
             , m_function(function)
             , m_dataStruct(dataStruct)
@@ -75,8 +75,19 @@ class ConfirmState final : public BaseState
                                                              std::shared_ptr<StructType> dataStruct)
         {
             // I'm gonna use a sneaky trick here. This shouldn't do this because it's confusing.
-            auto newState  = create(query, holdRequired, function, dataStruct);
-            auto fadeState = FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, newState);
+            auto newState = create(query, holdRequired, function, dataStruct);
+            StateManager::push_state(newState);
+            return newState;
+        }
+
+        /// @brief Same as above but with a fade transition pushed  in between.
+        static std::shared_ptr<ConfirmState> create_push_fade(std::string_view query,
+                                                              bool holdRequired,
+                                                              TaskFunction function,
+                                                              std::shared_ptr<StructType> dataStruct)
+        {
+            auto newState = ConfirmState::create(query, holdRequired, function, dataStruct);
+            FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, newState);
             return newState;
         }
 
@@ -108,10 +119,10 @@ class ConfirmState final : public BaseState
             sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
 
             sm_dialog->render(sdl::Texture::Null, hasFocus);
-            sdl::text::render(sdl::Texture::Null, 312, 288, 18, 656, colors::WHITE, m_query);
+            sdl::text::render(sdl::Texture::Null, 312, 288, 20, 656, colors::WHITE, m_query);
 
-            sdl::render_line(sdl::Texture::Null, 280, 454, 999, 454, colors::WHITE);
-            sdl::render_line(sdl::Texture::Null, 640, 454, 640, 517, colors::WHITE);
+            sdl::render_line(sdl::Texture::Null, 280, 454, 999, 454, colors::DIV_COLOR);
+            sdl::render_line(sdl::Texture::Null, 640, 454, 640, 517, colors::DIV_COLOR);
 
             sdl::text::render(sdl::Texture::Null, m_yesX, 476, 22, sdl::text::NO_WRAP, colors::WHITE, m_yesText);
             sdl::text::render(sdl::Texture::Null, m_noX, 476, 22, sdl::text::NO_WRAP, colors::WHITE, m_noText);
@@ -205,7 +216,7 @@ class ConfirmState final : public BaseState
 
         void hold_released()
         {
-            m_yesText = strings::get_by_name(strings::names::YES_NO, 0);
+            m_yesText = strings::get_by_name(strings::names::YES_NO_OK, 0);
             ConfirmState::center_yes();
         }
 

@@ -23,7 +23,7 @@ namespace ui
 
         private:
             // Every message begins off screen.
-            static inline constexpr int PERMA_X      = 20;
+            static inline constexpr int START_X      = 624;
             static inline constexpr double START_Y   = 720;
             static inline constexpr int START_WIDTH  = 32;
             static inline constexpr int PERMA_HEIGHT = 48;
@@ -36,6 +36,9 @@ namespace ui
 
             /// @brief The current, actual Y coord.
             double m_y{};
+
+            /// @brief Currently rendering coordinate for the text.
+            int m_textX{};
 
             /// @brief Current width;
             int m_width{};

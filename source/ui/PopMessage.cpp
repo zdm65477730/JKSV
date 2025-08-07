@@ -10,7 +10,7 @@ ui::PopMessage::PopMessage(int ticks, std::string_view message)
     , m_message(message)
     , m_y(PopMessage::START_Y)
     , m_width(PopMessage::START_WIDTH)
-    , m_dialog(ui::DialogBox::create(PopMessage::PERMA_X,
+    , m_dialog(ui::DialogBox::create(PopMessage::START_X,
                                      m_y - 6,
                                      PopMessage::START_WIDTH,
                                      PopMessage::PERMA_HEIGHT,
@@ -29,7 +29,7 @@ void ui::PopMessage::render()
     if (!m_yMet) { return; }
     // This avoids allocating and returning another std::string.
     const std::string_view message(m_message.c_str(), m_substrOffset);
-    sdl::text::render(sdl::Texture::Null, PopMessage::PERMA_X + 16, m_y + 5, 22, sdl::text::NO_WRAP, colors::BLACK, message);
+    sdl::text::render(sdl::Texture::Null, m_textX, m_y + 5, 22, sdl::text::NO_WRAP, colors::BLACK, message);
 }
 
 bool ui::PopMessage::finished() const { return m_finished; }
@@ -54,6 +54,8 @@ void ui::PopMessage::update_y(double targetY)
 
 void ui::PopMessage::update_text_offset()
 {
+    static constexpr int HALF_WIDTH = 640;
+
     const int messageLength = m_message.length();
     if (!m_yMet || m_substrOffset >= messageLength || !m_typeTimer.is_triggered()) { return; }
 
@@ -66,7 +68,13 @@ void ui::PopMessage::update_text_offset()
 
     m_substrOffset += unitCount;
     const std::string_view subMessage(message, m_substrOffset);
-    const int dialogWidth = sdl::text::get_width(22, subMessage) + 32;
+    const int stringWidth = sdl::text::get_width(22, subMessage);
+    m_textX               = HALF_WIDTH - (stringWidth / 2);
+
+    const int dialogX     = m_textX - 16;
+    const int dialogWidth = stringWidth + 32;
+
+    m_dialog->set_xy(dialogX, m_dialog->NO_SET);
     m_dialog->set_width_height(dialogWidth, m_dialog->NO_SET);
     if (m_substrOffset >= messageLength) { m_displayTimer.start(m_ticks); }
 }

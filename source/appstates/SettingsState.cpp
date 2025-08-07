@@ -2,6 +2,7 @@
 
 #include "appstates/BlacklistEditState.hpp"
 #include "appstates/MainMenuState.hpp"
+#include "appstates/MessageState.hpp"
 #include "colors.hpp"
 #include "config.hpp"
 #include "data/data.hpp"
@@ -69,12 +70,14 @@ std::shared_ptr<SettingsState> SettingsState::create() { return std::make_shared
 
 void SettingsState::update()
 {
-    const bool hasFocus = BaseState::has_focus();
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool hasFocus     = BaseState::has_focus();
+    const bool aPressed     = input::button_pressed(HidNpadButton_A);
+    const bool bPressed     = input::button_pressed(HidNpadButton_B);
+    const bool minusPressed = input::button_pressed(HidNpadButton_Minus);
 
     m_settingsMenu.update(hasFocus);
     if (aPressed) { SettingsState::toggle_options(); }
+    else if (minusPressed) { SettingsState::create_push_description_message(); }
     else if (bPressed) { BaseState::deactivate(); }
 }
 
@@ -174,6 +177,14 @@ void SettingsState::toggle_options()
     }
     config::save();
     SettingsState::update_menu_options();
+}
+
+void SettingsState::create_push_description_message()
+{
+    const int selected      = m_settingsMenu.get_selected();
+    const char *description = strings::get_by_name(strings::names::SETTINGS_DESCRIPTIONS, selected);
+
+    MessageState::create_and_push_fade(description);
 }
 
 void SettingsState::cycle_zip_level()

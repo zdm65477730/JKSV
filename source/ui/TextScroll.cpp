@@ -56,7 +56,7 @@ void ui::TextScroll::initialize(std::string_view text,
     m_clearColor   = clearColor;
     m_targetWidth  = width;
     m_targetHeight = height;
-    m_textY        = (m_targetHeight / 2) - (m_fontSize / 2) - 1; // This gets the job done, but could be better.
+    m_textY        = (m_targetHeight / 2) - (m_fontSize / 2);
     m_scrollTimer.start(TICKS_SCROLL_TRIGGER);
 
     {

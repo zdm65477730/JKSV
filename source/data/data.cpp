@@ -3,14 +3,14 @@
 #include "config.hpp"
 #include "error.hpp"
 #include "fs/fs.hpp"
-#include "fslib.hpp"
 #include "logger.hpp"
 #include "strings.hpp"
+#include "stringutil.hpp"
 
 #include <algorithm>
 #include <array>
 #include <mutex>
-#include <string_view>
+#include <string>
 #include <switch.h>
 #include <thread>
 #include <unordered_map>
@@ -18,28 +18,23 @@
 
 namespace
 {
-    /// @brief Struct used for reading the cache from file.
-    // clang-format off
-    typedef struct
-    {
-        uint64_t applicationID;
-        NsApplicationControlData data;
-    } CacheEntry;
-    // clang-format on
-
+    /// @brief This contains the user accounts on the system.
     std::vector<data::User> s_users{};
 
     // Map of Title info paired with its title/application
     std::unordered_map<uint64_t, data::TitleInfo> s_titleinfo;
 
     /// @brief Path used for cacheing title information since NS got slow on 20.0+
-    constexpr std::string_view PATH_CACHE_PATH = "sdmc:/config/JKSV/cache.bin";
+    constexpr std::string_view PATH_CACHE_PATH = "sdmc:/config/JKSV/cache.zip";
 
     // These are the ID's used for system type users.
     constexpr AccountUid ID_SYSTEM_USER = {FsSaveDataType_System};
     constexpr AccountUid ID_BCAT_USER   = {FsSaveDataType_Bcat};
     constexpr AccountUid ID_DEVICE_USER = {FsSaveDataType_Device};
     constexpr AccountUid ID_CACHE_USER  = {FsSaveDataType_Cache};
+
+    /// @brief This is for loading the cache.
+    constexpr size_t SIZE_CTRL_DATA = sizeof(NsApplicationControlData);
 } // namespace
 
 // Declarations here. Definitions at bottom. These should appear in the order called.
@@ -182,59 +177,40 @@ static void import_svi_files()
 
 static bool read_cache_file()
 {
-    constexpr size_t SIZE_UNSIGNED    = sizeof(unsigned int);
-    constexpr size_t SIZE_CACHE_ENTRY = sizeof(CacheEntry);
+    fs::MiniUnzip cacheZip{PATH_CACHE_PATH};
+    if (!cacheZip.is_open()) { return false; }
 
-    fslib::File cache{PATH_CACHE_PATH, FsOpenMode_Read};
-    if (error::fslib(cache.is_open())) { return false; }
+    NsApplicationControlData controlBuffer{};
+    do {
+        const bool read = cacheZip.read(&controlBuffer, SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
+        if (!read) { continue; }
 
-    unsigned int titleCount{};
-    const bool countRead = cache.read(&titleCount, SIZE_UNSIGNED) == SIZE_UNSIGNED;
-    if (!countRead) { return false; }
+        const char *filename         = cacheZip.get_filename();
+        const uint64_t applicationID = std::strtoull(filename, nullptr, 16);
+        data::TitleInfo newInfo{applicationID, controlBuffer};
 
-    auto entryBuffer = std::make_unique<CacheEntry[]>(titleCount); // I've read there might not be any point in error checking.
-    const int64_t cacheSize = SIZE_CACHE_ENTRY * titleCount;
-    const bool cacheRead    = cache.read(entryBuffer.get(), cacheSize) == cacheSize;
-    if (!cacheRead) { return false; }
+        s_titleinfo.emplace(applicationID, std::move(newInfo));
+    } while (cacheZip.next_file());
 
-    // Loop through the cache entries and emplace them to the map.
-    for (unsigned int i = 0; i < titleCount; i++)
-    {
-        CacheEntry &entry = entryBuffer[i];
-
-        data::TitleInfo newInfo{entry.applicationID, entry.data};
-        s_titleinfo.emplace(entry.applicationID, std::move(newInfo));
-    }
     return true;
 }
 
 static void create_cache_file()
 {
-    static constexpr size_t SIZE_UNSIGNED  = sizeof(unsigned int);
-    static constexpr size_t SIZE_UINT64    = sizeof(uint64_t);
-    static constexpr size_t SIZE_CTRL_DATA = sizeof(NsApplicationControlData);
-
-    fslib::File cache{PATH_CACHE_PATH, FsOpenMode_Create | FsOpenMode_Write};
-    if (error::fslib(cache.is_open())) { return; }
-
-    // This will make more sense later. I promise.
-    unsigned int titleCount{};
-    const bool countWrite = cache.write(&titleCount, SIZE_UNSIGNED) == SIZE_UNSIGNED;
-    if (!countWrite) { return; }
+    fs::MiniZip cacheZip{PATH_CACHE_PATH};
+    if (!cacheZip.is_open()) { return; }
 
     for (auto &[applicationID, titleInfo] : s_titleinfo)
     {
         if (!titleInfo.has_control_data()) { continue; }
 
-        const NsApplicationControlData *data = titleInfo.get_control_data();
-        const bool idWrite                   = cache.write(&applicationID, SIZE_UINT64) == SIZE_UINT64;
-        const bool dataWrite                 = cache.write(data, SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
-        if (!idWrite || !dataWrite) { return; }
+        const NsApplicationControlData *controlData = titleInfo.get_control_data();
+        const std::string cacheName                 = stringutil::get_formatted_string("%016llX", applicationID);
+        const bool opened                           = cacheZip.open_new_file(cacheName);
+        if (!opened) { continue; }
 
-        ++titleCount;
+        const bool controlWritten = cacheZip.write(controlData, SIZE_CTRL_DATA);
+        if (!controlWritten) { logger::log("Error writing control data to zip!"); }
+        cacheZip.close_current_file();
     }
-
-    // Go back to beginning and write the final count.
-    cache.seek(0, cache.BEGINNING);
-    cache.write(&titleCount, SIZE_UNSIGNED);
 }

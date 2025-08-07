@@ -285,14 +285,14 @@ void BackupMenuState::confirm_overwrite()
         m_dataStruct->remoteItem = m_remoteListing.at(entry.index);
         const char *itemName     = m_dataStruct->remoteItem->get_name().data();
         const std::string query  = stringutil::get_formatted_string(confirmTemplate, itemName);
-        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::overwrite_backup_remote, m_dataStruct);
+        ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::overwrite_backup_remote, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Local)
     {
         m_dataStruct->path      = m_directoryPath / m_directoryListing[entry.index];
         const char *targetName  = m_directoryListing[entry.index];
         const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
-        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::overwrite_backup_local, m_dataStruct);
+        ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::overwrite_backup_local, m_dataStruct);
     }
 }
 
@@ -330,8 +330,7 @@ void BackupMenuState::confirm_restore()
         m_dataStruct->path      = target;
         const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
 
-        auto confirm = ProgressConfirm::create(query, holdRequired, tasks::backup::restore_backup_local, m_dataStruct);
-        FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, confirm);
+        ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::restore_backup_local, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Remote)
     {
@@ -339,8 +338,7 @@ void BackupMenuState::confirm_restore()
         const std::string query  = stringutil::get_formatted_string(confirmTemplate, target->get_name().data());
         m_dataStruct->remoteItem = target;
 
-        auto confirm = ProgressConfirm::create(query, holdRequired, tasks::backup::restore_backup_remote, m_dataStruct);
-        FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, confirm);
+        ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::restore_backup_remote, m_dataStruct);
     }
 }
 
