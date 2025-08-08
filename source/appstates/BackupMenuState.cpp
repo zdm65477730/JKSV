@@ -179,10 +179,11 @@ void BackupMenuState::ensure_target_directory()
     const char *popFailed = strings::get_by_name(strings::names::BACKUPMENU_POPS, 12);
 
     // If this is enabled, don't bother.
-    const bool autoUpload      = config::get_by_key(config::keys::AUTO_UPLOAD);
-    const bool directoryNeeded = !autoUpload && !fslib::directory_exists(m_directoryPath);
-    const bool directoryFailed = directoryNeeded && error::fslib(fslib::create_directory(m_directoryPath));
-    if (!autoUpload && directoryFailed) { ui::PopMessageManager::push_message(popTicks, popFailed); }
+    const remote::Storage *remote = remote::get_remote_storage();
+    const bool autoUpload         = config::get_by_key(config::keys::AUTO_UPLOAD);
+    const bool directoryNeeded    = (!remote || !autoUpload) && !fslib::directory_exists(m_directoryPath);
+    const bool directoryFailed    = directoryNeeded && error::fslib(fslib::create_directory(m_directoryPath));
+    if (directoryNeeded && directoryFailed) { ui::PopMessageManager::push_message(popTicks, popFailed); }
 }
 
 void BackupMenuState::initialize_task_data()

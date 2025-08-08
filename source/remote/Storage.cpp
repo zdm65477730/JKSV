@@ -1,6 +1,9 @@
 #include "remote/Storage.hpp"
 
+#include "logger.hpp"
+
 #include <algorithm>
+#include <cstring>
 
 // Declarations here. Defined at bottom.
 remote::Storage::Storage(std::string_view prefix, bool supportsUtf8)
@@ -66,7 +69,13 @@ std::string_view remote::Storage::get_prefix() const { return m_prefix; }
 remote::Storage::List::iterator remote::Storage::find_directory_by_name(std::string_view name)
 {
     auto is_match = [&](const Item &item)
-    { return item.is_directory() && item.get_parent_id() == m_parent && item.get_name() == name; };
+    {
+        const bool isDir       = item.is_directory();
+        const bool parentMatch = isDir && item.get_parent_id() == m_parent;
+        const bool nameMatch   = parentMatch && item.get_name() == name;
+
+        return isDir && parentMatch && nameMatch;
+    };
 
     return std::find_if(m_list.begin(), m_list.end(), is_match);
 }
@@ -74,7 +83,13 @@ remote::Storage::List::iterator remote::Storage::find_directory_by_name(std::str
 remote::Storage::List::iterator remote::Storage::find_file_by_name(std::string_view name)
 {
     auto is_match = [&](const Item &item)
-    { return !item.is_directory() && item.get_parent_id() == m_parent && item.get_name() == name; };
+    {
+        const bool notDir      = !item.is_directory();
+        const bool parentMatch = notDir && item.get_parent_id() == m_parent;
+        const bool nameMatch   = parentMatch && item.get_name() == name;
+
+        return notDir && parentMatch && nameMatch;
+    };
 
     return std::find_if(m_list.begin(), m_list.end(), is_match);
 }

@@ -21,6 +21,10 @@ static tinyxml2::XMLElement *get_element_by_name(tinyxml2::XMLElement *parent, s
 /// @param tag Tag to get the name of.
 static std::string_view get_tag_begin(std::string_view tag);
 
+/// @brief Ensures the parent is a valid path. I guess some servers don't have trailing slashes for directories.
+/// @param parent Parent string.
+static std::string ensure_valid_dir_path(std::string_view parent);
+
 /// @brief Slices and unescapes the directory or filename from the href.
 /// @param handle Curl handle to use to unescape.
 /// @param href HREF to slice.
@@ -346,7 +350,7 @@ bool remote::WebDav::process_listing(std::string_view xml)
         return false;
     }
 
-    const char *parentLocationText = parentLocation->GetText(); // Possibly going to need this a lot.
+    const std::string parentID = ensure_valid_dir_path(parentLocation->GetText());
     tinyxml2::XMLElement *current{};
     for (current = parent->NextSiblingElement(); current; current = current->NextSiblingElement())
     {
@@ -363,7 +367,9 @@ bool remote::WebDav::process_listing(std::string_view xml)
         tinyxml2::XMLElement *collection = get_element_by_name(resourceType, tagCollection);
         if (collection)
         {
-            m_list.emplace_back(name, hrefText, parentLocationText, 0, true);
+            const std::string idString = ensure_valid_dir_path(hrefText);
+
+            m_list.emplace_back(name, idString, parentID, 0, true);
 
             remote::URL nextUrl{m_origin};
             nextUrl.append_path(hrefText);
@@ -380,7 +386,7 @@ bool remote::WebDav::process_listing(std::string_view xml)
 
             const char *lengthString    = getContentLength->GetText();
             const int64_t contentLength = std::strtoll(lengthString, nullptr, 10);
-            m_list.emplace_back(name, hrefText, parentLocationText, contentLength, false);
+            m_list.emplace_back(name, hrefText, parentID, contentLength, false);
         }
     }
     return true;
@@ -404,31 +410,31 @@ static std::string_view get_tag_begin(std::string_view tag)
     return tag.substr(colon + 1);
 }
 
+static std::string ensure_valid_dir_path(std::string_view parent)
+{
+    std::string returnParent{parent};
+    if (returnParent.back() != '/') { returnParent.append("/"); }
+    return returnParent;
+}
+
 static std::string slice_name_from_href(curl::Handle &handle, std::string_view href)
 {
     std::string name{};
 
-    // This means we're working with a directory.
     if (href.back() == '/')
     {
-        size_t end   = href.find_last_of('/');
-        size_t begin = href.find_last_of('/', end - 1);
-        if (end == href.npos || begin == href.npos)
-        {
-            // To do: Maybe handle this better?
-            return std::string(href);
-        }
-        // To do: Inspect this behavior better.
-        name = href.substr(begin + 1, (end - begin) - 1);
+        // To do: This might not be the safest.
+        size_t end   = href.find_last_of('/') - 1;
+        size_t begin = href.find_last_of('/', end);
+        if (begin == href.npos) { name = href; }
+        else { name = href.substr(begin + 1, (end - begin)); }
     }
     else
     {
-        // File
         size_t begin = href.find_last_of('/');
         if (begin == href.npos) { name = href; }
         else { name = href.substr(begin + 1); }
     }
-
     curl::unescape_string(handle, name, name);
 
     return name;
