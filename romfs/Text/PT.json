@@ -23,7 +23,8 @@
         "12: Erro ao criar diretório de destino!",
         "13: O backup tem de ser um zip para enviar!",
         "14: Erro ao montar dados guardados!",
-        "15: Erro ao fechar dados guardados!"
+        "15: Erro ao fechar dados guardados!",
+        "16: O backup não contém nenhum ficheiro meta!"
     ],
     "BackupMenuStatus": [
         "0: A processar ficheiro de metadados do save..."

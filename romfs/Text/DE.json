@@ -23,7 +23,8 @@
         "12: Fehler beim Erstellen des Zielverzeichnisses!",
         "13: Backup muss eine ZIP sein, um hochgeladen zu werden!",
         "14: Fehler beim Einbinden der Speicherdaten!",
-        "15: Fehler beim Schließen der Speicherdaten!"
+        "15: Fehler beim Schließen der Speicherdaten!",
+        "16: Die Sicherung enthält keine Metadatei!"
     ],
     "BackupMenuStatus": [
         "0: Verarbeite Metadatei der Speicherdaten..."

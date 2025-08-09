@@ -23,7 +23,8 @@
         "12: Error creating target directory!",
         "13: Backup must be a zip to upload!",
         "14: Error mounting save data!",
-        "15: Error closing save data!"
+        "15: Error closing save data!",
+        "16: Backup contains no meta file!"
     ],
     "BackupMenuStatus": [
         "0: Processing save data meta file..."

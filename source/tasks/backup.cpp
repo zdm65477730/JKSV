@@ -473,7 +473,7 @@ static bool read_and_process_meta(const fslib::Path &targetDir, BackupMenuState:
     fslib::File metaFile{metaPath, FsOpenMode_Read};
     if (!metaFile.is_open())
     {
-        const char *popErrorProcessing = strings::get_by_name(strings::names::BACKUPMENU_POPS, 11);
+        const char *popErrorProcessing = strings::get_by_name(strings::names::BACKUPMENU_POPS, 16);
         ui::PopMessageManager::push_message(popTicks, popErrorProcessing);
         return false;
     }
@@ -514,10 +514,17 @@ static bool read_and_process_meta(fs::MiniUnzip &unzip, BackupMenuState::TaskDat
     }
 
     fs::SaveMetaData saveMeta{};
-    const bool metaFound     = unzip.locate_file(fs::NAME_SAVE_META);
+    const bool metaFound = unzip.locate_file(fs::NAME_SAVE_META);
+    if (!metaFound)
+    {
+        const char *popNotFound = strings::get_by_name(strings::names::BACKUPMENU_POPS, 16);
+        ui::PopMessageManager::push_message(popTicks, popNotFound);
+        return false;
+    }
+
     const bool metaRead      = metaFound && unzip.read(&saveMeta, SIZE_SAVE_META) == SIZE_SAVE_META;
     const bool metaProcessed = metaRead && fs::process_save_meta_data(saveInfo, saveMeta);
-    if (!metaFound || !metaRead || !metaProcessed)
+    if (!metaRead || !metaProcessed)
     {
         const char *popErrorProcessing = strings::get_by_name(strings::names::BACKUPMENU_POPS, 11);
         ui::PopMessageManager::push_message(popTicks, popErrorProcessing);

@@ -23,7 +23,8 @@
         "12: Fout bij het maken van doelmap!",
         "13: Back-up moet een zip zijn om te uploaden!",
         "14: Fout bij het koppelen van opslaggegevens!",
-        "15: Fout bij het sluiten van opslaggegevens!"
+        "15: Fout bij het sluiten van opslaggegevens!",
+        "16: Back-up bevat geen metabestand!"
     ],
     "BackupMenuStatus": [
         "0: Opslag meta gegevensbestand verwerken..."

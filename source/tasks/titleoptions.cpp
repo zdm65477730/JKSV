@@ -5,6 +5,7 @@
 #include "error.hpp"
 #include "fs/fs.hpp"
 #include "keyboard.hpp"
+#include "logger.hpp"
 #include "remote/remote.hpp"
 #include "strings.hpp"
 #include "stringutil.hpp"
@@ -192,8 +193,7 @@ void tasks::titleoptions::delete_save_data_from_system(sys::Task *task, TitleOpt
 
 void tasks::titleoptions::extend_save_data(sys::Task *task, TitleOptionState::TaskData taskData)
 {
-    static constexpr size_t SIZE_EXTRA_DATA = sizeof(FsSaveDataExtraData);
-    static constexpr size_t SIZE_MB         = 0x100000;
+    static constexpr int SIZE_MB = 0x100000;
 
     if (error::is_null(task)) { return; }
 
@@ -208,18 +208,18 @@ void tasks::titleoptions::extend_save_data(sys::Task *task, TitleOptionState::Ta
 
     std::array<char, 5> sizeBuffer = {0};
     FsSaveDataExtraData extraData{};
-    const FsSaveDataSpaceId spaceId   = static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id);
-    const uint64_t saveDataId         = saveInfo->save_data_id;
+    const bool readExtra = fs::read_save_data_extra_info(saveInfo, extraData);
+
+    const int sizeMB                  = extraData.data_size / SIZE_MB;
     const char *keyboardHeader        = strings::get_by_name(strings::names::KEYBOARD, 8);
-    const std::string keyboardDefault = stringutil::get_formatted_string("%u", (extraData.data_size / SIZE_MB) + SIZE_MB);
-    const bool extraError =
-        error::libnx(fsReadSaveDataFileSystemExtraDataBySaveDataSpaceId(&extraData, SIZE_EXTRA_DATA, spaceId, saveDataId));
+    const std::string keyboardDefault = stringutil::get_formatted_string("%lli", sizeMB + 1);
+
     const bool validInput = keyboard::get_input(SwkbdType_NumPad, keyboardDefault, keyboardHeader, sizeBuffer.data(), 5);
     if (!validInput) { TASK_FINISH_RETURN(task); }
 
     const uint8_t saveType  = saveInfo->save_data_type;
     const int64_t size      = std::strtoll(sizeBuffer.data(), nullptr, 10) * SIZE_MB;
-    const int64_t journal   = extraError ? titleInfo->get_journal_size(saveType) : extraData.journal_size;
+    const int64_t journal   = !readExtra ? titleInfo->get_journal_size(saveType) : extraData.journal_size;
     const bool saveExtended = fs::extend_save_data(saveInfo, size, journal);
     if (saveExtended)
     {

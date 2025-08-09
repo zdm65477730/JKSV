@@ -23,7 +23,8 @@
         "12: ¡Error al crear el directorio de destino!",
         "13: ¡La copia de seguridad debe ser un zip para subirla!",
         "14: ¡Error al montar los datos guardados!",
-        "15: ¡Error al cerrar los datos guardados!"
+        "15: ¡Error al cerrar los datos guardados!",
+        "16: ¡La copia de seguridad no contiene ningún archivo meta!"
     ],
     "BackupMenuStatus": [
         "0: Procesando el archivo de metadatos de los datos guardados..."

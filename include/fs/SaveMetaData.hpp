@@ -32,6 +32,9 @@ namespace fs
     } __attribute__((packed));
     // clang-format on
 
+    // I didn't want a separate file for this.
+    bool read_save_data_extra_info(const FsSaveDataInfo *saveInfo, FsSaveDataExtraData &dataOut);
+
     /// @brief Didn't feel like a whole new file just for this. Fills an fs::SaveMetaData struct.
     bool fill_save_meta_data(const FsSaveDataInfo *saveInfo, SaveMetaData &meta);
 

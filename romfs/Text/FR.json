@@ -23,7 +23,8 @@
         "12: Erreur lors de la création du répertoire cible !",
         "13: La sauvegarde doit être un zip pour être téléversée !",
         "14: Erreur lors du montage des données sauvegardées !",
-        "15: Erreur lors de la fermeture des données sauvegardées !"
+        "15: Erreur lors de la fermeture des données sauvegardées !",
+        "16: La sauvegarde ne contient aucun fichier méta !"
     ],
     "BackupMenuStatus": [
         "0: Traitement du fichier méta des données sauvegardées..."

@@ -23,7 +23,8 @@
         "12: Errore durante la creazione della directory di destinazione!",
         "13: Il backup deve essere uno zip per poter essere caricato!",
         "14: Errore durante il montaggio dei dati di salvataggio!",
-        "15: Errore durante la chiusura dei dati di salvataggio!"
+        "15: Errore durante la chiusura dei dati di salvataggio!",
+        "16: Il backup non contiene alcun file meta!"
     ],
     "BackupMenuStatus": [
         "0: Elaborazione del file meta dei dati di salvataggio..."

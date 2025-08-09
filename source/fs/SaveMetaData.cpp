@@ -11,15 +11,22 @@ namespace
     constexpr size_t SIZE_EXTRA_DATA = sizeof(FsSaveDataExtraData);
 }
 
-bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &meta)
+bool fs::read_save_data_extra_info(const FsSaveDataInfo *saveInfo, FsSaveDataExtraData &dataOut)
 {
     const FsSaveDataSpaceId spaceID = static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id);
-    const uint64_t saveID           = saveInfo->save_data_id;
+    const uint64_t saveDataID       = saveInfo->save_data_id;
 
-    FsSaveDataExtraData extraData{};
     const bool readError =
-        error::libnx(fsReadSaveDataFileSystemExtraDataBySaveDataSpaceId(&extraData, SIZE_EXTRA_DATA, spaceID, saveID));
+        error::libnx(fsReadSaveDataFileSystemExtraDataBySaveDataSpaceId(&dataOut, SIZE_EXTRA_DATA, spaceID, saveDataID));
     if (readError) { return false; }
+    return true;
+}
+
+bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &meta)
+{
+    FsSaveDataExtraData extraData{};
+    const bool extraRead = fs::read_save_data_extra_info(saveInfo, extraData);
+    if (!extraRead) { return false; }
 
     meta = {.magic         = fs::SAVE_META_MAGIC,
             .revision      = 0x00,
@@ -41,15 +48,10 @@ bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &m
 
 bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaData &meta)
 {
-    const FsSaveDataSpaceId spaceID = static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id);
-    const uint64_t saveID           = saveInfo->save_data_id;
-
     FsSaveDataExtraData extraData{};
-    const bool readError =
-        error::libnx(fsReadSaveDataFileSystemExtraDataBySaveDataSpaceId(&extraData, SIZE_EXTRA_DATA, spaceID, saveID));
-    if (readError) { return false; }
+    const bool extraRead = fs::read_save_data_extra_info(saveInfo, extraData);
+    if (!extraRead) { return false; }
 
-    // We need to close this temporarily. To do: Look for a way to make this not needed?
     const bool needsExtend = extraData.data_size < meta.saveDataSize;
     const bool extended    = needsExtend && fs::extend_save_data(saveInfo, meta.saveDataSize, meta.journalSize);
     if (needsExtend && !extended) { return false; }
