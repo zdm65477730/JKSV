@@ -125,7 +125,7 @@ static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
         ui::PopMessageManager::push_message(popTicks, popDriveFailed);
     }
 
-    task->finished();
+    task->complete();
 }
 
 static void drive_set_jksv_root(remote::GoogleDrive *drive)

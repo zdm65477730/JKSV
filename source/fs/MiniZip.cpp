@@ -5,6 +5,9 @@
 
 #include <ctime>
 
+// Definition at bottom.
+static zip_fileinfo create_zip_file_info();
+
 fs::MiniZip::MiniZip(const fslib::Path &path) { MiniZip::open(path); }
 
 fs::MiniZip::~MiniZip() { MiniZip::close(); }
@@ -34,6 +37,17 @@ bool fs::MiniZip::open_new_file(std::string_view filename, bool trimPath, size_t
     const size_t pathBegin = filename.find_first_of('/');
     if (pathBegin != filename.npos) { filename = filename.substr(pathBegin + 1); }
 
+    const zip_fileinfo fileInfo = create_zip_file_info();
+    return zipOpenNewFileInZip64(m_zip, filename.data(), &fileInfo, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, zipLevel, 0) ==
+           ZIP_OK;
+}
+
+bool fs::MiniZip::close_current_file() { return zipCloseFileInZip(m_zip) == ZIP_OK; }
+
+bool fs::MiniZip::write(const void *buffer, size_t dataSize) { return zipWriteInFileInZip(m_zip, buffer, dataSize) == ZIP_OK; }
+
+static zip_fileinfo create_zip_file_info()
+{
     const std::time_t currentTime = std::time(nullptr);
     const std::tm *local          = std::localtime(&currentTime);
     const zip_fileinfo fileInfo   = {.tmz_date    = {.tm_sec  = local->tm_sec,
@@ -46,10 +60,5 @@ bool fs::MiniZip::open_new_file(std::string_view filename, bool trimPath, size_t
                                      .internal_fa = 0,
                                      .external_fa = 0};
 
-    return zipOpenNewFileInZip64(m_zip, filename.data(), &fileInfo, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, zipLevel, 0) ==
-           ZIP_OK;
+    return fileInfo;
 }
-
-bool fs::MiniZip::close_current_file() { return zipCloseFileInZip(m_zip) == ZIP_OK; }
-
-bool fs::MiniZip::write(const void *buffer, size_t dataSize) { return zipWriteInFileInZip(m_zip, buffer, dataSize) == ZIP_OK; }

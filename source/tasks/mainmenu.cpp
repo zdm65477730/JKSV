@@ -54,7 +54,7 @@ void tasks::mainmenu::backup_all_for_all_local(sys::ProgressTask *task, MainMenu
             tasks::backup::create_new_backup_local(task, user, titleInfo, finalTarget, nullptr, false);
         }
     }
-    task->finished();
+    task->complete();
 }
 
 void tasks::mainmenu::backup_all_for_all_remote(sys::ProgressTask *task, MainMenuState::TaskData taskData)
@@ -101,5 +101,5 @@ void tasks::mainmenu::backup_all_for_all_remote(sys::ProgressTask *task, MainMen
             remote->return_to_root();
         }
     }
-    task->finished();
+    task->complete();
 }

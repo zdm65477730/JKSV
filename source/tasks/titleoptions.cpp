@@ -21,7 +21,7 @@ void tasks::titleoptions::blacklist_title(sys::Task *task, TitleOptionState::Tas
     TitleOptionState *spawningState = taskData->spawningState;
     if (error::is_null(titleInfo) || error::is_null(spawningState))
     {
-        task->finished();
+        task->complete();
         return;
     }
 
@@ -36,7 +36,7 @@ void tasks::titleoptions::blacklist_title(sys::Task *task, TitleOptionState::Tas
     spawningState->refresh_required();
     spawningState->close_on_update();
 
-    task->finished();
+    task->complete();
 }
 
 void tasks::titleoptions::delete_all_local_backups_for_title(sys::Task *task, TitleOptionState::TaskData taskData)
@@ -71,7 +71,7 @@ void tasks::titleoptions::delete_all_local_backups_for_title(sys::Task *task, Ti
         ui::PopMessageManager::push_message(popTicks, popMessage);
     }
 
-    task->finished();
+    task->complete();
 }
 
 void tasks::titleoptions::delete_all_remote_backups_for_title(sys::Task *task, TitleOptionState::TaskData taskData)
@@ -109,7 +109,7 @@ void tasks::titleoptions::delete_all_remote_backups_for_title(sys::Task *task, T
 
     const std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
     ui::PopMessageManager::push_message(popTicks, popMessage);
-    task->finished();
+    task->complete();
 }
 
 void tasks::titleoptions::reset_save_data(sys::Task *task, TitleOptionState::TaskData taskData)
@@ -143,7 +143,7 @@ void tasks::titleoptions::reset_save_data(sys::Task *task, TitleOptionState::Tas
         else { ui::PopMessageManager::push_message(popTicks, popSuccess); }
     }
 
-    task->finished();
+    task->complete();
 }
 
 void tasks::titleoptions::delete_save_data_from_system(sys::Task *task, TitleOptionState::TaskData taskData)
@@ -188,7 +188,7 @@ void tasks::titleoptions::delete_save_data_from_system(sys::Task *task, TitleOpt
     user->erase_save_info_by_id(applicationID);
     titleSelect->refresh();
     spawningState->close_on_update();
-    task->finished();
+    task->complete();
 }
 
 void tasks::titleoptions::extend_save_data(sys::Task *task, TitleOptionState::TaskData taskData)
@@ -231,5 +231,5 @@ void tasks::titleoptions::extend_save_data(sys::Task *task, TitleOptionState::Ta
         const char *popFailed = strings::get_by_name(strings::names::TITLEOPTION_POPS, 11);
         ui::PopMessageManager::push_message(popTicks, popFailed);
     }
-    task->finished();
+    task->complete();
 }

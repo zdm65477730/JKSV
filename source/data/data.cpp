@@ -15,9 +15,18 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <zstd.h>
 
 namespace
 {
+    // clang-format off
+    struct CacheEntry
+    {
+        uint64_t applicationID{};
+        NsApplicationControlData controlData{};
+    };
+    // clang-format on
+
     /// @brief This contains the user accounts on the system.
     std::vector<data::User> s_users{};
 
@@ -34,7 +43,9 @@ namespace
     constexpr AccountUid ID_CACHE_USER  = {FsSaveDataType_Cache};
 
     /// @brief This is for loading the cache.
-    constexpr size_t SIZE_CTRL_DATA = sizeof(NsApplicationControlData);
+    constexpr size_t SIZE_CTRL_DATA   = sizeof(NsApplicationControlData);
+    constexpr size_t SIZE_CACHE_ENTRY = sizeof(CacheEntry);
+    constexpr size_t SIZE_SAVE_INFO   = sizeof(FsSaveDataInfo);
 } // namespace
 
 // Declarations here. Definitions at bottom. These should appear in the order called.
@@ -185,10 +196,13 @@ static bool read_cache_file()
         const bool read = cacheZip.read(&controlBuffer, SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
         if (!read) { continue; }
 
-        const char *filename         = cacheZip.get_filename();
-        const uint64_t applicationID = std::strtoull(filename, nullptr, 16);
-        data::TitleInfo newInfo{applicationID, controlBuffer};
+        std::string filename{cacheZip.get_filename()};
+        const size_t nameBegin = filename.find_first_not_of('/');
+        if (nameBegin == filename.npos) { continue; } // This is required in order to get the application ID.
 
+        filename                     = filename.substr(nameBegin);
+        const uint64_t applicationID = std::strtoull(filename.data(), nullptr, 16);
+        data::TitleInfo newInfo{applicationID, controlBuffer};
         s_titleinfo.emplace(applicationID, std::move(newInfo));
     } while (cacheZip.next_file());
 
@@ -205,7 +219,7 @@ static void create_cache_file()
         if (!titleInfo.has_control_data()) { continue; }
 
         const NsApplicationControlData *controlData = titleInfo.get_control_data();
-        const std::string cacheName                 = stringutil::get_formatted_string("%016llX", applicationID);
+        const std::string cacheName                 = stringutil::get_formatted_string("//%016llX", applicationID);
         const bool opened                           = cacheZip.open_new_file(cacheName);
         if (!opened) { continue; }
 

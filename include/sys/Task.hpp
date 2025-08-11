@@ -7,7 +7,7 @@
 
 // This macro helps keep things a bit easier to read and cuts down on repetition.
 #define TASK_FINISH_RETURN(x)                                                                                                  \
-    x->finished();                                                                                                             \
+    x->complete();                                                                                                             \
     return
 
 namespace sys
@@ -16,27 +16,13 @@ namespace sys
     class Task
     {
         public:
-            /// @brief Constructs a new task.
-            /// @param function Function for task to run.
-            /// @param args Arguments forwarded to thread.
-            /// @note Functions passed to this class must follow the following signature: void function(sys::Task *,
-            /// <arguments>)
+            /// @brief Default constructor.
+            Task() = default;
+
             template <typename... Args>
             Task(void (*function)(sys::Task *, Args...), Args... args)
             {
                 m_thread = std::thread(function, this, std::forward<Args>(args)...);
-                m_isRunning.store(true);
-            }
-
-            /// @brief Alternate version of the above that allows derived classes to pass themselves to the thread instead.
-            /// @tparam TaskType Type of task passed to the spawned thread. Ex: ProgressTask instead of Task.
-            /// @param function Function for task to run.
-            /// @param task Task passed to function. You don't really need to worry about this.
-            /// @param args Arguments to forward to the function.
-            template <typename TaskType, typename... Args>
-            Task(void (*function)(TaskType *, Args...), TaskType *task, Args... args)
-            {
-                m_thread = std::thread(function, task, std::forward<Args>(args)...);
                 m_isRunning.store(true);
             }
 
@@ -49,7 +35,7 @@ namespace sys
 
             /// @brief Allows thread to signal it's finished.
             /// @note Spawned task threads must call this when their work is finished.
-            void finished();
+            void complete();
 
             /// @brief Sets the task/threads current status string. Thread safe.
             void set_status(std::string_view status);
@@ -58,17 +44,18 @@ namespace sys
             /// @return Copy of the status string.
             std::string get_status();
 
-        private:
+        protected:
             // Whether task is still running.
-            std::atomic<bool> m_isRunning;
-
-            // Status string the thread can set that the main thread can display.
-            std::string m_status;
-
-            // Mutex so that string doesn't get messed up.
-            std::mutex m_statusLock;
+            std::atomic<bool> m_isRunning{};
 
             // Thread
-            std::thread m_thread;
+            std::thread m_thread{};
+
+        private:
+            // Status string the thread can set that the main thread can display.
+            std::string m_status{};
+
+            // Mutex so that string doesn't get messed up.
+            std::mutex m_statusLock{};
     };
 } // namespace sys

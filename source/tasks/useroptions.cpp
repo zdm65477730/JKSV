@@ -50,7 +50,7 @@ void tasks::useroptions::backup_all_for_user_local(sys::ProgressTask *task, User
 
         tasks::backup::create_new_backup_local(task, user, titleInfo, finalTarget, nullptr, false);
     }
-    task->finished();
+    task->complete();
 }
 
 void tasks::useroptions::backup_all_for_user_remote(sys::ProgressTask *task, UserOptionState::TaskData taskData)
@@ -91,7 +91,7 @@ void tasks::useroptions::backup_all_for_user_remote(sys::ProgressTask *task, Use
 
         remote->return_to_root();
     }
-    task->finished();
+    task->complete();
 }
 
 void tasks::useroptions::create_all_save_data_for_user(sys::Task *task, UserOptionState::TaskData taskData)
@@ -129,7 +129,7 @@ void tasks::useroptions::create_all_save_data_for_user(sys::Task *task, UserOpti
     }
 
     spawningState->refresh_required();
-    task->finished();
+    task->complete();
 }
 
 void tasks::useroptions::delete_all_save_data_for_user(sys::Task *task, UserOptionState::TaskData taskData)
@@ -171,5 +171,5 @@ void tasks::useroptions::delete_all_save_data_for_user(sys::Task *task, UserOpti
 
     for (const uint64_t &applicationID : applicationIDs) { user->erase_save_info_by_id(applicationID); }
     spawningState->refresh_required();
-    task->finished();
+    task->complete();
 }

@@ -4,6 +4,7 @@
 #include "sys/sys.hpp"
 #include "ui/ui.hpp"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <switch.h>

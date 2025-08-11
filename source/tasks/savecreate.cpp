@@ -33,5 +33,5 @@ void tasks::savecreate::create_save_data_for(sys::Task *task,
     }
 
     spawningState->refresh_required();
-    task->finished();
+    task->complete();
 }
