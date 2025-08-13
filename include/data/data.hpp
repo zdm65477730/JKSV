@@ -2,6 +2,7 @@
 #include "data/TitleInfo.hpp"
 #include "data/User.hpp"
 #include "data/accountUID.hpp"
+#include "sys/sys.hpp"
 
 #include <unordered_map>
 #include <vector>
@@ -12,10 +13,10 @@ namespace data
     using UserList      = std::vector<data::User *>;
     using TitleInfoList = std::vector<data::TitleInfo *>;
 
-    /// @brief Initializes data. Loads user accounts from system and save data info.
-    /// @param clearCache Whether or not the current cache file should be deleted from the SD card first.
-    /// @return True on success. False on failure.
-    bool initialize(bool clearCache);
+    /// @brief Launches the data loading/initialization state.
+    /// @param clear Whether or not the cache should be cleared.
+    /// @param onDestruction Function that is executed upon destruction of the data loading screen.
+    void launch_initialization(bool clear, std::function<void()> onDestruction);
 
     /// @brief Writes pointers to users to vectorOut
     /// @param userList List to push the pointers to.

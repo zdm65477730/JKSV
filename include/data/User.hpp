@@ -1,4 +1,5 @@
 #pragma once
+#include "data/DataCommon.hpp"
 #include "fslib.hpp"
 #include "sdl.hpp"
 
@@ -17,7 +18,7 @@ namespace data
     using UserSaveInfoList = std::vector<UserDataEntry>;
 
     /// @brief Class that stores data for the user.
-    class User
+    class User final : public data::DataCommon
     {
         public:
             /// @brief Constructs a new user with accountID
@@ -55,14 +56,19 @@ namespace data
             /// @brief Runs the sort algo on the vector.
             void sort_data();
 
+            /// @brief Returns the account ID of the user
             AccountUid get_account_id() const;
 
+            /// @brief Returns the primary  save data type o
             FsSaveDataType get_account_save_type() const;
 
+            /// @brief Returns the user's full UTF-8 nickname.
             const char *get_nickname() const;
 
+            /// @brief Returns the path safe version of the user's nickname.
             const char *get_path_safe_nickname() const;
 
+            /// @brief Returns the total data entries.
             size_t get_total_data_entries() const;
 
             /// @brief Returns the application ID of the title at index.
@@ -77,14 +83,11 @@ namespace data
             /// @brief Returns a pointer to the save info of applicationID.
             FsSaveDataInfo *get_save_info_by_id(uint64_t applicationID);
 
+            /// @brief Returns a reference to the internal map for range based loops.
             data::UserSaveInfoList &get_user_save_info_list();
 
             /// @brief Returns a pointer to the play statistics of applicationID
             PdmPlayStatistics *get_play_stats_by_id(uint64_t applicationID);
-
-            SDL_Texture *get_icon();
-
-            sdl::SharedTexture get_shared_icon();
 
             /// @brief Erases a UserDataEntry according to the application ID passed.
             /// @param applicationID ID of the save to erase.
@@ -93,6 +96,9 @@ namespace data
             /// @brief Loads the save data info and play statistics for the current user using the information passed to the
             /// constructor.
             void load_user_data();
+
+            /// @brief Loads the icon from the system and converts it to a texture.
+            void load_icon() override;
 
         private:
             /// @brief Account's ID
@@ -106,9 +112,6 @@ namespace data
 
             /// @brief Path safe version of nickname.
             char m_pathSafeNickname[0x20]{};
-
-            /// @brief User's icon.
-            sdl::SharedTexture m_icon{};
 
             /// @brief Vector containing save info and play statistics.
             data::UserSaveInfoList m_userData{};

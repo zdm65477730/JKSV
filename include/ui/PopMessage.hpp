@@ -21,6 +21,9 @@ namespace ui
             /// @brief Returns whether or not the message can be purged.
             bool finished() const;
 
+            /// @brief Returns the text of the message.
+            std::string_view get_message() const;
+
         private:
             // Every message begins off screen.
             static inline constexpr int START_X      = 624;

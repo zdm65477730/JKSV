@@ -29,14 +29,18 @@ void BaseTask::update()
     }
     else if (plusPressed) { ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS, m_popUnableExit); }
 
-    m_colorMod.update();
-
-    // Just bail if the timer wasn't triggered yet.
-    if (!m_frameTimer.is_triggered()) { return; }
-    if (++m_currentFrame >= 8) { m_currentFrame = 0; }
+    BaseTask::update_loading_glyph();
 }
 
 void BaseTask::render_loading_glyph()
 {
     sdl::text::render(sdl::Texture::Null, 56, 673, 32, sdl::text::NO_WRAP, m_colorMod, sm_glyphArray[m_currentFrame]);
+}
+
+void BaseTask::update_loading_glyph()
+{
+    m_colorMod.update();
+
+    if (!m_frameTimer.is_triggered()) { return; }
+    if (++m_currentFrame % 8 == 0) { m_currentFrame = 0; }
 }

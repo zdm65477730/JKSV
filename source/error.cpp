@@ -16,7 +16,7 @@ bool error::libnx(Result code, const std::source_location &location)
     std::string_view file{}, function{};
     prep_locations(file, function, location);
 
-    logger::log("%s::%s::%u::%u:%X", file.data(), function.data(), location.line(), location.column());
+    logger::log("%s::%s::%u::%u:%X", file.data(), function.data(), location.line(), location.column(), code);
     return true;
 }
 

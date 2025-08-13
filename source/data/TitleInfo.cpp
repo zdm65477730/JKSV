@@ -35,7 +35,6 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
 
         std::memset(data, 0x00, SIZE_CTRL_DATA);
         std::snprintf(name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
-        m_icon = gfxutil::create_generic_icon(appIDHex, 48, colors::DIALOG_DARK, colors::WHITE);
         TitleInfo::get_create_path_safe_title();
     }
     else if (!getError && !entryError)
@@ -44,25 +43,21 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
         m_hasData             = true;
 
         TitleInfo::get_create_path_safe_title();
-        m_icon = sdl::TextureManager::create_load_texture(entry->name, data->icon, iconSize);
     }
 }
 
 // To do: Make this safer...
-data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData)
+data::TitleInfo::TitleInfo(uint64_t applicationID, std::unique_ptr<NsApplicationControlData> &controlData)
     : m_applicationID(applicationID)
-    , m_data(std::make_unique<NsApplicationControlData>())
+    , m_data(std::move(controlData))
 {
-    NsApplicationControlData *data = m_data.get();
-
-    std::memcpy(data, &controlData, sizeof(NsApplicationControlData));
+    m_hasData = true;
 
     NacpLanguageEntry *entry{};
-    const bool entryError = error::libnx(nacpGetLanguageEntry(&data->nacp, &entry));
+    const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data->nacp, &entry));
     if (entryError) { std::snprintf(entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID); }
 
     TitleInfo::get_create_path_safe_title();
-    m_icon = sdl::TextureManager::create_load_texture(entry->name, m_data->icon, sizeof(m_data->icon));
 }
 
 data::TitleInfo::TitleInfo(data::TitleInfo &&titleInfo) { *this = std::move(titleInfo); }
@@ -211,5 +206,22 @@ void data::TitleInfo::get_create_path_safe_title()
     if (useTitleId || entryError || !sanitized)
     {
         std::snprintf(m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
+    }
+}
+
+void data::TitleInfo::load_icon()
+{
+    // This is taken from the NacpStruct.
+    static constexpr size_t SIZE_ICON = 0x20000;
+
+    if (m_hasData)
+    {
+        const std::string textureName = stringutil::get_formatted_string("%016llX", m_applicationID);
+        m_icon                        = sdl::TextureManager::create_load_texture(textureName, m_data->icon, SIZE_ICON);
+    }
+    else
+    {
+        const std::string text = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
+        m_icon                 = gfxutil::create_generic_icon(text, 48, colors::DIALOG_DARK, colors::WHITE);
     }
 }

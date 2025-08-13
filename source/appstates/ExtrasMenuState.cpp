@@ -28,6 +28,9 @@ namespace
     };
 } // namespace
 
+// Definition at bottom.
+static void finish_reinitialization();
+
 ExtrasMenuState::ExtrasMenuState()
     : m_extrasMenu(32, 8, 1000, 24, 555)
     , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
@@ -72,19 +75,12 @@ void ExtrasMenuState::initialize_menu()
     }
 }
 
-void ExtrasMenuState::reinitialize_data()
+void ExtrasMenuState::reinitialize_data() { data::launch_initialization(true, finish_reinitialization); }
+
+static void finish_reinitialization()
 {
     const int popTicks     = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popSuccess = strings::get_by_name(strings::names::EXTRASMENU_POPS, 0);
-    const char *popFailure = strings::get_by_name(strings::names::EXTRASMENU_POPS, 1);
-
-    // Call data and make in reinit and delete the cache first.
-    const bool initSuccess = data::initialize(true);
-    if (!initSuccess)
-    {
-        ui::PopMessageManager::push_message(popTicks, popFailure);
-        return;
-    }
 
     MainMenuState::refresh_view_states();
     ui::PopMessageManager::push_message(popTicks, popSuccess);

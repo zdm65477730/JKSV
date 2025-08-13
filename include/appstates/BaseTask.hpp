@@ -31,6 +31,9 @@ class BaseTask : public BaseState
         /// @brief Underlying system task. This needs to be allocated by the derived classes.
         std::unique_ptr<sys::Task> m_task{};
 
+        /// @brief Updates the loading glyph animation.
+        void update_loading_glyph();
+
     private:
         /// @brief This is the current frame of the loading glyph animation.
         int m_currentFrame{};
@@ -45,6 +48,6 @@ class BaseTask : public BaseState
         const char *m_popUnableExit{};
 
         /// @brief This array holds the glyphs of the loading sequence. I think it's from the Wii?
-        static inline std::array<std::string_view, 8> sm_glyphArray =
+        static inline constexpr std::array<std::string_view, 8> sm_glyphArray =
             {"\ue020", "\ue021", "\ue022", "\ue023", "\ue024", "\ue025", "\ue026", "\ue027"};
 };

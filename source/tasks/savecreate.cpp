@@ -30,8 +30,8 @@ void tasks::savecreate::create_save_data_for(sys::Task *task,
     {
         const std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
         ui::PopMessageManager::push_message(popTicks, popMessage);
+        spawningState->refresh_required();
     }
 
-    spawningState->refresh_required();
     task->complete();
 }

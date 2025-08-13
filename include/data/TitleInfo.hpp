@@ -1,4 +1,5 @@
 #pragma once
+#include "data/DataCommon.hpp"
 #include "sdl.hpp"
 
 #include <cstdint>
@@ -8,7 +9,7 @@
 namespace data
 {
     /// @brief Class that holds data related to titles loaded from the system.
-    class TitleInfo
+    class TitleInfo final : public data::DataCommon
     {
         public:
             /// @brief Constructs a TitleInfo instance. Loads control data, icon.
@@ -18,7 +19,7 @@ namespace data
             /// @brief Initializes a TitleInfo instance using external (cached) NsApplicationControlData
             /// @param applicationID Application ID of the title loaded from cache.
             /// @param controlData Reference to the control data to init from.
-            TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData);
+            TitleInfo(uint64_t applicationID, std::unique_ptr<NsApplicationControlData> &controlData);
 
             /// @brief Move constructor and operator.
             TitleInfo(TitleInfo &&titleInfo);
@@ -86,6 +87,9 @@ namespace data
             /// @brief Allows the path safe title to be set to a new path.
             /// @param newPathSafe Buffer containing the new safe path to use.
             void set_path_safe_title(const char *newPathSafe);
+
+            /// @brief Loads the icon from the nacp.
+            void load_icon() override;
 
         private:
             /// @brief This defines how long the buffer is for the path safe version of the title.

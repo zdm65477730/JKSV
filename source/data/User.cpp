@@ -51,7 +51,6 @@ data::User::User(AccountUid accountID, std::string_view nickname, std::string_vi
     : m_accountID{accountID}
     , m_saveType{saveType}
 {
-    m_icon = gfxutil::create_generic_icon(nickname, 48, colors::DIALOG_DARK, colors::WHITE);
     std::memcpy(m_nickname, nickname.data(), nickname.length());
     std::memcpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
 }
@@ -139,10 +138,6 @@ PdmPlayStatistics *data::User::get_play_stats_by_id(uint64_t applicationID)
     return &target->second.second;
 }
 
-SDL_Texture *data::User::get_icon() { return m_icon->get(); }
-
-sdl::SharedTexture data::User::get_shared_icon() { return m_icon; }
-
 void data::User::erase_save_info_by_id(uint64_t applicationID)
 {
     auto target = User::find_title_by_id(applicationID);
@@ -207,23 +202,35 @@ void data::User::load_user_data()
     User::sort_data();
 }
 
+void data::User::load_icon()
+{
+    if (m_saveType == FsSaveDataType_Account)
+    {
+        uint32_t iconSize{};
+        AccountProfile profile{};
+        const bool profileError = error::libnx(accountGetProfile(&profile, m_accountID));
+        const bool sizeError    = !profileError && error::libnx(accountProfileGetImageSize(&profile, &iconSize));
+        if (profileError || sizeError)
+        {
+            m_icon = gfxutil::create_generic_icon(m_nickname, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE);
+            return;
+        }
+
+        auto iconBuffer      = std::make_unique<char[]>(iconSize);
+        const bool loadError = error::libnx(accountProfileLoadImage(&profile, iconBuffer.get(), iconSize, &iconSize));
+        if (loadError) { return; }
+
+        accountProfileClose(&profile);
+        m_icon = sdl::TextureManager::create_load_texture(m_nickname, iconBuffer.get(), iconSize);
+    }
+    else { m_icon = gfxutil::create_generic_icon(m_nickname, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE); }
+}
+
 void data::User::load_account(AccountProfile &profile, AccountProfileBase &profileBase)
 {
-    // We're going to use this for the icon buffer size since it should be pretty safe to use.
-    static constexpr size_t SIZE_ICON       = sizeof(NsApplicationControlData::icon);
     static constexpr size_t NICKNAME_BUFFER = 0x20;
 
-    uint32_t iconSize{};
-    auto iconBuffer      = std::make_unique<unsigned char[]>(SIZE_ICON);
-    const bool loadError = error::libnx(accountProfileLoadImage(&profile, iconBuffer.get(), SIZE_ICON, &iconSize));
-    if (loadError)
-    {
-        User::create_account();
-        return;
-    }
-
     std::strncpy(m_nickname, profileBase.nickname, NICKNAME_BUFFER);
-    m_icon = sdl::TextureManager::create_load_texture(profileBase.nickname, iconBuffer.get(), iconSize);
 
     const bool sanitizeError = !stringutil::sanitize_string_for_path(m_nickname, m_pathSafeNickname, NICKNAME_BUFFER);
     if (sanitizeError)
@@ -236,7 +243,6 @@ void data::User::load_account(AccountProfile &profile, AccountProfileBase &profi
 void data::User::create_account()
 {
     const std::string idString = stringutil::get_formatted_string("Acc_%04X", m_accountID.uid[0] & 0xFFFF);
-    m_icon                     = gfxutil::create_generic_icon(idString, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE);
     std::memcpy(m_nickname, idString.c_str(), idString.length());
     std::memcpy(m_pathSafeNickname, idString.c_str(), idString.length());
 }

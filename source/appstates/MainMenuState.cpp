@@ -122,7 +122,7 @@ void MainMenuState::initialize_menu()
 {
     data::get_users(sm_users);
     sm_userCount = sm_users.size();
-    for (data::User *user : sm_users) { m_mainMenu.add_option(user->get_shared_icon()); }
+    for (data::User *user : sm_users) { m_mainMenu.add_option(user->get_icon()); }
     m_mainMenu.add_option(m_settingsIcon);
     m_mainMenu.add_option(m_extrasIcon);
 }

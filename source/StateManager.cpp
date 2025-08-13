@@ -1,69 +1,65 @@
 #include "StateManager.hpp"
 
+#include "logger.hpp"
+
 void StateManager::update()
 {
     // Grab the instance.
     StateManager &instance = StateManager::get_instance();
+    auto &stateVector      = instance.m_stateVector;
 
-    if (instance.sm_stateVector.empty())
-    {
-        // Just return.
-        return;
-    }
+    if (stateVector.empty()) { return; }
 
     // Purge uneeded states.
-    for (size_t i = instance.sm_stateVector.size() - 1; i > 0; i--)
+    for (auto current = stateVector.begin(); current != stateVector.end();)
     {
-        // Grab a raw pointer to avoid reference count increase.
-        BaseState *appState = instance.sm_stateVector.at(i).get();
+        BaseState *state = current->get();
 
-        if (!appState->is_active())
+        if (!state->is_active())
         {
-            // Take focus first.
-            appState->take_focus();
-            instance.sm_stateVector.erase(instance.sm_stateVector.begin() + i);
+            state->take_focus();
+            current = stateVector.erase(current);
+            continue;
         }
+        ++current;
     }
 
-    // Check if the back has focus. It should always have it.
-    if (!instance.sm_stateVector.back()->has_focus()) { instance.sm_stateVector.back()->give_focus(); }
+    if (stateVector.empty()) { return; }
 
-    // Only call update on the back.
-    instance.sm_stateVector.back()->update();
+    std::shared_ptr<BaseState> &back = stateVector.back();
+    if (!back->has_focus()) { back->give_focus(); }
+    back->update();
 }
 
 void StateManager::render()
 {
-    // Instance.
     StateManager &instance = StateManager::get_instance();
+    auto &stateVector      = instance.m_stateVector;
 
-    // Loop and render all states.
-    for (std::shared_ptr<BaseState> &appState : instance.sm_stateVector) { appState->render(); }
+    for (std::shared_ptr<BaseState> &state : stateVector) { state->render(); }
 }
 
 bool StateManager::back_is_closable()
 {
-    // Instance.
     StateManager &instance = StateManager::get_instance();
+    auto &stateVector      = instance.m_stateVector;
 
-    // Not too sure how to handle this yet.
-    if (instance.sm_stateVector.empty()) { return false; }
+    if (stateVector.empty()) { return true; }
 
-    // Just return this.
-    return instance.sm_stateVector.back()->is_closable();
+    std::shared_ptr<BaseState> &state = stateVector.back();
+    return state->is_closable();
 }
 
 void StateManager::push_state(std::shared_ptr<BaseState> newState)
 {
-    // Instance.
     StateManager &instance = StateManager::get_instance();
+    auto &stateVector      = instance.m_stateVector;
 
-    // Take focus from the current back()
-    if (!instance.sm_stateVector.empty()) { instance.sm_stateVector.back()->take_focus(); }
+    if (!stateVector.empty()) { stateVector.back()->take_focus(); }
 
     // Give the incoming state focus and then push it.
     newState->give_focus();
-    instance.sm_stateVector.push_back(newState);
+    stateVector.push_back(newState);
 }
 
 StateManager &StateManager::get_instance()

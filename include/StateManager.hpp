@@ -35,5 +35,5 @@ class StateManager
         static StateManager &get_instance();
 
         /// @brief This is the vector that holds the pointers to the states.
-        static inline std::vector<std::shared_ptr<BaseState>> sm_stateVector;
+        std::vector<std::shared_ptr<BaseState>> m_stateVector;
 };

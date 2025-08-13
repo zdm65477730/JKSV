@@ -32,6 +32,8 @@ void ui::PopMessage::render()
     sdl::text::render(sdl::Texture::Null, m_textX, m_y + 5, 22, sdl::text::NO_WRAP, colors::BLACK, message);
 }
 
+std::string_view ui::PopMessage::get_message() const { return m_message; }
+
 bool ui::PopMessage::finished() const { return m_finished; }
 
 void ui::PopMessage::update_y(double targetY)

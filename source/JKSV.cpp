@@ -7,6 +7,7 @@
 #include "config.hpp"
 #include "curl/curl.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "fslib.hpp"
 #include "input.hpp"
 #include "logger.hpp"
@@ -29,7 +30,7 @@ namespace
     /// @brief Build month.
     constexpr uint8_t BUILD_MON = 8;
     /// @brief Build day.
-    constexpr uint8_t BUILD_DAY = 8;
+    constexpr uint8_t BUILD_DAY = 13;
     /// @brief Year.
     constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace
@@ -46,11 +47,12 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
     return true;
 }
 
+// Definition at bottom.
+static void finish_initialization();
+
 // This can't really have an initializer list since it sets everything up.
 JKSV::JKSV()
 {
-    const std::time_t beginTime = std::time(nullptr);
-
     appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad);
     ABORT_ON_FAILURE(JKSV::initialize_services());
     ABORT_ON_FAILURE(JKSV::initialize_filesystem());
@@ -72,20 +74,7 @@ JKSV::JKSV()
     // This needs the config init'd or read to work.
     JKSV::create_directories();
 
-    // Data loading depends on the config being read or init'd.
-    ABORT_ON_FAILURE(data::initialize(false));
-
-    // Push initial main menu state.
-    auto mainMenu = MainMenuState::create();
-    StateManager::push_state(mainMenu);
-
-    // Init drive or webdav.
-    if (fslib::file_exists(remote::PATH_GOOGLE_DRIVE_CONFIG)) { remote::initialize_google_drive(); }
-    else if (fslib::file_exists(remote::PATH_WEBDAV_CONFIG)) { remote::initialize_webdav(); }
-
-    const std::time_t endTime = std::time(nullptr);
-    const double diff         = std::difftime(endTime, beginTime);
-    logger::log("Boot time: %.02f seconds.", diff);
+    data::launch_initialization(false, finish_initialization);
 
     m_isRunning = true;
 }
@@ -213,4 +202,12 @@ void JKSV::exit_services()
     pdmqryExit();
     nsExit();
     accountExit();
+}
+
+static void finish_initialization()
+{
+    MainMenuState::create_and_push();
+
+    if (fslib::file_exists(remote::PATH_GOOGLE_DRIVE_CONFIG)) { remote::initialize_google_drive(); }
+    else if (fslib::file_exists(remote::PATH_WEBDAV_CONFIG)) { remote::initialize_webdav(); }
 }
