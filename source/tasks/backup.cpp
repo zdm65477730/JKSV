@@ -452,7 +452,6 @@ static void auto_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskD
         if (lastSlash == target.NOT_FOUND) { return; }
 
         fslib::Path autoTarget{target.sub_path(lastSlash) / backupName};
-        logger::log("%s", autoTarget.full_path());
         tasks::backup::create_new_backup_local(task, user, titleInfo, autoTarget, spawningState, false);
     }
 }

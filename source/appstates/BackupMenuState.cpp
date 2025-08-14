@@ -338,6 +338,7 @@ void BackupMenuState::confirm_restore()
         remote::Item *target     = m_remoteListing[entry.index];
         const std::string query  = stringutil::get_formatted_string(confirmTemplate, target->get_name().data());
         m_dataStruct->remoteItem = target;
+        m_dataStruct->path       = m_directoryPath + "//"; // To-do: This is a workaround.
 
         ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::restore_backup_remote, m_dataStruct);
     }
