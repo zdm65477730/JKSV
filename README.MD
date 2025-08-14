@@ -2,7 +2,7 @@
 
 JK's Save Manager Switch Edition - **Rewrite**.
 
-<img src="https://i.imgur.com/WtOwo4d.jpeg" />
+<img src="https://i.imgur.com/1nMbJte.png" />
 
 ## Rewrite:
 
