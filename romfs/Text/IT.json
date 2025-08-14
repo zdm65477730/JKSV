@@ -35,6 +35,15 @@
         "2: [A] Seleziona  [Y] Ripristina  [X] Elimina  [ZR] Carica  [B] Chiudi",
         "3: [A] Attiva/disattiva  [-] Descrizione   [X] Predefiniti   [B] Indietro"
     ],
+    "DataLoadingStatus": [
+        "0: Caricamento account utente dal sistema...",
+        "1: Creazione account di tipo sistema...",
+        "2: Caricamento %016llX...",
+        "3: Caricamento file SVI dalla SD...",
+        "4: Caricamento cache...",
+        "5: Caricamento informazioni dei salvataggi per `%s`...",
+        "6: Finalizzazione. Attendere prego..."
+    ],
     "ExtrasMenu": [
         "0: Reinizializza dati",
         "1: Browser SD a SD",

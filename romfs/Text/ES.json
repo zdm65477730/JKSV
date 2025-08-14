@@ -35,6 +35,15 @@
         "2: [A] Seleccionar  [Y] Restaurar  [X] Eliminar  [ZR] Subir  [B] Cerrar",
         "3: [A] Alternar  [-] Descripción   [X] Valores por defecto   [B] Volver"
     ],
+    "DataLoadingStatus": [
+        "0: Cargando cuentas de usuario desde el sistema...",
+        "1: Creando cuentas de tipo sistema...",
+        "2: Cargando %016llX...",
+        "3: Cargando archivos SVI desde la SD...",
+        "4: Cargando caché...",
+        "5: Cargando información de datos guardados para `%s`...",
+        "6: Finalizando. Por favor, tenga paciencia..."
+    ],
     "ExtrasMenu": [
         "0: Reinicializar datos",
         "1: Navegador SD a SD",

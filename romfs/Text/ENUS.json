@@ -35,6 +35,15 @@
         "2: [A] Select  [Y] Restore  [X] Delete  [ZR] Upload  [B] Close",
         "3: [A] Toggle  [-] Description   [X] Defaults   [B] Back"
     ],
+    "DataLoadingStatus": [
+        "0: Loading user accounts from system...",
+        "1: Creating system type accounts...",
+        "2: Loading %016llX...",
+        "3: Load SVI files from SD...",
+        "4: Loading cache...",
+        "5: Loading save data information for `%s`...",
+        "6: Finalizing. Please be patient..."
+    ],
     "ExtrasMenu": [
         "0: Reinitialize Data",
         "1: SD to SD Browser",

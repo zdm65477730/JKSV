@@ -35,6 +35,15 @@
         "2: [A] Selecteer  [Y] Herstel  [X] Verwijder  [ZR] Upload  [B] Sluit",
         "3: [A] Wissel  [-] Beschrijving   [X] Standaardinstellingen   [B] Terug"
     ],
+    "DataLoadingStatus": [
+        "0: Gebruikersaccounts laden vanuit het systeem...",
+        "1: Systeemtype-accounts aanmaken...",
+        "2: Laden van %016llX...",
+        "3: SVI-bestanden laden vanaf SD...",
+        "4: Cache laden...",
+        "5: Opslaggegevens laden voor `%s`...",
+        "6: Afronden. Even geduld alstublieft..."
+    ],
     "ExtrasMenu": [
         "0: Gegevens opnieuw initialiseren",
         "1: SD naar SD Browser",

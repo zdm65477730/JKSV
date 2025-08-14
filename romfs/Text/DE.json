@@ -35,6 +35,15 @@
         "2: [A] Auswählen  [Y] Wiederherstellen  [X] Löschen  [ZR] Hochladen  [B] Schließen",
         "3: [A] Umschalten  [-] Beschreibung   [X] Standardwerte   [B] Zurück"
     ],
+    "DataLoadingStatus": [
+        "0: Benutzerkonten vom System werden geladen...",
+        "1: Systemtyp-Konten werden erstellt...",
+        "2: Laden von %016llX...",
+        "3: SVI-Dateien von der SD laden...",
+        "4: Cache wird geladen...",
+        "5: Lade Speicherinformationen für `%s`...",
+        "6: Abschließen. Bitte haben Sie Geduld..."
+    ],
     "ExtrasMenu": [
         "0: Daten neu initialisieren",
         "1: SD zu SD Browser",

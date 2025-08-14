@@ -35,6 +35,15 @@
         "2: [A] Selecionar  [Y] Restaurar  [X] Eliminar  [ZR] Enviar  [B] Fechar",
         "3: [A] Alternar  [-] Descrição   [X] Padrões   [B] Voltar"
     ],
+    "DataLoadingStatus": [
+        "0: A carregar contas de utilizador a partir do sistema...",
+        "1: A criar contas do tipo sistema...",
+        "2: A carregar %016llX...",
+        "3: A carregar ficheiros SVI a partir do cartão SD...",
+        "4: A carregar cache...",
+        "5: A carregar informações de dados guardados para `%s`...",
+        "6: A finalizar. Por favor, seja paciente..."
+    ],
     "ExtrasMenu": [
         "0: Re-inicializar Dados",
         "1: SD para Browser SD",

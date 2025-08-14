@@ -17,6 +17,7 @@ namespace strings
         static constexpr std::string_view BACKUPMENU_POPS       = "BackupMenuPops";
         static constexpr std::string_view BACKUPMENU_STATUS     = "BackupMenuStatus";
         static constexpr std::string_view CONTROL_GUIDES        = "ControlGuides";
+        static constexpr std::string_view DATA_LOADING_STATUS   = "DataLoadingStatus";
         static constexpr std::string_view EXTRASMENU_MENU       = "ExtrasMenu";
         static constexpr std::string_view EXTRASMENU_POPS       = "ExtrasPops";
         static constexpr std::string_view GENERAL_POPS          = "GeneralPops";

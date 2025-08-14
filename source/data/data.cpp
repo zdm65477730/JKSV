@@ -107,8 +107,8 @@ void data::get_title_info_by_type(FsSaveDataType saveType, data::TitleInfoList &
 static void data_initialize_task(sys::Task *task, bool clearCache)
 {
     if (error::is_null(task)) { return; }
-    const char *statusLoadingUserInfo = "Loading save data information for `%s`...";
-    const char *statusFinalizing      = "Finalizing. Please be patient...";
+    const char *statusLoadingUserInfo = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 5);
+    const char *statusFinalizing      = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 6);
 
     const fslib::Path &cachePath{PATH_CACHE_PATH};
     bool cacheExists = fslib::file_exists(cachePath);
@@ -155,8 +155,8 @@ static bool load_create_user_accounts(sys::Task *task)
 
     if (error::is_null(task)) { return false; }
 
-    const char *statusLoading  = "Loading user accounts from system...";
-    const char *statusCreating = "Creating system type accounts...";
+    const char *statusLoading  = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 0);
+    const char *statusCreating = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 1);
     const char *systemName     = strings::get_by_name(strings::names::SAVE_DATA_TYPES, 0);
     const char *bcatName       = strings::get_by_name(strings::names::SAVE_DATA_TYPES, 2);
     const char *deviceName     = strings::get_by_name(strings::names::SAVE_DATA_TYPES, 3);
@@ -188,7 +188,7 @@ static void load_application_records(sys::Task *task)
     int offset{};
     int count{};
     NsApplicationRecord record{};
-    const char *statusLoadingRecords = "Loading %016llX...";
+    const char *statusLoadingRecords = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 2);
 
     bool listError{};
     do {
@@ -212,11 +212,11 @@ static void import_svi_files(sys::Task *task)
 
     if (error::is_null(task)) { return; }
 
-    const char *statusLoadingSvi = "Loading SVI files from SD...";
-    const fslib::Path sviPath    = config::get_working_directory() / "svi";
+    const fslib::Path sviPath = config::get_working_directory() / "svi";
     const fslib::Directory sviDir{sviPath};
     if (error::fslib(sviDir.is_open())) { return; }
 
+    const char *statusLoadingSvi = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 3);
     task->set_status(statusLoadingSvi);
 
     const int64_t sviCount = sviDir.get_count();
@@ -243,11 +243,11 @@ static bool read_cache_file(sys::Task *task)
 {
     if (error::is_null(task)) { return false; }
 
-    const char *statusLoadingCache = "Loading cache...";
-    task->set_status(statusLoadingCache);
-
     fs::MiniUnzip cacheZip{PATH_CACHE_PATH};
     if (!cacheZip.is_open()) { return false; }
+
+    const char *statusLoadingCache = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 4);
+    task->set_status(statusLoadingCache);
 
     do {
         auto controlBuffer = std::make_unique<NsApplicationControlData>();
