@@ -1,6 +1,7 @@
 #pragma once
 #include "StateManager.hpp"
 #include "appstates/BaseTask.hpp"
+#include "data/DataContext.hpp"
 #include "sdl.hpp"
 
 #include <functional>
@@ -13,23 +14,34 @@ class DataLoadingState final : public BaseTask
         using DestructFunction = std::function<void()>;
 
         template <typename... Args>
-        DataLoadingState(void (*function)(sys::Task *, Args...), Args... args)
+        DataLoadingState(data::DataContext &context,
+                         DestructFunction destructFunction,
+                         void (*function)(sys::Task *, Args...),
+                         Args... args)
             : BaseTask()
+            , m_context(context)
+            , m_destructFunction(destructFunction)
         {
             DataLoadingState::initialize_static_members();
             m_task = std::make_unique<sys::Task>(function, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        static std::shared_ptr<DataLoadingState> create(void (*function)(sys::Task *, Args...), Args... args)
+        static std::shared_ptr<DataLoadingState> create(data::DataContext &context,
+                                                        DestructFunction destructFunction,
+                                                        void (*function)(sys::Task *, Args...),
+                                                        Args... args)
         {
-            return std::make_shared<DataLoadingState>(function, std::forward<Args>(args)...);
+            return std::make_shared<DataLoadingState>(context, destructFunction, function, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        static std::shared_ptr<DataLoadingState> create_and_push(void (*function)(sys::Task *, Args...), Args... args)
+        static std::shared_ptr<DataLoadingState> create_and_push(data::DataContext &context,
+                                                                 DestructFunction destructFunction,
+                                                                 void (*function)(sys::Task *, Args...),
+                                                                 Args... args)
         {
-            auto newState = DataLoadingState::create(function, std::forward<Args>(args)...);
+            auto newState = DataLoadingState::create(context, destructFunction, function, std::forward<Args>(args)...);
             StateManager::push_state(newState);
             return newState;
         }
@@ -43,18 +55,15 @@ class DataLoadingState final : public BaseTask
         /// @brief Render override.
         void render() override;
 
-        /// @brief Executes the destruct functions passed.
-        void execute_destructs();
-
-        /// @brief Adds a function to the vector to be executed upon destruction.
-        void add_destruct_function(DataLoadingState::DestructFunction function);
-
     private:
+        /// @brief Reference to the data context to run post-init operations.
+        data::DataContext &m_context;
+
         /// @brief X coord of the status text.
         int m_statusX{};
 
         /// @brief The functions called upon destruction.
-        std::vector<DestructFunction> m_destructFunctions{};
+        DestructFunction m_destructFunction{};
 
         /// @brief Icon displayed in the center of the screen.
         static inline sdl::SharedTexture sm_jksvIcon{};

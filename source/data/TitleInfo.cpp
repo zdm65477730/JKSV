@@ -39,9 +39,7 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
     }
     else if (!getError && !entryError)
     {
-        const size_t iconSize = controlSize - SIZE_NACP;
-        m_hasData             = true;
-
+        m_hasData = true;
         TitleInfo::get_create_path_safe_title();
     }
 }

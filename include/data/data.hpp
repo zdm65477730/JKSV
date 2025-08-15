@@ -9,10 +9,6 @@
 
 namespace data
 {
-    /// @brief Declaration for user list/user pointer vector.
-    using UserList      = std::vector<data::User *>;
-    using TitleInfoList = std::vector<data::TitleInfo *>;
-
     /// @brief Launches the data loading/initialization state.
     /// @param clear Whether or not the cache should be cleared.
     /// @param onDestruction Function that is executed upon destruction of the data loading screen.

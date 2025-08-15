@@ -1,18 +1,25 @@
 #include "appstates/DataLoadingState.hpp"
 
-#include "appstates/FadeState.hpp"
 #include "colors.hpp"
+#include "logger.hpp"
 
 namespace
 {
     constexpr int SCREEN_CENTER = 640;
 }
 
-DataLoadingState::~DataLoadingState() { DataLoadingState::execute_destructs(); }
+DataLoadingState::~DataLoadingState()
+{
+    // This is to catch stragglers.
+    m_context.process_icon_queue();
+    if (m_destructFunction) { m_destructFunction(); }
+}
 
 void DataLoadingState::update()
 {
     static constexpr int SCREEN_CENTER = 640;
+
+    m_context.process_icon_queue();
 
     BaseTask::update();
     const std::string status = m_task->get_status();
@@ -30,16 +37,6 @@ void DataLoadingState::render()
     sm_jksvIcon->render(sdl::Texture::Null, ICON_X_COORD, ICON_Y_COORD);
     sdl::text::render(sdl::Texture::Null, m_statusX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, status);
     BaseTask::render_loading_glyph();
-}
-
-void DataLoadingState::execute_destructs()
-{
-    for (auto &function : m_destructFunctions) { function(); }
-}
-
-void DataLoadingState::add_destruct_function(DataLoadingState::DestructFunction function)
-{
-    m_destructFunctions.push_back(function);
 }
 
 void DataLoadingState::initialize_static_members()

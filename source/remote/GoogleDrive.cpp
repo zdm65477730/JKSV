@@ -306,7 +306,6 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
 
     remote::URL url{URL_DRIVE_FILE_API};
     url.append_path(file->get_id()).append_parameter("alt", "media");
-    logger::log("%s", url.get());
 
     curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = itemSize};
     curl::prepare_get(m_curl);
@@ -328,8 +327,7 @@ bool remote::GoogleDrive::delete_item(const remote::Item *item)
 
     // Iterator is needed to remove it from the list.
     const std::string_view itemId = item->get_id();
-    auto findItem =
-        std::find_if(m_list.begin(), m_list.end(), [&](const Item &listItem) { return itemId == listItem.get_id(); });
+    auto findItem                 = Storage::find_item_by_id(itemId);
     if (findItem == m_list.end())
     {
         logger::log("Error deleting item: Item not found in list!");

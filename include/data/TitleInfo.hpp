@@ -5,9 +5,15 @@
 #include <cstdint>
 #include <memory>
 #include <switch.h>
+#include <vector>
 
 namespace data
 {
+    class TitleInfo;
+
+    /// @brief Vector of pointers to titleinfo instances.
+    using TitleInfoList = std::vector<data::TitleInfo *>;
+
     /// @brief Class that holds data related to titles loaded from the system.
     class TitleInfo final : public data::DataCommon
     {

@@ -10,12 +10,17 @@
 
 namespace data
 {
+    class User;
+
     /// @brief Type used to store save info and play statistics in the vector. Vector is used to preserve the order since I
     /// can't use a map without having to extra heap allocate it.
     using UserDataEntry = std::pair<uint64_t, std::pair<FsSaveDataInfo, PdmPlayStatistics>>;
 
     /// @brief Type definition for the user save info/play stats vector.
     using UserSaveInfoList = std::vector<UserDataEntry>;
+
+    /// @brief A vector of pointers to User instances.
+    using UserList = std::vector<data::User *>;
 
     /// @brief Class that stores data for the user.
     class User final : public data::DataCommon

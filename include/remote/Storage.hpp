@@ -133,9 +133,21 @@ namespace remote
             /// @param name Name to search for.
             Storage::List::iterator find_directory_by_name(std::string_view name);
 
+            /// @brief Searches the list for a directory matching ID.
+            /// @param id ID of the directory to search for.
+            Storage::List::iterator find_directory_by_id(std::string_view id);
+
             /// @brief Searches to find if a file with name exists within the current parent.
             /// @param name Name of the file to search for.
             Storage::List::iterator find_file_by_name(std::string_view name);
+
+            /// @brief Searches the list for a file matching ID.
+            /// @param id ID to search for.s
+            Storage::List::iterator find_file_by_id(std::string_view id);
+
+            /// @brief Locates any item (directory/file) by the id passed.
+            /// @param id ID to search for.
+            Storage::List::iterator find_item_by_id(std::string_view id);
 
             /// @brief Searches starting with the iterator start for items that belong to parentID
             /// @param start Beginning iterator for search.
