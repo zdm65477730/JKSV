@@ -42,7 +42,8 @@
         "3: Caricamento file SVI dalla SD...",
         "4: Caricamento cache...",
         "5: Caricamento informazioni dei salvataggi per `%s`...",
-        "6: Finalizzazione. Attendere prego..."
+        "6: Finalizzazione. Attendere prego...",
+        "7: Scrittura della cache sulla SD..."
     ],
     "ExtrasMenu": [
         "0: Reinizializza dati",

@@ -42,7 +42,8 @@
         "3: SVI-Dateien von der SD laden...",
         "4: Cache wird geladen...",
         "5: Lade Speicherinformationen für `%s`...",
-        "6: Abschließen. Bitte haben Sie Geduld..."
+        "6: Abschließen. Bitte haben Sie Geduld...",
+        "7: Schreibe Cache auf SD..."
     ],
     "ExtrasMenu": [
         "0: Daten neu initialisieren",

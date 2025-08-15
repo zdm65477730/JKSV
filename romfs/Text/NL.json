@@ -42,7 +42,8 @@
         "3: SVI-bestanden laden vanaf SD...",
         "4: Cache laden...",
         "5: Opslaggegevens laden voor `%s`...",
-        "6: Afronden. Even geduld alstublieft..."
+        "6: Afronden. Even geduld alstublieft...",
+        "7: Cache schrijven naar SD..."
     ],
     "ExtrasMenu": [
         "0: Gegevens opnieuw initialiseren",

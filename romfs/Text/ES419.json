@@ -42,7 +42,8 @@
         "3: Cargando archivos SVI desde la SD...",
         "4: Cargando caché...",
         "5: Cargando información de datos guardados para `%s`...",
-        "6: Finalizando. Por favor, tenga paciencia..."
+        "6: Finalizando. Por favor, tenga paciencia...",
+        "7: Escribiendo caché en la SD..."
     ],
     "ExtrasMenu": [
         "0: Reinicializar datos",

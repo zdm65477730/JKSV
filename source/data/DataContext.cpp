@@ -241,7 +241,7 @@ bool data::DataContext::write_cache(sys::Task *task)
     fs::MiniZip cacheZip{cachePath};
     if (!cacheZip.is_open()) { return false; }
 
-    const char *statusWritingCache = "Writing cache to SD...";
+    const char *statusWritingCache = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 7);
     task->set_status(statusWritingCache);
 
     std::lock_guard titleGuard{m_titleMutex};

@@ -42,7 +42,8 @@
         "3: Load SVI files from SD...",
         "4: Loading cache...",
         "5: Loading save data information for `%s`...",
-        "6: Finalizing. Please be patient..."
+        "6: Finalizing. Please be patient...",
+        "7: Writing cache to SD..."
     ],
     "ExtrasMenu": [
         "0: Reinitialize Data",

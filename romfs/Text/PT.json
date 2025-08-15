@@ -42,7 +42,8 @@
         "3: A carregar ficheiros SVI a partir do cartão SD...",
         "4: A carregar cache...",
         "5: A carregar informações de dados guardados para `%s`...",
-        "6: A finalizar. Por favor, seja paciente..."
+        "6: A finalizar. Por favor, seja paciente...",
+        "7: A escrever a cache para o cartão SD..."
     ],
     "ExtrasMenu": [
         "0: Re-inicializar Dados",
