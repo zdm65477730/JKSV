@@ -41,6 +41,7 @@ static void data_initialize_task(sys::Task *task, bool clearCache)
     if (error::is_null(task)) { return; }
     const char *statusFinalizing = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 6);
 
+    if (clearCache) { s_context.delete_cache(); }
     s_context.read_cache(task);
     s_context.load_application_records(task);
     s_context.load_create_users(task);

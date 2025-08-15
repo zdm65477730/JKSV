@@ -190,6 +190,13 @@ void data::DataContext::import_svi_files(sys::Task *task)
     }
 }
 
+void data::DataContext::delete_cache()
+{
+    const fslib::Path cachePath{PATH_CACHE_FILE};
+    const bool cacheExists = fslib::file_exists(cachePath);
+    if (cacheExists) { fslib::delete_file(cachePath); };
+}
+
 bool data::DataContext::read_cache(sys::Task *task)
 {
     if (error::is_null(task)) { return false; }
@@ -258,7 +265,7 @@ bool data::DataContext::write_cache(sys::Task *task)
 
 void data::DataContext::process_icon_queue()
 {
-    std::scoped_lock multiGuard{m_iconQueueMutex, m_userMutex, m_titleMutex};
+    std::lock_guard multiGuard{m_iconQueueMutex};
     for (data::DataCommon *common : m_iconQueue) { common->load_icon(); }
     m_iconQueue.clear();
 }

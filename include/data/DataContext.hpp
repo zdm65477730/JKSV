@@ -46,6 +46,9 @@ namespace data
             /// @brief Imports the SVI files from the SD card.
             void import_svi_files(sys::Task *task);
 
+            /// @brief Deletes the cache file if it exists.
+            void delete_cache();
+
             /// @brief Attempts to read the cache file from the SD card.
             bool read_cache(sys::Task *task);
 
