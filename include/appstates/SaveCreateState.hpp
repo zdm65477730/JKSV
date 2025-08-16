@@ -1,9 +1,9 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
 #include "appstates/TitleSelectCommon.hpp"
 #include "data/data.hpp"
-#include "ui/Menu.hpp"
-#include "ui/SlideOutPanel.hpp"
+#include "ui/ui.hpp"
 
 #include <atomic>
 #include <memory>
@@ -21,10 +21,18 @@ class SaveCreateState final : public BaseState
         ~SaveCreateState();
 
         /// @brief Returns a new SaveCreate state. See constructor for arguments.
-        static std::shared_ptr<SaveCreateState> create(data::User *user, TitleSelectCommon *titleSelect);
+        static inline std::shared_ptr<SaveCreateState> create(data::User *user, TitleSelectCommon *titleSelect)
+        {
+            return std::make_shared<SaveCreateState>(user, titleSelect);
+        }
 
         /// @brief Creates, pushes, returns and new SaveCreateState.
-        static std::shared_ptr<SaveCreateState> create_and_push(data::User *user, TitleSelectCommon *titleSelect);
+        static inline std::shared_ptr<SaveCreateState> create_and_push(data::User *user, TitleSelectCommon *titleSelect)
+        {
+            auto newState = SaveCreateState::create(user, titleSelect);
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Runs the update routine.
         void update() override;

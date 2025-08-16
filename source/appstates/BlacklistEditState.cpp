@@ -2,10 +2,10 @@
 
 #include "StateManager.hpp"
 #include "appstates/MainMenuState.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
 #include "data/data.hpp"
-#include "error.hpp"
 #include "input.hpp"
+#include "logging/error.hpp"
 
 BlacklistEditState::BlacklistEditState()
     : BaseState()
@@ -20,15 +20,6 @@ BlacklistEditState::~BlacklistEditState()
 {
     sm_slidePanel->clear_elements();
     sm_slidePanel->reset();
-}
-
-std::shared_ptr<BlacklistEditState> BlacklistEditState::create() { return std::make_shared<BlacklistEditState>(); }
-
-std::shared_ptr<BlacklistEditState> BlacklistEditState::create_and_push()
-{
-    auto newState = std::make_shared<BlacklistEditState>();
-    StateManager::push_state(newState);
-    return newState;
 }
 
 void BlacklistEditState::update()

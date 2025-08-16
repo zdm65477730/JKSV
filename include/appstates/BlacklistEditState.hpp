@@ -1,4 +1,5 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
 #include "ui/ui.hpp"
 
@@ -15,10 +16,15 @@ class BlacklistEditState final : public BaseState
         ~BlacklistEditState();
 
         /// @brief Creates and returns a new state.
-        static std::shared_ptr<BlacklistEditState> create();
+        static inline std::shared_ptr<BlacklistEditState> create() { return std::make_shared<BlacklistEditState>(); }
 
         /// @brief Creates, pushes, then returns a new blacklist edit states.
-        static std::shared_ptr<BlacklistEditState> create_and_push();
+        static inline std::shared_ptr<BlacklistEditState> create_and_push()
+        {
+            auto newState = BlacklistEditState::create();
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Update override.
         void update() override;

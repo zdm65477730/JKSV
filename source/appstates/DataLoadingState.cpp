@@ -1,7 +1,7 @@
 #include "appstates/DataLoadingState.hpp"
 
-#include "colors.hpp"
-#include "logger.hpp"
+#include "graphics/colors.hpp"
+#include "logging/logger.hpp"
 
 namespace
 {
@@ -43,5 +43,5 @@ void DataLoadingState::initialize_static_members()
 {
     if (sm_jksvIcon) { return; }
 
-    sm_jksvIcon = sdl::TextureManager::create_load_texture("LoadingIcon", "romfs:/Textures/LoadingIcon.png");
+    sm_jksvIcon = sdl::TextureManager::load("LoadingIcon", "romfs:/Textures/LoadingIcon.png");
 }

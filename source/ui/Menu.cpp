@@ -1,7 +1,7 @@
 #include "ui/Menu.hpp"
 
-#include "colors.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
 #include "mathutil.hpp"
 #include "ui/BoundingBox.hpp"
@@ -19,13 +19,12 @@ ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     , m_textY((m_optionHeight / 2) - (m_fontSize / 2)) // This seems to be the best alignment.
     , m_renderTargetHeight(renderTargetHeight)
     , m_optionScroll(
-          ui::TextScroll::create("temp", 16, 0, m_width, m_optionHeight, m_fontSize, colors::BLUE_GREEN, colors::TRANSPARENT))
+          ui::TextScroll::create("", 16, 0, m_width, m_optionHeight, m_fontSize, colors::BLUE_GREEN, colors::TRANSPARENT))
 {
     // Create render target for options
     static int MENU_ID         = 0;
     std::string menuTargetName = "MENU_" + std::to_string(MENU_ID++);
-    m_optionTarget =
-        sdl::TextureManager::create_load_texture(menuTargetName, m_width, m_optionHeight, SDL_TEXTUREACCESS_TARGET);
+    m_optionTarget             = sdl::TextureManager::load(menuTargetName, m_width, m_optionHeight, SDL_TEXTUREACCESS_TARGET);
 
     // Outside the initializer list because I'm tired and don't wanna deal with the headache.
     m_boundingBox = ui::BoundingBox::create(0, 0, m_width + 12, m_optionHeight + 12);
@@ -33,11 +32,6 @@ ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     // Calculate around how many options can be shown on the render target at once.
     m_maxDisplayOptions = (renderTargetHeight - m_originalY) / m_optionHeight;
     m_scrollLength      = std::floor(static_cast<double>(m_maxDisplayOptions) / 2.0f);
-}
-
-std::shared_ptr<ui::Menu> ui::Menu::create(int x, int y, int width, int fontSize, int renderTargetHeight)
-{
-    return std::make_shared<ui::Menu>(x, y, width, fontSize, renderTargetHeight);
 }
 
 void ui::Menu::update(bool hasFocus)

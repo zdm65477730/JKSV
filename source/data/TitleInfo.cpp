@@ -1,10 +1,10 @@
 #include "data/TitleInfo.hpp"
 
-#include "colors.hpp"
-#include "config.hpp"
-#include "error.hpp"
-#include "gfxutil.hpp"
-#include "logger.hpp"
+#include "config/config.hpp"
+#include "graphics/colors.hpp"
+#include "graphics/gfxutil.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "stringutil.hpp"
 
 #include <cstring>
@@ -215,7 +215,7 @@ void data::TitleInfo::load_icon()
     if (m_hasData)
     {
         const std::string textureName = stringutil::get_formatted_string("%016llX", m_applicationID);
-        m_icon                        = sdl::TextureManager::create_load_texture(textureName, m_data->icon, SIZE_ICON);
+        m_icon                        = sdl::TextureManager::load(textureName, m_data->icon, SIZE_ICON);
     }
     else
     {

@@ -1,8 +1,8 @@
 #include "appstates/BaseTask.hpp"
 
-#include "colors.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "ui/PopMessageManager.hpp"
 
 namespace

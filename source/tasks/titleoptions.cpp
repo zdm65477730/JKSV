@@ -1,13 +1,13 @@
 #include "tasks/titleoptions.hpp"
 
-#include "config.hpp"
+#include "config/config.hpp"
 #include "data/data.hpp"
-#include "error.hpp"
 #include "fs/fs.hpp"
 #include "keyboard.hpp"
-#include "logger.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "remote/remote.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "ui/ui.hpp"
 

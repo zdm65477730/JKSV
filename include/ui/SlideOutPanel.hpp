@@ -25,7 +25,11 @@ namespace ui
             /// @brief Required destructor.
             ~SlideOutPanel() {};
 
-            std::shared_ptr<ui::SlideOutPanel> create(int width, SlideOutPanel::Side side);
+            /// @brief Creates and returns and new ui::SlideOutPanel instance.
+            static inline std::shared_ptr<ui::SlideOutPanel> create(int width, SlideOutPanel::Side side)
+            {
+                return std::make_shared<ui::SlideOutPanel>(width, side);
+            }
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.

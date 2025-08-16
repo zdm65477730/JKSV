@@ -24,19 +24,6 @@ ui::TextScroll::TextScroll(std::string_view text,
     TextScroll::initialize(text, x, y, width, height, fontSize, textColor, clearColor, center);
 }
 
-std::shared_ptr<ui::TextScroll> ui::TextScroll::create(std::string_view text,
-                                                       int x,
-                                                       int y,
-                                                       int width,
-                                                       int height,
-                                                       int fontSize,
-                                                       sdl::Color textColor,
-                                                       sdl::Color clearColor,
-                                                       bool center)
-{
-    return std::make_shared<ui::TextScroll>(text, x, y, width, height, fontSize, textColor, clearColor, center);
-}
-
 void ui::TextScroll::initialize(std::string_view text,
                                 int x,
                                 int y,
@@ -61,8 +48,7 @@ void ui::TextScroll::initialize(std::string_view text,
 
     {
         const std::string targetName = "textScroll_" + std::to_string(TARGET_ID++);
-        m_renderTarget =
-            sdl::TextureManager::create_load_texture(targetName, m_targetWidth, m_targetHeight, SDL_TEXTUREACCESS_TARGET);
+        m_renderTarget = sdl::TextureManager::load(targetName, m_targetWidth, m_targetHeight, SDL_TEXTUREACCESS_TARGET);
     }
 
     TextScroll::set_text(text, center);

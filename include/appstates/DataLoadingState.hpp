@@ -27,19 +27,19 @@ class DataLoadingState final : public BaseTask
         }
 
         template <typename... Args>
-        static std::shared_ptr<DataLoadingState> create(data::DataContext &context,
-                                                        DestructFunction destructFunction,
-                                                        void (*function)(sys::Task *, Args...),
-                                                        Args... args)
+        static inline std::shared_ptr<DataLoadingState> create(data::DataContext &context,
+                                                               DestructFunction destructFunction,
+                                                               void (*function)(sys::Task *, Args...),
+                                                               Args... args)
         {
             return std::make_shared<DataLoadingState>(context, destructFunction, function, std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        static std::shared_ptr<DataLoadingState> create_and_push(data::DataContext &context,
-                                                                 DestructFunction destructFunction,
-                                                                 void (*function)(sys::Task *, Args...),
-                                                                 Args... args)
+        static inline std::shared_ptr<DataLoadingState> create_and_push(data::DataContext &context,
+                                                                        DestructFunction destructFunction,
+                                                                        void (*function)(sys::Task *, Args...),
+                                                                        Args... args)
         {
             auto newState = DataLoadingState::create(context, destructFunction, function, std::forward<Args>(args)...);
             StateManager::push_state(newState);

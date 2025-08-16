@@ -36,15 +36,18 @@ namespace ui
             ~TextScroll() {};
 
             /// @brief Creates and returns a new TextScroll. See constructor.
-            static std::shared_ptr<ui::TextScroll> create(std::string_view text,
-                                                          int x,
-                                                          int y,
-                                                          int width,
-                                                          int height,
-                                                          int fontSize,
-                                                          sdl::Color textColor,
-                                                          sdl::Color clearColor,
-                                                          bool center = true);
+            static inline std::shared_ptr<ui::TextScroll> create(std::string_view text,
+                                                                 int x,
+                                                                 int y,
+                                                                 int width,
+                                                                 int height,
+                                                                 int fontSize,
+                                                                 sdl::Color textColor,
+                                                                 sdl::Color clearColor,
+                                                                 bool center = true)
+            {
+                return std::make_shared<ui::TextScroll>(text, x, y, width, height, fontSize, textColor, clearColor, center);
+            }
 
             /// @brief Creates/sets the text and parameters for TextScroll.
             /// @param text Text to display/scroll.

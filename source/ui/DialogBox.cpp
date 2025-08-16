@@ -1,6 +1,6 @@
 #include "ui/DialogBox.hpp"
 
-#include "colors.hpp"
+#include "graphics/colors.hpp"
 
 namespace
 {
@@ -16,11 +16,6 @@ ui::DialogBox::DialogBox(int x, int y, int width, int height, ui::DialogBox::Typ
     , m_type(type)
 {
     ui::DialogBox::initialize_static_members();
-}
-
-std::shared_ptr<ui::DialogBox> ui::DialogBox::create(int x, int y, int width, int height, ui::DialogBox::Type type)
-{
-    return std::make_shared<ui::DialogBox>(x, y, width, height, type);
 }
 
 void ui::DialogBox::render(sdl::SharedTexture &target, bool hasFocus)
@@ -70,6 +65,6 @@ void ui::DialogBox::initialize_static_members()
 {
     if (sm_darkCorners && sm_lightCorners) { return; }
 
-    sm_darkCorners  = sdl::TextureManager::create_load_texture("darkCorners", "romfs:/Textures/DialogCornersDark.png");
-    sm_lightCorners = sdl::TextureManager::create_load_texture("lightCorners", "romfs:/Textures/DialogCornersLight.png");
+    sm_darkCorners  = sdl::TextureManager::load("darkCorners", "romfs:/Textures/DialogCornersDark.png");
+    sm_lightCorners = sdl::TextureManager::load("lightCorners", "romfs:/Textures/DialogCornersLight.png");
 }

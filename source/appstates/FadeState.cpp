@@ -1,7 +1,7 @@
 #include "appstates/FadeState.hpp"
 
 #include "StateManager.hpp"
-#include "logger.hpp"
+#include "logging/logger.hpp"
 #include "mathutil.hpp"
 #include "sdl.hpp"
 
@@ -20,24 +20,6 @@ FadeState::FadeState(sdl::Color baseColor, uint8_t startAlpha, uint8_t endAlpha,
 
     FadeState::find_divisor();
     m_fadeTimer.start(TICKS_TIMER_TRIGGER);
-}
-
-std::shared_ptr<FadeState> FadeState::create(sdl::Color baseColor,
-                                             uint8_t startAlpha,
-                                             uint8_t endAlpha,
-                                             std::shared_ptr<BaseState> nextState)
-{
-    return std::make_shared<FadeState>(baseColor, startAlpha, endAlpha, nextState);
-}
-
-std::shared_ptr<FadeState> FadeState::create_and_push(sdl::Color baseColor,
-                                                      uint8_t startAlpha,
-                                                      uint8_t endAlpha,
-                                                      std::shared_ptr<BaseState> nextState)
-{
-    auto newState = std::make_shared<FadeState>(baseColor, startAlpha, endAlpha, nextState);
-    StateManager::push_state(newState);
-    return newState;
 }
 
 void FadeState::update()

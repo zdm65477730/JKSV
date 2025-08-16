@@ -1,7 +1,7 @@
-#include "error.hpp"
+#include "logging/error.hpp"
 
 #include "fslib.hpp"
-#include "logger.hpp"
+#include "logging/logger.hpp"
 
 #include <cstdio>
 #include <string_view>

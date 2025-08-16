@@ -1,8 +1,9 @@
 #include "ui/TitleView.hpp"
 
-#include "colors.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
+#include "logging/logger.hpp"
 
 #include <cmath>
 

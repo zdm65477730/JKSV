@@ -21,6 +21,11 @@ namespace ui
             /// @brief Required destructor.
             ~TitleView() {};
 
+            static inline std::shared_ptr<ui::TitleView> create(data::User *user)
+            {
+                return std::make_shared<ui::TitleView>(user);
+            }
+
             /// @brief Runs the update routine.
             /// @param hasFocus Whether the calling state has focus.
             void update(bool hasFocus) override;

@@ -1,9 +1,9 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
 #include "appstates/TitleSelectCommon.hpp"
 #include "data/data.hpp"
-#include "ui/Menu.hpp"
-#include "ui/SlideOutPanel.hpp"
+#include "ui/ui.hpp"
 
 #include <memory>
 
@@ -17,13 +17,21 @@ class UserOptionState final : public BaseState
         UserOptionState(data::User *user, TitleSelectCommon *titleSelect);
 
         /// @brief Required destructor.
-        ~UserOptionState() {};
+        ~UserOptionState();
 
         /// @brief Returns a new UserOptionState. See constructor.
-        static std::shared_ptr<UserOptionState> create(data::User *user, TitleSelectCommon *titleSelect);
+        static inline std::shared_ptr<UserOptionState> create(data::User *user, TitleSelectCommon *titleSelect)
+        {
+            return std::make_shared<UserOptionState>(user, titleSelect);
+        }
 
         /// @brief Creates, pushes, and returns a new UserOptionState.
-        static std::shared_ptr<UserOptionState> create_and_push(data::User *user, TitleSelectCommon *titleSelect);
+        static inline std::shared_ptr<UserOptionState> create_and_push(data::User *user, TitleSelectCommon *titleSelect)
+        {
+            auto newState = UserOptionState::create(user, titleSelect);
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Runs the render routine.
         void update() override;
@@ -53,7 +61,7 @@ class UserOptionState final : public BaseState
         TitleSelectCommon *m_titleSelect{};
 
         /// @brief Menu that displays the options available.
-        ui::Menu m_userOptionMenu;
+        std::shared_ptr<ui::Menu> m_userOptionMenu{};
 
         /// @brief Shared pointer to pass data to tasks and functions.
         std::shared_ptr<UserOptionState::DataStruct> m_dataStruct{};
@@ -62,7 +70,7 @@ class UserOptionState final : public BaseState
         bool m_refreshRequired{};
 
         /// @brief Slide panel all instances shared.
-        static inline std::unique_ptr<ui::SlideOutPanel> sm_menuPanel{};
+        static inline std::shared_ptr<ui::SlideOutPanel> sm_menuPanel{};
 
         /// @brief Creates the panel if it hasn't been yet.
         void create_menu_panel();

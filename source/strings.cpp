@@ -1,8 +1,8 @@
-#include "strings.hpp"
+#include "strings/strings.hpp"
 
 #include "JSON.hpp"
-#include "error.hpp"
 #include "fslib.hpp"
+#include "logging/error.hpp"
 #include "stringutil.hpp"
 
 #include <map>
@@ -44,8 +44,8 @@ bool strings::initialize()
     json::Object stringJSON    = json::new_object(json_object_from_file, filePath.full_path());
     if (!stringJSON) { return false; }
 
-    json_object_iterator stringIterator = json_object_iter_begin(stringJSON.get());
-    json_object_iterator stringEnd      = json_object_iter_end(stringJSON.get());
+    json_object_iterator stringIterator = json::iter_begin(stringJSON);
+    json_object_iterator stringEnd      = json::iter_end(stringJSON);
     while (!json_object_iter_equal(&stringIterator, &stringEnd))
     {
         // Get name of string(s) and pointer to array

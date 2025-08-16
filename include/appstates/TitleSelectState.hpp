@@ -1,4 +1,5 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/TitleSelectCommon.hpp"
 #include "data/data.hpp"
 #include "sdl.hpp"
@@ -16,10 +17,18 @@ class TitleSelectState final : public TitleSelectCommon
         ~TitleSelectState() {};
 
         /// @brief Returns a new TitleSelect state.
-        static std::shared_ptr<TitleSelectState> create(data::User *user);
+        static inline std::shared_ptr<TitleSelectState> create(data::User *user)
+        {
+            return std::make_shared<TitleSelectState>(user);
+        }
 
         /// @brief Creates, pushes, and returns a new TitleSelectState.
-        static std::shared_ptr<TitleSelectState> create_and_push(data::User *user);
+        static inline std::shared_ptr<TitleSelectState> create_and_push(data::User *user)
+        {
+            auto newState = TitleSelectState::create(user);
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Runs the update routine.
         void update() override;
@@ -38,7 +47,7 @@ class TitleSelectState final : public TitleSelectCommon
         sdl::SharedTexture m_renderTarget{};
 
         /// @brief Tiled title selection view.
-        ui::TitleView m_titleView;
+        std::shared_ptr<ui::TitleView> m_titleView{};
 
         /// @brief Checks if the user still has any games left to list. This is a safety measure.
         bool title_count_check();

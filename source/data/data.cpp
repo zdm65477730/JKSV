@@ -2,8 +2,8 @@
 
 #include "appstates/DataLoadingState.hpp"
 #include "data/DataContext.hpp"
-#include "error.hpp"
-#include "strings.hpp"
+#include "logging/error.hpp"
+#include "strings/strings.hpp"
 
 #include <switch.h>
 
@@ -44,6 +44,7 @@ static void data_initialize_task(sys::Task *task, bool clearCache)
     if (clearCache) { s_context.delete_cache(); }
     s_context.read_cache(task);
     s_context.load_application_records(task);
+    s_context.import_svi_files(task);
     s_context.load_create_users(task);
     s_context.load_user_save_info(task);
     s_context.write_cache(task);

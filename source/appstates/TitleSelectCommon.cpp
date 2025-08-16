@@ -1,8 +1,8 @@
 #include "appstates/TitleSelectCommon.hpp"
 
-#include "colors.hpp"
+#include "graphics/colors.hpp"
 #include "sdl.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 
 TitleSelectCommon::TitleSelectCommon()
 {

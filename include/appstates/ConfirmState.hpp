@@ -4,11 +4,11 @@
 #include "appstates/FadeState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "appstates/TaskState.hpp"
-#include "colors.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
-#include "logger.hpp"
+#include "logging/logger.hpp"
 #include "sdl.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "sys/sys.hpp"
 #include "ui/ui.hpp"
 
@@ -42,7 +42,7 @@ class ConfirmState final : public BaseState
         /// @param function Function executed on confirmation.
         /// @param dataStruct shared_ptr<StructType> that is passed to function. I tried templating this and it was a nightmare.
         ConfirmState(std::string_view query, bool holdRequired, TaskFunction function, std::shared_ptr<StructType> dataStruct)
-            : BaseState{false}
+            : BaseState(false)
             , m_query(query)
             , m_yesText(strings::get_by_name(strings::names::YES_NO_OK, 0))
             , m_noText(strings::get_by_name(strings::names::YES_NO_OK, 1))
@@ -60,19 +60,19 @@ class ConfirmState final : public BaseState
         ~ConfirmState() {};
 
         /// @brief Returns a new ConfirmState. See constructor.
-        static std::shared_ptr<ConfirmState> create(std::string_view query,
-                                                    bool holdRequired,
-                                                    TaskFunction function,
-                                                    std::shared_ptr<StructType> dataStruct)
+        static inline std::shared_ptr<ConfirmState> create(std::string_view query,
+                                                           bool holdRequired,
+                                                           TaskFunction function,
+                                                           std::shared_ptr<StructType> dataStruct)
         {
             return std::make_shared<ConfirmState>(query, holdRequired, function, dataStruct);
         }
 
         /// @brief Creates and returns a new ConfirmState and pushes it.
-        static std::shared_ptr<ConfirmState> create_and_push(std::string_view query,
-                                                             bool holdRequired,
-                                                             TaskFunction function,
-                                                             std::shared_ptr<StructType> dataStruct)
+        static inline std::shared_ptr<ConfirmState> create_and_push(std::string_view query,
+                                                                    bool holdRequired,
+                                                                    TaskFunction function,
+                                                                    std::shared_ptr<StructType> dataStruct)
         {
             // I'm gonna use a sneaky trick here. This shouldn't do this because it's confusing.
             auto newState = create(query, holdRequired, function, dataStruct);

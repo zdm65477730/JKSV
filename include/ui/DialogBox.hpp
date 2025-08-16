@@ -26,11 +26,14 @@ namespace ui
             ~DialogBox() {};
 
             /// @brief Creates and returns a new DialogBox instance. See constructor.
-            static std::shared_ptr<ui::DialogBox> create(int x,
-                                                         int y,
-                                                         int width,
-                                                         int height,
-                                                         DialogBox::Type type = DialogBox::Type::Dark);
+            static inline std::shared_ptr<ui::DialogBox> create(int x,
+                                                                int y,
+                                                                int width,
+                                                                int height,
+                                                                DialogBox::Type type = DialogBox::Type::Dark)
+            {
+                return std::make_shared<ui::DialogBox>(x, y, width, height, type);
+            }
 
             /// @brief Update override. This does NOTHING!
             void update(bool hasFocus) override {};

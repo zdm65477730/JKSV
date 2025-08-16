@@ -14,7 +14,7 @@ class ExtrasMenuState final : public BaseState
         ~ExtrasMenuState() {};
 
         /// @brief Returns a new ExtrasMenuState
-        static std::shared_ptr<ExtrasMenuState> create();
+        static inline std::shared_ptr<ExtrasMenuState> create() { return std::make_shared<ExtrasMenuState>(); }
 
         /// @brief Updates the menu.
         void update() override;

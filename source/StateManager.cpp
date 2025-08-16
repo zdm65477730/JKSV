@@ -1,7 +1,5 @@
 #include "StateManager.hpp"
 
-#include "logger.hpp"
-
 void StateManager::update()
 {
     // Grab the instance.

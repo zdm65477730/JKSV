@@ -1,4 +1,4 @@
-#include "gfxutil.hpp"
+#include "graphics/gfxutil.hpp"
 
 namespace
 {
@@ -15,7 +15,7 @@ sdl::SharedTexture gfxutil::create_generic_icon(std::string_view text,
                                                 sdl::Color foreground)
 {
     // Create base icon texture.
-    sdl::SharedTexture icon = sdl::TextureManager::create_load_texture(text, 256, 256, SDL_TEXTUREACCESS_TARGET);
+    sdl::SharedTexture icon = sdl::TextureManager::load(text, 256, 256, SDL_TEXTUREACCESS_TARGET);
 
     // Get the centered X and Y coordinates.
     const int textX = (SIZE_ICON_WIDTH / 2) - (sdl::text::get_width(fontSize, text) / 2);

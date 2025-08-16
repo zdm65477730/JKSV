@@ -4,14 +4,12 @@
 #include "appstates/BackupMenuState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TitleOptionState.hpp"
-#include "colors.hpp"
-#include "config.hpp"
-#include "fs/fs.hpp"
-#include "fslib.hpp"
+#include "config/config.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
-#include "logger.hpp"
+#include "logging/logger.hpp"
 #include "sdl.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 
 #include <string_view>
 
@@ -24,20 +22,8 @@ namespace
 TitleSelectState::TitleSelectState(data::User *user)
     : TitleSelectCommon()
     , m_user(user)
-    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
-    , m_titleView(m_user) {};
-
-std::shared_ptr<TitleSelectState> TitleSelectState::create(data::User *user)
-{
-    return std::make_shared<TitleSelectState>(user);
-}
-
-std::shared_ptr<TitleSelectState> TitleSelectState::create_and_push(data::User *user)
-{
-    auto newState = TitleSelectState::create(user);
-    StateManager::push_state(newState);
-    return newState;
-}
+    , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
+    , m_titleView(ui::TitleView::create(m_user)) {};
 
 void TitleSelectState::update()
 {
@@ -54,7 +40,7 @@ void TitleSelectState::update()
     else if (yPressed) { TitleSelectState::add_remove_favorite(); }
     else if (bPressed) { TitleSelectState::deactivate_state(); }
 
-    m_titleView.update(hasFocus);
+    m_titleView->update(hasFocus);
 }
 
 void TitleSelectState::render()
@@ -62,12 +48,12 @@ void TitleSelectState::render()
     const bool hasFocus = BaseState::has_focus();
 
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleView.render(m_renderTarget, hasFocus);
+    m_titleView->render(m_renderTarget, hasFocus);
     TitleSelectCommon::render_control_guide();
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
 }
 
-void TitleSelectState::refresh() { m_titleView.refresh(); }
+void TitleSelectState::refresh() { m_titleView->refresh(); }
 
 bool TitleSelectState::title_count_check()
 {
@@ -83,7 +69,7 @@ bool TitleSelectState::title_count_check()
 
 void TitleSelectState::create_backup_menu()
 {
-    const int selected           = m_titleView.get_selected();
+    const int selected           = m_titleView->get_selected();
     const uint64_t applicationID = m_user->get_application_id_at(selected);
     data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
 
@@ -93,7 +79,7 @@ void TitleSelectState::create_backup_menu()
 
 void TitleSelectState::create_title_option_menu()
 {
-    const int selected           = m_titleView.get_selected();
+    const int selected           = m_titleView->get_selected();
     const uint64_t applicationID = m_user->get_application_id_at(selected);
     data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
 
@@ -103,13 +89,13 @@ void TitleSelectState::create_title_option_menu()
 
 void TitleSelectState::deactivate_state()
 {
-    m_titleView.reset();
+    m_titleView->reset();
     BaseState::deactivate();
 }
 
 void TitleSelectState::add_remove_favorite()
 {
-    const int selected           = m_titleView.get_selected();
+    const int selected           = m_titleView->get_selected();
     const uint64_t applicationID = m_user->get_application_id_at(selected);
 
     config::add_remove_favorite(applicationID);
@@ -127,7 +113,7 @@ void TitleSelectState::add_remove_favorite()
         const uint64_t appIDAt = m_user->get_application_id_at(i);
         if (appIDAt == applicationID) { break; }
     }
-    m_titleView.set_selected(i);
+    m_titleView->set_selected(i);
 
     MainMenuState::refresh_view_states();
 }

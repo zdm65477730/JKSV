@@ -1,10 +1,10 @@
 #include "data/DataContext.hpp"
 
-#include "config.hpp"
-#include "error.hpp"
+#include "config/config.hpp"
 #include "fs/fs.hpp"
-#include "logger.hpp"
-#include "strings.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 
 namespace
@@ -152,8 +152,9 @@ void data::DataContext::get_title_info_list_by_type(FsSaveDataType type, data::T
 
 void data::DataContext::import_svi_files(sys::Task *task)
 {
+    static constexpr size_t SIZE_UINT32 = sizeof(uint32_t);
     static constexpr size_t SIZE_UINT64 = sizeof(uint64_t);
-    static constexpr size_t SIZE_SVI    = SIZE_UINT64 + SIZE_CTRL_DATA;
+    static constexpr size_t SIZE_SVI    = SIZE_UINT32 + SIZE_UINT64 + SIZE_CTRL_DATA;
 
     if (error::is_null(task)) { return; }
 
@@ -174,11 +175,13 @@ void data::DataContext::import_svi_files(sys::Task *task)
         const bool goodSvi = sviFile.is_open() && sviFile.get_size() == SIZE_SVI;
         if (!goodSvi) { continue; }
 
+        uint32_t magic{};
         uint64_t applicationID{};
-        auto controlData    = std::make_unique<NsApplicationControlData>();
-        const bool idRead   = sviFile.read(&applicationID, SIZE_UINT64) == SIZE_UINT64;
-        const bool dataRead = sviFile.read(controlData.get(), SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
-        if (!idRead || !dataRead) { continue; }
+        auto controlData     = std::make_unique<NsApplicationControlData>();
+        const bool magicRead = sviFile.read(&magic, SIZE_UINT32) == SIZE_UINT32;
+        const bool idRead    = sviFile.read(&applicationID, SIZE_UINT64) == SIZE_UINT64;
+        const bool dataRead  = sviFile.read(controlData.get(), SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
+        if (!magicRead || magic != fs::SAVE_META_MAGIC || !idRead || !dataRead) { continue; }
 
         const bool exists = DataContext::title_is_loaded(applicationID);
         if (exists) { continue; }

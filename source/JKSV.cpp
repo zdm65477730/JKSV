@@ -3,17 +3,17 @@
 #include "StateManager.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TaskState.hpp"
-#include "colors.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
 #include "curl/curl.hpp"
 #include "data/data.hpp"
-#include "error.hpp"
 #include "fslib.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
-#include "logger.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "sdl.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
 
@@ -159,7 +159,7 @@ bool JKSV::initialize_sdl()
 {
     bool sdlInit = sdl::initialize("JKSV", 1280, 720);
     sdlInit      = sdlInit && sdl::text::initialize();
-    m_headerIcon = sdl::TextureManager::create_load_texture("headerIcon", "romfs:/Textures/HeaderIcon.png");
+    m_headerIcon = sdl::TextureManager::load("headerIcon", "romfs:/Textures/HeaderIcon.png");
     JKSV::add_color_chars();
     return sdlInit && m_headerIcon;
 }

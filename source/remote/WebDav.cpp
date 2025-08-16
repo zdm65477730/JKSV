@@ -2,10 +2,10 @@
 
 #include "JSON.hpp"
 #include "curl/curl.hpp"
-#include "error.hpp"
-#include "logger.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "remote/remote.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
 

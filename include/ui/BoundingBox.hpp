@@ -21,7 +21,10 @@ namespace ui
             ~BoundingBox() {};
 
             /// @brief Creates a returns a new BoundingBox. See constructor.
-            static std::shared_ptr<ui::BoundingBox> create(int x, int y, int width, int height);
+            static inline std::shared_ptr<ui::BoundingBox> create(int x, int y, int width, int height)
+            {
+                return std::make_shared<ui::BoundingBox>(x, y, width, height);
+            }
 
             /// @brief Update override.
             void update(bool hasFocus) override;

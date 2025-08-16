@@ -14,7 +14,7 @@ class SettingsState final : public BaseState
         ~SettingsState() {};
 
         /// @brief Returns a new SettingsState.
-        std::shared_ptr<SettingsState> create();
+        static inline std::shared_ptr<SettingsState> create() { return std::make_shared<SettingsState>(); }
 
         /// @brief Runs the update routine.
         void update() override;
@@ -24,7 +24,7 @@ class SettingsState final : public BaseState
 
     private:
         /// @brief Menu for selecting and toggling settings.
-        ui::Menu m_settingsMenu;
+        std::shared_ptr<ui::Menu> m_settingsMenu{};
 
         /// @brief Pointer to the control guide string.
         const char *m_controlGuide{};

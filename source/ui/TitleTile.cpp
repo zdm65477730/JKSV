@@ -1,7 +1,7 @@
 #include "ui/TitleTile.hpp"
 
-#include "colors.hpp"
-#include "logger.hpp"
+#include "graphics/colors.hpp"
+#include "logging/logger.hpp"
 
 ui::TitleTile::TitleTile(bool isFavorite, int index, sdl::SharedTexture icon)
     : m_isFavorite(isFavorite)

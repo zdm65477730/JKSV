@@ -1,6 +1,6 @@
 #include "ui/IconMenu.hpp"
 
-#include "colors.hpp"
+#include "graphics/colors.hpp"
 
 namespace
 {
@@ -16,11 +16,6 @@ ui::IconMenu::IconMenu(int x, int y, int renderTargetHeight)
 {
     // This needs to be overriden from the base state.
     m_boundingBox->set_width_height(152, 146);
-}
-
-std::shared_ptr<ui::IconMenu> ui::IconMenu::create(int x, int y, int renderTargetHeight)
-{
-    return std::make_shared<ui::IconMenu>(x, y, renderTargetHeight);
 }
 
 void ui::IconMenu::update(bool hasFocus) { Menu::update(hasFocus); }

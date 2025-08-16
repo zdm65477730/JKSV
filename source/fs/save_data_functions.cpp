@@ -1,7 +1,7 @@
 #include "fs/save_data_functions.hpp"
 
-#include "error.hpp"
-#include "logger.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 
 bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo)
 {

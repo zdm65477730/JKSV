@@ -1,7 +1,7 @@
 #include "fs/MiniZip.hpp"
 
-#include "config.hpp"
-#include "error.hpp"
+#include "config/config.hpp"
+#include "logging/error.hpp"
 
 #include <ctime>
 

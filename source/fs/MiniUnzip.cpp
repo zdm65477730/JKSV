@@ -1,7 +1,7 @@
 #include "fs/MiniUnzip.hpp"
 
-#include "error.hpp"
-#include "logger.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 
 fs::MiniUnzip::MiniUnzip(const fslib::Path &path) { MiniUnzip::open(path); }
 

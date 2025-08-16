@@ -1,5 +1,8 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
+#include "appstates/FadeState.hpp"
+#include "graphics/colors.hpp"
 #include "ui/DialogBox.hpp"
 
 #include <memory>
@@ -16,13 +19,26 @@ class MessageState final : public BaseState
         ~MessageState();
 
         /// @brief Creates and returns a new MessageState. See constructor.
-        static std::shared_ptr<MessageState> create(std::string_view message);
+        static inline std::shared_ptr<MessageState> create(std::string_view message)
+        {
+            return std::make_shared<MessageState>(message);
+        }
 
         /// @brief Same as above, only pushed to the StateManager before return.
-        static std::shared_ptr<MessageState> create_and_push(std::string_view message);
+        static inline std::shared_ptr<MessageState> create_and_push(std::string_view message)
+        {
+            auto newState = MessageState::create(message);
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Same as above, but creates and pushes a transition fade in between.
-        static std::shared_ptr<MessageState> create_and_push_fade(std::string_view message);
+        static inline std::shared_ptr<MessageState> create_and_push_fade(std::string_view message)
+        {
+            auto newState  = MessageState::create(message);
+            auto fadeState = FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, newState);
+            return newState;
+        }
 
         /// @brief Update override.
         void update() override;

@@ -1,10 +1,10 @@
 #include "remote/GoogleDrive.hpp"
 
-#include "logger.hpp"
+#include "logging/logger.hpp"
 #include "remote/Form.hpp"
 #include "remote/URL.hpp"
 #include "remote/remote.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 
 #include <algorithm>

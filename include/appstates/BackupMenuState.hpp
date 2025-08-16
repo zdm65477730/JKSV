@@ -1,13 +1,12 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
 #include "data/data.hpp"
 #include "fslib.hpp"
 #include "remote/remote.hpp"
 #include "sdl.hpp"
 #include "sys/sys.hpp"
-#include "ui/Menu.hpp"
-#include "ui/SlideOutPanel.hpp"
-#include "ui/TextScroll.hpp"
+#include "ui/ui.hpp"
 
 #include <memory>
 
@@ -25,10 +24,18 @@ class BackupMenuState final : public BaseState
         ~BackupMenuState();
 
         /// @brief Creates and returns a new BackupMenuState.
-        static std::shared_ptr<BackupMenuState> create(data::User *user, data::TitleInfo *titleInfo);
+        static inline std::shared_ptr<BackupMenuState> create(data::User *user, data::TitleInfo *titleInfo)
+        {
+            return std::make_shared<BackupMenuState>(user, titleInfo);
+        }
 
         /// @brief Creates and pushes a new BackupMenuState to the vector.
-        static std::shared_ptr<BackupMenuState> create_and_push(data::User *user, data::TitleInfo *titleInfo);
+        static inline std::shared_ptr<BackupMenuState> create_and_push(data::User *user, data::TitleInfo *titleInfo)
+        {
+            auto newState = BackupMenuState::create(user, titleInfo);
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Required. Inherited virtual function from AppState.
         void update() override;
@@ -89,7 +96,7 @@ class BackupMenuState final : public BaseState
         remote::Storage::DirectoryListing m_remoteListing{};
 
         /// @brief This is the scrolling text at the top.
-        ui::TextScroll m_titleScroll{};
+        std::shared_ptr<ui::TextScroll> m_titleScroll{};
 
         /// @brief Variable that saves whether or not the filesystem has data in it.
         bool m_saveHasData{};
@@ -110,7 +117,7 @@ class BackupMenuState final : public BaseState
         static inline std::shared_ptr<ui::Menu> sm_backupMenu{};
 
         /// @brief The slide out panel used by all instances of BackupMenuState.
-        static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};
+        static inline std::shared_ptr<ui::SlideOutPanel> sm_slidePanel{};
 
         /// @brief Inner render target so the menu only renders to a certain area.
         static inline sdl::SharedTexture sm_menuRenderTarget{};

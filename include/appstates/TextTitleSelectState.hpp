@@ -1,4 +1,5 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/TitleSelectCommon.hpp"
 #include "data/data.hpp"
 #include "sdl.hpp"
@@ -16,10 +17,18 @@ class TextTitleSelectState final : public TitleSelectCommon
         ~TextTitleSelectState() {};
 
         /// @brief Creates and returns a new TextTitleSelect. See constructor.
-        static std::shared_ptr<TextTitleSelectState> create(data::User *user);
+        static inline std::shared_ptr<TextTitleSelectState> create(data::User *user)
+        {
+            return std::make_shared<TextTitleSelectState>(user);
+        }
 
         /// @brief Creates, pushes, and returns a new TextTitleSelect.
-        static std::shared_ptr<TextTitleSelectState> create_and_push(data::User *user);
+        static std::shared_ptr<TextTitleSelectState> create_and_push(data::User *user)
+        {
+            auto newState = TextTitleSelectState::create(user);
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Runs update routine.
         void update() override;
@@ -35,7 +44,7 @@ class TextTitleSelectState final : public TitleSelectCommon
         data::User *m_user{};
 
         /// @brief Menu to display titles to select from.
-        ui::Menu m_titleSelectMenu;
+        std::shared_ptr<ui::Menu> m_titleSelectMenu{};
 
         /// @brief Target to render to.
         sdl::SharedTexture m_renderTarget{};

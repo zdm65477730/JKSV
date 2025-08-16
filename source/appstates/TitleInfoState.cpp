@@ -1,11 +1,11 @@
 #include "appstates/TitleInfoState.hpp"
 
 #include "StateManager.hpp"
-#include "colors.hpp"
-#include "error.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
+#include "logging/error.hpp"
 #include "sdl.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 
 #include <ctime>
@@ -38,18 +38,6 @@ TitleInfoState::~TitleInfoState()
 {
     // Clear this so the next time it's called, the vector is cleared.
     sm_slidePanel->clear_elements();
-}
-
-std::shared_ptr<TitleInfoState> TitleInfoState::create(data::User *user, data::TitleInfo *titleInfo)
-{
-    return std::make_shared<TitleInfoState>(user, titleInfo);
-}
-
-std::shared_ptr<TitleInfoState> TitleInfoState::create_and_push(data::User *user, data::TitleInfo *titleInfo)
-{
-    auto newState = TitleInfoState::create(user, titleInfo);
-    StateManager::push_state(newState);
-    return newState;
 }
 
 void TitleInfoState::update()
@@ -154,15 +142,15 @@ void TitleInfoState::create_info_scrolls()
 std::shared_ptr<ui::TextScroll> TitleInfoState::create_new_scroll(std::string_view text, int y)
 {
     static constexpr int SIZE_FIELD_WIDTH = SIZE_PANEL_WIDTH - SIZE_PANEL_SUB;
-    auto textFieldScroll                  = std::make_shared<ui::TextScroll>(text,
-                                                            8,
-                                                            y,
-                                                            SIZE_FIELD_WIDTH,
-                                                            SIZE_TEXT_TARGET_HEIGHT,
-                                                            SIZE_FONT,
-                                                            colors::WHITE,
-                                                            m_fieldClear ? colors::CLEAR_COLOR : colors::DIALOG_DARK,
-                                                            false);
+    auto textFieldScroll                  = ui::TextScroll::create(text,
+                                                  8,
+                                                  y,
+                                                  SIZE_FIELD_WIDTH,
+                                                  SIZE_TEXT_TARGET_HEIGHT,
+                                                  SIZE_FONT,
+                                                  colors::WHITE,
+                                                  m_fieldClear ? colors::CLEAR_COLOR : colors::DIALOG_DARK,
+                                                  false);
     m_fieldClear                          = m_fieldClear ? false : true;
     return textFieldScroll;
 }

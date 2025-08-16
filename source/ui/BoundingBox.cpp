@@ -18,11 +18,6 @@ ui::BoundingBox::BoundingBox(int x, int y, int width, int height)
     BoundingBox::initialize_static_members();
 }
 
-std::shared_ptr<ui::BoundingBox> ui::BoundingBox::create(int x, int y, int width, int height)
-{
-    return std::make_shared<ui::BoundingBox>(x, y, width, height);
-}
-
 void ui::BoundingBox::update(bool hasFocus) { m_colorMod.update(); }
 
 void ui::BoundingBox::render(sdl::SharedTexture &target, bool hasFocus)
@@ -66,5 +61,5 @@ void ui::BoundingBox::set_width_height(int width, int height)
 void ui::BoundingBox::initialize_static_members()
 {
     if (sm_corners) { return; }
-    sm_corners = sdl::TextureManager::create_load_texture("menuCorners", "romfs:/Textures/MenuBounding.png");
+    sm_corners = sdl::TextureManager::load("menuCorners", "romfs:/Textures/MenuBounding.png");
 }

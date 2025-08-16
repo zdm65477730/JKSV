@@ -1,10 +1,10 @@
 #include "appstates/ProgressState.hpp"
 
 #include "appstates/FadeState.hpp"
-#include "colors.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
 #include "sdl.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
 

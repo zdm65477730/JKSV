@@ -1,10 +1,10 @@
 #include "appstates/TaskState.hpp"
 
 #include "appstates/FadeState.hpp"
-#include "colors.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
 #include "sdl.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "ui/PopMessageManager.hpp"
 
 TaskState::~TaskState() { FadeState::create_and_push(colors::DIM_BACKGROUND, 0x88, 0x00, nullptr); }

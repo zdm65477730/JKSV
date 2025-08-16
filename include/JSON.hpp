@@ -33,4 +33,13 @@ namespace json
     {
         return json_object_object_add(json.get(), key.data(), object) == 0;
     }
+
+    /// @brief Returns the json string.
+    static inline const char *get_string(json::Object &json) { return json_object_get_string(json.get()); }
+
+    /// @brief Returns the beginning for iterating.
+    static inline json_object_iterator iter_begin(json::Object &json) { return json_object_iter_begin(json.get()); }
+
+    /// @brief Returns the end for iterating.
+    static inline json_object_iterator iter_end(json::Object &json) { return json_object_iter_end(json.get()); }
 } // namespace json

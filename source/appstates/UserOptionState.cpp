@@ -6,15 +6,15 @@
 #include "appstates/ProgressState.hpp"
 #include "appstates/SaveCreateState.hpp"
 #include "appstates/TaskState.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
 #include "data/data.hpp"
-#include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "input.hpp"
-#include "logger.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "remote/remote.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "sys/sys.hpp"
 #include "tasks/useroptions.hpp"
@@ -31,15 +31,15 @@ namespace
         DELETE_ALL_SAVE
     };
 
+    // These make things easier to type later.
     using TaskConfirm     = ConfirmState<sys::Task, TaskState, UserOptionState::DataStruct>;
     using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, UserOptionState::DataStruct>;
-
 } // namespace
 
 UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelect)
     : m_user(user)
     , m_titleSelect(titleSelect)
-    , m_userOptionMenu(8, 8, 460, 22, 720)
+    , m_userOptionMenu(ui::Menu::create(8, 8, 460, 22, 720))
     , m_dataStruct(std::make_shared<UserOptionState::DataStruct>())
 {
     UserOptionState::create_menu_panel();
@@ -47,30 +47,20 @@ UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelec
     UserOptionState::initialize_data_struct();
 }
 
-std::shared_ptr<UserOptionState> UserOptionState::create(data::User *user, TitleSelectCommon *titleSelect)
+UserOptionState::~UserOptionState()
 {
-    return std::make_shared<UserOptionState>(user, titleSelect);
-}
-
-std::shared_ptr<UserOptionState> UserOptionState::create_and_push(data::User *user, TitleSelectCommon *titleSelect)
-{
-    auto newState = UserOptionState::create(user, titleSelect);
-    StateManager::push_state(newState);
-    return newState;
+    sm_menuPanel->clear_elements();
+    sm_menuPanel->reset();
 }
 
 void UserOptionState::update()
 {
     const bool hasFocus = BaseState::has_focus();
-    sm_menuPanel->update(hasFocus);
-
-    const bool isOpen = sm_menuPanel->is_open();
-    if (!isOpen) { return; }
-
     const bool aPressed = input::button_pressed(HidNpadButton_A);
     const bool bPressed = input::button_pressed(HidNpadButton_B);
 
-    // See if this needs to be done.
+    sm_menuPanel->update(hasFocus);
+
     if (m_refreshRequired)
     {
         m_user->load_user_data();
@@ -80,7 +70,7 @@ void UserOptionState::update()
 
     if (aPressed)
     {
-        const int selected = m_userOptionMenu.get_selected();
+        const int selected = m_userOptionMenu->get_selected();
 
         switch (selected)
         {
@@ -91,24 +81,16 @@ void UserOptionState::update()
         }
     }
     else if (bPressed) { sm_menuPanel->close(); }
-    else if (sm_menuPanel->is_closed())
-    {
-        BaseState::deactivate();
-        sm_menuPanel->reset();
-    }
-
-    m_userOptionMenu.update(BaseState::has_focus());
+    else if (sm_menuPanel->is_closed()) { BaseState::deactivate(); }
 }
 
 void UserOptionState::render()
 {
     // Render target user's title selection screen.
     m_titleSelect->render();
-    sdl::SharedTexture &panelTarget = sm_menuPanel->get_target();
 
     // Render panel.
     sm_menuPanel->clear_target();
-    m_userOptionMenu.render(panelTarget, BaseState::has_focus());
     sm_menuPanel->render(sdl::Texture::Null, BaseState::has_focus());
 }
 
@@ -117,7 +99,9 @@ void UserOptionState::refresh_required() { m_refreshRequired = true; }
 void UserOptionState::create_menu_panel()
 {
     static constexpr int SIZE_PANEL_WIDTH = 480;
-    if (!sm_menuPanel) { sm_menuPanel = std::make_unique<ui::SlideOutPanel>(SIZE_PANEL_WIDTH, ui::SlideOutPanel::Side::Right); }
+    if (sm_menuPanel) { return; }
+
+    sm_menuPanel = ui::SlideOutPanel::create(SIZE_PANEL_WIDTH, ui::SlideOutPanel::Side::Right);
 }
 
 void UserOptionState::load_menu_strings()
@@ -127,8 +111,9 @@ void UserOptionState::load_menu_strings()
     for (int i = 0; const char *format = strings::get_by_name(strings::names::USEROPTION_MENU, i); i++)
     {
         const std::string option = stringutil::get_formatted_string(format, nickname);
-        m_userOptionMenu.add_option(option);
+        m_userOptionMenu->add_option(option);
     }
+    sm_menuPanel->push_new_element(m_userOptionMenu);
 }
 
 void UserOptionState::initialize_data_struct()

@@ -4,16 +4,16 @@
 #include "appstates/ConfirmState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TitleInfoState.hpp"
-#include "colors.hpp"
-#include "config.hpp"
-#include "error.hpp"
+#include "config/config.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
-#include "logger.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "remote/remote.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "sys/sys.hpp"
 #include "tasks/titleoptions.hpp"
@@ -56,22 +56,6 @@ TitleOptionState::~TitleOptionState()
 {
     sm_slidePanel->reset();
     sm_titleOptionMenu->set_selected(0);
-}
-
-std::shared_ptr<TitleOptionState> TitleOptionState::create(data::User *user,
-                                                           data::TitleInfo *titleInfo,
-                                                           TitleSelectCommon *titleSelect)
-{
-    return std::make_shared<TitleOptionState>(user, titleInfo, titleSelect);
-}
-
-std::shared_ptr<TitleOptionState> TitleOptionState::create_and_push(data::User *user,
-                                                                    data::TitleInfo *titleInfo,
-                                                                    TitleSelectCommon *titleSelect)
-{
-    auto newState = TitleOptionState::create(user, titleInfo, titleSelect);
-    StateManager::push_state(newState);
-    return newState;
 }
 
 void TitleOptionState::update()

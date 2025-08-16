@@ -1,7 +1,7 @@
 #include "curl/curl.hpp"
 
-#include "error.hpp"
-#include "logger.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "stringutil.hpp"
 
 #include <cstring>

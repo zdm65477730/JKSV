@@ -1,6 +1,6 @@
 #include "remote/Item.hpp"
 
-#include "logger.hpp"
+#include "logging/logger.hpp"
 
 remote::Item::Item(std::string_view name, std::string_view id, std::string_view parent, size_t size, bool directory)
     : m_name{name}

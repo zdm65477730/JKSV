@@ -1,6 +1,6 @@
 #include "sys/Timer.hpp"
 
-#include "logger.hpp"
+#include "logging/logger.hpp"
 
 #include <SDL2/SDL.h>
 

@@ -1,10 +1,10 @@
 #include "fs/SaveMetaData.hpp"
 
-#include "error.hpp"
 #include "fs/directory_functions.hpp"
 #include "fs/save_data_functions.hpp"
 #include "fs/save_mount.hpp"
 #include "fslib.hpp"
+#include "logging/error.hpp"
 
 namespace
 {

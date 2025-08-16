@@ -26,7 +26,11 @@ namespace ui
             /// @brief Required destructor.
             ~Menu() {};
 
-            static std::shared_ptr<ui::Menu> create(int x, int y, int width, int fontSize, int renderTargetHeight);
+            /// @brief Creates and returns a new ui::Menu instance.
+            static inline std::shared_ptr<ui::Menu> create(int x, int y, int width, int fontSize, int renderTargetHeight)
+            {
+                return std::make_shared<ui::Menu>(x, y, width, fontSize, renderTargetHeight);
+            }
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.

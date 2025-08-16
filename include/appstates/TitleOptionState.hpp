@@ -1,9 +1,9 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
 #include "appstates/TitleSelectCommon.hpp"
 #include "data/data.hpp"
-#include "ui/Menu.hpp"
-#include "ui/SlideOutPanel.hpp"
+#include "ui/ui.hpp"
 
 #include <memory>
 
@@ -19,14 +19,22 @@ class TitleOptionState final : public BaseState
         ~TitleOptionState();
 
         /// @brief Returns a new TitleOptionState. See constructor.
-        static std::shared_ptr<TitleOptionState> create(data::User *user,
-                                                        data::TitleInfo *titleInfo,
-                                                        TitleSelectCommon *titleSelect);
+        static inline std::shared_ptr<TitleOptionState> create(data::User *user,
+                                                               data::TitleInfo *titleInfo,
+                                                               TitleSelectCommon *titleSelect)
+        {
+            return std::make_shared<TitleOptionState>(user, titleInfo, titleSelect);
+        }
 
         /// @brief Creates, pushes, and returns a new TitleOptionState
         static std::shared_ptr<TitleOptionState> create_and_push(data::User *user,
                                                                  data::TitleInfo *titleInfo,
-                                                                 TitleSelectCommon *titleSelect);
+                                                                 TitleSelectCommon *titleSelect)
+        {
+            auto newState = TitleOptionState::create(user, titleInfo, titleSelect);
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Runs update routine.
         void update() override;

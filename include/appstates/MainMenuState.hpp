@@ -1,4 +1,5 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
 #include "data/data.hpp"
 #include "sdl.hpp"
@@ -17,10 +18,15 @@ class MainMenuState final : public BaseState
         ~MainMenuState() {};
 
         /// @brief Returns a new MainMenuState
-        static std::shared_ptr<MainMenuState> create();
+        static inline std::shared_ptr<MainMenuState> create() { return std::make_shared<MainMenuState>(); }
 
         /// @brief Creates and returns a new MainMenuState. Pushes it automatically.
-        static std::shared_ptr<MainMenuState> create_and_push();
+        static inline std::shared_ptr<MainMenuState> create_and_push()
+        {
+            auto newState = MainMenuState::create();
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Runs update routine.
         void update() override;
@@ -57,7 +63,7 @@ class MainMenuState final : public BaseState
         sdl::SharedTexture m_extrasIcon{};
 
         /// @brief Special menu type that uses icons.
-        ui::IconMenu m_mainMenu;
+        std::shared_ptr<ui::IconMenu> m_mainMenu{};
 
         /// @brief Pointer to control guide string so I don't need to call string::getByName every loop.
         const char *m_controlGuide{};

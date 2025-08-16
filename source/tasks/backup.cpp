@@ -1,11 +1,11 @@
 #include "tasks/backup.hpp"
 
-#include "config.hpp"
-#include "error.hpp"
+#include "config/config.hpp"
 #include "fs/fs.hpp"
-#include "logger.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "remote/remote.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
 

@@ -1,7 +1,7 @@
 #include "ui/PopMessage.hpp"
 
-#include "colors.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
+#include "graphics/colors.hpp"
 #include "mathutil.hpp"
 #include "sdl.hpp"
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "config/keys.hpp"
 #include "fslib.hpp"
 
 #include <string_view>
@@ -32,6 +33,9 @@ namespace config
     /// @brief Returns the working directory.
     /// @return Working directory.
     fslib::Path get_working_directory();
+
+    /// @brief Sets JKSV's current working directory.
+    bool set_working_directory(std::string_view path);
 
     /// @brief Returns the scaling speed of UI transitions and animations.
     /// @return Scaling variable.
@@ -81,31 +85,4 @@ namespace config
     /// @param pathOut Buffer to write the path to.
     /// @param pathOutSize Size of the buffer to write the path to.
     void get_custom_path(uint64_t applicationID, char *pathOut, size_t pathOutSize);
-
-    // Names of keys. Note: Not all of these are retrievable with GetByKey. Some of these are purely for config reading and
-    // writing.
-    namespace keys
-    {
-        static constexpr std::string_view WORKING_DIRECTORY       = "WorkingDirectory";
-        static constexpr std::string_view INCLUDE_DEVICE_SAVES    = "IncludeDeviceSaves";
-        static constexpr std::string_view AUTO_BACKUP_ON_RESTORE  = "AutoBackupOnRestore";
-        static constexpr std::string_view AUTO_NAME_BACKUPS       = "AutoNameBackups";
-        static constexpr std::string_view AUTO_UPLOAD             = "AutoUploadToRemote";
-        static constexpr std::string_view USE_TITLE_IDS           = "AlwaysUseTitleID";
-        static constexpr std::string_view HOLD_FOR_DELETION       = "HoldForDeletion";
-        static constexpr std::string_view HOLD_FOR_RESTORATION    = "HoldForRestoration";
-        static constexpr std::string_view HOLD_FOR_OVERWRITE      = "HoldForOverWrite";
-        static constexpr std::string_view ONLY_LIST_MOUNTABLE     = "OnlyListMountable";
-        static constexpr std::string_view LIST_ACCOUNT_SYS_SAVES  = "ListAccountSystemSaves";
-        static constexpr std::string_view ALLOW_WRITING_TO_SYSTEM = "AllowSystemSaveWriting";
-        static constexpr std::string_view EXPORT_TO_ZIP           = "ExportToZip";
-        static constexpr std::string_view ZIP_COMPRESSION_LEVEL   = "ZipCompressionLevel";
-        static constexpr std::string_view TITLE_SORT_TYPE         = "TitleSortType";
-        static constexpr std::string_view JKSM_TEXT_MODE          = "JKSMTextMode";
-        static constexpr std::string_view FORCE_ENGLISH           = "ForceEnglish";
-        static constexpr std::string_view ENABLE_TRASH_BIN        = "EnableTrash";
-        static constexpr std::string_view UI_ANIMATION_SCALE      = "UIAnimationScaling";
-        static constexpr std::string_view FAVORITES               = "Favorites";
-        static constexpr std::string_view BLACKLIST               = "BlackList";
-    } // namespace keys
 } // namespace config

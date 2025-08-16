@@ -4,12 +4,12 @@
 #include "appstates/BackupMenuState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TitleOptionState.hpp"
-#include "colors.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
 #include "fs/save_mount.hpp"
 #include "fslib.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
-#include "logger.hpp"
+#include "logging/logger.hpp"
 #include "sdl.hpp"
 
 #include <string_view>
@@ -23,22 +23,10 @@ namespace
 TextTitleSelectState::TextTitleSelectState(data::User *user)
     : TitleSelectCommon()
     , m_user(user)
-    , m_titleSelectMenu(32, 8, 1000, 20, 555)
-    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
+    , m_titleSelectMenu(ui::Menu::create(32, 8, 1000, 20, 555))
+    , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     TextTitleSelectState::refresh();
-}
-
-std::shared_ptr<TextTitleSelectState> TextTitleSelectState::create(data::User *user)
-{
-    return std::make_shared<TextTitleSelectState>(user);
-}
-
-std::shared_ptr<TextTitleSelectState> TextTitleSelectState::create_and_push(data::User *user)
-{
-    auto newState = TextTitleSelectState::create(user);
-    StateManager::push_state(newState);
-    return newState;
 }
 
 void TextTitleSelectState::update()
@@ -49,7 +37,7 @@ void TextTitleSelectState::update()
     const bool xPressed = input::button_pressed(HidNpadButton_X);
     const bool yPressed = input::button_pressed(HidNpadButton_Y);
 
-    m_titleSelectMenu.update(hasFocus);
+    m_titleSelectMenu->update(hasFocus);
 
     if (aPressed) { TextTitleSelectState::create_backup_menu(); }
     else if (xPressed) { TextTitleSelectState::create_title_option_menu(); }
@@ -60,7 +48,7 @@ void TextTitleSelectState::update()
 void TextTitleSelectState::render()
 {
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleSelectMenu.render(m_renderTarget, BaseState::has_focus());
+    m_titleSelectMenu->render(m_renderTarget, BaseState::has_focus());
     TitleSelectCommon::render_control_guide();
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
 }
@@ -69,7 +57,7 @@ void TextTitleSelectState::refresh()
 {
     static constexpr const char *STRING_HEART = "^\uE017^ ";
 
-    m_titleSelectMenu.reset();
+    m_titleSelectMenu->reset();
 
     const size_t totalEntries = m_user->get_total_data_entries();
     for (size_t i = 0; i < totalEntries; i++)
@@ -82,13 +70,14 @@ void TextTitleSelectState::refresh()
         std::string option{};
         if (favorite) { option = std::string{STRING_HEART} + title; }
         else { option = title; }
-        m_titleSelectMenu.add_option(option);
+
+        m_titleSelectMenu->add_option(option);
     }
 }
 
 void TextTitleSelectState::create_backup_menu()
 {
-    const int selected           = m_titleSelectMenu.get_selected();
+    const int selected           = m_titleSelectMenu->get_selected();
     const uint64_t applicationID = m_user->get_application_id_at(selected);
     data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
 
@@ -98,7 +87,7 @@ void TextTitleSelectState::create_backup_menu()
 
 void TextTitleSelectState::create_title_option_menu()
 {
-    const int selected           = m_titleSelectMenu.get_selected();
+    const int selected           = m_titleSelectMenu->get_selected();
     const uint64_t applicationID = m_user->get_application_id_at(selected);
     data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
 
@@ -108,7 +97,7 @@ void TextTitleSelectState::create_title_option_menu()
 
 void TextTitleSelectState::add_remove_favorite()
 {
-    const int selected           = m_titleSelectMenu.get_selected();
+    const int selected           = m_titleSelectMenu->get_selected();
     const uint64_t applicationID = m_user->get_application_id_at(selected);
 
     config::add_remove_favorite(applicationID);
@@ -125,7 +114,7 @@ void TextTitleSelectState::add_remove_favorite()
         const uint64_t appIDAt = m_user->get_application_id_at(i);
         if (appIDAt == applicationID) { break; }
     }
-    m_titleSelectMenu.set_selected(i);
+    m_titleSelectMenu->set_selected(i);
 
     MainMenuState::refresh_view_states();
 }

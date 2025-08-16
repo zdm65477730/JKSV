@@ -4,15 +4,15 @@
 #include "appstates/ConfirmState.hpp"
 #include "appstates/FadeState.hpp"
 #include "appstates/ProgressState.hpp"
-#include "colors.hpp"
-#include "config.hpp"
-#include "error.hpp"
+#include "config/config.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
+#include "logging/error.hpp"
 #include "sdl.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "sys/sys.hpp"
 #include "tasks/backup.hpp"
@@ -55,18 +55,6 @@ BackupMenuState::~BackupMenuState()
     if (remote) { remote->return_to_root(); }
 }
 
-std::shared_ptr<BackupMenuState> BackupMenuState::create(data::User *user, data::TitleInfo *titleInfo)
-{
-    return std::make_shared<BackupMenuState>(user, titleInfo);
-}
-
-std::shared_ptr<BackupMenuState> BackupMenuState::create_and_push(data::User *user, data::TitleInfo *titleInfo)
-{
-    auto newState = BackupMenuState::create(user, titleInfo);
-    StateManager::push_state(newState);
-    return newState;
-}
-
 void BackupMenuState::update()
 {
     const bool hasFocus = BaseState::has_focus();
@@ -98,7 +86,6 @@ void BackupMenuState::update()
     else if (bPressed) { sm_slidePanel->close(); }
     else if (sm_slidePanel->is_closed()) { BaseState::deactivate(); }
 
-    m_titleScroll.update(hasFocus);
     sm_backupMenu->update(hasFocus);
 }
 
@@ -108,7 +95,6 @@ void BackupMenuState::render()
     sdl::SharedTexture &target = sm_slidePanel->get_target();
 
     sm_slidePanel->clear_target();
-    m_titleScroll.render(target, hasFocus);
 
     sdl::render_line(target, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
     sdl::render_line(target, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
@@ -125,6 +111,7 @@ void BackupMenuState::refresh()
 {
     const bool autoUpload   = config::get_by_key(config::keys::AUTO_UPLOAD);
     remote::Storage *remote = remote::get_remote_storage();
+
     m_directoryListing.open(m_directoryPath);
     if (!autoUpload && !m_directoryListing.is_open()) { return; }
     sm_backupMenu->reset();
@@ -166,11 +153,10 @@ void BackupMenuState::initialize_static_members()
 {
     if (sm_backupMenu && sm_slidePanel && sm_menuRenderTarget && sm_panelWidth) { return; }
 
-    sm_panelWidth = sdl::text::get_width(22, m_controlGuide) + 64;
-    sm_backupMenu = std::make_shared<ui::Menu>(8, 8, sm_panelWidth - 16, 24, 600);
-    sm_slidePanel = std::make_unique<ui::SlideOutPanel>(sm_panelWidth, ui::SlideOutPanel::Side::Right);
-    sm_menuRenderTarget =
-        sdl::TextureManager::create_load_texture("backupMenuTarget", sm_panelWidth, 600, SDL_TEXTUREACCESS_TARGET);
+    sm_panelWidth       = sdl::text::get_width(22, m_controlGuide) + 64;
+    sm_backupMenu       = ui::Menu::create(8, 8, sm_panelWidth - 16, 24, 600);
+    sm_slidePanel       = ui::SlideOutPanel::create(sm_panelWidth, ui::SlideOutPanel::Side::Right);
+    sm_menuRenderTarget = sdl::TextureManager::load("backupMenuTarget", sm_panelWidth, 600, SDL_TEXTUREACCESS_TARGET);
 }
 
 void BackupMenuState::ensure_target_directory()
@@ -199,8 +185,9 @@ void BackupMenuState::initialize_info_string()
     const char *nickname         = m_user->get_nickname();
     const char *title            = m_titleInfo->get_title();
     const std::string infoString = stringutil::get_formatted_string("`%s` - %s", nickname, title);
+    m_titleScroll = ui::TextScroll::create(infoString, 8, 8, sm_panelWidth - 16, 30, 22, colors::WHITE, colors::TRANSPARENT);
 
-    m_titleScroll.initialize(infoString, 8, 8, sm_panelWidth - 16, 30, 22, colors::WHITE, colors::TRANSPARENT);
+    sm_slidePanel->push_new_element(m_titleScroll);
 }
 
 void BackupMenuState::save_data_check()

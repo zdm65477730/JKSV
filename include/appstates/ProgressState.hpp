@@ -28,14 +28,17 @@ class ProgressState final : public BaseTask
         /// @brief Required destructor.
         ~ProgressState();
 
+        /// @brief Creates and returns a new progress state.
         template <typename... Args>
-        static std::shared_ptr<ProgressState> create(void (*function)(sys::ProgressTask *, Args...), Args... args)
+        static inline std::shared_ptr<ProgressState> create(void (*function)(sys::ProgressTask *, Args...), Args... args)
         {
             return std::make_shared<ProgressState>(function, std::forward<Args>(args)...);
         }
 
+        /// @brief Creates, pushes, then returns a new ProgressState.
         template <typename... Args>
-        static std::shared_ptr<ProgressState> create_and_push(void (*function)(sys::ProgressTask *, Args...), Args... args)
+        static inline std::shared_ptr<ProgressState> create_and_push(void (*function)(sys::ProgressTask *, Args...),
+                                                                     Args... args)
         {
             auto newState = ProgressState::create(function, std::forward<Args>(args)...);
             StateManager::push_state(newState);

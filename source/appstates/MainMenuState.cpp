@@ -8,13 +8,13 @@
 #include "appstates/TitleSelectCommon.hpp"
 #include "appstates/TitleSelectState.hpp"
 #include "appstates/UserOptionState.hpp"
-#include "colors.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
-#include "logger.hpp"
+#include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "sdl.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "tasks/mainmenu.hpp"
 #include "ui/PopMessageManager.hpp"
@@ -25,11 +25,11 @@ namespace
 }
 
 MainMenuState::MainMenuState()
-    : m_renderTarget(sdl::TextureManager::create_load_texture("mainMenuTarget", 200, 555, SDL_TEXTUREACCESS_TARGET))
-    , m_background(sdl::TextureManager::create_load_texture("mainBackground", "romfs:/Textures/MenuBackground.png"))
-    , m_settingsIcon(sdl::TextureManager::create_load_texture("settingsIcon", "romfs:/Textures/SettingsIcon.png"))
-    , m_extrasIcon(sdl::TextureManager::create_load_texture("extrasIcon", "romfs:/Textures/ExtrasIcon.png"))
-    , m_mainMenu(50, 15, 555)
+    : m_renderTarget(sdl::TextureManager::load("mainMenuTarget", 200, 555, SDL_TEXTUREACCESS_TARGET))
+    , m_background(sdl::TextureManager::load("mainBackground", "romfs:/Textures/MenuBackground.png"))
+    , m_settingsIcon(sdl::TextureManager::load("settingsIcon", "romfs:/Textures/SettingsIcon.png"))
+    , m_extrasIcon(sdl::TextureManager::load("extrasIcon", "romfs:/Textures/ExtrasIcon.png"))
+    , m_mainMenu(ui::IconMenu::create(50, 15, 555))
     , m_controlGuide(strings::get_by_name(strings::names::CONTROL_GUIDES, 0))
     , m_controlGuideX(1220 - sdl::text::get_width(22, m_controlGuide))
     , m_dataStruct(std::make_shared<MainMenuState::DataStruct>())
@@ -40,18 +40,9 @@ MainMenuState::MainMenuState()
     MainMenuState::initialize_data_struct();
 }
 
-std::shared_ptr<MainMenuState> MainMenuState::create() { return std::make_shared<MainMenuState>(); }
-
-std::shared_ptr<MainMenuState> MainMenuState::create_and_push()
-{
-    auto newState = MainMenuState::create();
-    StateManager::push_state(newState);
-    return newState;
-}
-
 void MainMenuState::update()
 {
-    const int selected  = m_mainMenu.get_selected();
+    const int selected  = m_mainMenu->get_selected();
     const bool hasFocus = BaseState::has_focus();
     const bool aPressed = input::button_pressed(HidNpadButton_A);
     const bool xPressed = input::button_pressed(HidNpadButton_X);
@@ -63,23 +54,23 @@ void MainMenuState::update()
     else if (toUserOptions) { MainMenuState::create_user_options(); }
     else if (yPressed) { MainMenuState::backup_all_for_all(); }
 
-    m_mainMenu.update(hasFocus);
+    m_mainMenu->update(hasFocus);
 }
 
 void MainMenuState::render()
 {
     const bool hasFocus = BaseState::has_focus();
-    const int selected  = m_mainMenu.get_selected();
+    const int selected  = m_mainMenu->get_selected();
 
     m_background->render(m_renderTarget, 0, 0);
-    m_mainMenu.render(m_renderTarget, hasFocus);
+    m_mainMenu->render(m_renderTarget, hasFocus);
     m_renderTarget->render(sdl::Texture::Null, 0, 91);
 
     if (hasFocus)
     {
-        BaseState *target = sm_states.at(selected).get();
-        target->render();
+        BaseState *target = sm_states[selected].get();
 
+        target->render();
         sdl::text::render(sdl::Texture::Null, m_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
     }
 }
@@ -92,8 +83,10 @@ void MainMenuState::initialize_view_states()
     for (data::User *user : sm_users)
     {
         std::shared_ptr<BaseState> state{};
-        if (jksmMode) { state = std::make_shared<TextTitleSelectState>(user); }
-        else { state = std::make_shared<TitleSelectState>(user); }
+
+        if (jksmMode) { state = TextTitleSelectState::create(user); }
+        else { state = TitleSelectState::create(user); }
+
         sm_states.push_back(state);
     }
     sm_states.push_back(sm_settingsState);
@@ -113,8 +106,8 @@ void MainMenuState::initialize_settings_extras()
 {
     if (!sm_settingsState || !sm_extrasState)
     {
-        sm_settingsState = std::make_shared<SettingsState>();
-        sm_extrasState   = std::make_shared<ExtrasMenuState>();
+        sm_settingsState = SettingsState::create();
+        sm_extrasState   = ExtrasMenuState::create();
     }
 }
 
@@ -122,9 +115,9 @@ void MainMenuState::initialize_menu()
 {
     data::get_users(sm_users);
     sm_userCount = sm_users.size();
-    for (data::User *user : sm_users) { m_mainMenu.add_option(user->get_icon()); }
-    m_mainMenu.add_option(m_settingsIcon);
-    m_mainMenu.add_option(m_extrasIcon);
+    for (data::User *user : sm_users) { m_mainMenu->add_option(user->get_icon()); }
+    m_mainMenu->add_option(m_settingsIcon);
+    m_mainMenu->add_option(m_extrasIcon);
 }
 
 void MainMenuState::initialize_data_struct() { m_dataStruct->userList = sm_users; }
@@ -134,7 +127,7 @@ void MainMenuState::push_target_state()
     const int popTicks          = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popNoSaveFormat = strings::get_by_name(strings::names::MAINMENU_POPS, 0);
 
-    const int selected  = m_mainMenu.get_selected();
+    const int selected  = m_mainMenu->get_selected();
     const int userCount = sm_users.size();
     if (selected < userCount)
     {
@@ -156,8 +149,8 @@ void MainMenuState::push_target_state()
 
 void MainMenuState::create_user_options()
 {
-    const int selected             = m_mainMenu.get_selected();
-    data::User *user               = sm_users.at(selected);
+    const int selected             = m_mainMenu->get_selected();
+    data::User *user               = sm_users[selected];
     TitleSelectCommon *titleSelect = static_cast<TitleSelectCommon *>(sm_states[selected].get());
 
     UserOptionState::create_and_push(user, titleSelect);

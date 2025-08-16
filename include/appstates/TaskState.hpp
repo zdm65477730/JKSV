@@ -23,14 +23,16 @@ class TaskState final : public BaseTask
         /// @brief Required destructor.
         ~TaskState();
 
+        /// @brief Creates and returns a new TaskState.
         template <typename... Args>
-        static std::shared_ptr<TaskState> create(void (*function)(sys::Task *, Args...), Args... args)
+        static inline std::shared_ptr<TaskState> create(void (*function)(sys::Task *, Args...), Args... args)
         {
             return std::make_shared<TaskState>(function, std::forward<Args>(args)...);
         }
 
+        /// @brief Creates, pushes, then returns and new TaskState.
         template <typename... Args>
-        static std::shared_ptr<TaskState> create_and_push(void (*function)(sys::Task *, Args...), Args... args)
+        static inline std::shared_ptr<TaskState> create_and_push(void (*function)(sys::Task *, Args...), Args... args)
         {
             auto newState = TaskState::create(function, std::forward<Args>(args)...);
             StateManager::push_state(newState);

@@ -1,6 +1,6 @@
 #include "remote/Storage.hpp"
 
-#include "logger.hpp"
+#include "logging/logger.hpp"
 
 #include <algorithm>
 #include <cstring>

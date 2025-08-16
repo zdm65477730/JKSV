@@ -1,11 +1,11 @@
 #include "appstates/ExtrasMenuState.hpp"
 
 #include "appstates/MainMenuState.hpp"
-#include "colors.hpp"
 #include "data/data.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "ui/PopMessageManager.hpp"
 
 #include <string_view>
@@ -33,12 +33,10 @@ static void finish_reinitialization();
 
 ExtrasMenuState::ExtrasMenuState()
     : m_extrasMenu(32, 8, 1000, 24, 555)
-    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
+    , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     ExtrasMenuState::initialize_menu();
 }
-
-std::shared_ptr<ExtrasMenuState> create() { return std::make_shared<ExtrasMenuState>(); }
 
 void ExtrasMenuState::update()
 {

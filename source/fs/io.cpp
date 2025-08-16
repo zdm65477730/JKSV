@@ -1,9 +1,9 @@
 #include "fs/io.hpp"
 
-#include "error.hpp"
 #include "fs/SaveMetaData.hpp"
 #include "fslib.hpp"
-#include "strings.hpp"
+#include "logging/error.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "sys/sys.hpp"
 #include "ui/PopMessageManager.hpp"

@@ -1,12 +1,12 @@
 #include "data/User.hpp"
 
-#include "colors.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
 #include "data/data.hpp"
-#include "error.hpp"
 #include "fs/fs.hpp"
-#include "gfxutil.hpp"
-#include "logger.hpp"
+#include "graphics/colors.hpp"
+#include "graphics/gfxutil.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "sdl.hpp"
 #include "stringutil.hpp"
 
@@ -221,7 +221,7 @@ void data::User::load_icon()
         if (loadError) { return; }
 
         accountProfileClose(&profile);
-        m_icon = sdl::TextureManager::create_load_texture(m_nickname, iconBuffer.get(), iconSize);
+        m_icon = sdl::TextureManager::load(m_nickname, iconBuffer.get(), iconSize);
     }
     else { m_icon = gfxutil::create_generic_icon(m_nickname, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE); }
 }

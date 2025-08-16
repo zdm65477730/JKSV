@@ -21,7 +21,11 @@ namespace ui
             /// @brief Required destructor.
             ~IconMenu() {};
 
-            std::shared_ptr<ui::IconMenu> create(int x, int y, int renderTargetHeight);
+            /// @brief Creates and returns a new IconMenu instance.
+            static inline std::shared_ptr<ui::IconMenu> create(int x, int y, int renderTargetHeight)
+            {
+                return std::make_shared<ui::IconMenu>(x, y, renderTargetHeight);
+            }
 
             /// @brief Initializes the menu.
             /// @param x X coordinate to render the menu to.

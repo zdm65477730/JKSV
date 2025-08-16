@@ -1,7 +1,7 @@
 #include "ui/SlideOutPanel.hpp"
 
-#include "colors.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
+#include "graphics/colors.hpp"
 #include "mathutil.hpp"
 
 #include <cmath>
@@ -20,7 +20,7 @@ ui::SlideOutPanel::SlideOutPanel(int width, Side side)
 {
     static int targetID    = 0;
     std::string targetName = "panelTarget_" + std::to_string(targetID++);
-    m_renderTarget         = sdl::TextureManager::create_load_texture(targetName, width, 720, SDL_TEXTUREACCESS_TARGET);
+    m_renderTarget         = sdl::TextureManager::load(targetName, width, 720, SDL_TEXTUREACCESS_TARGET);
 }
 
 void ui::SlideOutPanel::update(bool hasFocus)

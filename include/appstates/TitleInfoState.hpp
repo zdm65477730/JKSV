@@ -1,9 +1,9 @@
 #pragma once
+#include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
 #include "data/data.hpp"
 #include "sys/sys.hpp"
-#include "ui/SlideOutPanel.hpp"
-#include "ui/TextScroll.hpp"
+#include "ui/ui.hpp"
 
 #include <memory>
 #include <string>
@@ -21,10 +21,18 @@ class TitleInfoState final : public BaseState
         ~TitleInfoState();
 
         /// @brief Creates a new TitleInfoState.
-        static std::shared_ptr<TitleInfoState> create(data::User *user, data::TitleInfo *titleInfo);
+        static inline std::shared_ptr<TitleInfoState> create(data::User *user, data::TitleInfo *titleInfo)
+        {
+            return std::make_shared<TitleInfoState>(user, titleInfo);
+        }
 
         /// @brief Creates, pushes, and returns a new TitleInfoState.
-        static std::shared_ptr<TitleInfoState> create_and_push(data::User *user, data::TitleInfo *titleInfo);
+        static inline std::shared_ptr<TitleInfoState> create_and_push(data::User *user, data::TitleInfo *titleInfo)
+        {
+            auto newState = TitleInfoState::create(user, titleInfo);
+            StateManager::push_state(newState);
+            return newState;
+        }
 
         /// @brief Runs update routine.
         void update() override;

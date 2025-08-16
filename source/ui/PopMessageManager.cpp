@@ -1,8 +1,8 @@
 #include "ui/PopMessageManager.hpp"
 
-#include "colors.hpp"
-#include "config.hpp"
-#include "logger.hpp"
+#include "config/config.hpp"
+#include "graphics/colors.hpp"
+#include "logging/logger.hpp"
 #include "sdl.hpp"
 #include "ui/PopMessage.hpp"
 

@@ -1,10 +1,10 @@
 #include "tasks/useroptions.hpp"
 
-#include "config.hpp"
-#include "error.hpp"
+#include "config/config.hpp"
 #include "fs/fs.hpp"
+#include "logging/error.hpp"
 #include "remote/remote.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "tasks/backup.hpp"
 #include "ui/ui.hpp"

@@ -3,14 +3,14 @@
 #include "appstates/BlacklistEditState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/MessageState.hpp"
-#include "colors.hpp"
-#include "config.hpp"
+#include "config/config.hpp"
 #include "data/data.hpp"
 #include "fslib.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
-#include "logger.hpp"
-#include "strings.hpp"
+#include "logging/logger.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 
 #include <array>
@@ -56,17 +56,15 @@ namespace
 } // namespace
 
 SettingsState::SettingsState()
-    : m_settingsMenu(32, 8, 1000, 24, 555)
+    : m_settingsMenu(ui::Menu::create(32, 8, 1000, 24, 555))
     , m_controlGuide(strings::get_by_name(strings::names::CONTROL_GUIDES, 3))
     , m_controlGuideX(1220 - sdl::text::get_width(22, m_controlGuide))
-    , m_renderTarget(sdl::TextureManager::create_load_texture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
+    , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     SettingsState::load_settings_menu();
     SettingsState::load_extra_strings();
     SettingsState::update_menu_options();
 }
-
-std::shared_ptr<SettingsState> SettingsState::create() { return std::make_shared<SettingsState>(); }
 
 void SettingsState::update()
 {
@@ -75,7 +73,7 @@ void SettingsState::update()
     const bool bPressed     = input::button_pressed(HidNpadButton_B);
     const bool minusPressed = input::button_pressed(HidNpadButton_Minus);
 
-    m_settingsMenu.update(hasFocus);
+    m_settingsMenu->update(hasFocus);
     if (aPressed) { SettingsState::toggle_options(); }
     else if (minusPressed) { SettingsState::create_push_description_message(); }
     else if (bPressed) { BaseState::deactivate(); }
@@ -86,7 +84,7 @@ void SettingsState::render()
     const bool hasFocus = BaseState::has_focus();
 
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_settingsMenu.render(m_renderTarget, hasFocus);
+    m_settingsMenu->render(m_renderTarget, hasFocus);
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
 
     if (hasFocus)
@@ -99,7 +97,7 @@ void SettingsState::load_settings_menu()
 {
     for (int i = 0; const char *option = strings::get_by_name(strings::names::SETTINGS_MENU, i); i++)
     {
-        m_settingsMenu.add_option(option);
+        m_settingsMenu->add_option(option);
     }
 }
 
@@ -120,14 +118,14 @@ void SettingsState::update_menu_options()
         const uint8_t value        = config::get_by_key(CONFIG_KEY_ARRAY[i]);
         const char *status         = SettingsState::get_status_text(value);
         const std::string option   = stringutil::get_formatted_string(optionTemplate, status);
-        m_settingsMenu.edit_option(i, option);
+        m_settingsMenu->edit_option(i, option);
     }
 
     {
         const char *zipCompTemplate = strings::get_by_name(strings::names::SETTINGS_MENU, 14);
         const uint8_t zipLevel      = config::get_by_key(CONFIG_KEY_ARRAY[14]);
         const std::string zipOption = stringutil::get_formatted_string(zipCompTemplate, zipLevel);
-        m_settingsMenu.edit_option(14, zipOption);
+        m_settingsMenu->edit_option(14, zipOption);
     }
 
     {
@@ -135,14 +133,14 @@ void SettingsState::update_menu_options()
         const uint8_t sortType           = config::get_by_key(CONFIG_KEY_ARRAY[15]);
         const char *typeText             = SettingsState::get_sort_type_text(sortType);
         const std::string sortTypeOption = stringutil::get_formatted_string(titleSortTemplate, typeText);
-        m_settingsMenu.edit_option(15, sortTypeOption);
+        m_settingsMenu->edit_option(15, sortTypeOption);
     }
 
     {
         const char *scalingTemplate     = strings::get_by_name(strings::names::SETTINGS_MENU, 19);
         const double scaling            = config::get_animation_scaling();
         const std::string scalingOption = stringutil::get_formatted_string(scalingTemplate, scaling);
-        m_settingsMenu.edit_option(19, scalingOption);
+        m_settingsMenu->edit_option(19, scalingOption);
     }
 }
 
@@ -164,7 +162,7 @@ void SettingsState::create_push_blacklist_edit()
 
 void SettingsState::toggle_options()
 {
-    const int selected = m_settingsMenu.get_selected();
+    const int selected = m_settingsMenu->get_selected();
     switch (selected)
     {
         case CHANGE_WORK_DIR: SettingsState::change_working_directory(); break;
@@ -181,7 +179,7 @@ void SettingsState::toggle_options()
 
 void SettingsState::create_push_description_message()
 {
-    const int selected      = m_settingsMenu.get_selected();
+    const int selected      = m_settingsMenu->get_selected();
     const char *description = strings::get_by_name(strings::names::SETTINGS_DESCRIPTIONS, selected);
 
     MessageState::create_and_push_fade(description);

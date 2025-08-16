@@ -2,9 +2,9 @@
 
 #include "StateManager.hpp"
 #include "appstates/FadeState.hpp"
-#include "colors.hpp"
+#include "graphics/colors.hpp"
 #include "input.hpp"
-#include "strings.hpp"
+#include "strings/strings.hpp"
 
 MessageState::MessageState(std::string_view message)
     : m_message(message)
@@ -15,22 +15,6 @@ MessageState::MessageState(std::string_view message)
 MessageState::~MessageState()
 {
     FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
-}
-
-std::shared_ptr<MessageState> MessageState::create(std::string_view message) { return std::make_shared<MessageState>(message); }
-
-std::shared_ptr<MessageState> MessageState::create_and_push(std::string_view message)
-{
-    auto newState = MessageState::create(message);
-    StateManager::push_state(newState);
-    return newState;
-}
-
-std::shared_ptr<MessageState> MessageState::create_and_push_fade(std::string_view message)
-{
-    auto newState = MessageState::create(message);
-    FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, newState);
-    return newState;
 }
 
 void MessageState::update()

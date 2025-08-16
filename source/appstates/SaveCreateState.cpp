@@ -3,11 +3,11 @@
 #include "StateManager.hpp"
 #include "appstates/TaskState.hpp"
 #include "data/data.hpp"
-#include "error.hpp"
 #include "fs/fs.hpp"
 #include "input.hpp"
-#include "logger.hpp"
-#include "strings.hpp"
+#include "logging/error.hpp"
+#include "logging/logger.hpp"
+#include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "sys/sys.hpp"
 #include "tasks/savecreate.hpp"
@@ -35,18 +35,6 @@ SaveCreateState::~SaveCreateState()
 {
     sm_slidePanel->clear_elements();
     sm_slidePanel->reset();
-}
-
-std::shared_ptr<SaveCreateState> SaveCreateState::create(data::User *user, TitleSelectCommon *titleSelect)
-{
-    return std::make_shared<SaveCreateState>(user, titleSelect);
-}
-
-std::shared_ptr<SaveCreateState> SaveCreateState::create_and_push(data::User *user, TitleSelectCommon *titleSelect)
-{
-    auto newState = SaveCreateState::create(user, titleSelect);
-    StateManager::push_state(newState);
-    return newState;
 }
 
 void SaveCreateState::update()
