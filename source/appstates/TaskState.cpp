@@ -7,9 +7,11 @@
 #include "strings/strings.hpp"
 #include "ui/PopMessageManager.hpp"
 
-TaskState::~TaskState() { FadeState::create_and_push(colors::DIM_BACKGROUND, 0x88, 0x00, nullptr); }
-
-void TaskState::update() { BaseTask::update(); }
+void TaskState::update()
+{
+    BaseTask::update_loading_glyph();
+    if (!m_task->is_running()) { TaskState::deactivate_state(); }
+}
 
 void TaskState::render()
 {
@@ -20,4 +22,10 @@ void TaskState::render()
     sdl::text::render(sdl::Texture::Null, statusX, 351, 24, sdl::text::NO_WRAP, colors::WHITE, status);
 
     BaseTask::render_loading_glyph();
+}
+
+void TaskState::deactivate_state()
+{
+    FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
+    BaseState::deactivate();
 }

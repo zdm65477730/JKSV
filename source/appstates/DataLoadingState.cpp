@@ -8,23 +8,18 @@ namespace
     constexpr int SCREEN_CENTER = 640;
 }
 
-DataLoadingState::~DataLoadingState()
-{
-    // This is to catch stragglers.
-    m_context.process_icon_queue();
-    if (m_destructFunction) { m_destructFunction(); }
-}
-
 void DataLoadingState::update()
 {
     static constexpr int SCREEN_CENTER = 640;
 
-    m_context.process_icon_queue();
-
-    BaseTask::update();
     const std::string status = m_task->get_status();
     const int statusWidth    = sdl::text::get_width(22, status);
     m_statusX                = SCREEN_CENTER - (statusWidth / 2);
+
+    BaseTask::update_loading_glyph();
+    if (!m_task->is_running()) { DataLoadingState::deactivate_state(); }
+
+    m_context.process_icon_queue();
 }
 
 void DataLoadingState::render()
@@ -44,4 +39,12 @@ void DataLoadingState::initialize_static_members()
     if (sm_jksvIcon) { return; }
 
     sm_jksvIcon = sdl::TextureManager::load("LoadingIcon", "romfs:/Textures/LoadingIcon.png");
+}
+
+void DataLoadingState::deactivate_state()
+{
+    // This is to catch any stragglers.
+    m_context.process_icon_queue();
+    if (m_destructFunction) { m_destructFunction(); }
+    BaseState::deactivate();
 }

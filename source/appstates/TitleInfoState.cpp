@@ -34,12 +34,6 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo)
     TitleInfoState::create_info_scrolls();
 }
 
-TitleInfoState::~TitleInfoState()
-{
-    // Clear this so the next time it's called, the vector is cleared.
-    sm_slidePanel->clear_elements();
-}
-
 void TitleInfoState::update()
 {
     // Grab this instead of calling the function over and over.
@@ -49,11 +43,7 @@ void TitleInfoState::update()
     sm_slidePanel->update(hasFocus);
 
     if (input::button_pressed(HidNpadButton_B)) { sm_slidePanel->close(); }
-    else if (sm_slidePanel->is_closed())
-    {
-        sm_slidePanel->reset();
-        BaseState::deactivate();
-    }
+    else if (sm_slidePanel->is_closed()) { TitleInfoState::deactivate_state(); }
 }
 
 void TitleInfoState::render()
@@ -153,4 +143,11 @@ std::shared_ptr<ui::TextScroll> TitleInfoState::create_new_scroll(std::string_vi
                                                   false);
     m_fieldClear                          = m_fieldClear ? false : true;
     return textFieldScroll;
+}
+
+void TitleInfoState::deactivate_state()
+{
+    sm_slidePanel->clear_elements();
+    sm_slidePanel->reset();
+    BaseState::deactivate();
 }

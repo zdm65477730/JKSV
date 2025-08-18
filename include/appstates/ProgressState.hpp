@@ -26,7 +26,7 @@ class ProgressState final : public BaseTask
         }
 
         /// @brief Required destructor.
-        ~ProgressState();
+        ~ProgressState() {};
 
         /// @brief Creates and returns a new progress state.
         template <typename... Args>
@@ -67,5 +67,9 @@ class ProgressState final : public BaseTask
         /// @brief This is the dialog box everything is rendered to.
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
 
+        /// @brief Initializes the shared dialog box.
         void initialize_static_members();
+
+        /// @brief Performs some cleanup and marks the state for purging.
+        void deactivate_state();
 };

@@ -47,12 +47,6 @@ UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelec
     UserOptionState::initialize_data_struct();
 }
 
-UserOptionState::~UserOptionState()
-{
-    sm_menuPanel->clear_elements();
-    sm_menuPanel->reset();
-}
-
 void UserOptionState::update()
 {
     const bool hasFocus = BaseState::has_focus();
@@ -81,7 +75,7 @@ void UserOptionState::update()
         }
     }
     else if (bPressed) { sm_menuPanel->close(); }
-    else if (sm_menuPanel->is_closed()) { BaseState::deactivate(); }
+    else if (sm_menuPanel->is_closed()) { UserOptionState::deactivate_state(); }
 }
 
 void UserOptionState::render()
@@ -157,4 +151,11 @@ void UserOptionState::delete_all_save_data()
     const char *nickname          = m_user->get_nickname();
     const std::string queryString = stringutil::get_formatted_string(confirmFormat, nickname);
     TaskConfirm::create_and_push(queryString, true, tasks::useroptions::delete_all_save_data_for_user, m_dataStruct);
+}
+
+void UserOptionState::deactivate_state()
+{
+    sm_menuPanel->clear_elements();
+    sm_menuPanel->reset();
+    BaseState::deactivate();
 }

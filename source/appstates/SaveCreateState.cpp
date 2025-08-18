@@ -31,12 +31,6 @@ SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelec
     SaveCreateState::initialize_menu();
 }
 
-SaveCreateState::~SaveCreateState()
-{
-    sm_slidePanel->clear_elements();
-    sm_slidePanel->reset();
-}
-
 void SaveCreateState::update()
 {
     const bool hasFocus = BaseState::has_focus();
@@ -56,7 +50,7 @@ void SaveCreateState::update()
 
     if (aPressed) { SaveCreateState::create_save_data_for(); }
     else if (bPressed) { sm_slidePanel->close(); }
-    else if (panelClosed) { BaseState::deactivate(); }
+    else if (panelClosed) { SaveCreateState::deactivate_state(); }
 }
 
 void SaveCreateState::render()
@@ -100,6 +94,13 @@ void SaveCreateState::create_save_data_for()
     auto createTask            = TaskState::create(tasks::savecreate::create_save_data_for, m_user, titleInfo, this);
 
     StateManager::push_state(createTask);
+}
+
+void SaveCreateState::deactivate_state()
+{
+    sm_slidePanel->clear_elements();
+    sm_slidePanel->reset();
+    BaseState::deactivate();
 }
 
 static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB)

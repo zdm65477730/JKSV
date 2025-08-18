@@ -18,7 +18,7 @@ class TitleInfoState final : public BaseState
         TitleInfoState(data::User *user, data::TitleInfo *titleInfo);
 
         /// @brief Required destructor.
-        ~TitleInfoState();
+        ~TitleInfoState() {};
 
         /// @brief Creates a new TitleInfoState.
         static inline std::shared_ptr<TitleInfoState> create(data::User *user, data::TitleInfo *titleInfo)
@@ -64,4 +64,7 @@ class TitleInfoState final : public BaseState
 
         /// @brief Helper function for creating text fields.
         std::shared_ptr<ui::TextScroll> create_new_scroll(std::string_view text, int y);
+
+        /// @brief Performs some operations and marks the state for purging.
+        void deactivate_state();
 };

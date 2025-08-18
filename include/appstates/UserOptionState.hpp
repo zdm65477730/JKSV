@@ -17,7 +17,7 @@ class UserOptionState final : public BaseState
         UserOptionState(data::User *user, TitleSelectCommon *titleSelect);
 
         /// @brief Required destructor.
-        ~UserOptionState();
+        ~UserOptionState() {};
 
         /// @brief Returns a new UserOptionState. See constructor.
         static inline std::shared_ptr<UserOptionState> create(data::User *user, TitleSelectCommon *titleSelect)
@@ -92,4 +92,7 @@ class UserOptionState final : public BaseState
 
         /// @brief Deletes all save data for the user.
         void delete_all_save_data();
+
+        /// @brief Performs operations to reset static members and marks the state for purging.
+        void deactivate_state();
 };

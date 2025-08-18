@@ -12,8 +12,8 @@ class BlacklistEditState final : public BaseState
         /// @brief Constructor. Loads the blacklist and ensures the panel is allocated.S
         BlacklistEditState();
 
-        /// @brief Clears and resets the panel.
-        ~BlacklistEditState();
+        /// @brief Required destructor.
+        ~BlacklistEditState() {};
 
         /// @brief Creates and returns a new state.
         static inline std::shared_ptr<BlacklistEditState> create() { return std::make_shared<BlacklistEditState>(); }
@@ -56,4 +56,7 @@ class BlacklistEditState final : public BaseState
 
         /// @brief Removes the selected title from the blacklist and refreshes everything.
         void remove_from_blacklist();
+
+        /// @brief Performs some operations and marks the state for purging.
+        void deactivate_state();
 };

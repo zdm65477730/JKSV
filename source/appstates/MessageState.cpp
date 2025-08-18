@@ -12,11 +12,6 @@ MessageState::MessageState(std::string_view message)
     MessageState::initialize_static_members();
 }
 
-MessageState::~MessageState()
-{
-    FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
-}
-
 void MessageState::update()
 {
     // To do: I only use this in one place right now. I'm not sure this guards correctly here?
@@ -24,7 +19,7 @@ void MessageState::update()
     m_triggerGuard      = m_triggerGuard || (aPressed && !m_triggerGuard);
     const bool finished = m_triggerGuard && aPressed;
 
-    if (finished) { BaseState::deactivate(); }
+    if (finished) { MessageState::deactivate_state(); }
 }
 
 void MessageState::render()
@@ -46,4 +41,10 @@ void MessageState::initialize_static_members()
     sm_okText = strings::get_by_name(strings::names::YES_NO_OK, 2);
     sm_okX    = HALF_WIDTH - (sdl::text::get_width(22, sm_okText) / 2);
     sm_dialog = ui::DialogBox::create(280, 262, 720, 256);
+}
+
+void MessageState::deactivate_state()
+{
+    FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
+    BaseState::deactivate();
 }

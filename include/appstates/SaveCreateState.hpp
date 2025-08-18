@@ -18,7 +18,7 @@ class SaveCreateState final : public BaseState
         SaveCreateState(data::User *user, TitleSelectCommon *titleSelect);
 
         /// @brief Required destructor.
-        ~SaveCreateState();
+        ~SaveCreateState() {};
 
         /// @brief Returns a new SaveCreate state. See constructor for arguments.
         static inline std::shared_ptr<SaveCreateState> create(data::User *user, TitleSelectCommon *titleSelect)
@@ -73,4 +73,7 @@ class SaveCreateState final : public BaseState
 
         /// @brief Launches the save creation task.
         void create_save_data_for();
+
+        /// @brief Performs some operations and marks the state for purging.
+        void deactivate_state();
 };

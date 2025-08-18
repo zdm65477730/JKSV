@@ -21,7 +21,7 @@ class BackupMenuState final : public BaseState
         BackupMenuState(data::User *user, data::TitleInfo *titleInfo);
 
         /// @brief Destructor. This is required even if it doesn't free or do anything.
-        ~BackupMenuState();
+        ~BackupMenuState() {};
 
         /// @brief Creates and returns a new BackupMenuState.
         static inline std::shared_ptr<BackupMenuState> create(data::User *user, data::TitleInfo *titleInfo)
@@ -157,6 +157,9 @@ class BackupMenuState final : public BaseState
 
         /// @brief Just creates the pop-up that says Save is empty or w/e.
         void pop_save_empty();
+
+        /// @brief Performs some operations and then marks the state for purging.
+        void deactivate_state();
 
         inline bool user_is_system()
         {

@@ -45,16 +45,6 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo)
     BackupMenuState::refresh();
 }
 
-BackupMenuState::~BackupMenuState()
-{
-    sm_slidePanel->clear_elements();
-    sm_slidePanel->reset();
-    sm_backupMenu->reset();
-
-    remote::Storage *remote = remote::get_remote_storage();
-    if (remote) { remote->return_to_root(); }
-}
-
 void BackupMenuState::update()
 {
     const bool hasFocus = BaseState::has_focus();
@@ -84,7 +74,7 @@ void BackupMenuState::update()
     else if (uploadBackup) { BackupMenuState::upload_backup(); }
     else if (popEmpty) { BackupMenuState::pop_save_empty(); }
     else if (bPressed) { sm_slidePanel->close(); }
-    else if (sm_slidePanel->is_closed()) { BaseState::deactivate(); }
+    else if (sm_slidePanel->is_closed()) { BackupMenuState::deactivate_state(); }
 
     sm_backupMenu->update(hasFocus);
 }
@@ -398,4 +388,16 @@ void BackupMenuState::pop_save_empty()
     const int ticks      = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popEmpty = strings::get_by_name(strings::names::BACKUPMENU_POPS, 0);
     ui::PopMessageManager::push_message(ticks, popEmpty);
+}
+
+void BackupMenuState::deactivate_state()
+{
+    sm_slidePanel->clear_elements();
+    sm_slidePanel->reset();
+    sm_backupMenu->reset();
+
+    remote::Storage *remote = remote::get_remote_storage();
+    if (remote) { remote->return_to_root(); }
+
+    BaseState::deactivate();
 }

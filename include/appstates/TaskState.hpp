@@ -21,7 +21,7 @@ class TaskState final : public BaseTask
         }
 
         /// @brief Required destructor.
-        ~TaskState();
+        ~TaskState() {};
 
         /// @brief Creates and returns a new TaskState.
         template <typename... Args>
@@ -45,4 +45,8 @@ class TaskState final : public BaseTask
         /// @brief Run render routine. Prints m_task's status string to screen, basically.
         /// @param
         void render() override;
+
+    private:
+        /// @brief Performs some operations and marks the state for deletion.
+        void deactivate_state();
 };

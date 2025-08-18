@@ -22,15 +22,13 @@ namespace
     constexpr int SIZE_FONT_SIZE       = 18;
 }
 
-ProgressState::~ProgressState() { FadeState::create_and_push(colors::DIM_BACKGROUND, 0x88, 0x00, nullptr); }
-
 void ProgressState::update()
 {
     sys::ProgressTask *task = static_cast<sys::ProgressTask *>(m_task.get());
     const double current    = task->get_progress();
 
-    // Base routine.
-    BaseTask::update();
+    BaseTask::update_loading_glyph();
+    if (!m_task->is_running()) { ProgressState::deactivate_state(); }
 
     m_progressBarWidth        = std::round(SIZE_BAR_WIDTH * current);
     m_progress                = std::round(current * 100);
@@ -67,4 +65,10 @@ void ProgressState::initialize_static_members()
     if (sm_dialog) { return; }
 
     sm_dialog = ui::DialogBox::create(280, 262, 720, 256);
+}
+
+void ProgressState::deactivate_state()
+{
+    FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
+    BaseState::deactivate();
 }

@@ -16,7 +16,7 @@ class TitleOptionState final : public BaseState
         TitleOptionState(data::User *user, data::TitleInfo *titleInfo, TitleSelectCommon *titleSelect);
 
         /// @brief Required destructor.
-        ~TitleOptionState();
+        ~TitleOptionState() {};
 
         /// @brief Returns a new TitleOptionState. See constructor.
         static inline std::shared_ptr<TitleOptionState> create(data::User *user,
@@ -85,27 +85,42 @@ class TitleOptionState final : public BaseState
         /// @brief This is shared by all instances of this class.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};
 
+        /// @brief Initializes the static members all instances share.
         void initialize_static_members();
 
+        /// @brief Initializes the values of the struct passed to tasks.
         void initialize_data_struct();
 
+        /// @brief Creates and pushes the title information state.
         void create_push_info_state();
 
+        /// @brief Adds the currently highlighted title to the blacklist.
         void add_to_blacklist();
 
+        /// @brief Changes the current output directory for the title locally and remotely (if needed).
         void change_output_directory();
 
+        /// @brief Creates and pushes a new instance of file mode (once I get around to it.).
         void create_push_file_mode();
 
+        /// @brief Deletes all locally stored save backups for the current title.
         void delete_all_local_backups();
 
+        /// @brief Deletes all backups on the remote server.
         void delete_all_remote_backups();
 
+        /// @brief Resets the save data for the current title. Basically wipes it clean.
         void reset_save_data();
 
+        /// @brief Deletes the filesystem from the Switch.
         void delete_save_from_system();
 
+        /// @brief Extends the container to any size desired.
         void extend_save_container();
 
+        /// @brief Exports an SVI file for the current title.
         void export_svi_file();
+
+        /// @brief Performs some operations and marks the state for purging.
+        void deactivate_state();
 };

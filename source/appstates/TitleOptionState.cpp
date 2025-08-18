@@ -52,12 +52,6 @@ TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo,
     TitleOptionState::initialize_data_struct();
 }
 
-TitleOptionState::~TitleOptionState()
-{
-    sm_slidePanel->reset();
-    sm_titleOptionMenu->set_selected(0);
-}
-
 void TitleOptionState::update()
 {
     const bool hasFocus = BaseState::has_focus();
@@ -98,7 +92,7 @@ void TitleOptionState::update()
         }
     }
     else if (bPressed) { sm_slidePanel->close(); }
-    else if (sm_slidePanel->is_closed()) { BaseState::deactivate(); }
+    else if (sm_slidePanel->is_closed()) { TitleOptionState::deactivate_state(); }
 }
 
 void TitleOptionState::render()
@@ -171,7 +165,6 @@ void TitleOptionState::change_output_directory()
     const bool empty     = std::char_traits<char>::length(pathBuffer.data()) <= 0;
     if (!sanitized || empty)
     {
-        logger::log("here");
         ui::PopMessageManager::push_message(popTicks, popFailed);
         return;
     }
@@ -324,4 +317,11 @@ void TitleOptionState::export_svi_file()
 
     const char *popSuccess = strings::get_by_name(strings::names::TITLEOPTION_POPS, 4);
     ui::PopMessageManager::push_message(popTicks, popSuccess);
+}
+
+void TitleOptionState::deactivate_state()
+{
+    sm_slidePanel->reset();
+    sm_titleOptionMenu->set_selected(0);
+    BaseState::deactivate();
 }

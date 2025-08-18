@@ -26,6 +26,9 @@ class DataLoadingState final : public BaseTask
             m_task = std::make_unique<sys::Task>(function, std::forward<Args>(args)...);
         }
 
+        /// @brief Destructor. Runs all DestructFunctions in the vector.
+        ~DataLoadingState() {};
+
         template <typename... Args>
         static inline std::shared_ptr<DataLoadingState> create(data::DataContext &context,
                                                                DestructFunction destructFunction,
@@ -45,9 +48,6 @@ class DataLoadingState final : public BaseTask
             StateManager::push_state(newState);
             return newState;
         }
-
-        /// @brief Destructor. Runs all DestructFunctions in the vector.
-        ~DataLoadingState();
 
         /// @brief Update override.
         void update() override;
@@ -70,4 +70,7 @@ class DataLoadingState final : public BaseTask
 
         /// @brief Loads the icon if it hasn't been already.
         void initialize_static_members();
+
+        /// @brief
+        void deactivate_state();
 };

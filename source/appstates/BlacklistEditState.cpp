@@ -16,12 +16,6 @@ BlacklistEditState::BlacklistEditState()
     BlacklistEditState::refresh_menu();
 }
 
-BlacklistEditState::~BlacklistEditState()
-{
-    sm_slidePanel->clear_elements();
-    sm_slidePanel->reset();
-}
-
 void BlacklistEditState::update()
 {
     const bool hasFocus = BaseState::has_focus();
@@ -32,7 +26,7 @@ void BlacklistEditState::update()
 
     if (aPressed) { BlacklistEditState::remove_from_blacklist(); }
     else if (bPressed) { sm_slidePanel->close(); }
-    else if (sm_slidePanel->is_closed()) { BaseState::deactivate(); }
+    else if (sm_slidePanel->is_closed()) { BlacklistEditState::deactivate_state(); }
 }
 
 void BlacklistEditState::render()
@@ -83,4 +77,11 @@ void BlacklistEditState::remove_from_blacklist()
 
     MainMenuState::refresh_view_states();
     BlacklistEditState::refresh_menu();
+}
+
+void BlacklistEditState::deactivate_state()
+{
+    sm_slidePanel->clear_elements();
+    sm_slidePanel->reset();
+    BaseState::deactivate();
 }
