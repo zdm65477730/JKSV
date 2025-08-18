@@ -37,6 +37,13 @@ namespace json
     /// @brief Returns the json string.
     static inline const char *get_string(json::Object &json) { return json_object_get_string(json.get()); }
 
+    /// @brief Returns the length of the string. I find json_object_get_string_len is unreliable?
+    static inline int64_t length(json::Object &json)
+    {
+        const char *string = json_object_get_string(json.get());
+        return std::char_traits<char>::length(string);
+    }
+
     /// @brief Returns the beginning for iterating.
     static inline json_object_iterator iter_begin(json::Object &json) { return json_object_iter_begin(json.get()); }
 

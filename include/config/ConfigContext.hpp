@@ -1,8 +1,10 @@
 #pragma once
 #include "fslib.hpp"
 
+#include <cstdint>
 #include <json-c/json.h>
 #include <map>
+#include <string>
 #include <vector>
 
 namespace config
@@ -10,102 +12,110 @@ namespace config
     class ConfigContext
     {
         public:
-            using AppIDList = std::vector<uint64_t>;
-
             ConfigContext() = default;
 
-            /// @brief Resets the config to its default state.
+            /// @brief Ensures the config directory exists.
+            void create_directory();
+
+            /// @brief Resets and saves the config back to the default values.
             void reset();
 
-            /// @brief Saves the config to the file.
+            /// @brief Loads the config and custom paths files from the SD card if possible.
+            bool load();
+
+            /// @brief Saves the config to the SD if possible.
             void save();
 
-            /// @brief Loads the config from SD.
-            void load();
+            /// @brief Attempts to find and return the value of the key passed.
+            uint8_t get_by_key(std::string_view key) const;
 
-            /// @brief Retrieves the value of the key passed.
-            uint8_t get_by_key(std::string_view key);
-
-            /// @brief Toggles a basic setting by the key passed.
+            /// @brief Attempts to toggle the value for the key passed. For simple 1 and 0.
             void toggle_by_key(std::string_view key);
 
-            /// @brief Sets the value of a key.
+            /// @brief Attempts to set the key passed to the value passd.
             void set_by_key(std::string_view key, uint8_t value);
 
-            /// @brief Returns the current working directory for JKSV.
+            /// @brief Returns the current working directory.
             fslib::Path get_working_directory() const;
 
-            /// @brief Sets the current working directory for JKSV.
-            bool set_working_directory(std::string_view workDir);
+            /// @brief Sets the current work directory if the path passed is valid.
+            void set_working_directory(const fslib::Path &workDir);
 
-            /// @brief Returns the current UI transition scaling.
+            /// @brief Returns the transition scaling speed.
             double get_animation_scaling() const;
 
-            /// @brief Sets the current UI transistion scaling.
+            /// @brief Sets the current animation scaling speed.
             void set_animation_scaling(double scaling);
 
-            /// @brief Adds a favorite to the list if it hasn't been already.
+            /// @brief Adds a favorite to the favorite titles.
             void add_favorite(uint64_t applicationID);
 
-            /// @brief Removes a favorite from the lift it it's there.
+            /// @brief Removes a title from the favorites.
             void remove_favorite(uint64_t applicationID);
 
-            /// @brief Returns whether or not the application ID passed is a favorite title.
-            bool is_favorite(uint64_t applicationID);
+            /// @brief Returns if the application ID passed is a favorite.
+            bool is_favorite(uint64_t applicationID) const;
 
-            /// @brief Adds the application ID to the blacklist if it hasn't been already.
+            /// @brief Adds the application ID passed to the blacklist.
             void add_to_blacklist(uint64_t applicationID);
 
             /// @brief Removes the application ID passed from the blacklist.
             void remove_from_blacklist(uint64_t applicationID);
 
-            /// @brief Gets an array of the currently blacklisted titles.
-            void get_blacklisted_titles(std::vector<uint64_t> &listOut);
+            /// @brief Writes all of the currently blacklisted titles to the vector passed.
+            void get_blacklist(std::vector<uint64_t> &listOut);
 
-            /// @brief Returns whether or not the application ID passed is blacklisted.
-            bool is_blacklisted(uint64_t applicationID);
+            /// @brief Returns if the application ID passed is found in the blacklist.
+            bool is_blacklisted(uint64_t applicationID) const;
 
             /// @brief Returns if the blacklist is empty.
-            bool blacklist_is_empty() const;
+            bool blacklist_empty() const;
 
-            /// @brief Adds a custom output path.
-            void add_custom_path(uint64_t applicationID, std::string_view path);
+            /// @brief Returns if the application ID passed has a custom output path.
+            bool has_custom_path(uint64_t applicationID) const;
 
-            /// @brief Returns whether or not the application ID has a custom output path.
-            bool has_custom_path(uint64_t applicationID);
+            /// @brief Adds a new output path.
+            void add_custom_path(uint64_t applicationID, const fslib::Path &path);
 
-            /// @brief Gets the output path of the application ID passed.
-            void get_custom_path(uint64_t applicationID, char *pathBuffer, size_t bufferSize);
+            /// @brief Gets the custom output path of the applicationID passed.
+            void get_custom_path(uint64_t applicationID, char *buffer, size_t bufferSize);
 
         private:
-            /// @brief This is where most values are stored.
+            /// @brief This is where the majority of the config values are.
             std::map<std::string, uint8_t> m_configMap{};
 
-            /// @brief This is the main directory JKSV uses.
+            /// @brief The main directory JKSV operates from.
             fslib::Path m_workingDirectory{};
 
-            /// @brief The scaling of transitions.
+            /// @brief This scales the transitions.
             double m_animationScaling{};
 
-            /// @brief Vector of favorites
-            ConfigContext::AppIDList m_favorites{};
+            /// @brief This holds the favorite titles.
+            std::vector<uint64_t> m_favorites{};
 
-            /// @brief Vector of blacklisted title ids.
-            ConfigContext::AppIDList m_blacklist{};
+            /// @brief This holds the blacklisted titles.
+            std::vector<uint64_t> m_blacklist{};
 
-            /// @brief Map of custom output paths for titles.
-            std::map<uint64_t, std::string> m_pathMap;
+            /// @brief This holds user defined paths.
+            std::map<uint64_t, std::string> m_paths{};
 
-            /// @brief Reads an array from a json_object into the vector passed.
+            /// @brief Loads the config file from SD.
+            bool load_config_file();
+
+            /// @brief Saves the config to the SD.
+            void save_config_file();
+
+            /// @brief Reads a json array to the vector passed.
             void read_array_to_vector(std::vector<uint64_t> &vector, json_object *array);
 
-            /// @brief Saves the custom paths set by the user.
+            /// @brief Loads the custom output path file from the SD if possible.
+            void load_custom_paths();
+
+            /// @brief Saves the custom output paths to the SD card.
             void save_custom_paths();
 
-            /// @brief Searches for and returns an iterator to the application ID (if found);
-            ConfigContext::AppIDList::iterator find_favorite(uint64_t applicationID);
-
-            /// @brief Searches for and returns an iterator to the application ID (if found);
-            ConfigContext::AppIDList::iterator find_blacklist(uint64_t applicationID);
+            /// @brief Searches the vector passed for the application ID passed.
+            std::vector<uint64_t>::const_iterator find_application_id(const std::vector<uint64_t> &vector,
+                                                                      uint64_t applicationID) const;
     };
 }

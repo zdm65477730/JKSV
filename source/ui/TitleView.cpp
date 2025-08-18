@@ -3,6 +3,7 @@
 #include "config/config.hpp"
 #include "graphics/colors.hpp"
 #include "input.hpp"
+#include "logging/error.hpp"
 #include "logging/logger.hpp"
 
 #include <cmath>
@@ -77,14 +78,17 @@ void ui::TitleView::set_selected(int selected)
 void ui::TitleView::refresh()
 {
     m_titleTiles.clear();
+
     const int entryCount = m_user->get_total_data_entries();
 
     for (int i = 0; i < entryCount; i++)
     {
         const uint64_t applicationID = m_user->get_application_id_at(i);
-        const bool isFavorite        = config::is_favorite(applicationID);
         data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
-        sdl::SharedTexture icon      = titleInfo->get_icon(); // I don't like this but w/e.
+        if (error::is_null(titleInfo)) { continue; }
+
+        const bool isFavorite   = config::is_favorite(applicationID);
+        sdl::SharedTexture icon = titleInfo->get_icon(); // I don't like this but w/e.
 
         m_titleTiles.emplace_back(isFavorite, i, icon);
     }

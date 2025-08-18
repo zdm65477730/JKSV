@@ -34,9 +34,6 @@ namespace config
     /// @return Working directory.
     fslib::Path get_working_directory();
 
-    /// @brief Sets JKSV's current working directory.
-    bool set_working_directory(std::string_view path);
-
     /// @brief Returns the scaling speed of UI transitions and animations.
     /// @return Scaling variable.
     double get_animation_scaling();

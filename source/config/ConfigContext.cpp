@@ -2,17 +2,32 @@
 
 #include "JSON.hpp"
 #include "config/keys.hpp"
+#include "error.hpp"
 #include "logging/error.hpp"
 #include "stringutil.hpp"
 
+#include <algorithm>
 #include <cstring>
+
 namespace
 {
     constexpr std::string_view PATH_DEFAULT_WORK_DIR = "sdmc:/JKSV";
-    constexpr const char *PATH_PATHS_PATH            = "sdmc:/config/JKSV/Paths.json";
-    constexpr const char *PATH_CONFIG_FILE           = "sdmc:/config/JKSV/JKSV.json";
+    constexpr std::string_view PATH_CONFIG_FOLDER    = "sdmc:/config/JKSV";
+    constexpr std::string_view PATH_CONFIG_FILE      = "sdmc:/config/JKSV/JKSV.json";
+    constexpr std::string_view PATH_PATHS_FILE       = "sdmc:/config/JKSV/Paths.json";
 
-    constexpr const char *STRING_APP_ID_FORMAT = "%016llX";
+    constexpr double DEFAULT_SCALING = 2.5f;
+
+    constexpr const char *APP_ID_HEX_FORMAT = "%016llX";
+}
+
+void config::ConfigContext::create_directory()
+{
+    const fslib::Path configDir{PATH_CONFIG_FOLDER};
+    const bool exists = fslib::directory_exists(configDir);
+    if (exists) { return; }
+
+    error::fslib(fslib::create_directories_recursively(configDir));
 }
 
 void config::ConfigContext::reset()
@@ -35,112 +50,22 @@ void config::ConfigContext::reset()
     m_configMap[config::keys::JKSM_TEXT_MODE.data()]          = 0;
     m_configMap[config::keys::FORCE_ENGLISH.data()]           = 0;
     m_configMap[config::keys::ENABLE_TRASH_BIN.data()]        = 0;
-    m_animationScaling                                        = 2.5f;
+    m_animationScaling                                        = DEFAULT_SCALING;
+
+    ConfigContext::save();
 }
 
-void config::ConfigContext::save()
+bool config::ConfigContext::load()
 {
-
-    json::Object configJSON = json::new_object(json_object_new_object);
-    if (!configJSON) { return; }
-
-    json_object *workDir = json_object_new_string(m_workingDirectory.full_path());
-    json::add_object(configJSON, config::keys::WORKING_DIRECTORY.data(), workDir);
-
-    for (const auto &[key, value] : m_configMap)
-    {
-        json_object *valueObject = json_object_new_uint64(value);
-        json::add_object(configJSON, key.c_str(), valueObject);
-    }
-
-    json_object *scaling = json_object_new_double(m_animationScaling);
-    json::add_object(configJSON, config::keys::UI_ANIMATION_SCALE.data(), scaling);
-
-    json_object *favoritesArray = json_object_new_array();
-    for (const uint64_t &applicationID : m_favorites)
-    {
-        const std::string appIDHex = stringutil::get_formatted_string(STRING_APP_ID_FORMAT, applicationID);
-        json_object *newFavorite   = json_object_new_string(appIDHex.c_str());
-
-        json_object_array_add(favoritesArray, newFavorite);
-    }
-    json::add_object(configJSON, config::keys::FAVORITES.data(), favoritesArray);
-
-    json_object *blacklistArray = json_object_new_array();
-    for (const uint64_t &applicationID : m_blacklist)
-    {
-        const std::string appIDHex = stringutil::get_formatted_string(STRING_APP_ID_FORMAT, applicationID);
-        json_object *newBlacklist  = json_object_new_string(appIDHex.c_str());
-
-        json_object_array_add(blacklistArray, newBlacklist);
-    }
-    json::add_object(configJSON, config::keys::BLACKLIST.data(), blacklistArray);
-
-    const char *configString   = json::get_string(configJSON);
-    const int64_t configLength = std::char_traits<char>::length(configString);
-    fslib::File configFile{PATH_CONFIG_FILE, FsOpenMode_Create | FsOpenMode_Write, configLength};
-    if (configFile.is_open()) { configFile << configString; }
+    ConfigContext::load_custom_paths();
+    return ConfigContext::load_config_file();
 }
 
-void config::ConfigContext::load()
+void config::ConfigContext::save() { ConfigContext::save_config_file(); }
+
+uint8_t config::ConfigContext::get_by_key(std::string_view key) const
 {
-    json::Object configJSON = json::new_object(json_object_from_file, PATH_CONFIG_FILE);
-    if (!configJSON)
-    {
-        error::fslib(false); // This seems weird, but it should catch the problem.
-        return;
-    }
-
-    json_object_iterator configIter = json::iter_begin(configJSON);
-    json_object_iterator configEnd  = json::iter_end(configJSON);
-    while (!json_object_iter_equal(&configIter, &configEnd))
-    {
-        const char *key    = json_object_iter_peek_name(&configIter);
-        json_object *value = json_object_iter_peek_value(&configIter);
-
-        const bool workingDir = std::strcmp(config::keys::WORKING_DIRECTORY.data(), key) == 0;
-        const bool scaling    = std::strcmp(config::keys::UI_ANIMATION_SCALE.data(), key) == 0;
-        const bool favorites  = std::strcmp(config::keys::FAVORITES.data(), key) == 0;
-        const bool blacklist  = std::strcmp(config::keys::BLACKLIST.data(), key) == 0;
-
-        if (workingDir) { m_workingDirectory = json_object_get_string(value); }
-        else if (scaling) { m_animationScaling = json_object_get_double(value); }
-        else if (favorites) { ConfigContext::read_array_to_vector(m_favorites, value); }
-        else if (blacklist) { ConfigContext::read_array_to_vector(m_blacklist, value); }
-        else { m_configMap[key] = json_object_get_uint64(value); }
-
-        json_object_iter_next(&configIter);
-    }
-
-    const fslib::Path pathsPath{PATH_PATHS_PATH};
-    const bool pathsExists = fslib::file_exists(pathsPath);
-    if (!pathsExists) { return; }
-
-    json::Object pathsJSON = json::new_object(json_object_from_file, pathsPath.full_path());
-    if (!pathsJSON)
-    {
-        error::fslib(false);
-        return;
-    }
-
-    json_object_iterator pathsIter = json::iter_begin(configJSON);
-    json_object_iterator pathsEnd  = json::iter_end(configJSON);
-    while (!json_object_iter_equal(&pathsIter, &pathsEnd))
-    {
-        const char *appIDString = json_object_iter_peek_name(&pathsIter);
-        json_object *pathObject = json_object_iter_peek_value(&pathsIter);
-
-        const uint64_t applicationID = std::strtoull(appIDString, nullptr, 16);
-        const char *path             = json_object_get_string(pathObject);
-        m_pathMap[applicationID]     = path;
-
-        json_object_iter_next(&pathsIter);
-    }
-}
-
-uint8_t config::ConfigContext::get_by_key(std::string_view key)
-{
-    auto findKey = m_configMap.find(key.data());
+    const auto findKey = m_configMap.find(key.data());
     if (findKey == m_configMap.end()) { return 0; }
     return findKey->second;
 }
@@ -149,25 +74,25 @@ void config::ConfigContext::toggle_by_key(std::string_view key)
 {
     auto findKey = m_configMap.find(key.data());
     if (findKey == m_configMap.end()) { return; }
-    findKey->second = findKey->second ? 0 : 1;
+
+    const uint8_t value = findKey->second;
+    findKey->second     = value ? 0 : 1;
 }
 
 void config::ConfigContext::set_by_key(std::string_view key, uint8_t value)
 {
     auto findKey = m_configMap.find(key.data());
     if (findKey == m_configMap.end()) { return; }
+
     findKey->second = value;
 }
 
 fslib::Path config::ConfigContext::get_working_directory() const { return m_workingDirectory; }
 
-bool config::ConfigContext::set_working_directory(std::string_view path)
+void config::ConfigContext::set_working_directory(const fslib::Path &workDir)
 {
-    fslib::Path testPath{path};
-    if (!testPath.is_valid()) { return false; }
-
-    m_workingDirectory = std::move(testPath);
-    return true;
+    if (!workDir.is_valid()) { return; }
+    m_workingDirectory = workDir;
 }
 
 double config::ConfigContext::get_animation_scaling() const { return m_animationScaling; }
@@ -176,107 +101,206 @@ void config::ConfigContext::set_animation_scaling(double scaling) { m_animationS
 
 void config::ConfigContext::add_favorite(uint64_t applicationID)
 {
-    auto findID = ConfigContext::find_favorite(applicationID);
-    if (findID != m_favorites.end()) { return; }
+    const auto findFav = ConfigContext::find_application_id(m_favorites, applicationID);
+    if (findFav != m_favorites.end()) { return; }
     m_favorites.push_back(applicationID);
+    ConfigContext::save_config_file();
 }
 
 void config::ConfigContext::remove_favorite(uint64_t applicationID)
 {
-    auto findID = ConfigContext::find_favorite(applicationID);
-    if (findID == m_favorites.end()) { return; }
-    m_favorites.erase(findID);
+    const auto findFav = ConfigContext::find_application_id(m_favorites, applicationID);
+    if (findFav == m_favorites.end()) { return; }
+    m_favorites.erase(findFav);
+    ConfigContext::save_config_file();
 }
 
-bool config::ConfigContext::is_favorite(uint64_t applicationID)
+bool config::ConfigContext::is_favorite(uint64_t applicationID) const
 {
-    return ConfigContext::find_favorite(applicationID) != m_favorites.end();
+    return ConfigContext::find_application_id(m_favorites, applicationID) != m_favorites.end();
 }
 
 void config::ConfigContext::add_to_blacklist(uint64_t applicationID)
 {
-    auto findID = ConfigContext::find_blacklist(applicationID);
-    if (findID != m_blacklist.end()) { return; }
+    const auto findTitle = ConfigContext::find_application_id(m_blacklist, applicationID);
+    if (findTitle != m_blacklist.end()) { return; }
     m_blacklist.push_back(applicationID);
 }
 
 void config::ConfigContext::remove_from_blacklist(uint64_t applicationID)
 {
-    auto findID = ConfigContext::find_blacklist(applicationID);
-    if (findID == m_blacklist.end()) { return; }
-    m_blacklist.erase(findID);
+    const auto findTitle = ConfigContext::find_application_id(m_blacklist, applicationID);
+    if (findTitle == m_blacklist.end()) { return; }
+    m_blacklist.erase(findTitle);
 }
 
-void config::ConfigContext::get_blacklisted_titles(std::vector<uint64_t> &listOut)
+void config::ConfigContext::get_blacklist(std::vector<uint64_t> &listOut)
 {
-    listOut.clear();
     listOut.assign(m_blacklist.begin(), m_blacklist.end());
 }
 
-bool config::ConfigContext::is_blacklisted(uint64_t applicationID)
+bool config::ConfigContext::is_blacklisted(uint64_t applicationID) const
 {
-    return ConfigContext::find_blacklist(applicationID) != m_blacklist.end();
+    return ConfigContext::find_application_id(m_blacklist, applicationID) != m_blacklist.end();
 }
 
-bool config::ConfigContext::blacklist_is_empty() const { return m_blacklist.empty(); }
+bool config::ConfigContext::blacklist_empty() const { return m_blacklist.empty(); }
 
-void config::ConfigContext::add_custom_path(uint64_t applicationID, std::string_view path)
+bool config::ConfigContext::has_custom_path(uint64_t applicationID) const
 {
-    m_pathMap[applicationID] = path.data();
+    return m_paths.find(applicationID) != m_paths.end();
+}
+
+void config::ConfigContext::add_custom_path(uint64_t applicationID, const fslib::Path &path)
+{
+    if (!path.is_valid()) { return; }
+    m_paths[applicationID] = path.full_path();
     ConfigContext::save_custom_paths();
 }
 
-bool config::ConfigContext::has_custom_path(uint64_t applicationID) { return m_pathMap.find(applicationID) != m_pathMap.end(); }
-
-void config::ConfigContext::get_custom_path(uint64_t applicationID, char *pathBuffer, size_t bufferSize)
+void config::ConfigContext::get_custom_path(uint64_t applicationID, char *buffer, size_t bufferSize)
 {
     if (!ConfigContext::has_custom_path(applicationID)) { return; }
 
-    const std::string &path = m_pathMap[applicationID];
-    if (path.length() > bufferSize) { return; }
+    const std::string &path = m_paths[applicationID];
+    if (path.length() >= bufferSize) { return; }
 
-    std::memset(pathBuffer, 0x00, bufferSize);
-    std::memcpy(pathBuffer, path.c_str(), path.length());
+    std::memset(buffer, 0x00, bufferSize);
+    std::memcpy(buffer, path.c_str(), path.length());
+}
+
+bool config::ConfigContext::load_config_file()
+{
+    const fslib::Path configPath{PATH_CONFIG_FILE};
+    const bool exists = fslib::file_exists(configPath);
+    if (!exists) { return false; }
+
+    json::Object configJSON = json::new_object(json_object_from_file, configPath.full_path());
+    if (!configJSON) { return false; }
+
+    json_object_iterator configIter = json::iter_begin(configJSON);
+    json_object_iterator configEnd  = json::iter_end(configJSON);
+    while (!json_object_iter_equal(&configIter, &configEnd))
+    {
+        const char *key    = json_object_iter_peek_name(&configIter);
+        json_object *value = json_object_iter_peek_value(&configIter);
+
+        const bool workDir   = std::strcmp(key, config::keys::WORKING_DIRECTORY.data()) == 0;
+        const bool scaling   = std::strcmp(key, config::keys::UI_ANIMATION_SCALE.data()) == 0;
+        const bool favorites = std::strcmp(key, config::keys::FAVORITES.data()) == 0;
+        const bool blacklist = std::strcmp(key, config::keys::BLACKLIST.data()) == 0;
+
+        if (workDir) { m_workingDirectory = json_object_get_string(value); }
+        else if (scaling) { m_animationScaling = json_object_get_double(value); }
+        else if (favorites) { ConfigContext::read_array_to_vector(m_favorites, value); }
+        else if (blacklist) { ConfigContext::read_array_to_vector(m_blacklist, value); }
+        else { m_configMap[key] = json_object_get_uint64(value); }
+
+        json_object_iter_next(&configIter);
+    }
+    return true;
+}
+
+void config::ConfigContext::save_config_file()
+{
+    json::Object configJSON = json::new_object(json_object_new_object);
+    if (!configJSON) { return; }
+
+    json_object *workDir = json_object_new_string(m_workingDirectory.full_path());
+    json::add_object(configJSON, config::keys::WORKING_DIRECTORY, workDir);
+
+    for (const auto &[key, value] : m_configMap)
+    {
+        json_object *jsonValue = json_object_new_uint64(value);
+        json::add_object(configJSON, key, jsonValue);
+    }
+
+    json_object *scaling = json_object_new_double(m_animationScaling);
+    json::add_object(configJSON, config::keys::UI_ANIMATION_SCALE, scaling);
+
+    json_object *favoritesArray = json_object_new_array();
+    for (const uint64_t &applicationID : m_favorites)
+    {
+        const std::string appIDHex = stringutil::get_formatted_string(APP_ID_HEX_FORMAT, applicationID);
+        json_object *jsonFavorite  = json_object_new_string(appIDHex.c_str());
+
+        json_object_array_add(favoritesArray, jsonFavorite);
+    }
+    json::add_object(configJSON, config::keys::FAVORITES, favoritesArray);
+
+    json_object *blacklistArray = json_object_new_array();
+    for (const uint64_t &applicationID : m_blacklist)
+    {
+        const std::string appIDHex = stringutil::get_formatted_string(APP_ID_HEX_FORMAT, applicationID);
+        json_object *jsonBlacklist = json_object_new_string(appIDHex.c_str());
+
+        json_object_array_add(blacklistArray, jsonBlacklist);
+    }
+    json::add_object(configJSON, config::keys::BLACKLIST, blacklistArray);
+
+    const char *jsonString   = json::get_string(configJSON);
+    const int64_t jsonLength = json::length(configJSON);
+    fslib::File configFile{PATH_CONFIG_FILE, FsOpenMode_Create | FsOpenMode_Write, jsonLength};
+    if (error::fslib(configFile.is_open())) { return; }
+    configFile << jsonString;
 }
 
 void config::ConfigContext::read_array_to_vector(std::vector<uint64_t> &vector, json_object *array)
 {
-    const int arrayLength = json_object_array_length(array);
-    for (int i = 0; i < arrayLength; i++)
+    const size_t arrayLength = json_object_array_length(array);
+    for (size_t i = 0; i < arrayLength; i++)
     {
-        json_object *arrayElement = json_object_array_get_idx(array, i);
-        if (!arrayElement) { break; }
+        json_object *element         = json_object_array_get_idx(array, i);
+        const char *idHex            = json_object_get_string(element);
+        const uint64_t applicationID = std::strtoull(idHex, nullptr, 16);
 
-        const char *appIDStr         = json_object_get_string(arrayElement);
-        const uint64_t applicationID = std::strtoull(appIDStr, nullptr, 16);
         vector.push_back(applicationID);
+    }
+}
+
+void config::ConfigContext::load_custom_paths()
+{
+    json::Object pathsJSON = json::new_object(json_object_from_file, PATH_PATHS_FILE.data());
+    if (!pathsJSON) { return; }
+
+    json_object_iterator pathsIter = json::iter_begin(pathsJSON);
+    json_object_iterator pathsEnd  = json::iter_end(pathsJSON);
+    while (!json_object_iter_equal(&pathsIter, &pathsEnd))
+    {
+        const char *appIDString = json_object_iter_peek_name(&pathsIter);
+        json_object *pathObject = json_object_iter_peek_value(&pathsIter);
+
+        const uint64_t applicationID = std::strtoull(appIDString, nullptr, 16);
+        const char *path             = json_object_get_string(pathObject);
+
+        m_paths[applicationID] = path;
+
+        json_object_iter_next(&pathsIter);
     }
 }
 
 void config::ConfigContext::save_custom_paths()
 {
-    json::Object pathsJSON = json::new_object(json_object_new_object);
-    for (auto &[applicationID, outputPath] : m_pathMap)
-    {
-        const std::string appIDHex = stringutil::get_formatted_string(STRING_APP_ID_FORMAT, applicationID);
-        const char *path           = outputPath.c_str();
+    json::Object pathsJSON = json::new_object(json_object_from_file, PATH_PATHS_FILE.data());
+    if (!pathsJSON) { return; }
 
-        json_object *outputString = json_object_new_string(path);
-        json::add_object(pathsJSON, appIDHex, outputString);
+    for (auto &[applicationID, path] : m_paths)
+    {
+        const std::string key   = stringutil::get_formatted_string(APP_ID_HEX_FORMAT, applicationID);
+        json_object *pathObject = json_object_new_string(path.c_str());
+
+        json::add_object(pathsJSON, key, pathObject);
     }
 
-    const char *pathsString   = json::get_string(pathsJSON);
-    const int64_t pathsLength = std::char_traits<char>::length(pathsString);
-    fslib::File pathsFile{PATH_PATHS_PATH, FsOpenMode_Create | FsOpenMode_Write, pathsLength};
-    if (pathsFile.is_open()) { pathsFile << pathsString; };
+    const char *jsonString   = json::get_string(pathsJSON);
+    const int64_t jsonLength = json::length(pathsJSON);
+    fslib::File pathsFile{PATH_PATHS_FILE, FsOpenMode_Create | FsOpenMode_Write, jsonLength};
+    if (error::fslib(pathsFile.is_open())) { return; }
+    pathsFile << jsonString;
 }
 
-config::ConfigContext::AppIDList::iterator config::ConfigContext::find_favorite(uint64_t applicationID)
+std::vector<uint64_t>::const_iterator config::ConfigContext::find_application_id(const std::vector<uint64_t> &vector,
+                                                                                 uint64_t applicationID) const
 {
-    return std::find(m_favorites.begin(), m_favorites.end(), applicationID);
-}
-
-config::ConfigContext::AppIDList::iterator config::ConfigContext::find_blacklist(uint64_t applicationID)
-{
-    return std::find(m_blacklist.begin(), m_blacklist.end(), applicationID);
+    return std::find(vector.begin(), vector.end(), applicationID);
 }
