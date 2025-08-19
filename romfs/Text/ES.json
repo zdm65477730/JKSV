@@ -166,7 +166,9 @@
         "19: Escala de animación: %.02f"
     ],
     "SettingsPops": [
-        "0: ¡La lista negra está vacía!"
+        "0: ¡La lista negra está vacía!",
+        "1: Salida de JKSV establecida en #%s#!",
+        "2: Error al establecer el directorio de trabajo de JKSV!"
     ],
     "SortTypes": [
         "0: Alfabéticamente",

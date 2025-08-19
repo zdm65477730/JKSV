@@ -166,7 +166,9 @@
         "19: Échelle d’animation : %.02f"
     ],
     "SettingsPops": [
-        "0: La liste noire est vide !"
+        "0: La liste noire est vide !",
+        "1: Sortie JKSV définie sur #%s#!",
+        "2: Échec de la définition du répertoire de travail JKSV!"
     ],
     "SortTypes": [
         "0: Alphabétiquement",

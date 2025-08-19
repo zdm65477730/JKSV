@@ -166,7 +166,9 @@
         "19: Animations-Skalierung: %.02f"
     ],
     "SettingsPops": [
-        "0: Blacklist ist leer!"
+        "0: Blacklist ist leer!",
+        "1: JKSV-Ausgabe auf #%s# gesetzt!",
+        "2: Fehler beim Festlegen des JKSV-Arbeitsverzeichnisses!"
     ],
     "SortTypes": [
         "0: Alphabetisch",

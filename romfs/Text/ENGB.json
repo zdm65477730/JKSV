@@ -166,7 +166,9 @@
         "19: Animation scaling: %.02f"
     ],
     "SettingsPops": [
-        "0: Blacklist is empty!"
+        "0: Blacklist is empty!",
+        "1: JKSV output set to #%s#!",
+        "2: Failed to set JKSV working directory!"
     ],
     "SortTypes": [
         "0: Alphabetically",

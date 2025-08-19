@@ -166,7 +166,9 @@
         "19: Escala de animação: %.02f"
     ],
     "SettingsPops": [
-        "0: A blacklist está vazia!"
+        "0: A blacklist está vazia!",
+        "1: Saída do JKSV definida para #%s#!",
+        "2: Falha ao definir o diretório de trabalho do JKSV!"
     ],
     "SortTypes": [
         "0: Alfabeticamente",

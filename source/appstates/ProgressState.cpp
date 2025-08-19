@@ -15,7 +15,7 @@ namespace
     constexpr int COORD_BAR_X = 312;
     constexpr int COORD_BAR_Y = 462;
 
-    constexpr int COORD_TEXT_Y = 468;
+    constexpr int COORD_TEXT_Y = 467;
 
     constexpr int COORD_DISPLAY_CENTER = 640;
     constexpr double SIZE_BAR_WIDTH    = 656.0f;
@@ -32,8 +32,8 @@ void ProgressState::update()
     m_progressBarWidth        = std::round(SIZE_BAR_WIDTH * current);
     m_progress                = std::round(current * 100);
     m_percentageString        = stringutil::get_formatted_string("%u%%", m_progress);
-    const int percentageWidth = sdl::text::get_width(BaseTask::FONT_SIZE, m_percentageString.c_str());
-    m_percentageX             = COORD_DISPLAY_CENTER - percentageWidth;
+    const int percentageWidth = sdl::text::get_width(BaseTask::FONT_SIZE, m_percentageString);
+    m_percentageX             = COORD_DISPLAY_CENTER - (percentageWidth / 2);
 }
 
 void ProgressState::render()

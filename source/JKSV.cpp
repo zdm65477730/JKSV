@@ -30,7 +30,7 @@ namespace
     /// @brief Build month.
     constexpr uint8_t BUILD_MON = 8;
     /// @brief Build day.
-    constexpr uint8_t BUILD_DAY = 17;
+    constexpr uint8_t BUILD_DAY = 18;
     /// @brief Year.
     constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace

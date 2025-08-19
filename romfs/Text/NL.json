@@ -166,7 +166,9 @@
         "19: Animatieschaal: %.02f"
     ],
     "SettingsPops": [
-        "0: De blacklist is leeg!"
+        "0: De blacklist is leeg!",
+        "1: JKSV-uitvoer ingesteld op #%s#!",
+        "2: Kan de JKSV-werkmap niet instellen!"
     ],
     "SortTypes": [
         "0: Alfabetisch",
