@@ -23,7 +23,7 @@ namespace
 TextTitleSelectState::TextTitleSelectState(data::User *user)
     : TitleSelectCommon()
     , m_user(user)
-    , m_titleSelectMenu(ui::Menu::create(32, 8, 1000, 20, 555))
+    , m_titleSelectMenu(ui::Menu::create(32, 8, 1000, 22, 555))
     , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     TextTitleSelectState::refresh();

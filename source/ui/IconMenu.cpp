@@ -12,7 +12,7 @@ namespace
 }
 
 ui::IconMenu::IconMenu(int x, int y, int renderTargetHeight)
-    : Menu(x, y, 152, 80, renderTargetHeight)
+    : Menu(x, y, 152, 84, renderTargetHeight)
 {
     // This needs to be overriden from the base state.
     m_boundingBox->set_width_height(152, 146);

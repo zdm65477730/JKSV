@@ -63,10 +63,10 @@ void ui::Menu::render(sdl::SharedTexture &target, bool hasFocus)
         {
             if (hasFocus)
             {
-                m_boundingBox->set_xy(m_x - 4, tempY - 5);
+                m_boundingBox->set_xy(m_x - 4, tempY - 4);
                 m_boundingBox->render(target, hasFocus);
             }
-            sdl::render_rect_fill(m_optionTarget, 8, 8, 4, m_optionHeight - 16, colors::BLUE_GREEN);
+            sdl::render_rect_fill(m_optionTarget, 8, 8, 4, m_optionHeight - 14, colors::BLUE_GREEN);
             m_optionScroll->render(m_optionTarget, hasFocus);
         }
         else { sdl::text::render(m_optionTarget, 24, m_textY, m_fontSize, sdl::text::NO_WRAP, colors::WHITE, m_options[i]); }
