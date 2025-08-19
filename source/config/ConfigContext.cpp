@@ -89,10 +89,12 @@ void config::ConfigContext::set_by_key(std::string_view key, uint8_t value)
 
 fslib::Path config::ConfigContext::get_working_directory() const { return m_workingDirectory; }
 
-void config::ConfigContext::set_working_directory(const fslib::Path &workDir)
+bool config::ConfigContext::set_working_directory(const fslib::Path &workDir)
 {
-    if (!workDir.is_valid()) { return; }
+    if (!workDir.is_valid()) { return false; }
+
     m_workingDirectory = workDir;
+    return true;
 }
 
 double config::ConfigContext::get_animation_scaling() const { return m_animationScaling; }

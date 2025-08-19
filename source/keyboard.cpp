@@ -18,7 +18,7 @@ bool keyboard::get_input(SwkbdType keyboardType,
     swkbdConfigSetGuideText(&keyboard, header.data());
     swkbdConfigSetType(&keyboard, keyboardType);
     swkbdConfigSetStringLenMax(&keyboard, stringLength);
-    swkbdConfigSetKeySetDisableBitmask(&keyboard, SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Backslash);
+    swkbdConfigSetKeySetDisableBitmask(&keyboard, SwkbdKeyDisableBitmask_Backslash);
 
     const bool swkbdError = error::libnx(swkbdShow(&keyboard, stringOut, stringLength));
     const bool empty      = std::char_traits<char>::length(stringOut) == 0;

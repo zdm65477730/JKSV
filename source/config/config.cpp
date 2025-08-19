@@ -28,6 +28,15 @@ void config::set_by_key(std::string_view key, uint8_t value) { s_context.set_by_
 
 fslib::Path config::get_working_directory() { return s_context.get_working_directory(); }
 
+bool config::set_working_directory(const fslib::Path &path)
+{
+    const bool pathSet = s_context.set_working_directory(path);
+    if (!pathSet) { return false; }
+
+    s_context.save();
+    return true;
+}
+
 double config::get_animation_scaling() { return s_context.get_animation_scaling(); }
 
 void config::set_animation_scaling(double newScale) { s_context.set_animation_scaling(newScale); }

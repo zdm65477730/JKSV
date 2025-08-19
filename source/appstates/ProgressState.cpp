@@ -19,7 +19,6 @@ namespace
 
     constexpr int COORD_DISPLAY_CENTER = 640;
     constexpr double SIZE_BAR_WIDTH    = 656.0f;
-    constexpr int SIZE_FONT_SIZE       = 18;
 }
 
 void ProgressState::update()
@@ -33,7 +32,7 @@ void ProgressState::update()
     m_progressBarWidth        = std::round(SIZE_BAR_WIDTH * current);
     m_progress                = std::round(current * 100);
     m_percentageString        = stringutil::get_formatted_string("%u%%", m_progress);
-    const int percentageWidth = sdl::text::get_width(18, m_percentageString.c_str());
+    const int percentageWidth = sdl::text::get_width(BaseTask::FONT_SIZE, m_percentageString.c_str());
     m_percentageX             = COORD_DISPLAY_CENTER - percentageWidth;
 }
 
@@ -45,14 +44,14 @@ void ProgressState::render()
 
     sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
     sm_dialog->render(sdl::Texture::Null, hasFocus);
-    sdl::text::render(sdl::Texture::Null, 312, 288, 18, 656, colors::WHITE, status);
+    sdl::text::render(sdl::Texture::Null, 312, 288, BaseTask::FONT_SIZE, 656, colors::WHITE, status);
 
     sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, barWidth, 32, colors::BLACK);
     sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, m_progressBarWidth, 32, colors::GREEN);
     sdl::text::render(sdl::Texture::Null,
                       m_percentageX,
                       COORD_TEXT_Y,
-                      SIZE_FONT_SIZE,
+                      BaseTask::FONT_SIZE,
                       sdl::text::NO_WRAP,
                       colors::WHITE,
                       m_percentageString);

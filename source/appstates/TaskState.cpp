@@ -16,10 +16,10 @@ void TaskState::update()
 void TaskState::render()
 {
     const std::string status = m_task->get_status();
-    const int statusX        = 640 - (sdl::text::get_width(24, status.c_str()) / 2);
+    const int statusX        = 640 - (sdl::text::get_width(BaseTask::FONT_SIZE, status.c_str()) / 2);
 
     sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
-    sdl::text::render(sdl::Texture::Null, statusX, 351, 24, sdl::text::NO_WRAP, colors::WHITE, status);
+    sdl::text::render(sdl::Texture::Null, statusX, 351, BaseTask::FONT_SIZE, sdl::text::NO_WRAP, colors::WHITE, status);
 
     BaseTask::render_loading_glyph();
 }

@@ -34,6 +34,9 @@ class BaseTask : public BaseState
         /// @brief Updates the loading glyph animation.
         void update_loading_glyph();
 
+        /// @brief This is the font size used for displaying text during tasks.
+        static inline constexpr int FONT_SIZE = 20;
+
     private:
         /// @brief This is the current frame of the loading glyph animation.
         int m_currentFrame{};

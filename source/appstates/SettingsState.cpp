@@ -9,6 +9,7 @@
 #include "graphics/colors.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
+#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
@@ -144,7 +145,38 @@ void SettingsState::update_menu_options()
     }
 }
 
-void SettingsState::change_working_directory() {}
+void SettingsState::change_working_directory()
+{
+    const int popTicks           = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *inputHeader      = strings::get_by_name(strings::names::KEYBOARD, 2);
+    const char *popSuccessFormat = strings::get_by_name(strings::names::SETTINGS_POPS, 1);
+    const char *popFailed        = strings::get_by_name(strings::names::SETTINGS_POPS, 2);
+
+    const fslib::Path oldPath{config::get_working_directory()};
+    std::array<char, FS_MAX_PATH> pathBuffer = {0};
+
+    const bool input = keyboard::get_input(SwkbdType_Normal, oldPath.full_path(), inputHeader, pathBuffer.data(), FS_MAX_PATH);
+    if (!input) { return; }
+
+    const fslib::Path newPath{pathBuffer.data()};
+    const bool exists = fslib::directory_exists(newPath);
+    if (exists)
+    {
+        ui::PopMessageManager::push_message(popTicks, popFailed);
+        return;
+    }
+
+    const bool pathSet     = config::set_working_directory(newPath);
+    const bool renameError = pathSet && error::fslib(fslib::rename_directory(oldPath, newPath));
+    if (!pathSet || renameError)
+    {
+        ui::PopMessageManager::push_message(popTicks, popFailed);
+        return;
+    }
+
+    const std::string popMessage = stringutil::get_formatted_string(popSuccessFormat, newPath.full_path());
+    ui::PopMessageManager::push_message(popTicks, popMessage);
+}
 
 void SettingsState::create_push_blacklist_edit()
 {

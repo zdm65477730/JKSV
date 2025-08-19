@@ -39,7 +39,7 @@ namespace config
             fslib::Path get_working_directory() const;
 
             /// @brief Sets the current work directory if the path passed is valid.
-            void set_working_directory(const fslib::Path &workDir);
+            bool set_working_directory(const fslib::Path &workDir);
 
             /// @brief Returns the transition scaling speed.
             double get_animation_scaling() const;

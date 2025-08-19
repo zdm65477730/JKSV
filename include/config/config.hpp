@@ -34,6 +34,10 @@ namespace config
     /// @return Working directory.
     fslib::Path get_working_directory();
 
+    /// @brief Attempts to set the working directory to the one passed.
+    /// @param path Path for JKSV to use.
+    bool set_working_directory(const fslib::Path &path);
+
     /// @brief Returns the scaling speed of UI transitions and animations.
     /// @return Scaling variable.
     double get_animation_scaling();
