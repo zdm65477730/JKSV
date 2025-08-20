@@ -189,18 +189,19 @@ void fs::copy_directory(const fslib::Path &source, const fslib::Path &destinatio
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
 
-    const int64_t dirCount = sourceDir.get_count();
-    for (int64_t i = 0; i < dirCount; i++)
+    for (const fslib::DirectoryEntry &entry : sourceDir)
     {
-        if (sourceDir[i] == fs::NAME_SAVE_META) { continue; }
+        const char *filename = entry.get_filename();
+        if (filename == fs::NAME_SAVE_META) { continue; }
 
-        const fslib::Path fullSource{source / sourceDir[i]};
-        const fslib::Path fullDest{destination / sourceDir[i]};
-        if (sourceDir.is_directory(i))
+        const fslib::Path fullSource{source / filename};
+        const fslib::Path fullDest{destination / filename};
+        if (entry.is_directory())
         {
             const bool destExists  = fslib::directory_exists(fullDest);
-            const bool createError = !destExists && fslib::create_directory(fullDest);
+            const bool createError = !destExists && error::fslib(fslib::create_directory(fullDest));
             if (!destExists && createError) { continue; }
+
             fs::copy_directory(fullSource, fullDest, task);
         }
         else { fs::copy_file(fullSource, fullDest, task); }
@@ -216,14 +217,14 @@ void fs::copy_directory_commit(const fslib::Path &source,
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
 
-    const int64_t dirCount = sourceDir.get_count();
-    for (int64_t i = 0; i < dirCount; i++)
+    for (const fslib::DirectoryEntry &entry : sourceDir)
     {
-        if (sourceDir[i] == fs::NAME_SAVE_META) { continue; } // We don't want or need to copy this to the save.
+        const char *filename = entry.get_filename();
+        if (filename == fs::NAME_SAVE_META) { continue; }
 
-        const fslib::Path fullSource{source / sourceDir[i]};
-        const fslib::Path fullDest{destination / sourceDir[i]};
-        if (sourceDir.is_directory(i))
+        const fslib::Path fullSource{source / filename};
+        const fslib::Path fullDest{destination / filename};
+        if (entry.is_directory())
         {
             const bool destExists  = fslib::directory_exists(fullDest);
             const bool createError = !destExists && error::fslib(fslib::create_directory(fullDest));

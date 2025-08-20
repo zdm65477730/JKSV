@@ -22,9 +22,9 @@ ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
           ui::TextScroll::create("", 16, 0, m_width, m_optionHeight, m_fontSize, colors::BLUE_GREEN, colors::TRANSPARENT))
 {
     // Create render target for options
-    static int MENU_ID         = 0;
-    std::string menuTargetName = "MENU_" + std::to_string(MENU_ID++);
-    m_optionTarget             = sdl::TextureManager::load(menuTargetName, m_width, m_optionHeight, SDL_TEXTUREACCESS_TARGET);
+    static int MENU_ID               = 0;
+    const std::string menuTargetName = "MENU_" + std::to_string(MENU_ID++);
+    m_optionTarget = sdl::TextureManager::load(menuTargetName, m_width, m_optionHeight, SDL_TEXTUREACCESS_TARGET);
 
     // Outside the initializer list because I'm tired and don't wanna deal with the headache.
     m_boundingBox = ui::BoundingBox::create(0, 0, m_width + 12, m_optionHeight + 12);

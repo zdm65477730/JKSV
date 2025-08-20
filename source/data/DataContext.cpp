@@ -161,19 +161,17 @@ void data::DataContext::import_svi_files(sys::Task *task)
     const char *statusLoadingSvi = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 3);
 
     const fslib::Path sviPath{config::get_working_directory() / "svi"};
-    const fslib::Directory sviDir{sviPath};
+    fslib::Directory sviDir{sviPath};
     if (error::fslib(sviDir.is_open())) { return; }
 
     task->set_status(statusLoadingSvi);
 
-    const int64_t sviCount = sviDir.get_count();
-    for (int64_t i = 0; i < sviCount; i++)
+    for (const fslib::DirectoryEntry &entry : sviDir)
     {
-        const fslib::Path target = sviPath / sviDir[i];
+        const fslib::Path target{sviPath / entry};
         fslib::File sviFile{target, FsOpenMode_Read};
-
-        const bool goodSvi = sviFile.is_open() && sviFile.get_size() == SIZE_SVI;
-        if (!goodSvi) { continue; }
+        const bool validSvi = sviFile.is_open() && sviFile.get_size() == SIZE_SVI;
+        if (!validSvi) { continue; }
 
         uint32_t magic{};
         uint64_t applicationID{};

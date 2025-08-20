@@ -126,11 +126,11 @@ void BackupMenuState::refresh()
         }
     }
 
-    const int64_t listingCount = m_directoryListing.get_count();
-    for (int64_t i = 0; i < listingCount; i++)
+    int index{};
+    for (const fslib::DirectoryEntry &entry : m_directoryListing)
     {
-        sm_backupMenu->add_option(m_directoryListing[i]);
-        m_menuEntries.push_back({MenuEntryType::Local, static_cast<int>(i)});
+        sm_backupMenu->add_option(entry.get_filename());
+        m_menuEntries.push_back({MenuEntryType::Local, index});
     }
 }
 
@@ -268,7 +268,7 @@ void BackupMenuState::confirm_overwrite()
     else if (entry.type == MenuEntryType::Local)
     {
         m_dataStruct->path      = m_directoryPath / m_directoryListing[entry.index];
-        const char *targetName  = m_directoryListing[entry.index];
+        const char *targetName  = m_directoryListing[entry.index].get_filename();
         const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
         ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::overwrite_backup_local, m_dataStruct);
     }
@@ -305,8 +305,10 @@ void BackupMenuState::confirm_restore()
             ui::PopMessageManager::push_message(popTicks, popBackupEmpty);
             return;
         }
-        m_dataStruct->path      = target;
-        const std::string query = stringutil::get_formatted_string(confirmTemplate, m_directoryListing[entry.index]);
+        m_dataStruct->path = target;
+
+        const char *targetName  = m_directoryListing[entry.index].get_filename();
+        const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
 
         ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::restore_backup_local, m_dataStruct);
     }
@@ -332,7 +334,7 @@ void BackupMenuState::confirm_delete()
     if (entry.type == MenuEntryType::Local)
     {
         m_dataStruct->path      = m_directoryPath / m_directoryListing[entry.index];
-        const char *targetName  = m_directoryListing[entry.index];
+        const char *targetName  = m_directoryListing[entry.index].get_filename();
         const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
 
         TaskConfirm::create_and_push(query, holdRequired, tasks::backup::delete_backup_local, m_dataStruct);
@@ -357,7 +359,7 @@ void BackupMenuState::upload_backup()
     const MenuEntry &entry = m_menuEntries[selected];
     if (entry.type != BackupMenuState::MenuEntryType::Local) { return; }
 
-    const char *targetName = m_directoryListing[entry.index];
+    const char *targetName = m_directoryListing[entry.index].get_filename();
     fslib::Path target     = m_directoryPath / targetName;
     const bool isDir       = fslib::directory_exists(target);
     if (isDir)
