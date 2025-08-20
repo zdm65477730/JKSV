@@ -60,6 +60,9 @@ JKSV::JKSV()
     ABORT_ON_FAILURE(JKSV::initialize_sdl());
 
     ABORT_ON_FAILURE(curl::initialize());
+    input::initialize();
+    config::initialize();
+
     ABORT_ON_FAILURE(strings::initialize()); // This is fatal now.
 
     const char *translationFormat = strings::get_by_name(strings::names::TRANSLATION, 0);
@@ -67,9 +70,6 @@ JKSV::JKSV()
     m_showTranslationInfo         = std::char_traits<char>::compare(author, "NULL", 4) != 0; // This is whether or not to show.
     m_translationInfo             = stringutil::get_formatted_string(translationFormat, author);
     m_buildString                 = stringutil::get_formatted_string("v. %02d.%02d.%04d", BUILD_MON, BUILD_DAY, BUILD_YEAR);
-
-    input::initialize();
-    config::initialize();
 
     // This needs the config init'd or read to work.
     JKSV::create_directories();

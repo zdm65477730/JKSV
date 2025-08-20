@@ -1,8 +1,10 @@
 #include "strings/strings.hpp"
 
 #include "JSON.hpp"
+#include "config/config.hpp"
 #include "fslib.hpp"
 #include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "stringutil.hpp"
 
 #include <map>
@@ -92,9 +94,10 @@ static fslib::Path get_file_path()
     uint64_t languageCode{};
     SetLanguage language{};
 
-    const bool codeError = error::libnx(setGetLanguageCode(&languageCode));
-    const bool langError = !codeError && error::libnx(setMakeLanguage(languageCode, &language));
-    if (codeError || langError) { returnPath /= s_fileMap[SetLanguage_ENUS]; }
+    const bool forceEnglish = config::get_by_key(config::keys::FORCE_ENGLISH);
+    const bool codeError    = error::libnx(setGetLanguageCode(&languageCode));
+    const bool langError    = !codeError && error::libnx(setMakeLanguage(languageCode, &language));
+    if (forceEnglish || codeError || langError) { returnPath /= s_fileMap[SetLanguage_ENUS]; }
     else { returnPath /= s_fileMap[language]; }
 
     return returnPath;

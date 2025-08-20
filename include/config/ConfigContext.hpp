@@ -82,7 +82,7 @@ namespace config
 
         private:
             /// @brief This is where the majority of the config values are.
-            std::map<std::string, uint8_t> m_configMap{};
+            std::map<std::string, uint8_t, std::less<>> m_configMap{};
 
             /// @brief The main directory JKSV operates from.
             fslib::Path m_workingDirectory{};

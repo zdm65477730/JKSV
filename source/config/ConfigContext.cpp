@@ -4,6 +4,7 @@
 #include "config/keys.hpp"
 #include "error.hpp"
 #include "logging/error.hpp"
+#include "logging/logger.hpp"
 #include "stringutil.hpp"
 
 #include <algorithm>
@@ -69,14 +70,14 @@ void config::ConfigContext::save() { ConfigContext::save_config_file(); }
 
 uint8_t config::ConfigContext::get_by_key(std::string_view key) const
 {
-    const auto findKey = m_configMap.find(key.data());
+    const auto findKey = m_configMap.find(key);
     if (findKey == m_configMap.end()) { return 0; }
     return findKey->second;
 }
 
 void config::ConfigContext::toggle_by_key(std::string_view key)
 {
-    auto findKey = m_configMap.find(key.data());
+    auto findKey = m_configMap.find(key);
     if (findKey == m_configMap.end()) { return; }
 
     const uint8_t value = findKey->second;
@@ -85,7 +86,7 @@ void config::ConfigContext::toggle_by_key(std::string_view key)
 
 void config::ConfigContext::set_by_key(std::string_view key, uint8_t value)
 {
-    auto findKey = m_configMap.find(key.data());
+    auto findKey = m_configMap.find(key);
     if (findKey == m_configMap.end()) { return; }
 
     findKey->second = value;
