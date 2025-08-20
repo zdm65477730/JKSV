@@ -30,11 +30,11 @@ namespace
         CYCLE_ZIP       = 14,
         CYCLE_SORT_TYPE = 15,
         TOGGLE_JKSM     = 16,
-        CYCLE_SCALING   = 19
+        CYCLE_SCALING   = 23
     };
 
     // This is needed to be able to get and set keys by index. Anything "NULL" isn't a key that can be easily toggled.
-    constexpr std::array<std::string_view, 20> CONFIG_KEY_ARRAY = {CONFIG_KEY_NULL,
+    constexpr std::array<std::string_view, 24> CONFIG_KEY_ARRAY = {CONFIG_KEY_NULL,
                                                                    CONFIG_KEY_NULL,
                                                                    config::keys::INCLUDE_DEVICE_SAVES,
                                                                    config::keys::AUTO_BACKUP_ON_RESTORE,
@@ -52,6 +52,10 @@ namespace
                                                                    config::keys::TITLE_SORT_TYPE,
                                                                    config::keys::JKSM_TEXT_MODE,
                                                                    config::keys::FORCE_ENGLISH,
+                                                                   config::keys::SHOW_DEVICE_USER,
+                                                                   config::keys::SHOW_BCAT_USER,
+                                                                   config::keys::SHOW_CACHE_USER,
+                                                                   config::keys::SHOW_SYSTEM_USER,
                                                                    config::keys::ENABLE_TRASH_BIN,
                                                                    CONFIG_KEY_NULL};
 } // namespace
@@ -113,35 +117,35 @@ void SettingsState::load_extra_strings()
 
 void SettingsState::update_menu_options()
 {
-    for (int i : {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 18})
+    for (int i : {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 18, 19, 20, 21, 22})
     {
-        const char *optionTemplate = strings::get_by_name(strings::names::SETTINGS_MENU, i);
-        const uint8_t value        = config::get_by_key(CONFIG_KEY_ARRAY[i]);
-        const char *status         = SettingsState::get_status_text(value);
-        const std::string option   = stringutil::get_formatted_string(optionTemplate, status);
+        const char *optionFormat = strings::get_by_name(strings::names::SETTINGS_MENU, i);
+        const uint8_t value      = config::get_by_key(CONFIG_KEY_ARRAY[i]);
+        const char *status       = SettingsState::get_status_text(value);
+        const std::string option = stringutil::get_formatted_string(optionFormat, status);
         m_settingsMenu->edit_option(i, option);
     }
 
     {
-        const char *zipCompTemplate = strings::get_by_name(strings::names::SETTINGS_MENU, 14);
-        const uint8_t zipLevel      = config::get_by_key(CONFIG_KEY_ARRAY[14]);
-        const std::string zipOption = stringutil::get_formatted_string(zipCompTemplate, zipLevel);
-        m_settingsMenu->edit_option(14, zipOption);
+        const char *zipCompFormat   = strings::get_by_name(strings::names::SETTINGS_MENU, CYCLE_ZIP);
+        const uint8_t zipLevel      = config::get_by_key(CONFIG_KEY_ARRAY[CYCLE_ZIP]);
+        const std::string zipOption = stringutil::get_formatted_string(zipCompFormat, zipLevel);
+        m_settingsMenu->edit_option(CYCLE_ZIP, zipOption);
     }
 
     {
-        const char *titleSortTemplate    = strings::get_by_name(strings::names::SETTINGS_MENU, 15);
-        const uint8_t sortType           = config::get_by_key(CONFIG_KEY_ARRAY[15]);
+        const char *titleSortFormat      = strings::get_by_name(strings::names::SETTINGS_MENU, CYCLE_SORT_TYPE);
+        const uint8_t sortType           = config::get_by_key(CONFIG_KEY_ARRAY[CYCLE_SORT_TYPE]);
         const char *typeText             = SettingsState::get_sort_type_text(sortType);
-        const std::string sortTypeOption = stringutil::get_formatted_string(titleSortTemplate, typeText);
-        m_settingsMenu->edit_option(15, sortTypeOption);
+        const std::string sortTypeOption = stringutil::get_formatted_string(titleSortFormat, typeText);
+        m_settingsMenu->edit_option(CYCLE_SORT_TYPE, sortTypeOption);
     }
 
     {
-        const char *scalingTemplate     = strings::get_by_name(strings::names::SETTINGS_MENU, 19);
+        const char *scalingFormat       = strings::get_by_name(strings::names::SETTINGS_MENU, CYCLE_SCALING);
         const double scaling            = config::get_animation_scaling();
-        const std::string scalingOption = stringutil::get_formatted_string(scalingTemplate, scaling);
-        m_settingsMenu->edit_option(19, scalingOption);
+        const std::string scalingOption = stringutil::get_formatted_string(scalingFormat, scaling);
+        m_settingsMenu->edit_option(CYCLE_SCALING, scalingOption);
     }
 }
 

@@ -49,6 +49,10 @@ void config::ConfigContext::reset()
     m_configMap[config::keys::TITLE_SORT_TYPE.data()]         = 0;
     m_configMap[config::keys::JKSM_TEXT_MODE.data()]          = 0;
     m_configMap[config::keys::FORCE_ENGLISH.data()]           = 0;
+    m_configMap[config::keys::SHOW_DEVICE_USER.data()]        = 1;
+    m_configMap[config::keys::SHOW_BCAT_USER.data()]          = 0;
+    m_configMap[config::keys::SHOW_CACHE_USER.data()]         = 0;
+    m_configMap[config::keys::SHOW_SYSTEM_USER.data()]        = 0;
     m_configMap[config::keys::ENABLE_TRASH_BIN.data()]        = 0;
     m_animationScaling                                        = DEFAULT_SCALING;
 

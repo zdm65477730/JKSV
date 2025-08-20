@@ -32,6 +32,11 @@ bool data::DataContext::load_create_users(sys::Task *task)
 
     if (error::is_null(task) || !m_users.empty()) { return false; }
 
+    const bool emplaceDevice = config::get_by_key(config::keys::SHOW_DEVICE_USER);
+    const bool emplaceBCAT   = config::get_by_key(config::keys::SHOW_BCAT_USER);
+    const bool emplaceCache  = config::get_by_key(config::keys::SHOW_CACHE_USER);
+    const bool emplaceSystem = config::get_by_key(config::keys::SHOW_SYSTEM_USER);
+
     const char *statusLoading  = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 0);
     const char *statusCreating = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 1);
     const char *systemName     = strings::get_by_name(strings::names::SAVE_DATA_TYPES, 0);
@@ -51,10 +56,10 @@ bool data::DataContext::load_create_users(sys::Task *task)
         for (int i = 0; i < total; i++) { m_users.emplace_back(accounts[i], FsSaveDataType_Account); }
 
         task->set_status(statusCreating);
-        m_users.emplace_back(ID_DEVICE_USER, deviceName, deviceSafe, FsSaveDataType_Device);
-        m_users.emplace_back(ID_BCAT_USER, bcatName, bcatSafe, FsSaveDataType_Bcat);
-        m_users.emplace_back(ID_CACHE_USER, cacheName, cacheSafe, FsSaveDataType_Cache);
-        m_users.emplace_back(ID_SYSTEM_USER, systemName, systemSafe, FsSaveDataType_System);
+        if (emplaceDevice) { m_users.emplace_back(ID_DEVICE_USER, deviceName, deviceSafe, FsSaveDataType_Device); }
+        if (emplaceBCAT) { m_users.emplace_back(ID_BCAT_USER, bcatName, bcatSafe, FsSaveDataType_Bcat); }
+        if (emplaceCache) { m_users.emplace_back(ID_CACHE_USER, cacheName, cacheSafe, FsSaveDataType_Cache); }
+        if (emplaceSystem) { m_users.emplace_back(ID_SYSTEM_USER, systemName, systemSafe, FsSaveDataType_System); }
     }
 
     std::lock_guard iconGuard{m_iconQueueMutex};
@@ -178,11 +183,11 @@ void data::DataContext::import_svi_files(sys::Task *task)
         auto controlData     = std::make_unique<NsApplicationControlData>();
         const bool magicRead = sviFile.read(&magic, SIZE_UINT32) == SIZE_UINT32;
         const bool idRead    = sviFile.read(&applicationID, SIZE_UINT64) == SIZE_UINT64;
-        const bool dataRead  = sviFile.read(controlData.get(), SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
-        if (!magicRead || magic != fs::SAVE_META_MAGIC || !idRead || !dataRead) { continue; }
+        const bool exists    = DataContext::title_is_loaded(applicationID);
+        if (!magicRead || magic != fs::SAVE_META_MAGIC || !idRead || exists) { continue; }
 
-        const bool exists = DataContext::title_is_loaded(applicationID);
-        if (exists) { continue; }
+        const bool dataRead = sviFile.read(controlData.get(), SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
+        if (!dataRead) { continue; }
 
         std::scoped_lock multiGuard{m_iconQueueMutex, m_titleMutex};
         data::TitleInfo newTitle{applicationID, controlData};

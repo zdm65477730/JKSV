@@ -122,7 +122,7 @@
         "6: System BCAT"
     ],
     "SettingsDescriptions": [
-        "0: Sets the working directory for JKSV. The default value for this is `sdmc:/JKSV`.",
+        "0: Sets the working directory for JKSV. The default value for this is `sdmc:\/JKSV`.",
         "1: Allows you to remove titles from the blacklist.",
         "2: Includes device, or shared saves, with users.",
         "3: Creates a backup automatically when restoring another.",
@@ -140,8 +140,12 @@
         "15: Controls the way titles are sorted and displayed.",
         "16: Displays titles as text menus like the original JKSM on 3DS instead of icon grids.",
         "17: Forces English to be used as the language instead of the detected system language.",
-        "18: Moves deleted backups to the _TRASH_ folder instead of permanently deleting them. This only affects local backups.",
-        "19: Sets the speed at which transitions and animations occur. Lower is faster. One is instant, four is the slowest before things start breaking."
+        "18: Whether or not to load and display save data that is shared by all users. *This requires a restart to take effect!*",
+        "19: Whether or not to load and display BCAT save data. This often used to distribute in-game content and events outside of full updates. *This requires a restart to take effect!*",
+        "20: Whether or not to load and display Cache save data. This can be used to store DLC and various other things. *This requires a restart to take effect!*",
+        "21: Whether or not the system save data is loaded and displayed. *This requires a restart to take effect!*",
+        "22: Moves deleted backups to the _TRASH_ folder instead of permanently deleting them. This only effects local backups.",
+        "23: Sets the speed at which transitions and animations occur. Lower is faster. One is instant, four is the slowest before things start breaking."
     ],
     "SettingsMenu": [
         "0: Set JKSV output folder.",
@@ -162,8 +166,12 @@
         "15: Title sort type: %s",
         "16: Text menu (JKSM) mode: %s",
         "17: Force English: %s",
-        "18: Enable trash bin: %s",
-        "19: Animation scaling: %.02f"
+        "18: Show Device or shared save data: %s",
+        "19: Show BCAT save data: %s",
+        "20: Show Cache save data: %s",
+        "21: Show System Save Data: %s",
+        "22: Enable trash bin: %s",
+        "23: Animation scaling: %.02f"
     ],
     "SettingsPops": [
         "0: Blacklist is empty!",

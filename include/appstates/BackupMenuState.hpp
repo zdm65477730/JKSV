@@ -59,8 +59,8 @@ class BackupMenuState final : public BaseState
 
         struct MenuEntry
         {
-            MenuEntryType type;
-            int index;
+            MenuEntryType type{};
+            int index{};
         };
 
         struct DataStruct

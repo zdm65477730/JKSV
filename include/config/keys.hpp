@@ -22,6 +22,10 @@ namespace config
         inline constexpr std::string_view TITLE_SORT_TYPE         = "TitleSortType";
         inline constexpr std::string_view JKSM_TEXT_MODE          = "JKSMTextMode";
         inline constexpr std::string_view FORCE_ENGLISH           = "ForceEnglish";
+        inline constexpr std::string_view SHOW_DEVICE_USER        = "ShowDevice";
+        inline constexpr std::string_view SHOW_BCAT_USER          = "ShowBCAT";
+        inline constexpr std::string_view SHOW_CACHE_USER         = "ShowCache";
+        inline constexpr std::string_view SHOW_SYSTEM_USER        = "ShowSystem";
         inline constexpr std::string_view ENABLE_TRASH_BIN        = "EnableTrash";
         inline constexpr std::string_view UI_ANIMATION_SCALE      = "UIAnimationScaling";
         inline constexpr std::string_view FAVORITES               = "Favorites";
