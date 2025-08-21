@@ -171,7 +171,7 @@ void data::DataContext::import_svi_files(sys::Task *task)
 
     task->set_status(statusLoadingSvi);
 
-    for (const fslib::DirectoryEntry &entry : sviDir)
+    for (const fslib::DirectoryEntry &entry : sviDir.list())
     {
         const fslib::Path target{sviPath / entry};
         fslib::File sviFile{target, FsOpenMode_Read};

@@ -189,7 +189,7 @@ void fs::copy_directory(const fslib::Path &source, const fslib::Path &destinatio
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
 
-    for (const fslib::DirectoryEntry &entry : sourceDir)
+    for (const fslib::DirectoryEntry &entry : sourceDir.list())
     {
         const char *filename = entry.get_filename();
         if (filename == fs::NAME_SAVE_META) { continue; }
@@ -217,7 +217,7 @@ void fs::copy_directory_commit(const fslib::Path &source,
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
 
-    for (const fslib::DirectoryEntry &entry : sourceDir)
+    for (const fslib::DirectoryEntry &entry : sourceDir.list())
     {
         const char *filename = entry.get_filename();
         if (filename == fs::NAME_SAVE_META) { continue; }

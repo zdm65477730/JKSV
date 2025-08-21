@@ -8,7 +8,7 @@ uint64_t fs::get_directory_total_size(const fslib::Path &targetPath)
     if (!targetDir.is_open()) { return 0; }
 
     uint64_t directorySize = 0;
-    for (const fslib::DirectoryEntry &entry : targetDir)
+    for (const fslib::DirectoryEntry &entry : targetDir.list())
     {
         if (entry.is_directory())
         {
@@ -26,7 +26,7 @@ bool fs::directory_has_contents(const fslib::Path &directoryPath)
     fslib::Directory testDir{directoryPath};
     if (!testDir.is_open()) { return false; }
 
-    for (const fslib::DirectoryEntry &entry : testDir)
+    for (const fslib::DirectoryEntry &entry : testDir.list())
     {
         if (entry.get_filename() != fs::NAME_SAVE_META) { return true; }
     }

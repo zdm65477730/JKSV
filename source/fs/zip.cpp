@@ -100,7 +100,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
 
-    for (const fslib::DirectoryEntry &entry : sourceDir)
+    for (const fslib::DirectoryEntry &entry : sourceDir.list())
     {
         const fslib::Path fullSource{source / entry};
         if (entry.is_directory()) { fs::copy_directory_to_zip(fullSource, dest, task); }
