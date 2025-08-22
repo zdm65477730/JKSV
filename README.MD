@@ -1,10 +1,15 @@
-# JKSV
+# JKSV Rewrite
 
-JK's Save Manager Switch Edition - **Rewrite**.
+<p align="center">
+If you appreciate my work, or if JKSM or JKSV has gotten you out of a jam, please consider supporting development through a donation. Any contribution is appreciated, but never required! Creating and maintaining these tools takes a lot of time and effort.
+</p>
+<p align="center">
+<a href='https://ko-fi.com/W7W51JF9W6' target='_blank'><img height='42' style='border:px;height:42px;' src='https://storage.ko-fi.com/cdn/kofi3.png?v=6' border='0' alt='Support me for the countless hours I poured into JKSV' /></a>
+</p>
 
 <img src="https://i.imgur.com/1nMbJte.png" />
 
-## Rewrite:
+## Rewritten from the ground up:
 
 JKSV's rewrite aims to accomplish the following:
 - **Clean up and modernize the codebase:** The original master branch code became a mess over time and is extremely difficult to navigate and maintain. 
@@ -15,8 +20,10 @@ JKSV's rewrite aims to accomplish the following:
 - **Uses [FsLib](https://github.com/J-D-K/FsLib) instead of [fs_dev.c](https://github.com/switchbrew/libnx/blob/master/nx/source/runtime/devices/fs_dev.c):**
 	- All file operations are handled using FsLib. FsLib is a C++ wrapper I wrote around libnx's FS API.
 	- FsLib also handles SD card redirection so libraries that depend on C standard I/O can read and write files to and from the SD card.
+- **More convenient Google Drive login.**
 - **Improve WebDav Support and code.**
 - **Title Cache:** Titles found on the system are cached the same way [JKSM](https://github.com/J-D-K/JKSM) was. This improves boot time greatly on higher Switch firmware versions.
+	- The title cache is also **auto-invalidating**. No need to manually update it like JKSM on 3DS.
 - **_Proper_ use of C++ features:**
 	- **Polymorphism and state patterns** instead of scattered global variables and logic.
 	- **Smart pointers** to enure no memory leaks can occur.
@@ -61,8 +68,10 @@ JKSV's rewrite is a ground-up rewrite. It shares none of the original's code **a
 			- Delete all save data for a single user at once.
 - **Statistics:**
 	- View basic data and statistics about the save and title.
-
-
+- **Customizable:**
+	- JKSV features many options to customize it to your liking.
+- **Safety:**
+	- JKSV can require holding to complete destructive operations or be set to make quick automatic backups upon restoring backups.
 
 ## Building:
 
