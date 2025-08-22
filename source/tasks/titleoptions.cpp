@@ -217,6 +217,15 @@ void tasks::titleoptions::extend_save_data(sys::Task *task, TitleOptionState::Ta
     const bool validInput = keyboard::get_input(SwkbdType_NumPad, keyboardDefault, keyboardHeader, sizeBuffer.data(), 5);
     if (!validInput) { TASK_FINISH_RETURN(task); }
 
+    {
+        const char *nickname        = user->get_nickname();
+        const char *title           = titleInfo->get_title();
+        const char *extendingFormat = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 3);
+        const std::string status    = stringutil::get_formatted_string(extendingFormat, nickname, title);
+
+        task->set_status(status);
+    }
+
     const uint8_t saveType  = saveInfo->save_data_type;
     const int64_t size      = std::strtoll(sizeBuffer.data(), nullptr, 10) * SIZE_MB;
     const int64_t journal   = !readExtra ? titleInfo->get_journal_size(saveType) : extraData.journal_size;

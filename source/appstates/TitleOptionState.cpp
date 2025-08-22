@@ -286,8 +286,16 @@ void TitleOptionState::export_svi_file()
 
     const uint64_t applicationID = m_titleInfo->get_application_id();
     const std::string titleIdHex = stringutil::get_formatted_string("%016llX", applicationID);
-    const fslib::Path workDir    = config::get_working_directory();
-    const fslib::Path sviPath    = workDir / "svi" / titleIdHex + ".svi";
+    const fslib::Path sviDir     = config::get_working_directory() / "svi";
+    const fslib::Path sviPath    = sviDir / titleIdHex + ".svi";
+
+    const bool dirExists   = fslib::directory_exists(sviDir);
+    const bool createError = !dirExists && error::fslib(fslib::create_directory(sviDir));
+    if (!dirExists && createError)
+    {
+        ui::PopMessageManager::push_message(popTicks, popFailed);
+        return;
+    }
 
     const bool exists = fslib::file_exists(sviPath);
     if (exists)
