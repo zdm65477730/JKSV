@@ -172,11 +172,11 @@ bool JKSV::create_directories()
     const bool workDirCreated = needsWorkDir && fslib::create_directories_recursively(workDir);
     if (needsWorkDir && !workDirCreated) { return false; }
 
-    // SVI folder.
-    const fslib::Path sviDir = workDir / "svi";
-    const bool needsSviDir   = !fslib::directory_exists(sviDir);
-    const bool sviDirCreated = needsSviDir && fslib::create_directory(sviDir);
-    if (needsSviDir && !sviDirCreated) { return false; }
+    // Trash folder. This can fail without being fatal.
+    const fslib::Path trashDir{workDir / "_TRASH_"};
+    const bool trashEnabled = config::get_by_key(config::keys::ENABLE_TRASH_BIN);
+    const bool needsTash    = trashEnabled && !fslib::directory_exists(trashDir);
+    if (needsTash) { error::fslib(fslib::create_directory(trashDir)); }
 
     return true;
 }

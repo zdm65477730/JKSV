@@ -30,6 +30,7 @@ namespace
         CYCLE_ZIP       = 14,
         CYCLE_SORT_TYPE = 15,
         TOGGLE_JKSM     = 16,
+        TOGGLE_TRASH    = 22,
         CYCLE_SCALING   = 23
     };
 
@@ -206,6 +207,7 @@ void SettingsState::toggle_options()
         case CYCLE_ZIP:       SettingsState::cycle_zip_level(); break;
         case CYCLE_SORT_TYPE: SettingsState::cycle_sort_type(); break;
         case TOGGLE_JKSM:     SettingsState::toggle_jksm_mode(); break;
+        case TOGGLE_TRASH:    SettingsState::toggle_trash_folder(); break;
         case CYCLE_SCALING:   SettingsState::cycle_anim_scaling(); break;
         default:              config::toggle_by_key(CONFIG_KEY_ARRAY[selected]); break;
     }
@@ -244,6 +246,17 @@ void SettingsState::toggle_jksm_mode()
 {
     config::toggle_by_key(config::keys::JKSM_TEXT_MODE);
     MainMenuState::initialize_view_states();
+}
+
+void SettingsState::toggle_trash_folder()
+{
+    const bool trashEnabled = config::get_by_key(config::keys::ENABLE_TRASH_BIN);
+    const fslib::Path trashPath{config::get_working_directory() / "_TRASH_"};
+    logger::log("%s", trashPath.full_path());
+    config::toggle_by_key(config::keys::ENABLE_TRASH_BIN);
+
+    if (trashEnabled) { error::fslib(fslib::delete_directory_recursively(trashPath)); }
+    else { error::fslib(fslib::create_directory(trashPath)); }
 }
 
 void SettingsState::cycle_anim_scaling()

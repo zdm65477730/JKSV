@@ -328,9 +328,21 @@ void tasks::backup::delete_backup_local(sys::Task *task, BackupMenuState::TaskDa
         task->set_status(status);
     }
 
-    const bool isDir     = fslib::directory_exists(path);
-    const bool dirError  = isDir && error::fslib(fslib::delete_directory_recursively(path));
-    const bool fileError = !isDir && error::fslib(fslib::delete_file(path));
+    const bool trashEnabled = config::get_by_key(config::keys::ENABLE_TRASH_BIN);
+    const bool isDir        = fslib::directory_exists(path);
+    bool dirError{}, fileError{};
+    if (trashEnabled)
+    {
+        const fslib::Path newPath{config::get_working_directory() / "_TRASH_" / path.get_filename()};
+        dirError  = isDir && error::fslib(fslib::rename_directory(path, newPath));
+        fileError = !isDir && error::fslib(fslib::rename_file(path, newPath));
+    }
+    else
+    {
+        dirError  = isDir && error::fslib(fslib::delete_directory_recursively(path));
+        fileError = !isDir && error::fslib(fslib::delete_file(path));
+    }
+
     if (dirError || fileError)
     {
         const char *popFailed = strings::get_by_name(strings::names::BACKUPMENU_POPS, 4);

@@ -69,6 +69,9 @@ class SettingsState final : public BaseState
         /// @brief Toggles JKSM mode and calls the main menu to reinitialize the views.
         void toggle_jksm_mode();
 
+        /// @brief Toggles the trash folder and creates or deletes it if needed.
+        void toggle_trash_folder();
+
         /// @brief Cycles and wraps the animation scaling (1.0 to 4.0);
         void cycle_anim_scaling();
 
