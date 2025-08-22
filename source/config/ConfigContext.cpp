@@ -158,10 +158,9 @@ bool config::ConfigContext::has_custom_path(uint64_t applicationID) const
     return m_paths.find(applicationID) != m_paths.end();
 }
 
-void config::ConfigContext::add_custom_path(uint64_t applicationID, const fslib::Path &path)
+void config::ConfigContext::add_custom_path(uint64_t applicationID, std::string_view newPath)
 {
-    if (!path.is_valid()) { return; }
-    m_paths[applicationID] = path.full_path();
+    m_paths[applicationID] = newPath;
     ConfigContext::save_custom_paths();
 }
 
@@ -288,7 +287,7 @@ void config::ConfigContext::load_custom_paths()
 
 void config::ConfigContext::save_custom_paths()
 {
-    json::Object pathsJSON = json::new_object(json_object_from_file, PATH_PATHS_FILE.data());
+    json::Object pathsJSON = json::new_object(json_object_new_object);
     if (!pathsJSON) { return; }
 
     for (auto &[applicationID, path] : m_paths)

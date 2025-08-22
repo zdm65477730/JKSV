@@ -175,7 +175,7 @@ void TitleOptionState::change_output_directory()
     const fslib::Path newPath = workDir / pathBuffer.data();
     const bool oldExists      = fslib::directory_exists(oldPath);
     const bool renameFailed   = oldExists && error::fslib(fslib::rename_directory(oldPath, newPath));
-    if (!autoUpload && (!oldExists || renameFailed)) { ui::PopMessageManager::push_message(popTicks, popFailed); }
+    if (oldExists && renameFailed) { ui::PopMessageManager::push_message(popTicks, popFailed); }
 
     // Need to change WebDav to match.
     remote::Storage *remote = remote::get_remote_storage();

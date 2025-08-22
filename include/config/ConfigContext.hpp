@@ -75,7 +75,7 @@ namespace config
             bool has_custom_path(uint64_t applicationID) const;
 
             /// @brief Adds a new output path.
-            void add_custom_path(uint64_t applicationID, const fslib::Path &path);
+            void add_custom_path(uint64_t applicationID, std::string_view newPath);
 
             /// @brief Gets the custom output path of the applicationID passed.
             void get_custom_path(uint64_t applicationID, char *buffer, size_t bufferSize);
