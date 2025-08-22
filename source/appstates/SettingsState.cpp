@@ -252,7 +252,6 @@ void SettingsState::toggle_trash_folder()
 {
     const bool trashEnabled = config::get_by_key(config::keys::ENABLE_TRASH_BIN);
     const fslib::Path trashPath{config::get_working_directory() / "_TRASH_"};
-    logger::log("%s", trashPath.full_path());
     config::toggle_by_key(config::keys::ENABLE_TRASH_BIN);
 
     if (trashEnabled) { error::fslib(fslib::delete_directory_recursively(trashPath)); }
