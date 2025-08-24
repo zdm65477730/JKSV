@@ -210,6 +210,12 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
     const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
     if (autoBackup) { auto_backup(task, taskData); }
 
+    {
+        auto scopedMount = create_scoped_mount(saveInfo);
+        error::fslib(fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT));
+        error::fslib(fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT));
+    }
+
     if (!isDir && hasZipExt)
     {
         fs::MiniUnzip unzip{target};
@@ -255,6 +261,12 @@ void tasks::backup::restore_backup_remote(sys::ProgressTask *task, BackupMenuSta
     if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
 
     if (autoBackup) { auto_backup(task, taskData); }
+
+    {
+        auto scopedMount = create_scoped_mount(saveInfo);
+        error::fslib(fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT));
+        error::fslib(fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT));
+    }
 
     const int popTicks   = ui::PopMessageManager::DEFAULT_TICKS;
     remote::Item *target = taskData->remoteItem;

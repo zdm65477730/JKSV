@@ -178,13 +178,13 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
         if (lastDir == fullDest.NOT_FOUND) { continue; }
 
         const fslib::Path dirPath{fullDest.sub_path(lastDir)};
-        const bool dirExists = fslib::directory_exists(dirPath);
-        const bool dirFailed = !dirExists && dirPath.is_valid() && error::fslib(fslib::create_directories_recursively(dirPath));
-        if (!dirExists && dirFailed) { continue; }
+        const bool exists      = dirPath.is_valid() && fslib::directory_exists(dirPath);
+        const bool createError = dirPath.is_valid() && !exists && error::fslib(fslib::create_directories_recursively(dirPath));
+        if (dirPath.is_valid() && !exists && createError) { continue; }
 
         const int64_t fileSize = unzip.get_uncompressed_size();
         fslib::File destFile{fullDest, FsOpenMode_Create | FsOpenMode_Write, fileSize};
-        if (!destFile.is_open()) { return; }
+        if (error::fslib(destFile.is_open())) { continue; }
 
         if (task)
         {

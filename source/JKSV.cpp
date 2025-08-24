@@ -30,7 +30,7 @@ namespace
     /// @brief Build month.
     constexpr uint8_t BUILD_MON = 8;
     /// @brief Build day.
-    constexpr uint8_t BUILD_DAY = 21;
+    constexpr uint8_t BUILD_DAY = 24;
     /// @brief Year.
     constexpr uint16_t BUILD_YEAR = 2025;
 } // namespace
@@ -41,7 +41,7 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
     Result error = (*function)(args...);
     if (R_FAILED(error))
     {
-        logger::log("Error initializing %s: 0x%X.", error);
+        logger::log("Error initializing %s: 0x%X.", serviceName, error);
         return false;
     }
     return true;
