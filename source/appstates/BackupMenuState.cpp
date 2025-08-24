@@ -130,7 +130,7 @@ void BackupMenuState::refresh()
     for (const fslib::DirectoryEntry &entry : m_directoryListing.list())
     {
         sm_backupMenu->add_option(entry.get_filename());
-        m_menuEntries.push_back({MenuEntryType::Local, index});
+        m_menuEntries.push_back({MenuEntryType::Local, index++});
     }
 }
 
