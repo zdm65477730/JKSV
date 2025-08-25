@@ -73,6 +73,9 @@ JKSV's rewrite is a ground-up rewrite. It shares none of the original's code **a
 - **Safety:**
 	- JKSV can require holding to complete destructive operations or be set to make quick automatic backups upon restoring backups.
 
+## Remote Storage / Upload instructions.
+Detailed instructions for how to use JKSV's Google Drive and WebDav features can be found **[here](https://switch.hacks.guide/homebrew/jksv.html)**.
+
 ## Building:
 
 1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx).
