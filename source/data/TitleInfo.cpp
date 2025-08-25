@@ -14,7 +14,6 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
     , m_data(std::make_unique<NsApplicationControlData>())
 {
     static constexpr size_t SIZE_CTRL_DATA = sizeof(NsApplicationControlData);
-    static constexpr size_t SIZE_NACP      = sizeof(NacpStruct);
 
     uint64_t controlSize{};
     NacpLanguageEntry *entry{};

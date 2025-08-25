@@ -169,7 +169,6 @@ void TitleOptionState::change_output_directory()
         return;
     }
 
-    const bool autoUpload     = config::get_by_key(config::keys::AUTO_UPLOAD);
     const fslib::Path workDir = config::get_working_directory();
     const fslib::Path oldPath = workDir / pathSafe;
     const fslib::Path newPath = workDir / pathBuffer.data();

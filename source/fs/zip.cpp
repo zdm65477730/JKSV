@@ -230,8 +230,8 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
                 destFile.seek(i, destFile.BEGINNING);
                 journalCount = 0;
             }
-            // To do: Same as above.
             const bool goodWrite = localRead != -1 && destFile.write(localBuffer.get(), localRead);
+            error::fslib(goodWrite); // This will catch the error. To do: Recovery.
 
             i += localRead;
             journalCount += localRead;

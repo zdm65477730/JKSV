@@ -202,8 +202,6 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
     if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
 
     const bool autoBackup = config::get_by_key(config::keys::AUTO_BACKUP_ON_RESTORE);
-    const bool autoUpload = config::get_by_key(config::keys::AUTO_UPLOAD);
-    const bool exportZip  = autoUpload || config::get_by_key(config::keys::EXPORT_TO_ZIP);
     const bool isDir      = fslib::directory_exists(target);
     const bool hasZipExt  = std::strstr(target.full_path(), STRING_ZIP_EXT);
 
