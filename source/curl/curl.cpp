@@ -1,6 +1,6 @@
 #include "curl/curl.hpp"
 
-#include "logging/error.hpp"
+#include "error.hpp"
 #include "logging/logger.hpp"
 #include "stringutil.hpp"
 

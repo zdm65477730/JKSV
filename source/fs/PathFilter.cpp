@@ -4,7 +4,8 @@
 
 fs::PathFilter::PathFilter(const fslib::Path &filePath)
 {
-    json::Object filterJSON = json::new_object(json_object_from_file, filePath.full_path());
+    const std::string pathString = filePath.string();
+    json::Object filterJSON      = json::new_object(json_object_from_file, pathString.c_str());
     if (!filterJSON) { return; }
 
     json_object *filter = json::get_object(filterJSON, "filters");
@@ -25,5 +26,5 @@ bool fs::PathFilter::has_paths() const { return !m_paths.empty(); }
 
 bool fs::PathFilter::is_filtered(const fslib::Path &path)
 {
-    return std::find(m_paths.begin(), m_paths.end(), path.full_path()) != m_paths.end();
+    return std::find(m_paths.begin(), m_paths.end(), path) != m_paths.end();
 }

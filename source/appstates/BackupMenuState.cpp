@@ -5,12 +5,12 @@
 #include "appstates/FadeState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "config/config.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "graphics/colors.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
-#include "logging/error.hpp"
 #include "sdl.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
@@ -127,7 +127,7 @@ void BackupMenuState::refresh()
     }
 
     int index{};
-    for (const fslib::DirectoryEntry &entry : m_directoryListing.list())
+    for (const fslib::DirectoryEntry &entry : m_directoryListing)
     {
         sm_backupMenu->add_option(entry.get_filename());
         m_menuEntries.push_back({MenuEntryType::Local, index++});

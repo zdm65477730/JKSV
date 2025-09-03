@@ -61,6 +61,15 @@ namespace ui
             /// @param width New width of the menu in pixels.
             void set_width(int width);
 
+            /// @brief Updates the X render coordinate.
+            void set_x(int x);
+
+            /// @brief Updates the Y render coordinate.
+            void set_y(int y);
+
+            /// @brief Returns if the menu has no options.
+            bool is_empty() const;
+
             /// @brief Resets the menu and returns it to an empty, default state.
             void reset();
 

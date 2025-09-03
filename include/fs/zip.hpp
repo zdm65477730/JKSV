@@ -18,7 +18,6 @@ namespace fs
     void copy_zip_to_directory(fs::MiniUnzip &source,
                                const fslib::Path &dest,
                                int64_t journalSize,
-                               std::string_view commitDevice,
                                sys::ProgressTask *Task = nullptr);
 
     /// @brief Returns whether or not zip has files inside besides the save meta.

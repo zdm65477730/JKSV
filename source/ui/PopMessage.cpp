@@ -51,7 +51,7 @@ void ui::PopMessage::update_y(double targetY)
         m_yMet = true;
         m_typeTimer.start(5);
     }
-    m_dialog->set_xy(m_dialog->NO_SET, m_y - 6);
+    m_dialog->set_y(m_y - 6);
 }
 
 void ui::PopMessage::update_text_offset()
@@ -76,7 +76,7 @@ void ui::PopMessage::update_text_offset()
     const int dialogX     = m_textX - 16;
     const int dialogWidth = stringWidth + 32;
 
-    m_dialog->set_xy(dialogX, m_dialog->NO_SET);
-    m_dialog->set_width_height(dialogWidth, m_dialog->NO_SET);
+    m_dialog->set_x(dialogX);
+    m_dialog->set_width(dialogWidth);
     if (m_substrOffset >= messageLength) { m_displayTimer.start(m_ticks); }
 }

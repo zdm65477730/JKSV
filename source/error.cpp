@@ -1,4 +1,4 @@
-#include "logging/error.hpp"
+#include "error.hpp"
 
 #include "fslib.hpp"
 #include "logging/logger.hpp"

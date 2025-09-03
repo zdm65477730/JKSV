@@ -59,12 +59,12 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
         const bool countCheck = count <= 0 || i + count >= stringOutSize;
         const bool codeCheck  = codepoint < 0x20 || codepoint > 0x7E;
         if (countCheck) { break; }
+        else if (codepoint == L'é') { stringOut[offset++] = 'e'; }
         else if (codeCheck) { return false; }
 
         const bool forbidden = std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) !=
                                FORBIDDEN_PATH_CHARACTERS.end();
         if (forbidden) { stringOut[offset++] = 0x20; }
-        else if (codepoint == L'é') { stringOut[offset++] = 'e'; }
         else
         {
             std::memcpy(&stringOut[offset], &stringIn[i], static_cast<size_t>(count));

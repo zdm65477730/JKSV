@@ -99,12 +99,18 @@ void ui::Menu::set_selected(int selected)
 
 void ui::Menu::set_width(int width) { m_width = width; }
 
+void ui::Menu::set_x(int x) { m_x = x; }
+
+void ui::Menu::set_y(int y) { m_y = y; }
+
 void ui::Menu::reset()
 {
     m_selected = 0;
     m_y        = m_originalY;
     m_options.clear();
 }
+
+bool ui::Menu::is_empty() const { return m_options.empty(); }
 
 void ui::Menu::update_scroll_text()
 {

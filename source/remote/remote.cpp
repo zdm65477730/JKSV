@@ -2,7 +2,7 @@
 
 #include "StateManager.hpp"
 #include "appstates/TaskState.hpp"
-#include "logging/error.hpp"
+#include "error.hpp"
 #include "logging/logger.hpp"
 #include "remote/GoogleDrive.hpp"
 #include "remote/WebDav.hpp"

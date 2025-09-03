@@ -25,13 +25,10 @@ namespace data
             /// @brief Initializes a TitleInfo instance using external (cached) NsApplicationControlData
             /// @param applicationID Application ID of the title loaded from cache.
             /// @param controlData Reference to the control data to init from.
-            TitleInfo(uint64_t applicationID, std::unique_ptr<NsApplicationControlData> &controlData);
+            TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData);
 
-            /// @brief Move constructor and operator.
-            TitleInfo(TitleInfo &&titleInfo);
-            TitleInfo &operator=(TitleInfo &&TitleInfo);
-
-            // None of this nonesense around these parts.TitleInfo(const TitleInfo &)            = delete;
+            // None of this nonesense around these parts.
+            TitleInfo(const TitleInfo &)            = delete;
             TitleInfo &operator=(const TitleInfo &) = delete;
 
             /// @brief Returns the application ID of the title.
@@ -104,8 +101,8 @@ namespace data
             /// @brief Stores application ID for easier grabbing since JKSV is all pointers.
             uint64_t m_applicationID{};
 
-            /// @brief This contains the NACP and the icon.
-            std::unique_ptr<NsApplicationControlData> m_data{};
+            /// @brief Where all the good stuff is.
+            NsApplicationControlData m_data{};
 
             /// @brief Saves whether or not the title has control data.
             bool m_hasData{};

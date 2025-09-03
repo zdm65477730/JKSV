@@ -2,7 +2,8 @@
 
 #include "appstates/DataLoadingState.hpp"
 #include "data/DataContext.hpp"
-#include "logging/error.hpp"
+#include "error.hpp"
+#include "logging/logger.hpp"
 #include "strings/strings.hpp"
 
 #include <switch.h>

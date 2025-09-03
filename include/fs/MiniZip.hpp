@@ -6,7 +6,7 @@
 
 namespace fs
 {
-    class MiniZip
+    class MiniZip final
     {
         public:
             MiniZip() = default;
@@ -40,6 +40,9 @@ namespace fs
         private:
             /// @brief Stores whether or not the zipFile was opened successfully.
             bool m_isOpen{};
+
+            /// @brief Stores the compression level from config to avoid repeated calls.
+            int m_level{};
 
             /// @brief Underlying ZIP file.
             zipFile m_zip{};

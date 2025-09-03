@@ -4,8 +4,8 @@
 #include "appstates/MainMenuState.hpp"
 #include "config/config.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "input.hpp"
-#include "logging/error.hpp"
 
 BlacklistEditState::BlacklistEditState()
     : BaseState()

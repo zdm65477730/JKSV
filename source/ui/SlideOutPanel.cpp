@@ -25,17 +25,17 @@ ui::SlideOutPanel::SlideOutPanel(int width, Side side)
 
 void ui::SlideOutPanel::update(bool hasFocus)
 {
-    const bool openingFromLeft  = !m_isOpen && m_side == Side::Left && m_x < m_targetX;
-    const bool openingFromRight = !m_isOpen && m_side == Side::Right && m_x > m_targetX;
+    if (hasFocus && SlideOutPanel::is_hidden()) { SlideOutPanel::unhide(); }
 
-    if (openingFromLeft) { SlideOutPanel::slide_out_left(); }
-    else if (openingFromRight) { SlideOutPanel::slide_out_right(); }
+    slide_out();
 
     if (m_isOpen)
     {
         for (auto &currentElement : m_elements) { currentElement->update(hasFocus); }
     }
 }
+
+void ui::SlideOutPanel::sub_update() { SlideOutPanel::close_hide_panel(); }
 
 void ui::SlideOutPanel::render(sdl::SharedTexture &target, bool hasFocus)
 {
@@ -55,26 +55,38 @@ void ui::SlideOutPanel::reset()
 
 void ui::SlideOutPanel::close() { m_closePanel = true; }
 
+void ui::SlideOutPanel::hide() { m_hidePanel = true; }
+
+void ui::SlideOutPanel::unhide() { m_hidePanel = false; }
+
 bool ui::SlideOutPanel::is_open() const { return m_isOpen; }
 
 bool ui::SlideOutPanel::is_closed()
 {
-    // I'm assuming this is going to be called, waiting for the panel to close so.
-    const double scaling    = config::get_animation_scaling();
-    const bool closeToLeft  = m_closePanel && m_side == Side::Left && m_x > -m_width;
-    const bool closeToRight = m_closePanel && m_side == Side::Right && m_x < SCREEN_WIDTH;
-    if (closeToLeft) { m_x += -(m_width - m_x) / scaling; }
-    else if (closeToRight) { m_x += m_x / scaling; }
-
+    close_hide_panel();
     const bool closed = m_side == Side::Left ? m_x <= -m_width : m_x >= SCREEN_WIDTH;
     return m_closePanel && closed;
 }
+
+bool ui::SlideOutPanel::is_hidden() const { return m_hidePanel; }
 
 void ui::SlideOutPanel::push_new_element(std::shared_ptr<ui::Element> newElement) { m_elements.push_back(newElement); }
 
 void ui::SlideOutPanel::clear_elements() { m_elements.clear(); }
 
 sdl::SharedTexture &ui::SlideOutPanel::get_target() { return m_renderTarget; }
+
+void ui::SlideOutPanel::slide_out()
+{
+    const bool needsSlideOut = !m_isOpen && !m_closePanel && !m_hidePanel;
+    if (!needsSlideOut) { return; }
+
+    const bool slideRight = m_side == SlideOutPanel::Side::Left && m_x < 0;
+    const bool slideLeft  = m_side == SlideOutPanel::Side::Right && m_x > SCREEN_WIDTH - m_width;
+
+    if (slideRight) { SlideOutPanel::slide_out_left(); }
+    else if (slideLeft) { SlideOutPanel::slide_out_right(); }
+}
 
 void ui::SlideOutPanel::slide_out_left()
 {
@@ -105,4 +117,17 @@ void ui::SlideOutPanel::slide_out_right()
         m_x      = m_targetX;
         m_isOpen = true;
     }
+}
+
+void ui::SlideOutPanel::close_hide_panel()
+{
+    const double scaling    = config::get_animation_scaling();
+    const bool closeHide    = m_closePanel || m_hidePanel;
+    const bool closeToLeft  = closeHide && m_side == Side::Left && m_x > -m_width;
+    const bool closeToRight = closeHide && m_side == Side::Right && m_x < SCREEN_WIDTH;
+    if (closeToLeft) { m_x += -((m_width - m_x) / scaling); }
+    else if (closeToRight) { m_x += m_x / scaling; }
+
+    const bool closedOrHidden = (m_x <= -m_width) || (m_x >= SCREEN_WIDTH);
+    if (closedOrHidden) { m_isOpen = false; }
 }

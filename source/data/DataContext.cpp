@@ -1,8 +1,8 @@
 #include "data/DataContext.hpp"
 
 #include "config/config.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
@@ -128,7 +128,7 @@ bool data::DataContext::title_is_loaded(uint64_t applicationID)
 void data::DataContext::load_title(uint64_t applicationID)
 {
     std::scoped_lock titleGuard{m_titleMutex, m_iconQueueMutex};
-    m_titleInfo.emplace(applicationID, applicationID);
+    m_titleInfo.try_emplace(applicationID, applicationID);
     m_iconQueue.push_back(&m_titleInfo.at(applicationID));
 }
 
@@ -171,7 +171,8 @@ void data::DataContext::import_svi_files(sys::Task *task)
 
     task->set_status(statusLoadingSvi);
 
-    for (const fslib::DirectoryEntry &entry : sviDir.list())
+    auto controlData = std::make_unique<NsApplicationControlData>();
+    for (const fslib::DirectoryEntry &entry : sviDir)
     {
         const fslib::Path target{sviPath / entry};
         fslib::File sviFile{target, FsOpenMode_Read};
@@ -180,7 +181,6 @@ void data::DataContext::import_svi_files(sys::Task *task)
 
         uint32_t magic{};
         uint64_t applicationID{};
-        auto controlData     = std::make_unique<NsApplicationControlData>();
         const bool magicRead = sviFile.read(&magic, SIZE_UINT32) == SIZE_UINT32;
         const bool idRead    = sviFile.read(&applicationID, SIZE_UINT64) == SIZE_UINT64;
         const bool exists    = DataContext::title_is_loaded(applicationID);
@@ -190,8 +190,7 @@ void data::DataContext::import_svi_files(sys::Task *task)
         if (!dataRead) { continue; }
 
         std::scoped_lock multiGuard{m_iconQueueMutex, m_titleMutex};
-        data::TitleInfo newTitle{applicationID, controlData};
-        m_titleInfo.emplace(applicationID, std::move(newTitle));
+        m_titleInfo.try_emplace(applicationID, applicationID, *controlData);
         m_iconQueue.push_back(&m_titleInfo.at(applicationID));
     }
 }
@@ -214,8 +213,8 @@ bool data::DataContext::read_cache(sys::Task *task)
     const char *statusLoadingCache = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 4);
     task->set_status(statusLoadingCache);
 
+    auto controlData = std::make_unique<NsApplicationControlData>();
     do {
-        auto controlData    = std::make_unique<NsApplicationControlData>();
         const bool dataRead = cacheZip.read(controlData.get(), SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
         if (!dataRead) { continue; }
 
@@ -228,8 +227,7 @@ bool data::DataContext::read_cache(sys::Task *task)
 
         std::scoped_lock multiGuard{m_iconQueueMutex, m_titleMutex};
 
-        data::TitleInfo newTitle{applicationID, controlData};
-        m_titleInfo.emplace(applicationID, std::move(newTitle));
+        m_titleInfo.try_emplace(applicationID, applicationID, *controlData);
         m_iconQueue.push_back(&m_titleInfo.at(applicationID));
     } while (cacheZip.next_file());
     m_cacheIsValid = true;

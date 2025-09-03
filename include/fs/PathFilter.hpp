@@ -20,6 +20,6 @@ namespace fs
 
         private:
             /// @brief Vector of paths to filter from deletion and backup.
-            std::vector<std::string> m_paths{};
+            std::vector<fslib::Path> m_paths{};
     };
 }

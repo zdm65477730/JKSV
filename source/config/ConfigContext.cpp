@@ -3,7 +3,6 @@
 #include "JSON.hpp"
 #include "config/keys.hpp"
 #include "error.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "stringutil.hpp"
 
@@ -181,7 +180,7 @@ bool config::ConfigContext::load_config_file()
     const bool exists = fslib::file_exists(configPath);
     if (!exists) { return false; }
 
-    json::Object configJSON = json::new_object(json_object_from_file, configPath.full_path());
+    json::Object configJSON = json::new_object(json_object_from_file, PATH_CONFIG_FILE.data());
     if (!configJSON) { return false; }
 
     json_object_iterator configIter = json::iter_begin(configJSON);
@@ -212,7 +211,8 @@ void config::ConfigContext::save_config_file()
     json::Object configJSON = json::new_object(json_object_new_object);
     if (!configJSON) { return; }
 
-    json_object *workDir = json_object_new_string(m_workingDirectory.full_path());
+    const std::string workDirString = m_workingDirectory.string();
+    json_object *workDir            = json_object_new_string(workDirString.c_str());
     json::add_object(configJSON, config::keys::WORKING_DIRECTORY, workDir);
 
     for (const auto &[key, value] : m_configMap)

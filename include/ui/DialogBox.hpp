@@ -43,14 +43,17 @@ namespace ui
             /// @param hasFocus This is ignored.
             void render(sdl::SharedTexture &target, bool hasFocus) override;
 
-            /// @brief Sets the X and coords for the dialog box.
-            void set_xy(int x, int y);
+            /// @brief Sets the X render coord.
+            void set_x(int x);
 
-            /// @brief Sets the width and height of the dialog.
-            void set_width_height(int width, int height);
+            /// @brief Sets the X render coord.
+            void set_y(int y);
 
-            /// @brief Pass with the set functions to not change.
-            static inline constexpr int NO_SET = -1;
+            /// @brief Sets the width.
+            void set_width(int width);
+
+            /// @brief Sets the height.
+            void set_height(int height);
 
         private:
             /// @brief X render coord.

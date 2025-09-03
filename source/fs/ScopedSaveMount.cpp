@@ -1,7 +1,7 @@
 #include "fs/ScopedSaveMount.hpp"
 
+#include "error.hpp"
 #include "fslib.hpp"
-#include "logging/error.hpp"
 
 fs::ScopedSaveMount::ScopedSaveMount(std::string_view mount, const FsSaveDataInfo *saveInfo, bool log)
     : m_mountPoint(mount)

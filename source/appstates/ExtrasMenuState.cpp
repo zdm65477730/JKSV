@@ -1,7 +1,9 @@
 #include "appstates/ExtrasMenuState.hpp"
 
+#include "appstates/FileModeState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "graphics/colors.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
@@ -50,7 +52,13 @@ void ExtrasMenuState::update()
     {
         switch (m_extrasMenu.get_selected())
         {
-            case REINIT_DATA: ExtrasMenuState::reinitialize_data(); break;
+            case REINIT_DATA:       ExtrasMenuState::reinitialize_data(); break;
+            case SD_TO_SD_BROWSER:  ExtrasMenuState::sd_to_sd_browser(); break;
+            case BIS_PRODINFO_F:    ExtrasMenuState::prodinfof_to_sd(); break;
+            case BIS_SAFE:          ExtrasMenuState::safe_to_sd(); break;
+            case BIS_SYSTEM:        ExtrasMenuState::system_to_sd(); break;
+            case BIS_USER:          ExtrasMenuState::user_to_sd(); break;
+            case TERMINATE_PROCESS: ExtrasMenuState::terminate_process(); break;
         }
     }
     else if (bPressed) { BaseState::deactivate(); }
@@ -74,6 +82,42 @@ void ExtrasMenuState::initialize_menu()
 }
 
 void ExtrasMenuState::reinitialize_data() { data::launch_initialization(true, finish_reinitialization); }
+
+void ExtrasMenuState::sd_to_sd_browser() { FileModeState::create_and_push("sdmc", "sdmc", false); }
+
+void ExtrasMenuState::prodinfof_to_sd()
+{
+    const bool mountError = error::fslib(fslib::open_bis_filesystem("prodinfo-f", FsBisPartitionId_CalibrationFile));
+    if (mountError) { return; }
+
+    FileModeState::create_and_push("prodinfo-f", "sdmc", false);
+}
+
+void ExtrasMenuState::safe_to_sd()
+{
+    const bool mountError = error::fslib(fslib::open_bis_filesystem("safe", FsBisPartitionId_SafeMode));
+    if (mountError) { return; }
+
+    FileModeState::create_and_push("safe", "sdmc", false);
+}
+
+void ExtrasMenuState::system_to_sd()
+{
+    const bool mountError = error::fslib(fslib::open_bis_filesystem("system", FsBisPartitionId_System));
+    if (mountError) { return; }
+
+    FileModeState::create_and_push("system", "sdmc", false);
+}
+
+void ExtrasMenuState::user_to_sd()
+{
+    const bool mountError = error::fslib(fslib::open_bis_filesystem("user", FsBisPartitionId_User));
+    if (mountError) { return; }
+
+    FileModeState::create_and_push("user", "sdmc", false);
+}
+
+void ExtrasMenuState::terminate_process() {}
 
 static void finish_reinitialization()
 {

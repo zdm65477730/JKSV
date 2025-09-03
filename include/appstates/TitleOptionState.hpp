@@ -39,6 +39,9 @@ class TitleOptionState final : public BaseState
         /// @brief Runs update routine.
         void update() override;
 
+        /// @brief Handles hiding the panel.
+        void sub_update() override;
+
         /// @brief Runs the render routine.
         void render() override;
 

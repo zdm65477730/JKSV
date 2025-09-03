@@ -1,31 +1,20 @@
 #include "fs/SaveMetaData.hpp"
 
+#include "error.hpp"
 #include "fs/directory_functions.hpp"
 #include "fs/save_data_functions.hpp"
 #include "fs/save_mount.hpp"
 #include "fslib.hpp"
-#include "logging/error.hpp"
 
 namespace
 {
     constexpr size_t SIZE_EXTRA_DATA = sizeof(FsSaveDataExtraData);
 }
 
-bool fs::read_save_data_extra_info(const FsSaveDataInfo *saveInfo, FsSaveDataExtraData &dataOut)
-{
-    const FsSaveDataSpaceId spaceID = static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id);
-    const uint64_t saveDataID       = saveInfo->save_data_id;
-
-    const bool readError =
-        error::libnx(fsReadSaveDataFileSystemExtraDataBySaveDataSpaceId(&dataOut, SIZE_EXTRA_DATA, spaceID, saveDataID));
-    if (readError) { return false; }
-    return true;
-}
-
 bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &meta)
 {
     FsSaveDataExtraData extraData{};
-    const bool extraRead = fs::read_save_data_extra_info(saveInfo, extraData);
+    const bool extraRead = fs::read_save_extra_data(saveInfo, extraData);
     if (!extraRead) { return false; }
 
     meta = {.magic         = fs::SAVE_META_MAGIC,
@@ -49,7 +38,7 @@ bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &m
 bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaData &meta)
 {
     FsSaveDataExtraData extraData{};
-    const bool extraRead = fs::read_save_data_extra_info(saveInfo, extraData);
+    const bool extraRead = fs::read_save_extra_data(saveInfo, extraData);
     if (!extraRead) { return false; }
 
     const bool needsExtend = extraData.data_size < meta.saveDataSize;

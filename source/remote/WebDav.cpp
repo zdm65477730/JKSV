@@ -2,7 +2,7 @@
 
 #include "JSON.hpp"
 #include "curl/curl.hpp"
-#include "logging/error.hpp"
+#include "error.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "strings/strings.hpp"

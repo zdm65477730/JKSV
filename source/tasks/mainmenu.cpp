@@ -2,8 +2,8 @@
 
 #include "config/config.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
-#include "logging/error.hpp"
 #include "remote/remote.hpp"
 #include "stringutil.hpp"
 #include "tasks/backup.hpp"

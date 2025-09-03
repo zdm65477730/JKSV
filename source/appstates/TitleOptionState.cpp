@@ -2,15 +2,16 @@
 
 #include "StateManager.hpp"
 #include "appstates/ConfirmState.hpp"
+#include "appstates/FileModeState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TitleInfoState.hpp"
 #include "config/config.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "graphics/colors.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "strings/strings.hpp"
@@ -57,25 +58,20 @@ void TitleOptionState::update()
     const bool hasFocus = BaseState::has_focus();
 
     sm_slidePanel->update(hasFocus);
-    const bool isOpen = sm_slidePanel->is_open();
-    if (!isOpen) { return; }
 
+    const bool isOpen   = sm_slidePanel->is_open();
     const bool aPressed = input::button_pressed(HidNpadButton_A);
     const bool bPressed = input::button_pressed(HidNpadButton_B);
     const int selected  = sm_titleOptionMenu->get_selected();
 
-    // This is kind of tricky to handle, because the blacklist function uses both.
     if (m_refreshRequired)
     {
-        // Refresh the views.
         MainMenuState::refresh_view_states();
         m_refreshRequired = false;
-        // Return so nothing else happens. Not sure I like this, but w/e.
         return;
     }
-    if (m_exitRequired) { sm_slidePanel->close(); }
 
-    if (aPressed)
+    if (aPressed && isOpen)
     {
         switch (selected)
         {
@@ -91,9 +87,15 @@ void TitleOptionState::update()
             case EXPORT_SVI:                TitleOptionState::export_svi_file(); break;
         }
     }
-    else if (bPressed) { sm_slidePanel->close(); }
+    else if (bPressed || m_exitRequired)
+    {
+        sm_slidePanel->close();
+        m_exitRequired = false;
+    }
     else if (sm_slidePanel->is_closed()) { TitleOptionState::deactivate_state(); }
 }
+
+void TitleOptionState::sub_update() { sm_slidePanel->sub_update(); }
 
 void TitleOptionState::render()
 {
@@ -131,6 +133,7 @@ void TitleOptionState::initialize_data_struct()
 
 void TitleOptionState::create_push_info_state()
 {
+    sm_slidePanel->hide();
     auto titleInfoState = TitleInfoState::create(m_user, m_titleInfo);
     StateManager::push_state(titleInfoState);
 }
@@ -194,7 +197,18 @@ void TitleOptionState::change_output_directory()
     ui::PopMessageManager::push_message(popTicks, popSuccess);
 }
 
-void TitleOptionState::create_push_file_mode() {}
+void TitleOptionState::create_push_file_mode()
+{
+    const uint64_t applicationID   = m_titleInfo->get_application_id();
+    const FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
+    if (error::is_null(saveInfo)) { return; }
+
+    const bool saveOpened = fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo);
+    if (!saveOpened) { return; }
+
+    sm_slidePanel->hide();
+    FileModeState::create_and_push(fs::DEFAULT_SAVE_MOUNT, "sdmc", true);
+}
 
 void TitleOptionState::delete_all_local_backups()
 {

@@ -19,7 +19,6 @@ namespace fs
     /// @param journalSize Size of the journal area of the save data.
     void copy_file_commit(const fslib::Path &source,
                           const fslib::Path &destination,
-                          std::string_view device,
                           int64_t journalSize,
                           sys::ProgressTask *task = nullptr);
 
@@ -36,7 +35,6 @@ namespace fs
     /// @param journalSize Size of the journaling area of the save.
     void copy_directory_commit(const fslib::Path &source,
                                const fslib::Path &destination,
-                               std::string_view device,
                                int64_t journalSize,
                                sys::ProgressTask *task = nullptr);
 

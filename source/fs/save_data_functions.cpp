@@ -1,6 +1,6 @@
 #include "fs/save_data_functions.hpp"
 
-#include "logging/error.hpp"
+#include "error.hpp"
 #include "logging/logger.hpp"
 
 bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo)
@@ -29,8 +29,7 @@ bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo
                                                  .save_data_space_id = FsSaveDataSpaceId_User};
 
     // I want this recorded.
-    const bool createError = error::libnx(fsCreateSaveDataFileSystem(&saveAttributes, &saveCreation, &saveMeta));
-    return createError == false;
+    return error::libnx(fsCreateSaveDataFileSystem(&saveAttributes, &saveCreation, &saveMeta)) == false;
 }
 
 bool fs::delete_save_data(const FsSaveDataInfo *saveInfo)
@@ -47,8 +46,7 @@ bool fs::delete_save_data(const FsSaveDataInfo *saveInfo)
                                                 .save_data_rank      = saveInfo->save_data_rank,
                                                 .save_data_index     = saveInfo->save_data_index};
 
-    const bool deleteError = error::libnx(fsDeleteSaveDataFileSystemBySaveDataAttribute(spaceID, &saveAttributes));
-    return deleteError == false;
+    return error::libnx(fsDeleteSaveDataFileSystemBySaveDataAttribute(spaceID, &saveAttributes)) == false;
 }
 
 bool fs::extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t journalSize)
@@ -56,11 +54,22 @@ bool fs::extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t 
     const FsSaveDataSpaceId spaceID = static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id);
     const uint64_t saveID           = saveInfo->save_data_id;
 
-    const bool extendError = error::libnx(fsExtendSaveDataFileSystem(spaceID, saveID, size, journalSize));
-    return extendError == false;
+    return error::libnx(fsExtendSaveDataFileSystem(spaceID, saveID, size, journalSize)) == false;
 }
 
 bool fs::is_system_save_data(const FsSaveDataInfo *saveInfo)
 {
     return saveInfo->save_data_type == FsSaveDataType_System || saveInfo->save_data_type == FsSaveDataType_SystemBcat;
+}
+
+bool fs::read_save_extra_data(const FsSaveDataInfo *saveInfo, FsSaveDataExtraData &extraOut)
+{
+    static constexpr size_t EXTRA_SIZE = sizeof(FsSaveDataExtraData);
+
+    const FsSaveDataSpaceId spaceID = static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id);
+
+    const bool readError = error::libnx(
+        fsReadSaveDataFileSystemExtraDataBySaveDataSpaceId(&extraOut, EXTRA_SIZE, spaceID, saveInfo->save_data_id));
+
+    return !readError;
 }

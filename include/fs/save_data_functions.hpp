@@ -1,5 +1,6 @@
 #pragma once
 #include "data/data.hpp"
+
 #include <switch.h>
 
 namespace fs
@@ -27,4 +28,10 @@ namespace fs
     /// @return True if it is. False if it isn't.
     /// @note The config setting overrides this.
     bool is_system_save_data(const FsSaveDataInfo *saveInfo);
+
+    /// @brief Reads the extra info of the save container according to the FsSaveDataInfo passed.
+    /// @param saveInfo Pointer to the save info to read.
+    /// @param extraOut Reference to the FsSaveDataExtraData to read to.
+    /// @return True on success. False on failure.
+    bool read_save_extra_data(const FsSaveDataInfo *saveInfo, FsSaveDataExtraData &extraOut);
 } // namespace fs

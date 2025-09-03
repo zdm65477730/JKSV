@@ -33,7 +33,8 @@
         "0: [A] Select   [Y] Dump All Saves   [X] User Options",
         "1: [A] Select   [L] [R] Jump   [Y] Favorite   [X] Title Options  [B] Back",
         "2: [A] Select  [Y] Restore  [X] Delete  [ZR] Upload  [B] Close",
-        "3: [A] Toggle  [-] Description   [X] Defaults   [B] Back"
+        "3: [A] Toggle  [-] Description   [X] Defaults   [B] Back",
+        "4: [A] Enter   [B] Back/Up   [X] Options   [ZL]/[ZR] Change Target   [-] Close"
     ],
     "DataLoadingStatus": [
         "0: Loading user accounts from system...",
@@ -57,6 +58,28 @@
     "ExtrasPops": [
         "0: Data reinitialized!",
         "1: Data reinitialization failed!"
+    ],
+    "FileOptionMenu": [
+        "0: Copy",
+        "1: Delete",
+        "2: Rename",
+        "3: Create Folder",
+        "4: Properties",
+        "5: Close"
+    ],
+    "FileOptionConfs": [
+        "0: Are you sure you want to copy #%s# to #%s#?",
+        "1: Are you sure you want to delete #%s#?",
+    ],
+    "FileModePops": [
+        "0: Copied #%s#!",
+        "1: Failed to copy #%s#!",
+        "2: Deleted #%s#!",
+        "3: Failed to delete #%s#!",
+        "4: Renamed #%s# to #%s#!",
+        "5: Failed to rename #%s#!",
+        "6: Created #%s#!",
+        "7: Failed to create #%s#!"
     ],
     "GeneralPops": [
         "0: Unable to exit JKSV while tasks are running!"
@@ -92,7 +115,8 @@
         "5: Enter a new name for the target item.",
         "6: Enter a name for the new folder.",
         "7: Enter a new output folder name for %s.",
-        "8: Enter how much to expand (in MB)."
+        "8: Enter how much to expand (in MB).",
+        "9: Enter a new name for %s."
     ],
     "MainMenuConfs": [
         "0: Are you sure you want to backup the save data for every user on this system? This can take an *extremely* long time!"

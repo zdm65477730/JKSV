@@ -1,6 +1,6 @@
 #include "appstates/BaseState.hpp"
 
-#include "logging/error.hpp"
+#include "error.hpp"
 
 #include <switch.h>
 
