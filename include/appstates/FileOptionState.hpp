@@ -5,6 +5,8 @@
 #include "fslib.hpp"
 #include "ui/ui.hpp"
 
+#include <atomic>
+
 class FileOptionState final : public BaseState
 {
     public:
@@ -34,12 +36,19 @@ class FileOptionState final : public BaseState
         /// @brief Render routine.
         void render() override;
 
+        /// @brief Signals to this state to update the source/target menu on the next update() call.
+        void update_source();
+
+        /// @brief Signals to this state to update the destination. Very rarely used.
+        void update_destination();
+
         // clang-format off
         struct DataStruct
         {
             fslib::Path sourcePath{};
             fslib::Path destPath{};
             int64_t journalSize{};
+            FileOptionState *spawningState{};
         };
         // clang-format on
 
@@ -49,12 +58,6 @@ class FileOptionState final : public BaseState
     private:
         /// @brief Pointer to spawning FileMode state.
         FileModeState *m_spawningState{};
-
-        /// @brief Stores whether or not tasks require committing data and changes to the target.
-        bool m_commitData{};
-
-        /// @brief Journal size for when committing is required.
-        int64_t m_journalSize{};
 
         /// @brief X coordinate. This is set at construction according to the target from the spawning state.
         int m_x{};
@@ -68,8 +71,9 @@ class FileOptionState final : public BaseState
         /// @brief Whether or not the state should be closed.
         bool m_close{};
 
-        /// @brief This holds the scaling in config.
-        double m_scaling{};
+        /// @brief Stores whether or not an update is needed on the next update().
+        std::atomic<bool> m_updateSource{};
+        std::atomic<bool> m_updateDest{};
 
         /// @brief This is the data struct passed to tasks.
         std::shared_ptr<FileOptionState::DataStruct> m_dataStruct{};
@@ -86,17 +90,31 @@ class FileOptionState final : public BaseState
         /// @brief Sets whether the dialog/menu are positioned left or right depending on the menu active in the spawning state.
         void set_menu_side();
 
+        /// @brief Assigns the pointer to this.
+        void initialize_data_struct();
+
+        /// @brief Updates the FileModeState's source data.
+        void update_filemode_source();
+
+        /// @brief Updates the FileModeState's destination data.
+        void update_filemode_dest();
+
         /// @brief Updates the Y coordinate
         void update_x_coord();
 
+        /// @brief Sets up and begins the copy task.
         void copy_target();
 
+        /// @brief Sets up and begins the delete task.
         void delete_target();
 
+        /// @brief Attempts to rename the target.
         void rename_target();
 
+        /// @brief Attempts to create a new directory.
         void create_directory();
 
+        /// @brief Gets the properties of a file/folder.
         void get_show_target_properties();
 
         /// @brief Closes and hides the state.

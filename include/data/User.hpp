@@ -29,18 +29,21 @@ namespace data
             /// @brief Constructs a new user with accountID
             /// @param accountID AccountID of user.
             /// @param saveType Save data type account uses.
-            User(AccountUid accountID, FsSaveDataType saveType);
+            User(AccountUid accountID, FsSaveDataType saveType) noexcept;
 
             /// @brief This is the constructor used to create the fake system users.
             /// @param accountID AccountID to associate with saveType.
             /// @param pathSafeNickname The path safe version of the save data since JKSV is in everything the Switch supports.
             /// @param iconPath Path to the icon to load for account.
             /// @param saveType Save data type of user.
-            User(AccountUid accountID, std::string_view nickname, std::string_view pathSafeNickname, FsSaveDataType saveType);
+            User(AccountUid accountID,
+                 std::string_view nickname,
+                 std::string_view pathSafeNickname,
+                 FsSaveDataType saveType) noexcept;
 
             /// @brief Move constructor and operator.
-            User(User &&user);
-            User &operator=(User &&user);
+            User(User &&user) noexcept;
+            User &operator=(User &&user) noexcept;
 
             // Non of this around these parts.
             User(const User &)            = delete;
@@ -52,47 +55,47 @@ namespace data
             void add_data(const FsSaveDataInfo *saveInfo, const PdmPlayStatistics *playStats);
 
             /// @brief Clears the user save info vector.
-            void clear_data_entries();
+            void clear_data_entries() noexcept;
 
             /// @brief Erases data at index.
             /// @param index Index of save data info to erase.
             void erase_data(int index);
 
             /// @brief Runs the sort algo on the vector.
-            void sort_data();
+            void sort_data() noexcept;
 
             /// @brief Returns the account ID of the user
-            AccountUid get_account_id() const;
+            AccountUid get_account_id() const noexcept;
 
             /// @brief Returns the primary  save data type o
-            FsSaveDataType get_account_save_type() const;
+            FsSaveDataType get_account_save_type() const noexcept;
 
             /// @brief Returns the user's full UTF-8 nickname.
-            const char *get_nickname() const;
+            const char *get_nickname() const noexcept;
 
             /// @brief Returns the path safe version of the user's nickname.
-            const char *get_path_safe_nickname() const;
+            const char *get_path_safe_nickname() const noexcept;
 
             /// @brief Returns the total data entries.
-            size_t get_total_data_entries() const;
+            size_t get_total_data_entries() const noexcept;
 
             /// @brief Returns the application ID of the title at index.
-            uint64_t get_application_id_at(int index) const;
+            uint64_t get_application_id_at(int index) const noexcept;
 
             /// @brief Returns a pointer to the save data info at index.
-            FsSaveDataInfo *get_save_info_at(int index);
+            FsSaveDataInfo *get_save_info_at(int index) noexcept;
 
             /// @brief Returns a pointer to the play statistics at index.
-            PdmPlayStatistics *get_play_stats_at(int index);
+            PdmPlayStatistics *get_play_stats_at(int index) noexcept;
 
             /// @brief Returns a pointer to the save info of applicationID.
-            FsSaveDataInfo *get_save_info_by_id(uint64_t applicationID);
+            FsSaveDataInfo *get_save_info_by_id(uint64_t applicationID) noexcept;
 
             /// @brief Returns a reference to the internal map for range based loops.
-            data::UserSaveInfoList &get_user_save_info_list();
+            data::UserSaveInfoList &get_user_save_info_list() noexcept;
 
             /// @brief Returns a pointer to the play statistics of applicationID
-            PdmPlayStatistics *get_play_stats_by_id(uint64_t applicationID);
+            PdmPlayStatistics *get_play_stats_by_id(uint64_t applicationID) noexcept;
 
             /// @brief Erases a UserDataEntry according to the application ID passed.
             /// @param applicationID ID of the save to erase.

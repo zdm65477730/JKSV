@@ -78,7 +78,7 @@ bool strings::initialize()
     return true;
 }
 
-const char *strings::get_by_name(std::string_view name, int index)
+const char *strings::get_by_name(std::string_view name, int index) noexcept
 {
     const auto mapPair  = std::make_pair(name.data(), index);
     const auto findPair = s_stringMap.find(mapPair);

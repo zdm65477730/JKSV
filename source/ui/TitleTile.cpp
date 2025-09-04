@@ -40,12 +40,12 @@ void ui::TitleTile::render(sdl::SharedTexture &target, int x, int y)
     if (m_isFavorite) { sdl::text::render(target, renderX + 2, renderY + 2, 28, sdl::text::NO_WRAP, colors::PINK, HEART_CHAR); }
 }
 
-void ui::TitleTile::reset()
+void ui::TitleTile::reset() noexcept
 {
     m_renderWidth  = 128;
     m_renderHeight = 128;
 }
 
-int ui::TitleTile::get_width() const { return m_renderWidth; }
+int ui::TitleTile::get_width() const noexcept { return m_renderWidth; }
 
-int ui::TitleTile::get_height() const { return m_renderHeight; }
+int ui::TitleTile::get_height() const noexcept { return m_renderHeight; }

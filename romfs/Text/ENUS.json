@@ -69,7 +69,7 @@
     ],
     "FileOptionConfs": [
         "0: Are you sure you want to copy #%s# to #%s#?",
-        "1: Are you sure you want to delete #%s#?",
+        "1: Are you sure you want to delete #%s#?"
     ],
     "FileModePops": [
         "0: Copied #%s#!",

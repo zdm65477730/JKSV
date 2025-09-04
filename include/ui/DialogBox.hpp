@@ -22,9 +22,6 @@ namespace ui
             /// @param type Optional. The type of box. Default is dark since JKSV rewrite doesn't do theme detection.
             DialogBox(int x, int y, int width, int height, DialogBox::Type type = DialogBox::Type::Dark);
 
-            /// @brief Required destructor.
-            ~DialogBox() {};
-
             /// @brief Creates and returns a new DialogBox instance. See constructor.
             static inline std::shared_ptr<ui::DialogBox> create(int x,
                                                                 int y,
@@ -44,16 +41,16 @@ namespace ui
             void render(sdl::SharedTexture &target, bool hasFocus) override;
 
             /// @brief Sets the X render coord.
-            void set_x(int x);
+            void set_x(int x) noexcept;
 
             /// @brief Sets the X render coord.
-            void set_y(int y);
+            void set_y(int y) noexcept;
 
             /// @brief Sets the width.
-            void set_width(int width);
+            void set_width(int width) noexcept;
 
             /// @brief Sets the height.
-            void set_height(int height);
+            void set_height(int height) noexcept;
 
         private:
             /// @brief X render coord.

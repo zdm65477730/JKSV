@@ -27,7 +27,7 @@ void logger::initialize()
     if (!exists) { fslib::create_file(logPath); }
 }
 
-void logger::log(const char *format, ...)
+void logger::log(const char *format, ...) noexcept
 {
     static std::mutex logLock{};
 

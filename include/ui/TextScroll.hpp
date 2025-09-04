@@ -32,9 +32,6 @@ namespace ui
                        sdl::Color clearColor,
                        bool center = true);
 
-            /// @brief Required destructor.
-            ~TextScroll() {};
-
             /// @brief Creates and returns a new TextScroll. See constructor.
             static inline std::shared_ptr<ui::TextScroll> create(std::string_view text,
                                                                  int x,
@@ -76,13 +73,10 @@ namespace ui
             void render(sdl::SharedTexture &target, bool hasFocus) override;
 
             /// @brief Returns the current text being used for scrolling.
-            std::string_view get_text() const;
+            std::string_view get_text() const noexcept;
 
             /// @brief Sets and allows changing the text scrolled.
             void set_text(std::string_view text, bool center);
-
-            /// @brief Allows setting of the X and Y render coordinates.
-            void set_xy(int x, int y);
 
         private:
             /// @brief Text to display.

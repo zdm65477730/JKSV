@@ -32,11 +32,11 @@ void ui::PopMessage::render()
     sdl::text::render(sdl::Texture::Null, m_textX, m_y + 5, 22, sdl::text::NO_WRAP, colors::BLACK, message);
 }
 
-std::string_view ui::PopMessage::get_message() const { return m_message; }
+bool ui::PopMessage::finished() const noexcept { return m_finished; }
 
-bool ui::PopMessage::finished() const { return m_finished; }
+std::string_view ui::PopMessage::get_message() const noexcept { return m_message; }
 
-void ui::PopMessage::update_y(double targetY)
+void ui::PopMessage::update_y(double targetY) noexcept
 {
     if (m_y == targetY) { return; }
 
@@ -54,7 +54,7 @@ void ui::PopMessage::update_y(double targetY)
     m_dialog->set_y(m_y - 6);
 }
 
-void ui::PopMessage::update_text_offset()
+void ui::PopMessage::update_text_offset() noexcept
 {
     static constexpr int HALF_WIDTH = 640;
 

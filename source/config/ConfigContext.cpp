@@ -67,14 +67,14 @@ bool config::ConfigContext::load()
 
 void config::ConfigContext::save() { ConfigContext::save_config_file(); }
 
-uint8_t config::ConfigContext::get_by_key(std::string_view key) const
+uint8_t config::ConfigContext::get_by_key(std::string_view key) const noexcept
 {
     const auto findKey = m_configMap.find(key);
     if (findKey == m_configMap.end()) { return 0; }
     return findKey->second;
 }
 
-void config::ConfigContext::toggle_by_key(std::string_view key)
+void config::ConfigContext::toggle_by_key(std::string_view key) noexcept
 {
     auto findKey = m_configMap.find(key);
     if (findKey == m_configMap.end()) { return; }
@@ -83,7 +83,7 @@ void config::ConfigContext::toggle_by_key(std::string_view key)
     findKey->second     = value ? 0 : 1;
 }
 
-void config::ConfigContext::set_by_key(std::string_view key, uint8_t value)
+void config::ConfigContext::set_by_key(std::string_view key, uint8_t value) noexcept
 {
     auto findKey = m_configMap.find(key);
     if (findKey == m_configMap.end()) { return; }
@@ -91,9 +91,9 @@ void config::ConfigContext::set_by_key(std::string_view key, uint8_t value)
     findKey->second = value;
 }
 
-fslib::Path config::ConfigContext::get_working_directory() const { return m_workingDirectory; }
+fslib::Path config::ConfigContext::get_working_directory() const noexcept { return m_workingDirectory; }
 
-bool config::ConfigContext::set_working_directory(const fslib::Path &workDir)
+bool config::ConfigContext::set_working_directory(const fslib::Path &workDir) noexcept
 {
     if (!workDir.is_valid()) { return false; }
 
@@ -101,9 +101,9 @@ bool config::ConfigContext::set_working_directory(const fslib::Path &workDir)
     return true;
 }
 
-double config::ConfigContext::get_animation_scaling() const { return m_animationScaling; }
+double config::ConfigContext::get_animation_scaling() const noexcept { return m_animationScaling; }
 
-void config::ConfigContext::set_animation_scaling(double scaling) { m_animationScaling = scaling; }
+void config::ConfigContext::set_animation_scaling(double scaling) noexcept { m_animationScaling = scaling; }
 
 void config::ConfigContext::add_favorite(uint64_t applicationID)
 {
@@ -113,7 +113,7 @@ void config::ConfigContext::add_favorite(uint64_t applicationID)
     ConfigContext::save_config_file();
 }
 
-void config::ConfigContext::remove_favorite(uint64_t applicationID)
+void config::ConfigContext::remove_favorite(uint64_t applicationID) noexcept
 {
     const auto findFav = ConfigContext::find_application_id(m_favorites, applicationID);
     if (findFav == m_favorites.end()) { return; }
@@ -121,7 +121,7 @@ void config::ConfigContext::remove_favorite(uint64_t applicationID)
     ConfigContext::save_config_file();
 }
 
-bool config::ConfigContext::is_favorite(uint64_t applicationID) const
+bool config::ConfigContext::is_favorite(uint64_t applicationID) const noexcept
 {
     return ConfigContext::find_application_id(m_favorites, applicationID) != m_favorites.end();
 }
@@ -133,7 +133,7 @@ void config::ConfigContext::add_to_blacklist(uint64_t applicationID)
     m_blacklist.push_back(applicationID);
 }
 
-void config::ConfigContext::remove_from_blacklist(uint64_t applicationID)
+void config::ConfigContext::remove_from_blacklist(uint64_t applicationID) noexcept
 {
     const auto findTitle = ConfigContext::find_application_id(m_blacklist, applicationID);
     if (findTitle == m_blacklist.end()) { return; }
@@ -145,14 +145,14 @@ void config::ConfigContext::get_blacklist(std::vector<uint64_t> &listOut)
     listOut.assign(m_blacklist.begin(), m_blacklist.end());
 }
 
-bool config::ConfigContext::is_blacklisted(uint64_t applicationID) const
+bool config::ConfigContext::is_blacklisted(uint64_t applicationID) const noexcept
 {
     return ConfigContext::find_application_id(m_blacklist, applicationID) != m_blacklist.end();
 }
 
-bool config::ConfigContext::blacklist_empty() const { return m_blacklist.empty(); }
+bool config::ConfigContext::blacklist_empty() const noexcept { return m_blacklist.empty(); }
 
-bool config::ConfigContext::has_custom_path(uint64_t applicationID) const
+bool config::ConfigContext::has_custom_path(uint64_t applicationID) const noexcept
 {
     return m_paths.find(applicationID) != m_paths.end();
 }

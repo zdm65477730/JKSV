@@ -12,9 +12,6 @@ namespace ui
             /// @brief Constructs a new frame.
             Frame(int x, int y, int width, int height);
 
-            /// @brief Doesn't need to do anything because modern C++.
-            ~Frame() {};
-
             /// @brief Inline function to make constructing nicer.
             static inline std::shared_ptr<ui::Frame> create(int x, int y, int width, int height)
             {
@@ -28,16 +25,16 @@ namespace ui
             void render(sdl::SharedTexture &target, bool hasFocus) override;
 
             /// @brief Sets the X coord.
-            void set_x(int x);
+            void set_x(int x) noexcept;
 
             /// @brief Sets the Y coord.
-            void set_y(int y);
+            void set_y(int y) noexcept;
 
             /// @brief Sets the width of the frame.
-            void set_width(int width);
+            void set_width(int width) noexcept;
 
             /// @brief Sets the height of the frame.
-            void set_height(int height);
+            void set_height(int height) noexcept;
 
         private:
             /// @brief X rendering coord.

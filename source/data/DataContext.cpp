@@ -132,7 +132,7 @@ void data::DataContext::load_title(uint64_t applicationID)
     m_iconQueue.push_back(&m_titleInfo.at(applicationID));
 }
 
-data::TitleInfo *data::DataContext::get_title_by_id(uint64_t applicationID)
+data::TitleInfo *data::DataContext::get_title_by_id(uint64_t applicationID) noexcept
 {
     std::lock_guard titleGuard{m_titleMutex};
     auto findTitle = m_titleInfo.find(applicationID);

@@ -22,9 +22,9 @@ fs::PathFilter::PathFilter(const fslib::Path &filePath)
     }
 }
 
-bool fs::PathFilter::has_paths() const { return !m_paths.empty(); }
+bool fs::PathFilter::has_paths() const noexcept { return !m_paths.empty(); }
 
-bool fs::PathFilter::is_filtered(const fslib::Path &path)
+bool fs::PathFilter::is_filtered(const fslib::Path &path) const noexcept
 {
     return std::find(m_paths.begin(), m_paths.end(), path) != m_paths.end();
 }

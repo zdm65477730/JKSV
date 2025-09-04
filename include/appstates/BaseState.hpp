@@ -48,7 +48,7 @@ class BaseState
 
     private:
         /// @brief Stores whether or not the state is currently active.
-        bool m_isActive = true;
+        bool m_isActive{true};
 
         /// @brief Stores whether or not the state has focus.
         bool m_hasFocus{};

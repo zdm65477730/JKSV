@@ -9,29 +9,29 @@ namespace fs
     /// @param targetUser User to create save data for.
     /// @param titleInfo Title to create save data for.
     /// @return True on success. False on failure.
-    bool create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo);
+    bool create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo) noexcept;
 
     /// @brief Deletes the save data of the FsSaveDataInfo passed.
     /// @param saveInfo Save data to delete.
     /// @return True on success. False on failure.
-    bool delete_save_data(const FsSaveDataInfo *saveInfo);
+    bool delete_save_data(const FsSaveDataInfo *saveInfo) noexcept;
 
     /// @brief Extends the save data of the FsSaveDataInfo struct passed.
     /// @param saveInfo Pointer to the FsSaveDataInfo struct of the save to extend.
     /// @param size Size (in MB) to extend the save data to.
     /// @param journalSize Size of the journaling space.
     /// @return True on success. False on failure.
-    bool extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t journalSize);
+    bool extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t journalSize) noexcept;
 
     /// @brief Returns whether or not the saveInfo passed is system type.
     /// @param saveInfo FsSaveDataInfo to check.
     /// @return True if it is. False if it isn't.
     /// @note The config setting overrides this.
-    bool is_system_save_data(const FsSaveDataInfo *saveInfo);
+    bool is_system_save_data(const FsSaveDataInfo *saveInfo) noexcept;
 
     /// @brief Reads the extra info of the save container according to the FsSaveDataInfo passed.
     /// @param saveInfo Pointer to the save info to read.
     /// @param extraOut Reference to the FsSaveDataExtraData to read to.
     /// @return True on success. False on failure.
-    bool read_save_extra_data(const FsSaveDataInfo *saveInfo, FsSaveDataExtraData &extraOut);
+    bool read_save_extra_data(const FsSaveDataInfo *saveInfo, FsSaveDataExtraData &extraOut) noexcept;
 } // namespace fs

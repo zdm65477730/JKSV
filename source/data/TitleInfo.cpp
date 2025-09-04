@@ -9,13 +9,12 @@
 
 #include <cstring>
 
-data::TitleInfo::TitleInfo(uint64_t applicationID)
+data::TitleInfo::TitleInfo(uint64_t applicationID) noexcept
     : m_applicationID(applicationID)
 {
     static constexpr size_t SIZE_CTRL_DATA = sizeof(NsApplicationControlData);
 
     uint64_t controlSize{};
-    NacpLanguageEntry *entry{};
 
     // This will filter from even trying to fetch control data for system titles.
     const bool isSystem   = applicationID & 0x8000000000000000;
@@ -24,7 +23,7 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
                                                                                 &m_data,
                                                                                 SIZE_CTRL_DATA,
                                                                                 &controlSize));
-    const bool entryError = !getError && error::libnx(nacpGetLanguageEntry(&m_data.nacp, &entry));
+    const bool entryError = !getError && error::libnx(nacpGetLanguageEntry(&m_data.nacp, &m_entry));
     if (isSystem || getError)
     {
         const std::string appIDHex = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
@@ -41,46 +40,33 @@ data::TitleInfo::TitleInfo(uint64_t applicationID)
 }
 
 // To do: Make this safer...
-data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData)
+data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData) noexcept
     : m_applicationID(applicationID)
 {
     m_hasData = true;
     m_data    = controlData;
 
-    NacpLanguageEntry *entry{};
-    const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data.nacp, &entry));
-    if (entryError) { std::snprintf(entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID); }
+    const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data.nacp, &m_entry));
+    if (entryError) { std::snprintf(m_entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID); }
 
     TitleInfo::get_create_path_safe_title();
 }
 
-uint64_t data::TitleInfo::get_application_id() const { return m_applicationID; }
+uint64_t data::TitleInfo::get_application_id() const noexcept { return m_applicationID; }
 
-NsApplicationControlData *data::TitleInfo::get_control_data() { return &m_data; }
+const NsApplicationControlData *data::TitleInfo::get_control_data() const noexcept { return &m_data; }
 
-bool data::TitleInfo::has_control_data() const { return m_hasData; }
+bool data::TitleInfo::has_control_data() const noexcept { return m_hasData; }
 
-const char *data::TitleInfo::get_title()
-{
-    NacpLanguageEntry *entry{};
-    const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data.nacp, &entry));
-    if (entryError) { return nullptr; }
-    return entry->name;
-}
+const char *data::TitleInfo::get_title() const noexcept { return m_entry->name; }
 
-const char *data::TitleInfo::get_path_safe_title() const { return m_pathSafeTitle; }
+const char *data::TitleInfo::get_path_safe_title() const noexcept { return m_pathSafeTitle; }
 
-const char *data::TitleInfo::get_publisher()
-{
-    NacpLanguageEntry *entry{};
-    const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data.nacp, &entry));
-    if (entryError) { return nullptr; }
-    return entry->author;
-}
+const char *data::TitleInfo::get_publisher() const noexcept { return m_entry->author; }
 
-uint64_t data::TitleInfo::get_save_data_owner_id() const { return m_data.nacp.save_data_owner_id; }
+uint64_t data::TitleInfo::get_save_data_owner_id() const noexcept { return m_data.nacp.save_data_owner_id; }
 
-int64_t data::TitleInfo::get_save_data_size(uint8_t saveType) const
+int64_t data::TitleInfo::get_save_data_size(uint8_t saveType) const noexcept
 {
     const NacpStruct &nacp = m_data.nacp;
     switch (saveType)
@@ -94,7 +80,7 @@ int64_t data::TitleInfo::get_save_data_size(uint8_t saveType) const
     return 0;
 }
 
-int64_t data::TitleInfo::get_save_data_size_max(uint8_t saveType) const
+int64_t data::TitleInfo::get_save_data_size_max(uint8_t saveType) const noexcept
 {
     const NacpStruct &nacp = m_data.nacp;
     switch (saveType)
@@ -108,7 +94,7 @@ int64_t data::TitleInfo::get_save_data_size_max(uint8_t saveType) const
     return 0;
 }
 
-int64_t data::TitleInfo::get_journal_size(uint8_t saveType) const
+int64_t data::TitleInfo::get_journal_size(uint8_t saveType) const noexcept
 {
     const NacpStruct &nacp = m_data.nacp;
     switch (saveType)
@@ -122,7 +108,7 @@ int64_t data::TitleInfo::get_journal_size(uint8_t saveType) const
     return 0;
 }
 
-int64_t data::TitleInfo::get_journal_size_max(uint8_t saveType) const
+int64_t data::TitleInfo::get_journal_size_max(uint8_t saveType) const noexcept
 {
     const NacpStruct &nacp = m_data.nacp;
     switch (saveType)
@@ -138,7 +124,7 @@ int64_t data::TitleInfo::get_journal_size_max(uint8_t saveType) const
     return 0;
 }
 
-bool data::TitleInfo::has_save_data_type(uint8_t saveType) const
+bool data::TitleInfo::has_save_data_type(uint8_t saveType) const noexcept
 {
     const NacpStruct &nacp = m_data.nacp;
     switch (saveType)
@@ -151,9 +137,9 @@ bool data::TitleInfo::has_save_data_type(uint8_t saveType) const
     return false;
 }
 
-sdl::SharedTexture data::TitleInfo::get_icon() const { return m_icon; }
+sdl::SharedTexture data::TitleInfo::get_icon() const noexcept { return m_icon; }
 
-void data::TitleInfo::set_path_safe_title(const char *newPathSafe)
+void data::TitleInfo::set_path_safe_title(const char *newPathSafe) noexcept
 {
     const size_t length = std::char_traits<char>::length(newPathSafe);
     if (length >= TitleInfo::SIZE_PATH_SAFE) { return; }
@@ -162,10 +148,9 @@ void data::TitleInfo::set_path_safe_title(const char *newPathSafe)
     std::memcpy(m_pathSafeTitle, newPathSafe, length);
 }
 
-void data::TitleInfo::get_create_path_safe_title()
+void data::TitleInfo::get_create_path_safe_title() noexcept
 {
     const uint64_t applicationID = TitleInfo::get_application_id();
-    NacpLanguageEntry *entry{};
 
     const bool hasCustom = config::has_custom_path(applicationID);
     if (hasCustom)
@@ -175,13 +160,8 @@ void data::TitleInfo::get_create_path_safe_title()
     }
 
     const bool useTitleId = config::get_by_key(config::keys::USE_TITLE_IDS);
-    const bool entryError = !useTitleId && error::libnx(nacpGetLanguageEntry(&m_data.nacp, &entry));
-    const bool sanitized =
-        !useTitleId && !entryError && stringutil::sanitize_string_for_path(entry->name, m_pathSafeTitle, SIZE_PATH_SAFE);
-    if (useTitleId || entryError || !sanitized)
-    {
-        std::snprintf(m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
-    }
+    const bool sanitized  = !useTitleId && stringutil::sanitize_string_for_path(m_entry->name, m_pathSafeTitle, SIZE_PATH_SAFE);
+    if (useTitleId || !sanitized) { std::snprintf(m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID); }
 }
 
 void data::TitleInfo::load_icon()

@@ -18,9 +18,6 @@ namespace ui
             /// @param renderTargetHeight Height of the render target to calculate how many options can be displayed at once.
             IconMenu(int x, int y, int renderTargetHeight);
 
-            /// @brief Required destructor.
-            ~IconMenu() {};
-
             /// @brief Creates and returns a new IconMenu instance.
             static inline std::shared_ptr<ui::IconMenu> create(int x, int y, int renderTargetHeight)
             {

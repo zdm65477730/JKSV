@@ -21,7 +21,7 @@ namespace remote
 
             /// @brief Move constructor.
             /// @param url URL to move.
-            URL(URL &&url);
+            URL(URL &&url) noexcept;
 
             /// @brief Makes a copy of the URL passed.
             /// @param url remote::URL instance to make a copy of.
@@ -29,7 +29,7 @@ namespace remote
 
             /// @brief Move operator.
             /// @param url URL to move.
-            URL &operator=(URL &&url);
+            URL &operator=(URL &&url) noexcept;
 
             /// @brief Sets the base URL. Basically resets the string back to square 0.
             /// @param base Base URL to start with.
@@ -48,7 +48,7 @@ namespace remote
             URL &append_slash();
 
             /// @brief Returns the C string of the url string.
-            const char *get() const;
+            const char *get() const noexcept;
 
         private:
             /// @brief This is where the actual URL is held.

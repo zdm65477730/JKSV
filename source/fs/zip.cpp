@@ -19,7 +19,7 @@
 namespace
 {
     /// @brief Buffer size used for writing files to ZIP.
-    constexpr size_t SIZE_ZIP_BUFFER = 0x100000;
+    constexpr size_t SIZE_ZIP_BUFFER = 0x10000;
 
     /// @brief Buffer size used for decompressing files from ZIP.
     constexpr size_t SIZE_UNZIP_BUFFER = 0x600000;

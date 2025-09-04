@@ -70,50 +70,6 @@ void FileModeState::render()
     sm_renderTarget->render(sdl::Texture::Null, 23, m_y + 12);
 }
 
-bool FileModeState::get_target() const noexcept { return m_target; }
-
-fslib::Path FileModeState::get_source()
-{
-    const fslib::Path &sourcePath     = FileModeState::get_source_path();
-    const fslib::Directory &sourceDir = FileModeState::get_source_directory();
-    const ui::Menu &sourceMenu        = FileModeState::get_source_menu();
-
-    const int selected = sourceMenu.get_selected();
-
-    // If 0, the current path is our target.
-    if (selected == 0) { return sourcePath; }
-
-    const int dirIndex                 = selected - 2;
-    const fslib::DirectoryEntry &entry = sourceDir[dirIndex];
-
-    return sourcePath / entry;
-}
-
-fslib::Path FileModeState::get_destination()
-{
-    const fslib::Path &destPath     = FileModeState::get_destination_path();
-    const fslib::Directory &destDir = FileModeState::get_destination_directory();
-    const ui::Menu &destMenu        = FileModeState::get_destination_menu();
-
-    const int selected = destMenu.get_selected();
-
-    if (selected == 0) { return destPath; }
-
-    const int dirIndex                 = selected - 1;
-    const fslib::DirectoryEntry &entry = destDir[dirIndex];
-
-    return destPath / entry;
-}
-
-bool FileModeState::commit_required() const noexcept { return m_target == false && m_journalSize > 0; }
-
-int64_t FileModeState::get_journal_size() const noexcept { return m_journalSize; }
-
-void FileModeState::render_control_guide() noexcept
-{
-    sdl::text::render(sdl::Texture::Null, sm_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, sm_controlGuide);
-}
-
 void FileModeState::initialize_static_members()
 {
     static constexpr std::string_view RENDER_TARGET_NAME = "FMRenderTarget";
@@ -177,7 +133,8 @@ void FileModeState::update_y_coord() noexcept
     const double distance = math::Util<double>::absolute_distance(m_targetY, m_y);
     m_y += std::round(add);
 
-    if (distance <= 4)
+    // The second condition is a fix for when scaling is 1.
+    if (distance <= 4 || m_y == m_targetY)
     {
         m_y       = m_targetY;
         m_inPlace = true;
@@ -238,6 +195,11 @@ void FileModeState::enter_directory(fslib::Path &path,
 
     path /= entry.get_filename();
     FileModeState::initialize_directory_menu(path, directory, menu);
+}
+
+void FileModeState::render_control_guide()
+{
+    sdl::text::render(sdl::Texture::Null, sm_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, sm_controlGuide);
 }
 
 ui::Menu &FileModeState::get_source_menu() noexcept { return m_target ? *m_dirMenuB.get() : *m_dirMenuA.get(); }

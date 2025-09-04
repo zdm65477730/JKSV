@@ -38,23 +38,8 @@ class FileModeState final : public BaseState
         /// @brief Render override.
         void render() override;
 
-        /// @brief Returns the target/active bool.
-        bool get_target() const noexcept;
-
-        /// @brief Returns the source path. This is used with the FileOptionState.
-        fslib::Path get_source();
-
-        /// @brief Returns the destination path. This is used with the FileOptionState.
-        fslib::Path get_destination();
-
-        /// @brief Returns whether or not committing the transfer is required to FileOptionState.
-        bool commit_required() const noexcept;
-
-        /// @brief Returns the journaling size passed to this for FileOptionState.
-        int64_t get_journal_size() const noexcept;
-
-        /// @brief Renders the control guide in the bottom right.
-        void render_control_guide() noexcept;
+        /// @brief This thing is a headache without this.
+        friend class FileOptionState;
 
     private:
         /// @brief These store the mount points to close the filesystems upon construction.
@@ -145,6 +130,9 @@ class FileModeState final : public BaseState
                              fslib::Directory &directory,
                              ui::Menu &menu,
                              const fslib::DirectoryEntry &entry);
+
+        /// @brief Renders the control guide string on the bottom of the screen.
+        void render_control_guide();
 
         /// @brief Returns a reference to the currently active menu.
         ui::Menu &get_source_menu() noexcept;

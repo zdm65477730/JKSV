@@ -35,7 +35,7 @@ namespace data
             void load_title(uint64_t applicationID);
 
             /// @brief Returns the title info mapped to applicationID. nullptr on not found.
-            data::TitleInfo *get_title_by_id(uint64_t applicationID);
+            data::TitleInfo *get_title_by_id(uint64_t applicationID) noexcept;
 
             /// @brief Gets a vector of pointers to all of the current title info instances.
             void get_title_info_list(data::TitleInfoList &listOut);

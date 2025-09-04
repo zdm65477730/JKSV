@@ -1,5 +1,6 @@
 #pragma once
 #include "sdl.hpp"
+
 #include <cstdint>
 
 namespace ui
@@ -12,11 +13,11 @@ namespace ui
             ColorMod() = default;
 
             /// @brief Updates the color modification variable.
-            void update();
+            void update() noexcept;
 
             /// @brief Operator that allows using this as an sdl::Color directly.
             /// @note Since all of these pulse the same color, no sense in not doing this.
-            operator sdl::Color() const;
+            operator sdl::Color() const noexcept;
 
         private:
             /// @brief Whether we're adding or subtracting from the color value.

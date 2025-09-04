@@ -15,7 +15,8 @@ ui::IconMenu::IconMenu(int x, int y, int renderTargetHeight)
     : Menu(x, y, 152, 84, renderTargetHeight)
 {
     // This needs to be overriden from the base state.
-    m_boundingBox->set_width_height(152, 146);
+    m_boundingBox->set_width(152);
+    m_boundingBox->set_height(146);
 }
 
 void ui::IconMenu::update(bool hasFocus) { Menu::update(hasFocus); }
@@ -31,7 +32,8 @@ void ui::IconMenu::render(sdl::SharedTexture &target, bool hasFocus)
         {
             if (hasFocus)
             {
-                m_boundingBox->set_xy(m_x - 8, tempY - 8);
+                m_boundingBox->set_x(m_x - 8);
+                m_boundingBox->set_y(tempY - 8);
                 m_boundingBox->render(target, hasFocus);
             }
             // This is always rendered.

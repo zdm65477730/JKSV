@@ -46,37 +46,37 @@ void ui::SlideOutPanel::render(sdl::SharedTexture &target, bool hasFocus)
 
 void ui::SlideOutPanel::clear_target() { m_renderTarget->clear(colors::SLIDE_PANEL_CLEAR); }
 
-void ui::SlideOutPanel::reset()
+void ui::SlideOutPanel::reset() noexcept
 {
     m_x          = m_side == Side::Left ? -(m_width) : SCREEN_WIDTH;
     m_isOpen     = false;
     m_closePanel = false;
 }
 
-void ui::SlideOutPanel::close() { m_closePanel = true; }
+void ui::SlideOutPanel::close() noexcept { m_closePanel = true; }
 
-void ui::SlideOutPanel::hide() { m_hidePanel = true; }
+void ui::SlideOutPanel::hide() noexcept { m_hidePanel = true; }
 
-void ui::SlideOutPanel::unhide() { m_hidePanel = false; }
+void ui::SlideOutPanel::unhide() noexcept { m_hidePanel = false; }
 
-bool ui::SlideOutPanel::is_open() const { return m_isOpen; }
+bool ui::SlideOutPanel::is_open() const noexcept { return m_isOpen; }
 
-bool ui::SlideOutPanel::is_closed()
+bool ui::SlideOutPanel::is_closed() noexcept
 {
     close_hide_panel();
     const bool closed = m_side == Side::Left ? m_x <= -m_width : m_x >= SCREEN_WIDTH;
     return m_closePanel && closed;
 }
 
-bool ui::SlideOutPanel::is_hidden() const { return m_hidePanel; }
+bool ui::SlideOutPanel::is_hidden() const noexcept { return m_hidePanel; }
 
 void ui::SlideOutPanel::push_new_element(std::shared_ptr<ui::Element> newElement) { m_elements.push_back(newElement); }
 
 void ui::SlideOutPanel::clear_elements() { m_elements.clear(); }
 
-sdl::SharedTexture &ui::SlideOutPanel::get_target() { return m_renderTarget; }
+sdl::SharedTexture &ui::SlideOutPanel::get_target() noexcept { return m_renderTarget; }
 
-void ui::SlideOutPanel::slide_out()
+void ui::SlideOutPanel::slide_out() noexcept
 {
     const bool needsSlideOut = !m_isOpen && !m_closePanel && !m_hidePanel;
     if (!needsSlideOut) { return; }
@@ -88,7 +88,7 @@ void ui::SlideOutPanel::slide_out()
     else if (slideLeft) { SlideOutPanel::slide_out_right(); }
 }
 
-void ui::SlideOutPanel::slide_out_left()
+void ui::SlideOutPanel::slide_out_left() noexcept
 {
     const double scaling = config::get_animation_scaling();
 
@@ -103,7 +103,7 @@ void ui::SlideOutPanel::slide_out_left()
     }
 }
 
-void ui::SlideOutPanel::slide_out_right()
+void ui::SlideOutPanel::slide_out_right() noexcept
 {
     const double scaling     = config::get_animation_scaling();
     const double screenWidth = static_cast<double>(SCREEN_WIDTH);
@@ -119,7 +119,7 @@ void ui::SlideOutPanel::slide_out_right()
     }
 }
 
-void ui::SlideOutPanel::close_hide_panel()
+void ui::SlideOutPanel::close_hide_panel() noexcept
 {
     const double scaling    = config::get_animation_scaling();
     const bool closeHide    = m_closePanel || m_hidePanel;

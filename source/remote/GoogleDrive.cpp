@@ -550,7 +550,7 @@ bool remote::GoogleDrive::get_root_id()
     return true;
 }
 
-bool remote::GoogleDrive::token_is_valid() const
+bool remote::GoogleDrive::token_is_valid() const noexcept
 {
     // I'm giving this a grace period just to be safe.
     return std::time(NULL) < m_tokenExpires - 10;
@@ -681,7 +681,7 @@ bool remote::GoogleDrive::process_listing(json::Object &json)
     return true;
 }
 
-bool remote::GoogleDrive::error_occurred(json::Object &json, bool log)
+bool remote::GoogleDrive::error_occurred(json::Object &json, bool log) noexcept
 {
     json_object *error = json::get_object(json, "error");
     if (!error) { return false; }

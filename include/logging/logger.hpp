@@ -9,5 +9,5 @@ namespace logger
     /// @brief Logs a formatted string.
     /// @param format Format of string.
     /// @param arguments Va arguments.
-    void log(const char *format, ...);
+    void log(const char *format, ...) noexcept;
 } // namespace logger

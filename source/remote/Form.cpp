@@ -2,7 +2,7 @@
 
 remote::Form::Form(const remote::Form &form) { m_form = form.m_form; }
 
-remote::Form::Form(remote::Form &&form) { m_form = std::move(form.m_form); }
+remote::Form::Form(remote::Form &&form) noexcept { m_form = std::move(form.m_form); }
 
 remote::Form &remote::Form::operator=(const remote::Form &form)
 {
@@ -10,7 +10,7 @@ remote::Form &remote::Form::operator=(const remote::Form &form)
     return *this;
 }
 
-remote::Form &remote::Form::operator=(remote::Form &&form)
+remote::Form &remote::Form::operator=(remote::Form &&form) noexcept
 {
     m_form = std::move(form.m_form);
     return *this;
@@ -23,6 +23,6 @@ remote::Form &remote::Form::append_parameter(std::string_view param, std::string
     return *this;
 }
 
-const char *remote::Form::get() const { return m_form.c_str(); }
+const char *remote::Form::get() const noexcept { return m_form.c_str(); }
 
-size_t remote::Form::length() const { return m_form.length(); }
+size_t remote::Form::length() const noexcept { return m_form.length(); }

@@ -31,7 +31,7 @@ static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive);
 /// @param drive Pointer to the drive instance..
 static void drive_set_jksv_root(remote::GoogleDrive *drive);
 
-bool remote::has_internet_connection()
+bool remote::has_internet_connection() noexcept
 {
     NifmInternetConnectionType type{};
     uint32_t strength{};
@@ -86,7 +86,7 @@ void remote::initialize_webdav()
     }
 }
 
-remote::Storage *remote::get_remote_storage()
+remote::Storage *remote::get_remote_storage() noexcept
 {
     if (!s_storage || !s_storage->is_initialized()) { return nullptr; }
     return s_storage.get();

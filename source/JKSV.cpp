@@ -60,30 +60,12 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
     return true;
 }
 
-class BootTimer final
-{
-    public:
-        BootTimer()
-            : m_start(std::chrono::high_resolution_clock::now()) {};
-
-        ~BootTimer()
-        {
-            auto end          = std::chrono::high_resolution_clock::now();
-            auto microSeconds = std::chrono::duration_cast<std::chrono::microseconds>(end - m_start);
-            logger::log("Boot time: %llu microseconds", microSeconds);
-        }
-
-    private:
-        std::chrono::system_clock::time_point m_start{};
-};
-
 // Definition at bottom.
 static void finish_initialization();
 
 // This can't really have an initializer list since it sets everything up.
 JKSV::JKSV()
 {
-    BootTimer timer{};
     appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad);
     ABORT_ON_FAILURE(JKSV::initialize_services());
     ABORT_ON_FAILURE(JKSV::initialize_filesystem());
@@ -121,7 +103,7 @@ JKSV::~JKSV()
     appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
 }
 
-bool JKSV::is_running() const { return m_isRunning; }
+bool JKSV::is_running() const noexcept { return m_isRunning; }
 
 void JKSV::update()
 {

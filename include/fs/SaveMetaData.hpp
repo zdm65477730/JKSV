@@ -33,11 +33,10 @@ namespace fs
     // clang-format on
 
     /// @brief Didn't feel like a whole new file just for this. Fills an fs::SaveMetaData struct.
-    bool fill_save_meta_data(const FsSaveDataInfo *saveInfo, SaveMetaData &meta);
+    bool fill_save_meta_data(const FsSaveDataInfo *saveInfo, SaveMetaData &meta) noexcept;
 
     /// @brief Processes the save meta data and applies it to the passed saveInfo pointer.
     /// @param saveInfo FsSaveDataInfo to apply the meta to.
     /// @param meta Save meta data to apply.
-    bool process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaData &meta);
-
+    bool process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaData &meta) noexcept;
 } // namespace fs

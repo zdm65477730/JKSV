@@ -3,7 +3,7 @@
 #include "error.hpp"
 #include "logging/logger.hpp"
 
-bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo)
+bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo) noexcept
 {
     static constexpr FsSaveDataMetaInfo saveMeta = {.size = 0x40060, .type = FsSaveDataMetaType_Thumbnail};
 
@@ -32,7 +32,7 @@ bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo
     return error::libnx(fsCreateSaveDataFileSystem(&saveAttributes, &saveCreation, &saveMeta)) == false;
 }
 
-bool fs::delete_save_data(const FsSaveDataInfo *saveInfo)
+bool fs::delete_save_data(const FsSaveDataInfo *saveInfo) noexcept
 {
     const FsSaveDataSpaceId spaceID = static_cast<FsSaveDataSpaceId>(saveInfo->save_data_space_id);
     const bool isSystem             = fs::is_system_save_data(saveInfo);
@@ -57,12 +57,12 @@ bool fs::extend_save_data(const FsSaveDataInfo *saveInfo, int64_t size, int64_t 
     return error::libnx(fsExtendSaveDataFileSystem(spaceID, saveID, size, journalSize)) == false;
 }
 
-bool fs::is_system_save_data(const FsSaveDataInfo *saveInfo)
+bool fs::is_system_save_data(const FsSaveDataInfo *saveInfo) noexcept
 {
     return saveInfo->save_data_type == FsSaveDataType_System || saveInfo->save_data_type == FsSaveDataType_SystemBcat;
 }
 
-bool fs::read_save_extra_data(const FsSaveDataInfo *saveInfo, FsSaveDataExtraData &extraOut)
+bool fs::read_save_extra_data(const FsSaveDataInfo *saveInfo, FsSaveDataExtraData &extraOut) noexcept
 {
     static constexpr size_t EXTRA_SIZE = sizeof(FsSaveDataExtraData);
 

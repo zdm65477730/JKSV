@@ -49,13 +49,13 @@ void ui::DialogBox::render(sdl::SharedTexture &target, bool hasFocus)
                          CORNER_HEIGHT);
 }
 
-void ui::DialogBox::set_x(int x) { m_x = x; }
+void ui::DialogBox::set_x(int x) noexcept { m_x = x; }
 
-void ui::DialogBox::set_y(int y) { m_y = y; }
+void ui::DialogBox::set_y(int y) noexcept { m_y = y; }
 
-void ui::DialogBox::set_width(int width) { m_width = width; }
+void ui::DialogBox::set_width(int width) noexcept { m_width = width; }
 
-void ui::DialogBox::set_height(int height) { m_height = height; }
+void ui::DialogBox::set_height(int height) noexcept { m_height = height; }
 
 void ui::DialogBox::initialize_static_members()
 {

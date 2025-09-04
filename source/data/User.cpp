@@ -33,7 +33,7 @@ namespace
 // Function used to sort user data. Definition at the bottom.
 static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDataEntry &entryB);
 
-data::User::User(AccountUid accountID, FsSaveDataType saveType)
+data::User::User(AccountUid accountID, FsSaveDataType saveType) noexcept
     : m_accountID{accountID}
     , m_saveType{saveType}
 {
@@ -47,7 +47,10 @@ data::User::User(AccountUid accountID, FsSaveDataType saveType)
     accountProfileClose(&profile);
 }
 
-data::User::User(AccountUid accountID, std::string_view nickname, std::string_view pathSafeNickname, FsSaveDataType saveType)
+data::User::User(AccountUid accountID,
+                 std::string_view nickname,
+                 std::string_view pathSafeNickname,
+                 FsSaveDataType saveType) noexcept
     : m_accountID{accountID}
     , m_saveType{saveType}
 {
@@ -55,9 +58,9 @@ data::User::User(AccountUid accountID, std::string_view nickname, std::string_vi
     std::memcpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
 }
 
-data::User::User(data::User &&user) { *this = std::move(user); }
+data::User::User(data::User &&user) noexcept { *this = std::move(user); }
 
-data::User &data::User::operator=(data::User &&user)
+data::User &data::User::operator=(data::User &&user) noexcept
 {
     static constexpr size_t SIZE_NICKNAME = 0x20;
 
@@ -88,50 +91,50 @@ void data::User::add_data(const FsSaveDataInfo *saveInfo, const PdmPlayStatistic
     m_userData.push_back(std::move(vectorPair));
 }
 
-void data::User::clear_data_entries() { m_userData.clear(); }
+void data::User::clear_data_entries() noexcept { m_userData.clear(); }
 
 void data::User::erase_data(int index) { m_userData.erase(m_userData.begin() + index); }
 
-void data::User::sort_data() { std::sort(m_userData.begin(), m_userData.end(), sort_user_data); }
+void data::User::sort_data() noexcept { std::sort(m_userData.begin(), m_userData.end(), sort_user_data); }
 
-AccountUid data::User::get_account_id() const { return m_accountID; }
+AccountUid data::User::get_account_id() const noexcept { return m_accountID; }
 
-FsSaveDataType data::User::get_account_save_type() const { return m_saveType; }
+FsSaveDataType data::User::get_account_save_type() const noexcept { return m_saveType; }
 
-const char *data::User::get_nickname() const { return m_nickname; }
+const char *data::User::get_nickname() const noexcept { return m_nickname; }
 
-const char *data::User::get_path_safe_nickname() const { return m_pathSafeNickname; }
+const char *data::User::get_path_safe_nickname() const noexcept { return m_pathSafeNickname; }
 
-size_t data::User::get_total_data_entries() const { return m_userData.size(); }
+size_t data::User::get_total_data_entries() const noexcept { return m_userData.size(); }
 
-uint64_t data::User::get_application_id_at(int index) const
+uint64_t data::User::get_application_id_at(int index) const noexcept
 {
     if (!User::index_check(index)) { return 0; }
     return m_userData.at(index).first;
 }
 
-FsSaveDataInfo *data::User::get_save_info_at(int index)
+FsSaveDataInfo *data::User::get_save_info_at(int index) noexcept
 {
     if (!User::index_check(index)) { return nullptr; }
     return &m_userData.at(index).second.first;
 }
 
-PdmPlayStatistics *data::User::get_play_stats_at(int index)
+PdmPlayStatistics *data::User::get_play_stats_at(int index) noexcept
 {
     if (!User::index_check(index)) { return nullptr; }
     return &m_userData.at(index).second.second;
 }
 
-FsSaveDataInfo *data::User::get_save_info_by_id(uint64_t applicationID)
+FsSaveDataInfo *data::User::get_save_info_by_id(uint64_t applicationID) noexcept
 {
     auto target = User::find_title_by_id(applicationID);
     if (target == m_userData.end()) { return nullptr; }
     return &target->second.first;
 }
 
-data::UserSaveInfoList &data::User::get_user_save_info_list() { return m_userData; }
+data::UserSaveInfoList &data::User::get_user_save_info_list() noexcept { return m_userData; }
 
-PdmPlayStatistics *data::User::get_play_stats_by_id(uint64_t applicationID)
+PdmPlayStatistics *data::User::get_play_stats_by_id(uint64_t applicationID) noexcept
 {
     auto target = User::find_title_by_id(applicationID);
     if (target == m_userData.end()) { return nullptr; }

@@ -11,7 +11,7 @@ namespace
     constexpr size_t SIZE_EXTRA_DATA = sizeof(FsSaveDataExtraData);
 }
 
-bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &meta)
+bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &meta) noexcept
 {
     FsSaveDataExtraData extraData{};
     const bool extraRead = fs::read_save_extra_data(saveInfo, extraData);
@@ -35,7 +35,7 @@ bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &m
     return true;
 }
 
-bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaData &meta)
+bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaData &meta) noexcept
 {
     FsSaveDataExtraData extraData{};
     const bool extraRead = fs::read_save_extra_data(saveInfo, extraData);
