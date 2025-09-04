@@ -179,7 +179,7 @@ void FileOptionState::copy_target()
     }
 
     fslib::Path fullDest{destPath};
-    if (destSelected == 0) { fullDest /= sourceDir[sourceIndex]; }
+    if (destSelected == 0 && sourceSelected > 1) { fullDest /= sourceDir[sourceIndex]; }
     if (destSelected > 1)
     {
         fullDest /= destDir[destIndex];
