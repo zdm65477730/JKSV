@@ -67,9 +67,12 @@ void FileOptionState::update()
     {
         switch (selected)
         {
-            case COPY:   FileOptionState::copy_target(); break;
-            case DELETE: FileOptionState::delete_target(); break;
-            case RENAME: FileOptionState::rename_target(); break;
+            case COPY:       FileOptionState::copy_target(); break;
+            case DELETE:     FileOptionState::delete_target(); break;
+            case RENAME:     FileOptionState::rename_target(); break;
+            case CREATE_DIR: FileOptionState::create_directory(); break;
+            case PROPERTIES: FileOptionState::get_show_target_properties(); break;
+            case CLOSE:      FileOptionState::close(); break;
         }
     }
     else if (bPressed) { FileOptionState::close(); }
@@ -172,11 +175,7 @@ void FileOptionState::copy_target()
     const int destIndex   = destSelected - 2;
 
     fslib::Path fullSource{sourcePath};
-    if (sourceSelected > 1)
-    {
-        const int dirIndex = sourceSelected - 2;
-        fullSource /= sourceDir[sourceIndex];
-    }
+    if (sourceSelected > 1) { fullSource /= sourceDir[sourceIndex]; }
 
     fslib::Path fullDest{destPath};
     if (destSelected == 0 && sourceSelected > 1) { fullDest /= sourceDir[sourceIndex]; }
@@ -207,7 +206,8 @@ void FileOptionState::delete_target()
 
     fslib::Path fullTarget{targetPath};
     const int selected = targetMenu.get_selected();
-    if (selected > 1)
+    if (selected == 0) { return; } // I have no way to handle this right now.
+    else if (selected > 1)
     {
         const int dirIndex = selected - 2;
         fullTarget /= targetDir[dirIndex];
@@ -237,15 +237,24 @@ void FileOptionState::rename_target()
     const char *keyboardFormat       = strings::get_by_name(strings::names::KEYBOARD, 9);
     const std::string keyboardHeader = stringutil::get_formatted_string(keyboardFormat, filename);
     const bool validInput            = keyboard::get_input(SwkbdType_QWERTY, filename, keyboardHeader, nameBuffer, FS_MAX_PATH);
-    if (validInput) { return; }
+    if (!validInput) { return; }
 
     const fslib::Path oldPath{targetPath / filename};
     const fslib::Path newPath{targetPath / nameBuffer};
 
-    const bool isDir      = fslib::directory_exists(oldPath);
-    const bool renameDir  = isDir && error::fslib(fslib::rename_directory(oldPath, newPath));
-    const bool renameFile = !isDir && error::fslib(fslib::rename_file(oldPath, newPath));
-    if (!renameDir && !renameFile)
+    const std::string oldString = oldPath.string();
+    const std::string newString = newPath.string();
+
+    // If this is false and there's a journaling size set, we need to commit on renaming for it to stick.
+    const bool isSource       = !m_spawningState->m_target;
+    const int64_t journalSize = m_spawningState->m_journalSize;
+    const bool commitNeeded   = isSource && journalSize > 0;
+
+    const bool isDir       = fslib::directory_exists(oldPath);
+    const bool dirError    = isDir && error::fslib(fslib::rename_directory(oldPath, newPath));
+    const bool fileError   = !isDir && error::fslib(fslib::rename_file(oldPath, newPath));
+    const bool commitError = commitNeeded && error::fslib(fslib::commit_data_to_file_system(oldPath.get_device_name()));
+    if (dirError && fileError && commitError)
     {
         const char *popFormat = strings::get_by_name(strings::names::FILEMODE_POPS, 5);
         const std::string pop = stringutil::get_formatted_string(popFormat, filename);
@@ -267,6 +276,7 @@ void FileOptionState::create_directory()
     const fslib::Path &targetPath = m_spawningState->get_source_path();
     fslib::Directory &targetDir   = m_spawningState->get_source_directory();
     ui::Menu &targetMenu          = m_spawningState->get_source_menu();
+    const int64_t journalSize     = m_spawningState->m_journalSize;
 
     char nameBuffer[FS_MAX_PATH] = {0};
     const char *keyboardHeader   = strings::get_by_name(strings::names::KEYBOARD, 6);
@@ -274,8 +284,10 @@ void FileOptionState::create_directory()
     if (!validInput) { return; }
 
     const fslib::Path fullTarget{targetPath / nameBuffer};
-    const bool createError = error::fslib(fslib::create_directory(fullTarget));
-    if (createError)
+    const bool commitRequired = journalSize > 0;
+    const bool createError    = error::fslib(fslib::create_directory(fullTarget));
+    const bool commitError    = !createError && error::fslib(fslib::commit_data_to_file_system(fullTarget.get_device_name()));
+    if (createError || (commitRequired && commitError))
     {
         const char *popFormat = strings::get_by_name(strings::names::FILEMODE_POPS, 7);
         const std::string pop = stringutil::get_formatted_string(popFormat, nameBuffer);

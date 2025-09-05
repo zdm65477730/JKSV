@@ -4,6 +4,8 @@
 #include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "logging/logger.hpp"
+#include "strings/strings.hpp"
+#include "stringutil.hpp"
 
 void tasks::fileoptions::copy_source_to_destination(sys::ProgressTask *task, FileOptionState::TaskData taskData)
 {
@@ -44,9 +46,18 @@ void tasks::fileoptions::delete_target(sys::Task *task, FileOptionState::TaskDat
 {
     if (error::is_null(task)) { return; }
 
-    fslib::Path target             = taskData->sourcePath;
-    int64_t journalSpace           = taskData->journalSize;
+    // Gonna borrow this. No point in duplicating it.
+    const char *deletingFormat = strings::get_by_name(strings::names::IO_STATUSES, 3);
+
+    const fslib::Path &target      = taskData->sourcePath;
+    const int64_t journalSpace     = taskData->journalSize;
     FileOptionState *spawningState = taskData->spawningState;
+
+    {
+        const char *filename     = target.get_filename();
+        const std::string status = stringutil::get_formatted_string(deletingFormat, filename);
+        task->set_status(status);
+    }
 
     const bool isDir = fslib::directory_exists(target);
     bool needsCommit = journalSpace > 0;
