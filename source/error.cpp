@@ -1,4 +1,4 @@
-#include "logging/error.hpp"
+#include "error.hpp"
 
 #include "fslib.hpp"
 #include "logging/logger.hpp"
@@ -7,9 +7,9 @@
 #include <string_view>
 
 /// @brief Prepares and makes sure the strings match the format I actually want!
-static void prep_locations(std::string_view &file, std::string_view &function, const std::source_location &location);
+static void prep_locations(std::string_view &file, std::string_view &function, const std::source_location &location) noexcept;
 
-bool error::libnx(Result code, const std::source_location &location)
+bool error::libnx(Result code, const std::source_location &location) noexcept
 {
     if (code == 0) { return false; }
 
@@ -20,7 +20,7 @@ bool error::libnx(Result code, const std::source_location &location)
     return true;
 }
 
-bool error::fslib(bool result, const std::source_location &location)
+bool error::fslib(bool result, const std::source_location &location) noexcept
 {
     if (result) { return false; }
 
@@ -37,7 +37,7 @@ bool error::fslib(bool result, const std::source_location &location)
     return true;
 }
 
-bool error::is_null(const void *pointer, const std::source_location &location)
+bool error::is_null(const void *pointer, const std::source_location &location) noexcept
 {
     if (pointer) { return false; }
 
@@ -49,7 +49,7 @@ bool error::is_null(const void *pointer, const std::source_location &location)
     return true;
 }
 
-static void prep_locations(std::string_view &file, std::string_view &function, const std::source_location &location)
+static void prep_locations(std::string_view &file, std::string_view &function, const std::source_location &location) noexcept
 {
     file     = location.file_name();
     function = location.function_name();

@@ -1,6 +1,6 @@
 #include "keyboard.hpp"
 
-#include "logging/error.hpp"
+#include "error.hpp"
 
 #include <string>
 

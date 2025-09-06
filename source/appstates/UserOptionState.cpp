@@ -8,10 +8,10 @@
 #include "appstates/TaskState.hpp"
 #include "config/config.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "input.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "strings/strings.hpp"
@@ -78,6 +78,8 @@ void UserOptionState::update()
     else if (sm_menuPanel->is_closed()) { UserOptionState::deactivate_state(); }
 }
 
+void UserOptionState::sub_update() { sm_menuPanel->sub_update(); }
+
 void UserOptionState::render()
 {
     // Render target user's title selection screen.
@@ -131,7 +133,11 @@ void UserOptionState::backup_all()
     else { ProgressConfirm::create_and_push(query, true, tasks::useroptions::backup_all_for_user_local, m_dataStruct); }
 }
 
-void UserOptionState::create_save_create() { SaveCreateState::create_and_push(m_user, m_titleSelect); }
+void UserOptionState::create_save_create()
+{
+    sm_menuPanel->hide();
+    SaveCreateState::create_and_push(m_user, m_titleSelect);
+}
 
 void UserOptionState::create_all_save_data()
 {

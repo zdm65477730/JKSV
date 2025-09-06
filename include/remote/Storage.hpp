@@ -23,12 +23,12 @@ namespace remote
             Storage(std::string_view prefix, bool supportsUtf8 = false);
 
             /// @brief Returns whether or not the Storage type was successfully. initialized.
-            bool is_initialized() const;
+            bool is_initialized() const noexcept;
 
             // Directory functions.
             /// @brief Returns whether or not a directory with name exists within the current parent.
             /// @param name Name of the directory to search for.
-            bool directory_exists(std::string_view name);
+            bool directory_exists(std::string_view name) const noexcept;
 
             /// @brief Returns the parent to the root directory.
             void return_to_root();
@@ -48,7 +48,7 @@ namespace remote
             /// @brief Searches the list for a directory matching name and the current parent.
             /// @param name Name of the directory to search for.
             /// @return Pointer to the item representing the directory on success. nullptr on failure/not found.
-            remote::Item *get_directory_by_name(std::string_view name);
+            remote::Item *get_directory_by_name(std::string_view name) noexcept;
 
             /// @brief Retrieves a listing of the items in the current parent directory.
             /// @param listOut List to fill.
@@ -62,7 +62,7 @@ namespace remote
             // File functions.
             /// @brief Returns whether a file with name exists within the current directory.
             /// @param name Name of the file.
-            bool file_exists(std::string_view name);
+            bool file_exists(std::string_view name) const noexcept;
 
             /// @brief Uploads a file from the SD card to the remote.
             /// @param source Path to the file to upload.
@@ -83,7 +83,7 @@ namespace remote
             /// @brief Searches the list for a file matching name and the current parent.
             /// @param name Name of the file to search for.
             /// @return Pointer to the item if located. nullptr if not.
-            remote::Item *get_file_by_name(std::string_view name);
+            remote::Item *get_file_by_name(std::string_view name) noexcept;
 
             // General functions that apply to both.
             /// @brief Deletes a file or folder from the remote.
@@ -96,10 +96,10 @@ namespace remote
             virtual bool rename_item(remote::Item *item, std::string_view newName) = 0;
 
             /// @brief Returns whether or not the remote storage type supports UTF-8 for names or requires path safe titles.
-            bool supports_utf8() const;
+            bool supports_utf8() const noexcept;
 
             /// @brief Returns the prefix for menus.
-            std::string_view get_prefix() const;
+            std::string_view get_prefix() const noexcept;
 
         protected:
             /// @brief This is the size of the buffers used for snprintf'ing URLs together.
@@ -131,27 +131,34 @@ namespace remote
 
             /// @brief Searches the list for a directory matching name and the current parent.
             /// @param name Name to search for.
-            Storage::List::iterator find_directory_by_name(std::string_view name);
+            Storage::List::iterator find_directory_by_name(std::string_view name) noexcept;
+            Storage::List::const_iterator find_directory_by_name(std::string_view name) const noexcept;
 
             /// @brief Searches the list for a directory matching ID.
             /// @param id ID of the directory to search for.
-            Storage::List::iterator find_directory_by_id(std::string_view id);
+            Storage::List::iterator find_directory_by_id(std::string_view id) noexcept;
+            Storage::List::const_iterator find_directory_by_id(std::string_view id) const noexcept;
 
             /// @brief Searches to find if a file with name exists within the current parent.
             /// @param name Name of the file to search for.
-            Storage::List::iterator find_file_by_name(std::string_view name);
+            Storage::List::iterator find_file_by_name(std::string_view name) noexcept;
+            Storage::List::const_iterator find_file_by_name(std::string_view name) const noexcept;
 
             /// @brief Searches the list for a file matching ID.
             /// @param id ID to search for.s
-            Storage::List::iterator find_file_by_id(std::string_view id);
+            Storage::List::iterator find_file_by_id(std::string_view id) noexcept;
+            Storage::List::const_iterator find_file_by_id(std::string_view id) const noexcept;
 
             /// @brief Locates any item (directory/file) by the id passed.
             /// @param id ID to search for.
-            Storage::List::iterator find_item_by_id(std::string_view id);
+            Storage::List::iterator find_item_by_id(std::string_view id) noexcept;
+            Storage::List::const_iterator find_item_by_id(std::string_view id) const noexcept;
 
             /// @brief Searches starting with the iterator start for items that belong to parentID
             /// @param start Beginning iterator for search.
             /// @param parentID ParentID to match.
-            Storage::List::iterator find_by_parent_id(Storage::List::iterator start, std::string_view parentID);
+            Storage::List::iterator find_by_parent_id(Storage::List::iterator start, std::string_view parentID) noexcept;
+            Storage::List::const_iterator find_by_parent_id(Storage::List::const_iterator start,
+                                                            std::string_view parentID) const noexcept;
     };
 } // namespace remote

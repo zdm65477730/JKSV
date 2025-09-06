@@ -6,7 +6,7 @@
 
 namespace fs
 {
-    class MiniUnzip
+    class MiniUnzip final
     {
         public:
             MiniUnzip() = default;

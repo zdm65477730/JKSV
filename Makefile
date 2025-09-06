@@ -51,7 +51,7 @@ ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 # NOTE: For some reason, devkitpro no longer has freetype-config included? Also, using pkg-config causes conflicts with
 # my local pkg-config and I don't feel like dealing with CMake for all of this right now.
 CFLAGS	:=	$(INCLUDE) -D__SWITCH__ `sdl2-config --cflags` `curl-config --cflags`\
-			-g -Wall -O2 -ffunction-sections -ffast-math -fmax-errors=1 \
+			-g -Wall -O3 -ffunction-sections -ffast-math -fmax-errors=1 \
 			$(ARCH) $(DEFINES)
 
 CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++23
@@ -172,10 +172,11 @@ clean:
 	@$(MAKE) -C ./Libraries/SDLLib/SDL clean
 	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
-
 #---------------------------------------------------------------------------------
 send: $(BUILD)
 	@nxlink $(TARGET).nro
+
+#---------------------------------------------------------------------------------
 
 debug: $(BUILD)
 	@nxlink -s $(TARGET).nro

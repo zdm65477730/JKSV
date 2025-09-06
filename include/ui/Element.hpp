@@ -11,7 +11,7 @@ namespace ui
             Element() = default;
 
             /// @brief Virtual destructor.
-            virtual ~Element() {};
+            virtual ~Element() noexcept {};
 
             /// @brief Virtual update method. All derived classes must have this.
             /// @param HasFocus Whether or not the state containing the element currently has focus.

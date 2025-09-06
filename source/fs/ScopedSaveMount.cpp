@@ -1,7 +1,7 @@
 #include "fs/ScopedSaveMount.hpp"
 
+#include "error.hpp"
 #include "fslib.hpp"
-#include "logging/error.hpp"
 
 fs::ScopedSaveMount::ScopedSaveMount(std::string_view mount, const FsSaveDataInfo *saveInfo, bool log)
     : m_mountPoint(mount)
@@ -11,9 +11,9 @@ fs::ScopedSaveMount::ScopedSaveMount(std::string_view mount, const FsSaveDataInf
     else { m_isOpen = fslib::open_save_data_with_save_info(m_mountPoint, *saveInfo); }
 }
 
-fs::ScopedSaveMount::ScopedSaveMount(ScopedSaveMount &&scopedSaveMount) { *this = std::move(scopedSaveMount); }
+fs::ScopedSaveMount::ScopedSaveMount(ScopedSaveMount &&scopedSaveMount) noexcept { *this = std::move(scopedSaveMount); }
 
-fs::ScopedSaveMount &fs::ScopedSaveMount::operator=(ScopedSaveMount &&scopedSaveMount)
+fs::ScopedSaveMount &fs::ScopedSaveMount::operator=(ScopedSaveMount &&scopedSaveMount) noexcept
 {
     m_mountPoint             = std::move(scopedSaveMount.m_mountPoint);
     m_isOpen                 = scopedSaveMount.m_isOpen;
@@ -27,4 +27,4 @@ fs::ScopedSaveMount::~ScopedSaveMount()
     else { fslib::close_file_system(m_mountPoint); }
 }
 
-bool fs::ScopedSaveMount::is_open() const { return m_isOpen; }
+bool fs::ScopedSaveMount::is_open() const noexcept { return m_isOpen; }

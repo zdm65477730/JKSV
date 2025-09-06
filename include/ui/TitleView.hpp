@@ -18,9 +18,6 @@ namespace ui
             /// @param user User to use.
             TitleView(data::User *user);
 
-            /// @brief Required destructor.
-            ~TitleView() {};
-
             static inline std::shared_ptr<ui::TitleView> create(data::User *user)
             {
                 return std::make_shared<ui::TitleView>(user);
@@ -37,10 +34,10 @@ namespace ui
 
             /// @brief Returns index of the currently selected tile.
             /// @return Index of currently selected tile.
-            int get_selected() const;
+            int get_selected() const noexcept;
 
             /// @brief Sets the currently selected item.
-            void set_selected(int selected);
+            void set_selected(int selected) noexcept;
 
             /// @brief Forces a refresh of the view.
             void refresh();

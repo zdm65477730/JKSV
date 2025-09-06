@@ -46,17 +46,13 @@ void ui::BoundingBox::render(sdl::SharedTexture &target, bool hasFocus)
     sm_corners->render_part(target, rightX, bottomY, CORNER_WIDTH, CORNER_HEIGHT, CORNER_WIDTH, CORNER_HEIGHT);
 }
 
-void ui::BoundingBox::set_xy(int x, int y)
-{
-    if (x != BoundingBox::NO_SET) { m_x = x; }
-    if (y != BoundingBox::NO_SET) { m_y = y; }
-}
+void ui::BoundingBox::set_x(int x) noexcept { m_x = x; }
 
-void ui::BoundingBox::set_width_height(int width, int height)
-{
-    if (width != BoundingBox::NO_SET) { m_width = width; }
-    if (height != BoundingBox::NO_SET) { m_height = height; }
-}
+void ui::BoundingBox::set_y(int y) noexcept { m_y = y; }
+
+void ui::BoundingBox::set_width(int width) noexcept { m_width = width; }
+
+void ui::BoundingBox::set_height(int height) noexcept { m_height = height; }
 
 void ui::BoundingBox::initialize_static_members()
 {

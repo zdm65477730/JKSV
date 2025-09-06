@@ -27,52 +27,52 @@ namespace config
             void save();
 
             /// @brief Attempts to find and return the value of the key passed.
-            uint8_t get_by_key(std::string_view key) const;
+            uint8_t get_by_key(std::string_view key) const noexcept;
 
             /// @brief Attempts to toggle the value for the key passed. For simple 1 and 0.
-            void toggle_by_key(std::string_view key);
+            void toggle_by_key(std::string_view key) noexcept;
 
             /// @brief Attempts to set the key passed to the value passd.
-            void set_by_key(std::string_view key, uint8_t value);
+            void set_by_key(std::string_view key, uint8_t value) noexcept;
 
             /// @brief Returns the current working directory.
             fslib::Path get_working_directory() const;
 
             /// @brief Sets the current work directory if the path passed is valid.
-            bool set_working_directory(const fslib::Path &workDir);
+            bool set_working_directory(const fslib::Path &workDir) noexcept;
 
             /// @brief Returns the transition scaling speed.
-            double get_animation_scaling() const;
+            double get_animation_scaling() const noexcept;
 
             /// @brief Sets the current animation scaling speed.
-            void set_animation_scaling(double scaling);
+            void set_animation_scaling(double scaling) noexcept;
 
             /// @brief Adds a favorite to the favorite titles.
             void add_favorite(uint64_t applicationID);
 
             /// @brief Removes a title from the favorites.
-            void remove_favorite(uint64_t applicationID);
+            void remove_favorite(uint64_t applicationID) noexcept;
 
             /// @brief Returns if the application ID passed is a favorite.
-            bool is_favorite(uint64_t applicationID) const;
+            bool is_favorite(uint64_t applicationID) const noexcept;
 
             /// @brief Adds the application ID passed to the blacklist.
             void add_to_blacklist(uint64_t applicationID);
 
             /// @brief Removes the application ID passed from the blacklist.
-            void remove_from_blacklist(uint64_t applicationID);
+            void remove_from_blacklist(uint64_t applicationID) noexcept;
 
             /// @brief Writes all of the currently blacklisted titles to the vector passed.
             void get_blacklist(std::vector<uint64_t> &listOut);
 
             /// @brief Returns if the application ID passed is found in the blacklist.
-            bool is_blacklisted(uint64_t applicationID) const;
+            bool is_blacklisted(uint64_t applicationID) const noexcept;
 
             /// @brief Returns if the blacklist is empty.
-            bool blacklist_empty() const;
+            bool blacklist_empty() const noexcept;
 
             /// @brief Returns if the application ID passed has a custom output path.
-            bool has_custom_path(uint64_t applicationID) const;
+            bool has_custom_path(uint64_t applicationID) const noexcept;
 
             /// @brief Adds a new output path.
             void add_custom_path(uint64_t applicationID, std::string_view newPath);

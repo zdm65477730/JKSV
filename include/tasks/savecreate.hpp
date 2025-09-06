@@ -3,13 +3,7 @@
 #include "data/data.hpp"
 #include "sys/sys.hpp"
 
-namespace tasks
+namespace tasks::savecreate
 {
-    namespace savecreate
-    {
-        void create_save_data_for(sys::Task *task,
-                                  data::User *user,
-                                  data::TitleInfo *titleInfo,
-                                  SaveCreateState *spawningState);
-    }
+    void create_save_data_for(sys::Task *task, data::User *user, data::TitleInfo *titleInfo, SaveCreateState *spawningState);
 }

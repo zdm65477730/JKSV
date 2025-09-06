@@ -34,4 +34,22 @@ class ExtrasMenuState final : public BaseState
 
         /// @brief This function is called when Reinitialize data is selected.
         void reinitialize_data();
+
+        /// @brief Opens an SD to SD file browser.
+        void sd_to_sd_browser();
+
+        /// @brief Opens the prodinfo-f to sd.
+        void prodinfof_to_sd();
+
+        /// @brief Opens the safe partition to SD.
+        void safe_to_sd();
+
+        /// @brief Opens the system partition to SD.
+        void system_to_sd();
+
+        /// @brief Opens the user partition to SD.
+        void user_to_sd();
+
+        /// @brief Terminates a process.
+        void terminate_process();
 };

@@ -16,23 +16,23 @@ namespace remote
 
             /// @brief Returns the name of the item.
             /// @return Name of the item.
-            std::string_view get_name() const;
+            std::string_view get_name() const noexcept;
 
             /// @brief Returns the id of the item.
             /// @return ID of the item.
-            std::string_view get_id() const;
+            std::string_view get_id() const noexcept;
 
             /// @brief Returns the parent id of the item.
             /// @return Parent ID of the item.
-            std::string_view get_parent_id() const;
+            std::string_view get_parent_id() const noexcept;
 
             /// @brief Gets the size of the item.
             /// @return Size of the item in bytes.
-            size_t get_size() const;
+            size_t get_size() const noexcept;
 
             /// @brief Returns whether or not the item is a directory.
             /// @return Whether or not the item is a directory.
-            bool is_directory() const;
+            bool is_directory() const noexcept;
 
             /// @brief Sets the name of the item.
             /// @param name New name of the item.
@@ -48,26 +48,26 @@ namespace remote
 
             /// @brief Sets the size of the item.
             /// @param size Size of the item.
-            void set_size(size_t size);
+            void set_size(size_t size) noexcept;
 
             /// @brief Sets whether or not the item is a directory.
             /// @param directory Whether or not the item is a directory.
-            void set_is_directory(bool directory);
+            void set_is_directory(bool directory) noexcept;
 
         private:
             /// @brief The name of the item.
-            std::string m_name;
+            std::string m_name{};
 
             /// @brief The ID of the item.
-            std::string m_id;
+            std::string m_id{};
 
             /// @brief Parent ID of the item.
-            std::string m_parent;
+            std::string m_parent{};
 
             /// @brief Size of the item.
-            size_t m_size;
+            size_t m_size{};
 
             /// @brief Whether or not the item is a directory.
-            bool m_isDirectory;
+            bool m_isDirectory{};
     };
 } // namespace remote

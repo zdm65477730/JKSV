@@ -21,7 +21,7 @@ namespace data
     /// @brief Returns a pointer to the title mapped to applicationID.
     /// @param applicationID ApplicationID of title to retrieve.
     /// @return Pointer to data. nullptr if it's not found.
-    data::TitleInfo *get_title_info_by_id(uint64_t applicationID);
+    data::TitleInfo *get_title_info_by_id(uint64_t applicationID) noexcept;
 
     /// @brief Gets a vector of pointers to the title info.
     /// @param listOut List to store pointers in.
@@ -34,7 +34,7 @@ namespace data
     /// @brief Returns if the title with applicationID is already loaded to the map.
     /// @param applicationID Application ID of the title to search for.
     /// @return True if it has been. False if it hasn't.
-    bool title_exists_in_map(uint64_t applicationID);
+    bool title_exists_in_map(uint64_t applicationID) noexcept;
 
     /// @brief Gets a vector of pointers with all titles with saveType.
     /// @param saveType Save data type to check for.

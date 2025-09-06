@@ -79,7 +79,7 @@ namespace remote
             bool get_root_id();
 
             /// @brief Returns whether or not the auth token is still valid for use or needs to be refreshed.
-            bool token_is_valid() const;
+            bool token_is_valid() const noexcept;
 
             /// @brief Attempts to refresh the auth token if needed.
             bool refresh_token();
@@ -95,6 +95,6 @@ namespace remote
             /// @param json Json object to check.
             /// @param log Whether or not to log the error.
             /// @note This doesn't catch every error. Google's errors aren't consistent.
-            bool error_occurred(json::Object &json, bool log = true);
+            bool error_occurred(json::Object &json, bool log = true) noexcept;
     };
 } // namespace remote

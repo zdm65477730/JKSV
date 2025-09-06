@@ -1,14 +1,19 @@
 #include "fs/MiniZip.hpp"
 
 #include "config/config.hpp"
-#include "logging/error.hpp"
+#include "error.hpp"
+#include "logging/logger.hpp"
 
 #include <ctime>
 
 // Definition at bottom.
 static zip_fileinfo create_zip_file_info();
 
-fs::MiniZip::MiniZip(const fslib::Path &path) { MiniZip::open(path); }
+fs::MiniZip::MiniZip(const fslib::Path &path)
+    : m_level(config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL))
+{
+    MiniZip::open(path);
+}
 
 fs::MiniZip::~MiniZip() { MiniZip::close(); }
 
@@ -17,7 +22,9 @@ bool fs::MiniZip::is_open() const { return m_isOpen; }
 bool fs::MiniZip::open(const fslib::Path &path)
 {
     MiniZip::close();
-    m_zip = zipOpen64(path.full_path(), APPEND_STATUS_CREATE);
+
+    const std::string pathString = path.string();
+    m_zip                        = zipOpen64(pathString.c_str(), APPEND_STATUS_CREATE);
     if (error::is_null(m_zip)) { return false; }
     m_isOpen = true;
     return true;
@@ -32,19 +39,21 @@ void fs::MiniZip::close()
 
 bool fs::MiniZip::open_new_file(std::string_view filename, bool trimPath, size_t trimPlaces)
 {
-    const uint8_t zipLevel = config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL);
-
     const size_t pathBegin = filename.find_first_of('/');
     if (pathBegin != filename.npos) { filename = filename.substr(pathBegin + 1); }
 
     const zip_fileinfo fileInfo = create_zip_file_info();
-    return zipOpenNewFileInZip64(m_zip, filename.data(), &fileInfo, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, zipLevel, 0) ==
+    return zipOpenNewFileInZip64(m_zip, filename.data(), &fileInfo, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, m_level, 0) ==
            ZIP_OK;
 }
 
 bool fs::MiniZip::close_current_file() { return zipCloseFileInZip(m_zip) == ZIP_OK; }
 
-bool fs::MiniZip::write(const void *buffer, size_t dataSize) { return zipWriteInFileInZip(m_zip, buffer, dataSize) == ZIP_OK; }
+bool fs::MiniZip::write(const void *buffer, size_t dataSize)
+{
+    if (!m_isOpen) { return false; }
+    return zipWriteInFileInZip(m_zip, buffer, dataSize) == ZIP_OK;
+}
 
 static zip_fileinfo create_zip_file_info()
 {

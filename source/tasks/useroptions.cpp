@@ -1,8 +1,8 @@
 #include "tasks/useroptions.hpp"
 
 #include "config/config.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
-#include "logging/error.hpp"
 #include "remote/remote.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"

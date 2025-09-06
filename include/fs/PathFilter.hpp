@@ -13,13 +13,13 @@ namespace fs
             PathFilter(const fslib::Path &filterPath);
 
             /// @brief Returns whether or not the filter has valid paths.
-            bool has_paths() const;
+            bool has_paths() const noexcept;
 
             /// @brief Returns whether or not the path passed is filtered.
-            bool is_filtered(const fslib::Path &path);
+            bool is_filtered(const fslib::Path &path) const noexcept;
 
         private:
             /// @brief Vector of paths to filter from deletion and backup.
-            std::vector<std::string> m_paths{};
+            std::vector<fslib::Path> m_paths{};
     };
 }

@@ -23,22 +23,22 @@ namespace ui
             void render(sdl::SharedTexture &target, int x, int y);
 
             /// @brief Resets the width and height of the tile.
-            void reset();
+            void reset() noexcept;
 
             /// @brief Returns the render width in pixels.
             /// @return Render width.
-            int get_width() const;
+            int get_width() const noexcept;
 
             /// @brief Returns the render height in pixels.
             /// @return Render height.
-            int get_height() const;
+            int get_height() const noexcept;
 
         private:
             /// @brief Width in pixels to render icon at.
-            int m_renderWidth = 128;
+            int m_renderWidth{128};
 
             /// @brief Height in pixels to render icon at.
-            int m_renderHeight = 128;
+            int m_renderHeight{128};
 
             /// @brief Whether or not the title is a favorite.
             bool m_isFavorite{};

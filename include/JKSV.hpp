@@ -17,7 +17,7 @@ class JKSV
 
         /// @brief Returns if initializing was successful and JKSV is running.
         /// @return True or false.
-        bool is_running() const;
+        bool is_running() const noexcept;
 
         /// @brief Runs JKSV's update routine.
         void update();

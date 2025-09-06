@@ -51,15 +51,24 @@ namespace ui
 
             /// @brief Returns the index of the currently selected menu option.
             /// @return Index of currently selected option.
-            int get_selected() const;
+            int get_selected() const noexcept;
 
             /// @brief Sets the selected item.
             /// @param selected Value to set selected to.
             void set_selected(int selected);
 
+            /// @brief Updates the X render coordinate.
+            void set_x(int x) noexcept;
+
+            /// @brief Updates the Y render coordinate.
+            void set_y(int y) noexcept;
+
             /// @brief This is a workaround function until I find something better.
             /// @param width New width of the menu in pixels.
-            void set_width(int width);
+            void set_width(int width) noexcept;
+
+            /// @brief Returns if the menu has no options.
+            bool is_empty() const noexcept;
 
             /// @brief Resets the menu and returns it to an empty, default state.
             void reset();

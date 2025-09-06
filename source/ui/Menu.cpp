@@ -63,7 +63,8 @@ void ui::Menu::render(sdl::SharedTexture &target, bool hasFocus)
         {
             if (hasFocus)
             {
-                m_boundingBox->set_xy(m_x - 4, tempY - 4);
+                m_boundingBox->set_x(m_x - 4);
+                m_boundingBox->set_y(tempY - 4);
                 m_boundingBox->render(target, hasFocus);
             }
             sdl::render_rect_fill(m_optionTarget, 8, 8, 4, m_optionHeight - 14, colors::BLUE_GREEN);
@@ -89,15 +90,18 @@ void ui::Menu::edit_option(int index, std::string_view newOption)
     m_options[index] = newOption.data();
 }
 
-int ui::Menu::get_selected() const { return m_selected; }
+int ui::Menu::get_selected() const noexcept { return m_selected; }
 
 void ui::Menu::set_selected(int selected)
 {
     m_selected = selected;
     Menu::update_scroll_text();
 }
+void ui::Menu::set_x(int x) noexcept { m_x = x; }
 
-void ui::Menu::set_width(int width) { m_width = width; }
+void ui::Menu::set_y(int y) noexcept { m_y = y; }
+
+void ui::Menu::set_width(int width) noexcept { m_width = width; }
 
 void ui::Menu::reset()
 {
@@ -105,6 +109,8 @@ void ui::Menu::reset()
     m_y        = m_originalY;
     m_options.clear();
 }
+
+bool ui::Menu::is_empty() const noexcept { return m_options.empty(); }
 
 void ui::Menu::update_scroll_text()
 {

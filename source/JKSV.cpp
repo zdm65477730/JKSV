@@ -1,15 +1,16 @@
 #include "JKSV.hpp"
 
 #include "StateManager.hpp"
+#include "appstates/FileModeState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TaskState.hpp"
 #include "config/config.hpp"
 #include "curl/curl.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "fslib.hpp"
 #include "graphics/colors.hpp"
 #include "input.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "sdl.hpp"
@@ -30,9 +31,21 @@ namespace
     /// @brief Build month.
     constexpr uint8_t BUILD_MON = 8;
     /// @brief Build day.
-    constexpr uint8_t BUILD_DAY = 25;
+    constexpr uint8_t BUILD_DAY = 29;
     /// @brief Year.
     constexpr uint16_t BUILD_YEAR = 2025;
+
+    /// @brief Config for socket.
+    constexpr SocketInitConfig SOCKET_INIT_CONFIG = {.tcp_tx_buf_size     = 0x20000,
+                                                     .tcp_rx_buf_size     = 0x20000,
+                                                     .tcp_tx_buf_max_size = 0x80000,
+                                                     .tcp_rx_buf_max_size = 0x80000,
+                                                     .udp_tx_buf_size     = 0x2400,
+                                                     .udp_rx_buf_size     = 0xA500,
+                                                     .sb_efficiency       = 8,
+                                                     .num_bsd_sessions    = 3,
+                                                     .bsd_service_type    = BsdServiceType_User};
+
 } // namespace
 
 template <typename... Args>
@@ -86,11 +99,11 @@ JKSV::~JKSV()
     JKSV::exit_services();
     sdl::text::exit();
     sdl::exit();
-    fslib::exit();
+
     appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
 }
 
-bool JKSV::is_running() const { return m_isRunning; }
+bool JKSV::is_running() const noexcept { return m_isRunning; }
 
 void JKSV::update()
 {
@@ -133,10 +146,11 @@ void JKSV::render()
 bool JKSV::initialize_filesystem()
 {
     // This needs to be in this specific order
-    const bool fslib    = fslib::initialize();
+    const bool fslib    = fslib::is_initialized();
     const bool romfs    = initialize_service(romfsInit, "RomFS");
     const bool fslibDev = fslib && fslib::dev::initialize_sdmc();
     if (!fslib || !romfs || !fslibDev) { return false; }
+
     return true;
 }
 
@@ -150,7 +164,7 @@ bool JKSV::initialize_services()
     serviceInit      = serviceInit && initialize_service(pmshellInitialize, "PMShell");
     serviceInit      = serviceInit && initialize_service(setInitialize, "Set");
     serviceInit      = serviceInit && initialize_service(setsysInitialize, "SetSys");
-    serviceInit      = serviceInit && initialize_service(socketInitializeDefault, "Socket");
+    serviceInit      = serviceInit && initialize_service(socketInitialize, "Socket", &SOCKET_INIT_CONFIG);
     serviceInit      = serviceInit && initialize_service(nifmInitialize, "NIFM", NifmServiceType_User);
     return serviceInit;
 }

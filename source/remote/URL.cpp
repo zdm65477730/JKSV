@@ -13,7 +13,7 @@ remote::URL &remote::URL::operator=(const remote::URL &url)
     return *this;
 }
 
-remote::URL &remote::URL::operator=(remote::URL &&url)
+remote::URL &remote::URL::operator=(remote::URL &&url) noexcept
 {
     m_url = std::move(url.m_url);
     return *this;
@@ -47,7 +47,7 @@ remote::URL &remote::URL::append_slash()
     return *this;
 }
 
-const char *remote::URL::get() const { return m_url.c_str(); }
+const char *remote::URL::get() const noexcept { return m_url.c_str(); }
 
 void remote::URL::append_separator()
 {

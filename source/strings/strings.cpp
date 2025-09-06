@@ -2,8 +2,8 @@
 
 #include "JSON.hpp"
 #include "config/config.hpp"
+#include "error.hpp"
 #include "fslib.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "stringutil.hpp"
 
@@ -15,6 +15,7 @@ namespace
 {
     // This is the actual map where the strings are.
     std::map<std::pair<std::string, int>, std::string> s_stringMap;
+
     // This map is for matching files to the language value
     std::unordered_map<SetLanguage, std::string_view> s_fileMap = {{SetLanguage_JA, "JA.json"},
                                                                    {SetLanguage_ENUS, "ENUS.json"},
@@ -42,8 +43,8 @@ static void replace_buttons_in_string(std::string &target);
 
 bool strings::initialize()
 {
-    const fslib::Path filePath = get_file_path();
-    json::Object stringJSON    = json::new_object(json_object_from_file, filePath.full_path());
+    const std::string stringPath = get_file_path().string();
+    json::Object stringJSON      = json::new_object(json_object_from_file, stringPath.c_str());
     if (!stringJSON) { return false; }
 
     json_object_iterator stringIterator = json::iter_begin(stringJSON);
@@ -77,7 +78,7 @@ bool strings::initialize()
     return true;
 }
 
-const char *strings::get_by_name(std::string_view name, int index)
+const char *strings::get_by_name(std::string_view name, int index) noexcept
 {
     const auto mapPair  = std::make_pair(name.data(), index);
     const auto findPair = s_stringMap.find(mapPair);

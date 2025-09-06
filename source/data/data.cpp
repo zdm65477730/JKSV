@@ -2,7 +2,8 @@
 
 #include "appstates/DataLoadingState.hpp"
 #include "data/DataContext.hpp"
-#include "logging/error.hpp"
+#include "error.hpp"
+#include "logging/logger.hpp"
 #include "strings/strings.hpp"
 
 #include <switch.h>
@@ -23,11 +24,14 @@ void data::launch_initialization(bool clearCache, std::function<void()> onDestru
 
 void data::get_users(data::UserList &userList) { s_context.get_users(userList); }
 
-data::TitleInfo *data::get_title_info_by_id(uint64_t applicationID) { return s_context.get_title_by_id(applicationID); }
+data::TitleInfo *data::get_title_info_by_id(uint64_t applicationID) noexcept
+{
+    return s_context.get_title_by_id(applicationID);
+}
 
 void data::load_title_to_map(uint64_t applicationID) { s_context.load_title(applicationID); }
 
-bool data::title_exists_in_map(uint64_t applicationID) { return s_context.title_is_loaded(applicationID); }
+bool data::title_exists_in_map(uint64_t applicationID) noexcept { return s_context.title_is_loaded(applicationID); }
 
 void data::get_title_info_list(data::TitleInfoList &listOut) { s_context.get_title_info_list(listOut); }
 

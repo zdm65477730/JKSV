@@ -17,9 +17,6 @@ namespace ui
             /// @param height Height of the box in pixels.
             BoundingBox(int x, int y, int width, int height);
 
-            /// @brief Required destructor.
-            ~BoundingBox() {};
-
             /// @brief Creates a returns a new BoundingBox. See constructor.
             static inline std::shared_ptr<ui::BoundingBox> create(int x, int y, int width, int height)
             {
@@ -32,18 +29,17 @@ namespace ui
             /// @brief Render override.
             void render(sdl::SharedTexture &target, bool hasFocus) override;
 
-            /// @brief Sets the X and Y coord.
-            /// @param x New X coord.
-            /// @param y New Y coord.
-            void set_xy(int x, int y);
+            /// @brief Sets the X coord.
+            void set_x(int x) noexcept;
 
-            /// @brief Sets the width and height of the bounding box.
-            /// @param width New width.
-            /// @param height New height.
-            void set_width_height(int width, int height);
+            /// @brief Sets the Y coord.
+            void set_y(int y) noexcept;
 
-            /// @brief Passing this to the set functions will keep the same coord.
-            static inline constexpr int NO_SET = -1;
+            /// @brief Sets the width.
+            void set_width(int width) noexcept;
+
+            /// @brief Sets the height.
+            void set_height(int height) noexcept;
 
         private:
             /// @brief X coord to render to.

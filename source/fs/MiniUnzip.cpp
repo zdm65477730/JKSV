@@ -1,6 +1,6 @@
 #include "fs/MiniUnzip.hpp"
 
-#include "logging/error.hpp"
+#include "error.hpp"
 #include "logging/logger.hpp"
 
 fs::MiniUnzip::MiniUnzip(const fslib::Path &path) { MiniUnzip::open(path); }
@@ -12,7 +12,9 @@ bool fs::MiniUnzip::is_open() const { return m_isOpen; }
 bool fs::MiniUnzip::open(const fslib::Path &path)
 {
     MiniUnzip::close();
-    m_unz = unzOpen64(path.full_path());
+
+    const std::string pathString = path.string();
+    m_unz                        = unzOpen64(pathString.c_str());
     if (error::is_null(m_unz) || !MiniUnzip::reset()) { return false; }
     m_isOpen = true;
     return true;

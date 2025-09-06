@@ -9,6 +9,7 @@ namespace curl
     {
         /// @brief Source file to upload from.
         fslib::File *source{};
+        
         /// @brief Optional. Task to update with progress.
         sys::ProgressTask *task{};
     };

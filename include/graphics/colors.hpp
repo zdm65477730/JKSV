@@ -13,6 +13,7 @@ namespace colors
     inline constexpr sdl::Color PINK              = {0xFF4444FF};
     inline constexpr sdl::Color BLUE_GREEN        = {0x00FFC5FF};
     inline constexpr sdl::Color CLEAR_COLOR       = {0x2D2D2DFF};
+    inline constexpr sdl::Color CLEAR_PANEL       = {0x0D0D0DFF};
     inline constexpr sdl::Color DIALOG_DARK       = {0x505050FF};
     inline constexpr sdl::Color DIALOG_LIGHT      = {0xDCDCDCFF};
     inline constexpr sdl::Color DIM_BACKGROUND    = {0x00000088};

@@ -2,9 +2,9 @@
 
 #include "config/config.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
 #include "keyboard.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "strings/strings.hpp"
@@ -208,7 +208,7 @@ void tasks::titleoptions::extend_save_data(sys::Task *task, TitleOptionState::Ta
 
     std::array<char, 5> sizeBuffer = {0};
     FsSaveDataExtraData extraData{};
-    const bool readExtra = fs::read_save_data_extra_info(saveInfo, extraData);
+    const bool readExtra = fs::read_save_extra_data(saveInfo, extraData);
 
     const int sizeMB                  = extraData.data_size / SIZE_MB;
     const char *keyboardHeader        = strings::get_by_name(strings::names::KEYBOARD, 8);

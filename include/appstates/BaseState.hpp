@@ -16,6 +16,9 @@ class BaseState
         /// @brief Every derived class is required to have this function.
         virtual void update() = 0;
 
+        /// @brief Sub update routine. Meant to handle minor background tasks. Not meant for full update routines.
+        virtual void sub_update() {};
+
         /// @brief Every derived class is required to have this function.
         virtual void render() = 0;
 
@@ -45,7 +48,7 @@ class BaseState
 
     private:
         /// @brief Stores whether or not the state is currently active.
-        bool m_isActive = true;
+        bool m_isActive{true};
 
         /// @brief Stores whether or not the state has focus.
         bool m_hasFocus{};

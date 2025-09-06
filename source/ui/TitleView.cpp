@@ -1,9 +1,9 @@
 #include "ui/TitleView.hpp"
 
 #include "config/config.hpp"
+#include "error.hpp"
 #include "graphics/colors.hpp"
 #include "input.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 
 #include <cmath>
@@ -57,7 +57,8 @@ void ui::TitleView::render(sdl::SharedTexture &target, bool hasFocus)
 
     if (hasFocus)
     {
-        m_bounding->set_xy(m_selectedX - 30, m_selectedY - 30);
+        m_bounding->set_x(m_selectedX - 30);
+        m_bounding->set_y(m_selectedY - 30);
         sdl::render_rect_fill(target, m_selectedX - 28, m_selectedY - 28, 184, 184, colors::CLEAR_COLOR);
         m_bounding->render(target, hasFocus);
     }
@@ -66,9 +67,9 @@ void ui::TitleView::render(sdl::SharedTexture &target, bool hasFocus)
     selectedTile.render(target, m_selectedX, m_selectedY);
 }
 
-int ui::TitleView::get_selected() const { return m_selected; }
+int ui::TitleView::get_selected() const noexcept { return m_selected; }
 
-void ui::TitleView::set_selected(int selected)
+void ui::TitleView::set_selected(int selected) noexcept
 {
     const int tilesCount = m_titleTiles.size();
     if (selected < 0 || selected >= tilesCount) { return; }

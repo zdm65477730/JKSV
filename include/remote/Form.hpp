@@ -15,11 +15,11 @@ namespace remote
 
             /// @brief Move constructor.
             /// @param form Form to copy from.
-            Form(Form &&form);
+            Form(Form &&form) noexcept;
 
             /// @brief = Operator.
             /// @param form Form to copy.
-            Form &operator=(const Form &form);
+            Form &operator=(const Form &form) noexcept;
 
             /// @brief = Move operator.
             /// @param form Form to rob of its life.
@@ -31,10 +31,10 @@ namespace remote
             Form &append_parameter(std::string_view param, std::string_view value);
 
             /// @brief Returns the C string of the form string.
-            const char *get() const;
+            const char *get() const noexcept;
 
             /// @brief Returns m_form.length()
-            size_t length() const;
+            size_t length() const noexcept;
 
         private:
             /// @brief String containing the actual data posted.

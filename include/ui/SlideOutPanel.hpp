@@ -35,6 +35,9 @@ namespace ui
             /// @param hasFocus Whether or not the calling state has focus.
             void update(bool hasFocus) override;
 
+            /// @brief Sub update routine. Allows the panel to hide and unhide itself even when not in focus.
+            void sub_update();
+
             /// @brief Runs the render routine.
             /// @param target Target to render to.
             /// @param hasFocus Whether or the the calling state has focus.
@@ -44,18 +47,27 @@ namespace ui
             void clear_target();
 
             /// @brief Resets the panel back to its default state.
-            void reset();
+            void reset() noexcept;
 
             /// @brief Closes the panel.
-            void close();
+            void close() noexcept;
+
+            /// @brief Hides the panel temporarily.
+            void hide() noexcept;
+
+            /// @brief Unhides the panel.
+            void unhide() noexcept;
 
             /// @brief Returns if the panel is fully open.
             /// @return If the panel is fully open.
-            bool is_open() const;
+            bool is_open() const noexcept;
 
             /// @brief Returns if the panel is fully closed.
             /// @return If the panel is fully closed.
-            bool is_closed();
+            bool is_closed() noexcept;
+
+            /// @brief Returns whether or not the panel is hidden.
+            bool is_hidden() const noexcept;
 
             /// @brief Pushes a new element to the element vector.
             /// @param newElement New element to push.
@@ -66,7 +78,7 @@ namespace ui
 
             /// @brief Returns a pointer to the render target of the panel.
             /// @return Raw SDL_Texture pointer to target.
-            sdl::SharedTexture &get_target();
+            sdl::SharedTexture &get_target() noexcept;
 
         private:
             /// @brief Bool for whether panel is fully open or not.
@@ -74,6 +86,9 @@ namespace ui
 
             /// @brief Whether or not to close panel.
             bool m_closePanel{};
+
+            /// @brief Whether or not to hide the panel.
+            bool m_hidePanel{};
 
             /// @brief Current X coordinate to render to. Panels are always 720 pixels in height so no Y is required.
             double m_x{};
@@ -93,10 +108,16 @@ namespace ui
             /// @brief Vector of elements.
             std::vector<std::shared_ptr<ui::Element>> m_elements{};
 
-            void slide_out_left();
+            /// @brief Handles sliding out logic.
+            void slide_out() noexcept;
 
-            void slide_out_right();
+            /// @brief Slides the panel out from the left side.
+            void slide_out_left() noexcept;
 
-            int get_absolute_x_distance();
+            /// @brief Slides the panel out from the right side.
+            void slide_out_right() noexcept;
+
+            /// @brief Contains the logic for hiding/closing the panel.
+            void close_hide_panel() noexcept;
     };
 } // namespace ui

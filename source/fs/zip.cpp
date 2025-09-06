@@ -1,8 +1,8 @@
 #include "fs/zip.hpp"
 
 #include "config/config.hpp"
+#include "error.hpp"
 #include "fs/SaveMetaData.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
@@ -19,7 +19,7 @@
 namespace
 {
     /// @brief Buffer size used for writing files to ZIP.
-    constexpr size_t SIZE_ZIP_BUFFER = 0x100000;
+    constexpr size_t SIZE_ZIP_BUFFER = 0x10000;
 
     /// @brief Buffer size used for decompressing files from ZIP.
     constexpr size_t SIZE_UNZIP_BUFFER = 0x600000;
@@ -100,14 +100,15 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
 
-    for (const fslib::DirectoryEntry &entry : sourceDir.list())
+    for (const fslib::DirectoryEntry &entry : sourceDir)
     {
         const fslib::Path fullSource{source / entry};
         if (entry.is_directory()) { fs::copy_directory_to_zip(fullSource, dest, task); }
         else
         {
             fslib::File sourceFile{fullSource, FsOpenMode_Read};
-            const bool newZipFile = dest.open_new_file(fullSource.full_path());
+            const std::string sourceString = fullSource.string();
+            const bool newZipFile          = dest.open_new_file(sourceString);
             if (error::fslib(sourceFile.is_open()) || !newZipFile) { continue; }
 
             const int64_t fileSize   = sourceFile.get_size();
@@ -117,7 +118,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
 
             if (task)
             {
-                const std::string status = stringutil::get_formatted_string(ioStatus, fullSource.full_path());
+                const std::string status = stringutil::get_formatted_string(ioStatus, sourceString.c_str());
                 task->set_status(status);
                 task->reset(static_cast<double>(fileSize));
             }
@@ -158,17 +159,13 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
     }
 }
 
-void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
-                               const fslib::Path &dest,
-                               int64_t journalSize,
-                               std::string_view commitDevice,
-                               sys::ProgressTask *task)
+void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, int64_t journalSize, sys::ProgressTask *task)
 {
     if (!unzip.reset()) { return; }
     const int popTicks          = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popCommitFailed = strings::get_by_name(strings::names::IO_POPS, 0);
     const char *statusTemplate  = strings::get_by_name(strings::names::IO_STATUSES, 2);
-    const bool needCommits      = journalSize > 0 && !commitDevice.empty();
+    const bool needCommits      = journalSize > 0;
 
     do {
         if (unzip.get_filename() == fs::NAME_SAVE_META) { continue; }
@@ -178,9 +175,10 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
         if (lastDir == fullDest.NOT_FOUND) { continue; }
 
         const fslib::Path dirPath{fullDest.sub_path(lastDir)};
-        const bool exists      = dirPath.is_valid() && fslib::directory_exists(dirPath);
-        const bool createError = dirPath.is_valid() && !exists && error::fslib(fslib::create_directories_recursively(dirPath));
-        if (dirPath.is_valid() && !exists && createError) { continue; }
+        const bool isValid     = dirPath.is_valid();
+        const bool exists      = isValid && fslib::directory_exists(dirPath);
+        const bool createError = isValid && !exists && error::fslib(fslib::create_directories_recursively(dirPath));
+        if (isValid && !exists && createError) { continue; }
 
         const int64_t fileSize = unzip.get_uncompressed_size();
         fslib::File destFile{fullDest, FsOpenMode_Create | FsOpenMode_Write, fileSize};
@@ -203,8 +201,8 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
         bool &bufferReady                          = sharedData->bufferReady;
         std::unique_ptr<sys::byte[]> &sharedBuffer = sharedData->sharedBuffer;
 
-        std::thread readThread(unzipReadThreadFunction, std::ref(unzip), sharedData);
         int64_t journalCount{};
+        std::thread readThread(unzipReadThreadFunction, std::ref(unzip), sharedData);
         for (int64_t i = 0; i < fileSize;)
         {
             ssize_t localRead{};
@@ -223,7 +221,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
             if (commitNeeded)
             {
                 destFile.close();
-                const bool commitError = error::fslib(fslib::commit_data_to_file_system(commitDevice));
+                const bool commitError = error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
                 if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); } // To do: How to recover?
 
                 destFile.open(fullDest, FsOpenMode_Write);
@@ -240,7 +238,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip,
         readThread.join();
         destFile.close();
 
-        const bool commitError = needCommits && error::fslib(fslib::commit_data_to_file_system(commitDevice));
+        const bool commitError = needCommits && error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
         if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); }
     } while (unzip.next_file());
 }

@@ -10,7 +10,7 @@ namespace remote
     static constexpr std::string_view PATH_WEBDAV_CONFIG       = "sdmc:/config/JKSV/webdav.json";
 
     /// @brief Returns whether or not the console has an active internet connection.
-    bool has_internet_connection();
+    bool has_internet_connection() noexcept;
 
     /// @brief Initializes the Storage instance to Google Drive.
     void initialize_google_drive();
@@ -19,5 +19,5 @@ namespace remote
     void initialize_webdav();
 
     /// @brief Returns the pointer to the Storage instance.
-    remote::Storage *get_remote_storage();
+    remote::Storage *get_remote_storage() noexcept;
 } // namespace remote

@@ -24,22 +24,22 @@ namespace sys
 
             /// @brief Resets the progress and sets a new goal.
             /// @param goal The goal we all strive for.
-            void reset(double goal);
+            void reset(double goal) noexcept;
 
             /// @brief Updates the current progress.
             /// @param current The current progress value.
-            void update_current(double current);
+            void update_current(double current) noexcept;
 
             /// @brief Increases the current progress by a set amount.
-            void increase_current(double amount);
+            void increase_current(double amount) noexcept;
 
             /// @brief Returns the goal value.
             /// @return Goal
-            double get_goal() const;
+            double get_goal() const noexcept;
 
             /// @brief Returns the current progress.
             /// @return Current progress.
-            double get_progress() const;
+            double get_progress() const noexcept;
 
         private:
             // Current value and goal

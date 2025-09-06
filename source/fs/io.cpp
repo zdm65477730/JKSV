@@ -1,8 +1,8 @@
 #include "fs/io.hpp"
 
+#include "error.hpp"
 #include "fs/SaveMetaData.hpp"
 #include "fslib.hpp"
-#include "logging/error.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "sys/sys.hpp"
@@ -70,7 +70,8 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
     const int64_t sourceSize = sourceFile.get_size();
     if (task)
     {
-        const std::string status = stringutil::get_formatted_string(statusTemplate, source.full_path());
+        const std::string sourceString = source.string();
+        const std::string status       = stringutil::get_formatted_string(statusTemplate, sourceString.c_str());
         task->set_status(status);
         task->reset(static_cast<double>(sourceSize));
     }
@@ -111,7 +112,6 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
 
 void fs::copy_file_commit(const fslib::Path &source,
                           const fslib::Path &destination,
-                          std::string_view device,
                           int64_t journalSize,
                           sys::ProgressTask *task)
 {
@@ -126,7 +126,8 @@ void fs::copy_file_commit(const fslib::Path &source,
     const int64_t sourceSize = sourceFile.get_size();
     if (task)
     {
-        const std::string status = stringutil::get_formatted_string(copyingStatus, source.full_path());
+        const std::string sourceString = source.string();
+        const std::string status       = stringutil::get_formatted_string(copyingStatus, sourceString.c_str());
         task->set_status(status);
         task->reset(static_cast<double>(sourceSize));
     }
@@ -163,7 +164,7 @@ void fs::copy_file_commit(const fslib::Path &source,
         if (needsCommit)
         {
             destFile.close();
-            const bool commitError = error::fslib(fslib::commit_data_to_file_system(device));
+            const bool commitError = error::fslib(fslib::commit_data_to_file_system(destination.get_device_name()));
             // To do: Handle this better. Threads current have no way of communicating errors.
             if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); }
 
@@ -180,7 +181,7 @@ void fs::copy_file_commit(const fslib::Path &source,
     readThread.join();
     destFile.close();
 
-    const bool commitError = error::fslib(fslib::commit_data_to_file_system(device));
+    const bool commitError = error::fslib(fslib::commit_data_to_file_system(destination.get_device_name()));
     if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); }
 }
 
@@ -189,7 +190,7 @@ void fs::copy_directory(const fslib::Path &source, const fslib::Path &destinatio
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
 
-    for (const fslib::DirectoryEntry &entry : sourceDir.list())
+    for (const fslib::DirectoryEntry &entry : sourceDir)
     {
         const char *filename = entry.get_filename();
         if (filename == fs::NAME_SAVE_META) { continue; }
@@ -210,14 +211,13 @@ void fs::copy_directory(const fslib::Path &source, const fslib::Path &destinatio
 
 void fs::copy_directory_commit(const fslib::Path &source,
                                const fslib::Path &destination,
-                               std::string_view device,
                                int64_t journalSize,
                                sys::ProgressTask *task)
 {
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
 
-    for (const fslib::DirectoryEntry &entry : sourceDir.list())
+    for (const fslib::DirectoryEntry &entry : sourceDir)
     {
         const char *filename = entry.get_filename();
         if (filename == fs::NAME_SAVE_META) { continue; }
@@ -230,8 +230,8 @@ void fs::copy_directory_commit(const fslib::Path &source,
             const bool createError = !destExists && error::fslib(fslib::create_directory(fullDest));
             if (!destExists && createError) { continue; }
 
-            fs::copy_directory_commit(fullSource, fullDest, device, journalSize, task);
+            fs::copy_directory_commit(fullSource, fullDest, journalSize, task);
         }
-        else { fs::copy_file_commit(fullSource, fullDest, device, journalSize, task); }
+        else { fs::copy_file_commit(fullSource, fullDest, journalSize, task); }
     }
 }

@@ -1,8 +1,8 @@
 #include "tasks/backup.hpp"
 
 #include "config/config.hpp"
+#include "error.hpp"
 #include "fs/fs.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "strings/strings.hpp"
@@ -36,7 +36,8 @@ void tasks::backup::create_new_backup_local(sys::ProgressTask *task,
     if (error::is_null(task)) { return; }
     if (error::is_null(user) || error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
 
-    const bool hasZipExt           = std::strstr(target.full_path(), STRING_ZIP_EXT);
+    const std::string targetString = target.string();
+    const bool hasZipExt           = std::strstr(targetString.c_str(), STRING_ZIP_EXT);
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
     if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
@@ -198,12 +199,16 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
     const uint8_t saveType         = user->get_account_save_type();
-    const uint64_t journalSize     = titleInfo->get_journal_size(saveType);
     if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
 
-    const bool autoBackup = config::get_by_key(config::keys::AUTO_BACKUP_ON_RESTORE);
-    const bool isDir      = fslib::directory_exists(target);
-    const bool hasZipExt  = std::strstr(target.full_path(), STRING_ZIP_EXT);
+    FsSaveDataExtraData extraData{};
+    const bool readExtra      = fs::read_save_extra_data(saveInfo, extraData);
+    const int64_t journalSize = readExtra ? extraData.journal_size : titleInfo->get_journal_size(saveType);
+
+    const std::string targetString = target.string();
+    const bool autoBackup          = config::get_by_key(config::keys::AUTO_BACKUP_ON_RESTORE);
+    const bool isDir               = fslib::directory_exists(target);
+    const bool hasZipExt           = std::strstr(targetString.c_str(), STRING_ZIP_EXT);
 
     const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
     if (autoBackup) { auto_backup(task, taskData); }
@@ -226,18 +231,18 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
 
         read_and_process_meta(unzip, taskData, task);
         auto scopedMount = create_scoped_mount(saveInfo);
-        fs::copy_zip_to_directory(unzip, fs::DEFAULT_SAVE_ROOT, journalSize, fs::DEFAULT_SAVE_MOUNT, task);
+        fs::copy_zip_to_directory(unzip, fs::DEFAULT_SAVE_ROOT, journalSize, task);
     }
     else if (isDir)
     {
         read_and_process_meta(target, taskData, task);
         auto scopedMount = create_scoped_mount(saveInfo);
-        fs::copy_directory_commit(target, fs::DEFAULT_SAVE_ROOT, fs::DEFAULT_SAVE_MOUNT, journalSize, task);
+        fs::copy_directory_commit(target, fs::DEFAULT_SAVE_ROOT, journalSize, task);
     }
     else
     {
         auto scopedMount = create_scoped_mount(saveInfo);
-        fs::copy_file_commit(target, fs::DEFAULT_SAVE_ROOT, fs::DEFAULT_SAVE_MOUNT, journalSize, task);
+        fs::copy_file_commit(target, fs::DEFAULT_SAVE_ROOT, journalSize, task);
     }
 
     spawningState->refresh();
@@ -306,10 +311,12 @@ void tasks::backup::restore_backup_remote(sys::ProgressTask *task, BackupMenuSta
 
     read_and_process_meta(backup, taskData, task);
     {
-        const uint8_t saveType     = user->get_account_save_type();
-        const uint64_t journalSize = titleInfo->get_journal_size(saveType);
+        FsSaveDataExtraData extraData{};
+        const bool readExtra      = fs::read_save_extra_data(saveInfo, extraData);
+        const uint8_t saveType    = user->get_account_save_type();
+        const int64_t journalSize = readExtra ? extraData.journal_size : titleInfo->get_journal_size(saveType);
         fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
-        fs::copy_zip_to_directory(backup, fs::DEFAULT_SAVE_ROOT, journalSize, fs::DEFAULT_SAVE_MOUNT, task);
+        fs::copy_zip_to_directory(backup, fs::DEFAULT_SAVE_ROOT, journalSize, task);
     }
     backup.close();
 
@@ -333,8 +340,9 @@ void tasks::backup::delete_backup_local(sys::Task *task, BackupMenuState::TaskDa
 
     const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
     {
-        const char *statusFormat = strings::get_by_name(strings::names::IO_STATUSES, 3);
-        const std::string status = stringutil::get_formatted_string(statusFormat, path.full_path());
+        const std::string pathString = path.string();
+        const char *statusFormat     = strings::get_by_name(strings::names::IO_STATUSES, 3);
+        const std::string status     = stringutil::get_formatted_string(statusFormat, pathString.c_str());
         task->set_status(status);
     }
 

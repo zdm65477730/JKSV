@@ -1,24 +1,34 @@
 #include "fs/directory_functions.hpp"
 
+#include "error.hpp"
 #include "fs/SaveMetaData.hpp"
+#include "logging/logger.hpp"
 
-uint64_t fs::get_directory_total_size(const fslib::Path &targetPath)
+bool fs::get_directory_information(const fslib::Path &directoryPath,
+                                   int64_t &subDirCount,
+                                   int64_t &fileCount,
+                                   int64_t &totalSize)
 {
-    fslib::Directory targetDir{targetPath};
-    if (!targetDir.is_open()) { return 0; }
+    fslib::Directory dir{directoryPath};
+    if (error::fslib(dir.is_open())) { return false; }
 
-    uint64_t directorySize = 0;
-    for (const fslib::DirectoryEntry &entry : targetDir.list())
+    for (const fslib::DirectoryEntry &entry : dir)
     {
         if (entry.is_directory())
         {
-            const fslib::Path newTarget{targetPath / entry};
-            directorySize += fs::get_directory_total_size(newTarget);
+            const fslib::Path newPath{directoryPath / entry};
+            const bool getInfo = fs::get_directory_information(newPath, subDirCount, fileCount, totalSize);
+            if (!getInfo) { return false; }
+            ++subDirCount;
         }
-        else { directorySize += entry.get_size(); }
+        else
+        {
+            totalSize += entry.get_size();
+            ++fileCount;
+        }
     }
 
-    return directorySize;
+    return true;
 }
 
 bool fs::directory_has_contents(const fslib::Path &directoryPath)
@@ -26,7 +36,7 @@ bool fs::directory_has_contents(const fslib::Path &directoryPath)
     fslib::Directory testDir{directoryPath};
     if (!testDir.is_open()) { return false; }
 
-    for (const fslib::DirectoryEntry &entry : testDir.list())
+    for (const fslib::DirectoryEntry &entry : testDir)
     {
         if (entry.get_filename() != fs::NAME_SAVE_META) { return true; }
     }

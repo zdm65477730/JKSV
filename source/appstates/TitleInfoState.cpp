@@ -1,9 +1,9 @@
 #include "appstates/TitleInfoState.hpp"
 
 #include "StateManager.hpp"
+#include "error.hpp"
 #include "graphics/colors.hpp"
 #include "input.hpp"
-#include "logging/error.hpp"
 #include "sdl.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"

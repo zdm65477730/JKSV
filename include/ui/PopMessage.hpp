@@ -19,10 +19,10 @@ namespace ui
             void render();
 
             /// @brief Returns whether or not the message can be purged.
-            bool finished() const;
+            bool finished() const noexcept;
 
             /// @brief Returns the text of the message.
-            std::string_view get_message() const;
+            std::string_view get_message() const noexcept;
 
         private:
             // Every message begins off screen.
@@ -65,9 +65,9 @@ namespace ui
             std::shared_ptr<ui::DialogBox> m_dialog{};
 
             /// @brief Updates the Y Coord to match the target passed.
-            void update_y(double targetY);
+            void update_y(double targetY) noexcept;
 
             /// @brief Updates the current end offset of the text.
-            void update_text_offset();
+            void update_text_offset() noexcept;
     };
 }

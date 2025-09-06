@@ -3,6 +3,7 @@
 #include "ui/ColorMod.hpp"
 #include "ui/DialogBox.hpp"
 #include "ui/Element.hpp"
+#include "ui/Frame.hpp"
 #include "ui/IconMenu.hpp"
 #include "ui/Menu.hpp"
 #include "ui/PopMessageManager.hpp"

@@ -5,8 +5,8 @@
 namespace fs
 {
     /// @brief Default mount point used for JKSV for saves.
-    static constexpr std::string_view DEFAULT_SAVE_MOUNT = "save";
+    inline constexpr std::string_view DEFAULT_SAVE_MOUNT = "save";
 
     /// @brief Same as above, but as a root directory.
-    static constexpr std::string_view DEFAULT_SAVE_ROOT = "save:/";
+    inline constexpr std::string_view DEFAULT_SAVE_ROOT = "save:/";
 } // namespace fs

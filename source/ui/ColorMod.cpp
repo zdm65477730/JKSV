@@ -1,6 +1,6 @@
 #include "ui/ColorMod.hpp"
 
-void ui::ColorMod::update()
+void ui::ColorMod::update() noexcept
 {
     const bool changeDown = m_direction && ((m_colorMod += 6) >= 0x72);
     const bool changeUp   = !m_direction && ((m_colorMod -= 3) <= 0x00);
@@ -8,7 +8,7 @@ void ui::ColorMod::update()
     else if (changeUp) { m_direction = true; }
 }
 
-ui::ColorMod::operator sdl::Color() const
+ui::ColorMod::operator sdl::Color() const noexcept
 {
     uint32_t color{};
     color |= static_cast<uint32_t>((0x88 + m_colorMod) << 16);

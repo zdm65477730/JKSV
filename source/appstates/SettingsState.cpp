@@ -5,11 +5,11 @@
 #include "appstates/MessageState.hpp"
 #include "config/config.hpp"
 #include "data/data.hpp"
+#include "error.hpp"
 #include "fslib.hpp"
 #include "graphics/colors.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
-#include "logging/error.hpp"
 #include "logging/logger.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
@@ -157,10 +157,10 @@ void SettingsState::change_working_directory()
     const char *popSuccessFormat = strings::get_by_name(strings::names::SETTINGS_POPS, 1);
     const char *popFailed        = strings::get_by_name(strings::names::SETTINGS_POPS, 2);
 
-    const fslib::Path oldPath{config::get_working_directory()};
+    const std::string oldPath                = config::get_working_directory().string();
     std::array<char, FS_MAX_PATH> pathBuffer = {0};
 
-    const bool input = keyboard::get_input(SwkbdType_Normal, oldPath.full_path(), inputHeader, pathBuffer.data(), FS_MAX_PATH);
+    const bool input = keyboard::get_input(SwkbdType_Normal, oldPath, inputHeader, pathBuffer.data(), FS_MAX_PATH);
     if (!input) { return; }
 
     const fslib::Path newPath{pathBuffer.data()};
@@ -179,7 +179,8 @@ void SettingsState::change_working_directory()
         return;
     }
 
-    const std::string popMessage = stringutil::get_formatted_string(popSuccessFormat, newPath.full_path());
+    const std::string newPathString = newPath.string();
+    const std::string popMessage    = stringutil::get_formatted_string(popSuccessFormat, newPathString);
     ui::PopMessageManager::push_message(popTicks, popMessage);
 }
 

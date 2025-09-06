@@ -36,6 +36,9 @@ class UserOptionState final : public BaseState
         /// @brief Runs the render routine.
         void update() override;
 
+        /// @brief Handles hiding the panel.
+        void sub_update() override;
+
         /// @brief Runs the render routine.
         void render() override;
 

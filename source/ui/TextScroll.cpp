@@ -54,7 +54,7 @@ void ui::TextScroll::initialize(std::string_view text,
     TextScroll::set_text(text, center);
 }
 
-std::string_view ui::TextScroll::get_text() const { return m_text; }
+std::string_view ui::TextScroll::get_text() const noexcept { return m_text; }
 
 void ui::TextScroll::set_text(std::string_view text, bool center)
 {
@@ -101,12 +101,6 @@ void ui::TextScroll::update(bool hasFocus)
         m_textScrollTriggered = false;
         m_scrollTimer.restart();
     }
-}
-
-void ui::TextScroll::set_xy(int x, int y)
-{
-    m_renderX = x;
-    m_renderY = y;
 }
 
 void ui::TextScroll::render(sdl::SharedTexture &target, bool hasFocus)

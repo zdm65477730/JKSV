@@ -20,15 +20,15 @@ void config::reset_to_default() { s_context.reset(); }
 
 void config::save() { s_context.save(); }
 
-uint8_t config::get_by_key(std::string_view key) { return s_context.get_by_key(key); }
+uint8_t config::get_by_key(std::string_view key) noexcept { return s_context.get_by_key(key); }
 
-void config::toggle_by_key(std::string_view key) { s_context.toggle_by_key(key); }
+void config::toggle_by_key(std::string_view key) noexcept { s_context.toggle_by_key(key); }
 
-void config::set_by_key(std::string_view key, uint8_t value) { s_context.set_by_key(key, value); }
+void config::set_by_key(std::string_view key, uint8_t value) noexcept { s_context.set_by_key(key, value); }
 
 fslib::Path config::get_working_directory() { return s_context.get_working_directory(); }
 
-bool config::set_working_directory(const fslib::Path &path)
+bool config::set_working_directory(const fslib::Path &path) noexcept
 {
     const bool pathSet = s_context.set_working_directory(path);
     if (!pathSet) { return false; }
@@ -37,9 +37,9 @@ bool config::set_working_directory(const fslib::Path &path)
     return true;
 }
 
-double config::get_animation_scaling() { return s_context.get_animation_scaling(); }
+double config::get_animation_scaling() noexcept { return s_context.get_animation_scaling(); }
 
-void config::set_animation_scaling(double newScale) { s_context.set_animation_scaling(newScale); }
+void config::set_animation_scaling(double newScale) noexcept { s_context.set_animation_scaling(newScale); }
 
 void config::add_remove_favorite(uint64_t applicationID)
 {
@@ -49,7 +49,7 @@ void config::add_remove_favorite(uint64_t applicationID)
     s_context.save();
 }
 
-bool config::is_favorite(uint64_t applicationID) { return s_context.is_favorite(applicationID); }
+bool config::is_favorite(uint64_t applicationID) noexcept { return s_context.is_favorite(applicationID); }
 
 void config::add_remove_blacklist(uint64_t applicationID)
 {
@@ -61,16 +61,16 @@ void config::add_remove_blacklist(uint64_t applicationID)
 
 void config::get_blacklisted_titles(std::vector<uint64_t> &listOut) { s_context.get_blacklist(listOut); }
 
-bool config::is_blacklisted(uint64_t applicationID) { return s_context.is_blacklisted(applicationID); }
+bool config::is_blacklisted(uint64_t applicationID) noexcept { return s_context.is_blacklisted(applicationID); }
 
-bool config::blacklist_is_empty() { return s_context.blacklist_empty(); }
+bool config::blacklist_is_empty() noexcept { return s_context.blacklist_empty(); }
 
 void config::add_custom_path(uint64_t applicationID, std::string_view customPath)
 {
     s_context.add_custom_path(applicationID, customPath);
 }
 
-bool config::has_custom_path(uint64_t applicationID) { return s_context.has_custom_path(applicationID); }
+bool config::has_custom_path(uint64_t applicationID) noexcept { return s_context.has_custom_path(applicationID); }
 
 void config::get_custom_path(uint64_t applicationID, char *pathOut, size_t pathOutSize)
 {
