@@ -338,7 +338,7 @@ void FileOptionState::get_show_directory_properties(const fslib::Path &path)
     if (!getInfo) { return; }
 
     const char *messageFormat    = strings::get_by_name(strings::names::FILEOPTION_MESSAGES, 0);
-    const std::string pathString   = path.string(); // This is needed as backup incase of root directories.
+    const std::string pathString = path.string(); // This is needed as backup incase of root directories.
     const std::string sizeString = get_size_string(totalSize);
     const std::string message =
         stringutil::get_formatted_string(messageFormat, pathString.c_str(), subDirCount, fileCount, sizeString.c_str());
@@ -374,10 +374,10 @@ void FileOptionState::get_show_file_properties(const fslib::Path &path)
     std::strftime(lastAccessed, BUFFER_SIZE, "%c", &accessedTm);
 
     const char *messageFormat    = strings::get_by_name(strings::names::FILEOPTION_MESSAGES, 1);
-    const char *filename         = path.get_filename();
+    const std::string pathString = path.string();
     const std::string sizeString = get_size_string(fileSize);
     const std::string message    = stringutil::get_formatted_string(messageFormat,
-                                                                 filename,
+                                                                 pathString.c_str(),
                                                                  sizeString.c_str(),
                                                                  createdBuffer,
                                                                  lastModified,
