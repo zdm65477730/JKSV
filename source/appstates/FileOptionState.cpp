@@ -359,13 +359,10 @@ void FileOptionState::get_show_file_properties(const fslib::Path &path)
     const bool stampError = error::fslib(fslib::get_file_timestamp(path, timestamp));
     if (fileSize == -1 || stampError) { return; }
 
-    logger::log("%lli, %lli, %lli", timestamp.created, timestamp.modified, timestamp.accessed);
-
     // I don't like this, but it's the easiest way to pull this off.
     const std::time_t created  = static_cast<std::time_t>(timestamp.created);
     const std::time_t modified = static_cast<std::time_t>(timestamp.modified);
     const std::time_t accessed = static_cast<std::time_t>(timestamp.accessed);
-    logger::log("%lli, %lli, %lli", created, modified, accessed);
 
     std::tm createdTm{}, modifiedTm{}, accessedTm{};
     localtime_r(&created, &createdTm);
