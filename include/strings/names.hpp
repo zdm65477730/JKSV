@@ -13,6 +13,8 @@ namespace strings::names
     inline constexpr std::string_view EXTRASMENU_POPS       = "ExtrasPops";
     inline constexpr std::string_view FILEOPTION_MENU       = "FileOptionMenu";
     inline constexpr std::string_view FILEOPTION_CONFS      = "FileOptionConfs";
+    inline constexpr std::string_view FILEOPTION_MESSAGES   = "FileOptionMessages";
+    inline constexpr std::string_view FILEOPTION_STATUS     = "FileOptionStatus";
     inline constexpr std::string_view FILEMODE_POPS         = "FileModePops";
     inline constexpr std::string_view GENERAL_POPS          = "GeneralPops";
     inline constexpr std::string_view GOOGLE_DRIVE          = "GoogleDriveStrings";

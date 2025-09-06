@@ -83,9 +83,9 @@ std::string stringutil::get_date_string(stringutil::DateFormat format)
 {
     char stringBuffer[0x80] = {0};
 
-    std::time_t timer;
+    std::time_t timer{};
     std::time(&timer);
-    std::tm *localTime = std::localtime(&timer);
+    const std::tm *localTime = std::localtime(&timer);
 
     switch (format)
     {

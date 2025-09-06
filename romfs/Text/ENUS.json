@@ -71,6 +71,13 @@
         "0: Are you sure you want to copy #%s# to #%s#?",
         "1: Are you sure you want to delete #%s#?"
     ],
+    "FileOptionMessages": [
+        "0: #%s#:\n\t\tSub Directories: %lli\n\t\tFile count: %lli\n\t\tTotal Size: %s",
+        "1: #%s#:\n\t\tSize: %s\n\t\tFirst created: %s\n\t\tLast modified: %s\n\t\tLast Accessed: %s"
+    ],
+    "FileOptionStatus": [
+        "0: Reading #%s#'s data..."
+    ],
     "FileModePops": [
         "0: Copied #%s#!",
         "1: Failed to copy #%s#!",

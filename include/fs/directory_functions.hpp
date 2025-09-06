@@ -3,9 +3,16 @@
 
 namespace fs
 {
-    /// @brief Retrieves the total size of the contents of the directory at targetPath.
-    /// @param targetPath Directory to calculate.
-    uint64_t get_directory_total_size(const fslib::Path &targetPath);
+    /// @brief Recursively runs through the path passed and retrieves information.
+    /// @param directoryPath Path of directory.
+    /// @param subDirCount Int64_t to track number of subdirectories with.
+    /// @param fileCount Int64_t to track the number of files.
+    /// @param totalSize Int64_t to track the size of everything.
+    /// @return True on success. False or crash on what I would assume is a stack overflow.
+    bool get_directory_information(const fslib::Path &directoryPath,
+                                   int64_t &subDirCount,
+                                   int64_t &fileCount,
+                                   int64_t &totalSize);
 
     /// @brief Checks if directory is empty. Didn't feel like this needs its own source file.
     /// @param directoryPath Path to directory to check.

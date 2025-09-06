@@ -117,6 +117,13 @@ class FileOptionState final : public BaseState
         /// @brief Gets the properties of a file/folder.
         void get_show_target_properties();
 
+        /// @brief Gets info and creates a MessageState displaying the properties of the target directory.
+        void get_show_directory_properties(const fslib::Path &path);
+
+        /// @brief Gets info and creates a message displaying the properties of the target file.
+        /// @param path
+        void get_show_file_properties(const fslib::Path &path);
+
         /// @brief Closes and hides the state.
         void close();
 

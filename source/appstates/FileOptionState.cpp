@@ -1,10 +1,12 @@
 #include "appstates/FileOptionState.hpp"
 
 #include "appstates/ConfirmState.hpp"
+#include "appstates/MessageState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "appstates/TaskState.hpp"
 #include "config/config.hpp"
 #include "error.hpp"
+#include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "input.hpp"
 #include "keyboard.hpp"
@@ -13,6 +15,8 @@
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "tasks/fileoptions.hpp"
+
+#include <ctime>
 
 namespace
 {
@@ -30,6 +34,9 @@ namespace
     using TaskConfirm     = ConfirmState<sys::Task, TaskState, FileOptionState::DataStruct>;
     using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, FileOptionState::DataStruct>;
 }
+
+// Defined at bottom.
+static std::string get_size_string(int64_t totalSize);
 
 FileOptionState::FileOptionState(FileModeState *spawningState)
     : m_spawningState(spawningState)
@@ -305,9 +312,85 @@ void FileOptionState::create_directory()
 
 void FileOptionState::get_show_target_properties()
 {
-    const fslib::Path &targetPath     = m_spawningState->get_source_path();
-    const fslib::Directory &targetDir = m_spawningState->get_source_directory();
-    const ui::Menu &targeMenu         = m_spawningState->get_source_menu();
+    const fslib::Path &sourcePath     = m_spawningState->get_source_path();
+    const fslib::Directory &sourceDir = m_spawningState->get_source_directory();
+    const ui::Menu &sourceMenu        = m_spawningState->get_source_menu();
+
+    fslib::Path targetPath{sourcePath};
+    const int selected = sourceMenu.get_selected();
+    if (selected > 1)
+    {
+        const int dirIndex = selected - 2;
+        targetPath /= sourceDir[dirIndex];
+    }
+
+    const bool isDir = fslib::directory_exists(targetPath);
+    if (isDir) { FileOptionState::get_show_directory_properties(targetPath); }
+    else { FileOptionState::get_show_file_properties(targetPath); }
+}
+
+void FileOptionState::get_show_directory_properties(const fslib::Path &path)
+{
+
+    int64_t subDirCount{};
+    int64_t fileCount{};
+    int64_t totalSize{};
+    const bool getInfo = fs::get_directory_information(path, subDirCount, fileCount, totalSize);
+    if (!getInfo) { return; }
+
+    const char *messageFormat    = strings::get_by_name(strings::names::FILEOPTION_MESSAGES, 0);
+    const char *filename         = path.get_filename();
+    const char *messagePath      = filename;
+    const std::string sizeString = get_size_string(totalSize);
+    const std::string message =
+        stringutil::get_formatted_string(messageFormat, filename, subDirCount, fileCount, sizeString.c_str());
+
+    MessageState::create_and_push(message);
+}
+
+void FileOptionState::get_show_file_properties(const fslib::Path &path)
+{
+
+    static constexpr size_t BUFFER_SIZE = 0x40;
+
+    FsTimeStampRaw timestamp{};
+    const int64_t fileSize = fslib::get_file_size(path);
+
+    const bool stampError = error::fslib(fslib::get_file_timestamp(path, timestamp));
+    if (fileSize == -1 || stampError) { return; }
+
+    logger::log("%lli, %lli, %lli", timestamp.created, timestamp.modified, timestamp.accessed);
+
+    // I don't like this, but it's the easiest way to pull this off.
+    const std::time_t created  = static_cast<std::time_t>(timestamp.created);
+    const std::time_t modified = static_cast<std::time_t>(timestamp.modified);
+    const std::time_t accessed = static_cast<std::time_t>(timestamp.accessed);
+    logger::log("%lli, %lli, %lli", created, modified, accessed);
+
+    std::tm createdTm{}, modifiedTm{}, accessedTm{};
+    localtime_r(&created, &createdTm);
+    localtime_r(&modified, &modifiedTm);
+    localtime_r(&accessed, &accessedTm);
+
+    char createdBuffer[BUFFER_SIZE] = {0};
+    char lastModified[BUFFER_SIZE]  = {0};
+    char lastAccessed[BUFFER_SIZE]  = {0};
+
+    std::strftime(createdBuffer, BUFFER_SIZE, "%c", &createdTm);
+    std::strftime(lastModified, BUFFER_SIZE, "%c", &modifiedTm);
+    std::strftime(lastAccessed, BUFFER_SIZE, "%c", &accessedTm);
+
+    const char *messageFormat    = strings::get_by_name(strings::names::FILEOPTION_MESSAGES, 1);
+    const char *filename         = path.get_filename();
+    const std::string sizeString = get_size_string(fileSize);
+    const std::string message    = stringutil::get_formatted_string(messageFormat,
+                                                                 filename,
+                                                                 sizeString.c_str(),
+                                                                 createdBuffer,
+                                                                 lastModified,
+                                                                 lastAccessed);
+
+    MessageState::create_and_push(message);
 }
 
 void FileOptionState::close()
@@ -324,4 +407,31 @@ void FileOptionState::deactivate_state()
 {
     sm_copyMenu->set_selected(0);
     BaseState::deactivate();
+}
+
+static std::string get_size_string(int64_t totalSize)
+{
+    static constexpr int64_t THRESHOLD_BYTES = 0x400;
+    static constexpr int64_t THRESHOLD_KB    = 0x100000;
+    static constexpr int64_t THRESHOLD_MB    = 0x40000000;
+
+    std::string sizeString{};
+    if (totalSize > THRESHOLD_MB)
+    {
+        const double gigabytes = static_cast<double>(totalSize) / static_cast<double>(THRESHOLD_MB);
+        sizeString             = stringutil::get_formatted_string("%.02f GB", gigabytes);
+    }
+    else if (totalSize < THRESHOLD_BYTES) { sizeString = stringutil::get_formatted_string("%lli bytes", totalSize); }
+    else if (totalSize < THRESHOLD_KB)
+    {
+        const double kilobytes = static_cast<double>(totalSize) / static_cast<double>(THRESHOLD_BYTES);
+        sizeString             = stringutil::get_formatted_string("%.02f KB", kilobytes);
+    }
+    else
+    {
+        const double megabytes = static_cast<double>(totalSize) / static_cast<double>(THRESHOLD_KB);
+        sizeString             = stringutil::get_formatted_string("%.02f MB", megabytes);
+    }
+
+    return sizeString;
 }
