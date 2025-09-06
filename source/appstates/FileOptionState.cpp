@@ -331,7 +331,6 @@ void FileOptionState::get_show_target_properties()
 
 void FileOptionState::get_show_directory_properties(const fslib::Path &path)
 {
-
     int64_t subDirCount{};
     int64_t fileCount{};
     int64_t totalSize{};
@@ -339,11 +338,10 @@ void FileOptionState::get_show_directory_properties(const fslib::Path &path)
     if (!getInfo) { return; }
 
     const char *messageFormat    = strings::get_by_name(strings::names::FILEOPTION_MESSAGES, 0);
-    const char *filename         = path.get_filename();
-    const char *messagePath      = filename;
+    const std::string pathString   = path.string(); // This is needed as backup incase of root directories.
     const std::string sizeString = get_size_string(totalSize);
     const std::string message =
-        stringutil::get_formatted_string(messageFormat, filename, subDirCount, fileCount, sizeString.c_str());
+        stringutil::get_formatted_string(messageFormat, pathString.c_str(), subDirCount, fileCount, sizeString.c_str());
 
     MessageState::create_and_push(message);
 }
@@ -355,19 +353,17 @@ void FileOptionState::get_show_file_properties(const fslib::Path &path)
 
     FsTimeStampRaw timestamp{};
     const int64_t fileSize = fslib::get_file_size(path);
-
-    const bool stampError = error::fslib(fslib::get_file_timestamp(path, timestamp));
-    if (fileSize == -1 || stampError) { return; }
+    error::fslib(fslib::get_file_timestamp(path, timestamp)); // Recorded, but not required. This doesn't work int saves.
+    if (fileSize == -1) { return; }
 
     // I don't like this, but it's the easiest way to pull this off.
     const std::time_t created  = static_cast<std::time_t>(timestamp.created);
     const std::time_t modified = static_cast<std::time_t>(timestamp.modified);
     const std::time_t accessed = static_cast<std::time_t>(timestamp.accessed);
 
-    std::tm createdTm{}, modifiedTm{}, accessedTm{};
-    localtime_r(&created, &createdTm);
-    localtime_r(&modified, &modifiedTm);
-    localtime_r(&accessed, &accessedTm);
+    const std::tm createdTm  = *std::localtime(&created);
+    const std::tm modifiedTm = *std::localtime(&modified);
+    const std::tm accessedTm = *std::localtime(&accessed);
 
     char createdBuffer[BUFFER_SIZE] = {0};
     char lastModified[BUFFER_SIZE]  = {0};
