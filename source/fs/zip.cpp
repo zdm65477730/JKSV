@@ -178,7 +178,8 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
         const bool isValid     = dirPath.is_valid();
         const bool exists      = isValid && fslib::directory_exists(dirPath);
         const bool createError = isValid && !exists && error::fslib(fslib::create_directories_recursively(dirPath));
-        if (isValid && !exists && createError) { continue; }
+        bool commitError       = !createError && error::fslib(fslib::commit_data_to_file_system(dirPath.get_device_name()));
+        if (isValid && !exists && (createError || commitError)) { continue; }
 
         const int64_t fileSize = unzip.get_uncompressed_size();
         fslib::File destFile{fullDest, FsOpenMode_Create | FsOpenMode_Write, fileSize};
@@ -221,7 +222,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
             if (commitNeeded)
             {
                 destFile.close();
-                const bool commitError = error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
+                commitError = error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
                 if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); } // To do: How to recover?
 
                 destFile.open(fullDest, FsOpenMode_Write);
@@ -238,7 +239,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
         readThread.join();
         destFile.close();
 
-        const bool commitError = needCommits && error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
+        commitError = needCommits && error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
         if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); }
     } while (unzip.next_file());
 }

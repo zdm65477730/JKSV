@@ -10,9 +10,6 @@ class SettingsState final : public BaseState
         /// @brief Constructs a new settings state.
         SettingsState();
 
-        /// @brief Required destructor.
-        ~SettingsState() {};
-
         /// @brief Returns a new SettingsState.
         static inline std::shared_ptr<SettingsState> create() { return std::make_shared<SettingsState>(); }
 

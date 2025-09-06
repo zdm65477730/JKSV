@@ -17,10 +17,10 @@ class StateManager
         static void update();
 
         /// @brief Runs the state rendering routine(s);
-        static void render();
+        static void render() noexcept;
 
         /// @brief Returns whether the back of the vector is a closable state.
-        static bool back_is_closable();
+        static bool back_is_closable() noexcept;
 
         /// @brief Pushes a new state to the state vector.
         /// @param newState Shared_ptr to state to push.

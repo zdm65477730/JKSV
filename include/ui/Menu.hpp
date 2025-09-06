@@ -123,10 +123,13 @@ namespace ui
             /// @brief Text scroll for when the current option is too long to on screen.
             std::shared_ptr<ui::TextScroll> m_optionScroll{};
 
+            /// @brief Updates the text scroll for the currently highlighted option.
             void update_scroll_text();
 
+            /// @brief Updates the menu's vertical scrolling.
             void update_scrolling();
 
+            /// @brief Handles the menu's input routine.
             void handle_input();
     };
 } // namespace ui

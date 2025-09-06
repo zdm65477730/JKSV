@@ -14,9 +14,6 @@ class MainMenuState final : public BaseState
         /// @brief Creates and initializes the main menu.
         MainMenuState();
 
-        /// @brief Required even if it does nothing.
-        ~MainMenuState() {};
-
         /// @brief Returns a new MainMenuState
         static inline std::shared_ptr<MainMenuState> create() { return std::make_shared<MainMenuState>(); }
 

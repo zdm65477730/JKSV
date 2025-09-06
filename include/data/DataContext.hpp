@@ -29,7 +29,7 @@ namespace data
             void load_application_records(sys::Task *task);
 
             /// @brief Returns whether a title is loaded with the application ID passed.
-            bool title_is_loaded(uint64_t applicationID);
+            bool title_is_loaded(uint64_t applicationID) noexcept;
 
             /// @brief Attempts to load a title with the application ID passed.
             void load_title(uint64_t applicationID);

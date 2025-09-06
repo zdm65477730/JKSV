@@ -199,15 +199,23 @@ void TitleOptionState::change_output_directory()
 
 void TitleOptionState::create_push_file_mode()
 {
-    const uint64_t applicationID   = m_titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
+    const uint64_t applicationID     = m_titleInfo->get_application_id();
+    const FsSaveDataInfo *saveInfo   = m_user->get_save_info_by_id(applicationID);
+    const data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
     if (error::is_null(saveInfo)) { return; }
 
     const bool saveOpened = fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo);
     if (!saveOpened) { return; }
 
+    const FsSaveDataType saveType = m_user->get_account_save_type();
+    const bool isSystem           = saveType == FsSaveDataType_System || saveType == FsSaveDataType_SystemBcat;
+
+    FsSaveDataExtraData extraData{};
+    const bool readExtra      = fs::read_save_extra_data(saveInfo, extraData);
+    const int64_t journalSize = readExtra ? extraData.journal_size : titleInfo->get_journal_size(saveType);
+
     sm_slidePanel->hide();
-    FileModeState::create_and_push(fs::DEFAULT_SAVE_MOUNT, "sdmc", true);
+    FileModeState::create_and_push(fs::DEFAULT_SAVE_MOUNT, "sdmc", journalSize, isSystem);
 }
 
 void TitleOptionState::delete_all_local_backups()

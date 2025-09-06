@@ -13,9 +13,6 @@ class BaseTask : public BaseState
         /// @brief Constructor. Starts the glyph timer and sets AppState to not allow closing.
         BaseTask();
 
-        /// @brief Virtual destructor.
-        virtual ~BaseTask() {};
-
         /// @brief Runs the update routine for rendering the loading glyph animation.
         /// @param
         void update() override;

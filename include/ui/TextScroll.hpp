@@ -118,6 +118,7 @@ namespace ui
             /// @brief Whether or not a scroll was triggered.
             bool m_textScrollTriggered{};
 
+            /// @brief Render target for the text so it can't be rendered outside of it.
             sdl::SharedTexture m_renderTarget{};
 
             /// @brief Timer for scrolling text.

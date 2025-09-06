@@ -15,7 +15,7 @@ namespace strings::names
     inline constexpr std::string_view FILEOPTION_CONFS      = "FileOptionConfs";
     inline constexpr std::string_view FILEOPTION_MESSAGES   = "FileOptionMessages";
     inline constexpr std::string_view FILEOPTION_STATUS     = "FileOptionStatus";
-    inline constexpr std::string_view FILEMODE_POPS         = "FileModePops";
+    inline constexpr std::string_view FILEOPTION_POPS       = "FileOptionPops";
     inline constexpr std::string_view GENERAL_POPS          = "GeneralPops";
     inline constexpr std::string_view GOOGLE_DRIVE          = "GoogleDriveStrings";
     inline constexpr std::string_view HOLDING_STRINGS       = "HoldingStrings";

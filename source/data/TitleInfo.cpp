@@ -4,7 +4,6 @@
 #include "error.hpp"
 #include "graphics/colors.hpp"
 #include "graphics/gfxutil.hpp"
-#include "logging/logger.hpp"
 #include "stringutil.hpp"
 
 #include <cstring>
@@ -27,9 +26,9 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) noexcept
     if (isSystem || getError)
     {
         const std::string appIDHex = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
-        char *name                 = m_data.nacp.lang[SetLanguage_ENUS].name; // I'm hoping this is enough?
+        m_entry                    = &m_data.nacp.lang[SetLanguage_ENUS]; // I'm hoping this is enough?
 
-        std::snprintf(name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
+        std::snprintf(m_entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
         TitleInfo::get_create_path_safe_title();
     }
     else if (!getError && !entryError)
@@ -47,7 +46,11 @@ data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &con
     m_data    = controlData;
 
     const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data.nacp, &m_entry));
-    if (entryError) { std::snprintf(m_entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID); }
+    if (entryError)
+    {
+        m_entry = &m_data.nacp.lang[SetLanguage_ENUS];
+        std::snprintf(m_entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
+    }
 
     TitleInfo::get_create_path_safe_title();
 }
@@ -150,12 +153,10 @@ void data::TitleInfo::set_path_safe_title(const char *newPathSafe) noexcept
 
 void data::TitleInfo::get_create_path_safe_title() noexcept
 {
-    const uint64_t applicationID = TitleInfo::get_application_id();
-
-    const bool hasCustom = config::has_custom_path(applicationID);
+    const bool hasCustom = config::has_custom_path(m_applicationID);
     if (hasCustom)
     {
-        config::get_custom_path(applicationID, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE);
+        config::get_custom_path(m_applicationID, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE);
         return;
     }
 

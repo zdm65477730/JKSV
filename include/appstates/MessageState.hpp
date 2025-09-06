@@ -15,9 +15,6 @@ class MessageState final : public BaseState
         /// @param message Message to display.
         MessageState(std::string_view message);
 
-        /// @brief Required. Does NOTHING~
-        ~MessageState() {};
-
         /// @brief Creates and returns a new MessageState. See constructor.
         static inline std::shared_ptr<MessageState> create(std::string_view message)
         {

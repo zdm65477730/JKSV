@@ -34,8 +34,7 @@ namespace
 static void finish_reinitialization();
 
 ExtrasMenuState::ExtrasMenuState()
-    : m_extrasMenu(32, 8, 1000, 24, 555)
-    , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
+    : m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     ExtrasMenuState::initialize_menu();
 }
@@ -46,11 +45,11 @@ void ExtrasMenuState::update()
     const bool aPressed = input::button_pressed(HidNpadButton_A);
     const bool bPressed = input::button_pressed(HidNpadButton_B);
 
-    m_extrasMenu.update(hasFocus);
+    m_extrasMenu->update(hasFocus);
 
     if (aPressed)
     {
-        switch (m_extrasMenu.get_selected())
+        switch (m_extrasMenu->get_selected())
         {
             case REINIT_DATA:       ExtrasMenuState::reinitialize_data(); break;
             case SD_TO_SD_BROWSER:  ExtrasMenuState::sd_to_sd_browser(); break;
@@ -69,15 +68,17 @@ void ExtrasMenuState::render()
     const bool hasFocus = BaseState::has_focus();
 
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_extrasMenu.render(m_renderTarget, hasFocus);
+    m_extrasMenu->render(m_renderTarget, hasFocus);
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
 }
 
 void ExtrasMenuState::initialize_menu()
 {
+    if (!m_extrasMenu) { m_extrasMenu = ui::Menu::create(32, 8, 1000, 24, 555); }
+
     for (int i = 0; const char *option = strings::get_by_name(strings::names::EXTRASMENU_MENU, i); i++)
     {
-        m_extrasMenu.add_option(option);
+        m_extrasMenu->add_option(option);
     }
 }
 
@@ -90,7 +91,7 @@ void ExtrasMenuState::prodinfof_to_sd()
     const bool mountError = error::fslib(fslib::open_bis_filesystem("prodinfo-f", FsBisPartitionId_CalibrationFile));
     if (mountError) { return; }
 
-    FileModeState::create_and_push("prodinfo-f", "sdmc", false);
+    FileModeState::create_and_push("prodinfo-f", "sdmc", false, true);
 }
 
 void ExtrasMenuState::safe_to_sd()
@@ -98,7 +99,7 @@ void ExtrasMenuState::safe_to_sd()
     const bool mountError = error::fslib(fslib::open_bis_filesystem("safe", FsBisPartitionId_SafeMode));
     if (mountError) { return; }
 
-    FileModeState::create_and_push("safe", "sdmc", false);
+    FileModeState::create_and_push("safe", "sdmc", false, true);
 }
 
 void ExtrasMenuState::system_to_sd()
@@ -106,7 +107,7 @@ void ExtrasMenuState::system_to_sd()
     const bool mountError = error::fslib(fslib::open_bis_filesystem("system", FsBisPartitionId_System));
     if (mountError) { return; }
 
-    FileModeState::create_and_push("system", "sdmc", false);
+    FileModeState::create_and_push("system", "sdmc", false, true);
 }
 
 void ExtrasMenuState::user_to_sd()
@@ -114,7 +115,7 @@ void ExtrasMenuState::user_to_sd()
     const bool mountError = error::fslib(fslib::open_bis_filesystem("user", FsBisPartitionId_User));
     if (mountError) { return; }
 
-    FileModeState::create_and_push("user", "sdmc", false);
+    FileModeState::create_and_push("user", "sdmc", false, true);
 }
 
 void ExtrasMenuState::terminate_process() {}

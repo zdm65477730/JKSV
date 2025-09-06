@@ -20,9 +20,6 @@ class TaskState final : public BaseTask
             m_task = std::make_unique<sys::Task>(function, std::forward<Args>(args)...);
         }
 
-        /// @brief Required destructor.
-        ~TaskState() {};
-
         /// @brief Creates and returns a new TaskState.
         template <typename... Args>
         static inline std::shared_ptr<TaskState> create(void (*function)(sys::Task *, Args...), Args... args)

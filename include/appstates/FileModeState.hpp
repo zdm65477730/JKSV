@@ -11,23 +11,22 @@ class FileModeState final : public BaseState
 {
     public:
         /// @brief Constructs a new FileModeState.
-        FileModeState(std::string_view mountA, std::string_view mountB, int64_t journalSize = 0);
-
-        /// @brief Destructor. Closes the filesystems passed.
-        ~FileModeState() {};
+        FileModeState(std::string_view mountA, std::string_view mountB, int64_t journalSize = 0, bool isSystem = false);
 
         static inline std::shared_ptr<FileModeState> create(std::string_view mountA,
                                                             std::string_view mountB,
-                                                            int64_t journalSize = 0)
+                                                            int64_t journalSize = 0,
+                                                            bool isSystem       = false)
         {
-            return std::make_shared<FileModeState>(mountA, mountB, journalSize);
+            return std::make_shared<FileModeState>(mountA, mountB, journalSize, isSystem);
         }
 
         static inline std::shared_ptr<FileModeState> create_and_push(std::string_view mountA,
                                                                      std::string_view mountB,
-                                                                     int64_t journalSize = 0)
+                                                                     int64_t journalSize = 0,
+                                                                     bool isSystem       = false)
         {
-            auto newState = std::make_shared<FileModeState>(mountA, mountB, journalSize);
+            auto newState = std::make_shared<FileModeState>(mountA, mountB, journalSize, isSystem);
             StateManager::push_state(newState);
             return newState;
         }
@@ -43,8 +42,8 @@ class FileModeState final : public BaseState
 
     private:
         /// @brief These store the mount points to close the filesystems upon construction.
-        std::string m_mountA;
-        std::string m_mountB;
+        std::string m_mountA{};
+        std::string m_mountB{};
 
         /// @brief These are the actual target paths.
         fslib::Path m_pathA{};
@@ -65,16 +64,22 @@ class FileModeState final : public BaseState
         int64_t m_journalSize{};
 
         /// @brief The beginning Y coord of the dialog.
-        double m_y{720.0f};
+        double m_y = 720.0f;
 
         /// @brief This is the targetY. Used for the opening and hiding effect.
-        double m_targetY{91.0f};
+        double m_targetY = 91.0f;
 
         /// @brief Config scaling for the "transition"
         double m_scaling{};
 
         /// @brief Stores whether or not the dialog has reached its targetted position.
         bool m_inPlace{};
+
+        /// @brief Stores whether the instance is dealing with sensitive data.
+        bool m_isSystem{};
+
+        /// @brief Stores the config setting from config to allow writing to the sensitive parts of the system.
+        bool m_allowSystem{};
 
         /// @brief Frame shared by all instances.
         static inline std::shared_ptr<ui::Frame> sm_frame{};

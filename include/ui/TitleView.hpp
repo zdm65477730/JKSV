@@ -50,7 +50,7 @@ namespace ui
             data::User *m_user{};
 
             /// @brief Y coordinate.
-            double m_y{32.0f};
+            double m_y = 32.0f;
 
             /// @brief Currently highlighted/selected title.
             int m_selected{};

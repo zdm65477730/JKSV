@@ -13,9 +13,6 @@ class TitleSelectState final : public TitleSelectCommon
         /// @param user User the state "belongs" to.
         TitleSelectState(data::User *user);
 
-        /// @brief Required destructor.
-        ~TitleSelectState() {};
-
         /// @brief Returns a new TitleSelect state.
         static inline std::shared_ptr<TitleSelectState> create(data::User *user)
         {

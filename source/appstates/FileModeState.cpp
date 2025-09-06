@@ -11,13 +11,15 @@
 
 #include <cmath>
 
-FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, int64_t journalSize)
+FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, int64_t journalSize, bool isSystem)
     : m_mountA(mountA)
     , m_mountB(mountB)
     , m_journalSize(journalSize)
     , m_y(720.f)
     , m_targetY(91.0f)
     , m_scaling(config::get_animation_scaling())
+    , m_isSystem(isSystem)
+    , m_allowSystem(config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
 {
     FileModeState::initialize_static_members();
     FileModeState::initialize_paths();

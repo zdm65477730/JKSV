@@ -165,6 +165,14 @@ void FileOptionState::update_x_coord()
 
 void FileOptionState::copy_target()
 {
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
+
+    if (FileOptionState::system_write_check())
+    {
+        FileOptionState::pop_system_error();
+        return;
+    }
+
     const int64_t journalSize = m_spawningState->m_journalSize;
 
     const fslib::Path &sourcePath     = m_spawningState->get_source_path();
@@ -188,7 +196,16 @@ void FileOptionState::copy_target()
     if (destSelected == 0 && sourceSelected > 1) { fullDest /= sourceDir[sourceIndex]; }
     if (destSelected > 1)
     {
-        fullDest /= destDir[destIndex];
+        const fslib::DirectoryEntry &entry = destDir[destIndex];
+        if (!entry.is_directory())
+        {
+            const char *errorFormat = strings::get_by_name(strings::names::FILEOPTION_POPS, 4);
+            const std::string pop   = stringutil::get_formatted_string(errorFormat, entry.get_filename());
+            ui::PopMessageManager::push_message(popTicks, pop);
+            return;
+        }
+
+        fullDest /= entry;
         if (sourceSelected > 1) { fullDest /= sourceDir[sourceIndex]; }
     }
 
@@ -207,6 +224,12 @@ void FileOptionState::copy_target()
 
 void FileOptionState::delete_target()
 {
+    if (FileOptionState::system_operation_check())
+    {
+        FileOptionState::pop_system_error();
+        return;
+    }
+
     const fslib::Path &targetPath     = m_spawningState->get_source_path();
     const fslib::Directory &targetDir = m_spawningState->get_source_directory();
     const ui::Menu &targetMenu        = m_spawningState->get_source_menu();
@@ -220,18 +243,26 @@ void FileOptionState::delete_target()
         fullTarget /= targetDir[dirIndex];
     }
 
+    const bool holdRequired  = config::get_by_key(config::keys::HOLD_FOR_DELETION);
     const char *deleteFormat = strings::get_by_name(strings::names::FILEOPTION_CONFS, 1);
     const std::string query  = stringutil::get_formatted_string(deleteFormat, fullTarget.string().c_str());
 
     m_dataStruct->sourcePath  = std::move(fullTarget);
     m_dataStruct->journalSize = m_spawningState->m_journalSize;
 
-    TaskConfirm::create_push_fade(query, true, tasks::fileoptions::delete_target, m_dataStruct);
+    TaskConfirm::create_push_fade(query, holdRequired, tasks::fileoptions::delete_target, m_dataStruct);
 }
 
 void FileOptionState::rename_target()
 {
-    const int popTicks            = ui::PopMessageManager::DEFAULT_TICKS;
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
+
+    if (FileOptionState::system_operation_check())
+    {
+        FileOptionState::pop_system_error();
+        return;
+    }
+
     const fslib::Path &targetPath = m_spawningState->get_source_path();
     fslib::Directory &targetDir   = m_spawningState->get_source_directory();
     ui::Menu &targetMenu          = m_spawningState->get_source_menu();
@@ -263,14 +294,8 @@ void FileOptionState::rename_target()
     const bool commitError = commitNeeded && error::fslib(fslib::commit_data_to_file_system(oldPath.get_device_name()));
     if (dirError && fileError && commitError)
     {
-        const char *popFormat = strings::get_by_name(strings::names::FILEMODE_POPS, 5);
+        const char *popFormat = strings::get_by_name(strings::names::FILEOPTION_POPS, 2);
         const std::string pop = stringutil::get_formatted_string(popFormat, filename);
-        ui::PopMessageManager::push_message(popTicks, pop);
-    }
-    else
-    {
-        const char *popFormat = strings::get_by_name(strings::names::FILEMODE_POPS, 4);
-        const std::string pop = stringutil::get_formatted_string(popFormat, filename, nameBuffer);
         ui::PopMessageManager::push_message(popTicks, pop);
     }
 
@@ -279,7 +304,14 @@ void FileOptionState::rename_target()
 
 void FileOptionState::create_directory()
 {
-    const int popTicks            = ui::PopMessageManager::DEFAULT_TICKS;
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
+
+    if (FileOptionState::system_operation_check())
+    {
+        FileOptionState::pop_system_error();
+        return;
+    }
+
     const fslib::Path &targetPath = m_spawningState->get_source_path();
     fslib::Directory &targetDir   = m_spawningState->get_source_directory();
     ui::Menu &targetMenu          = m_spawningState->get_source_menu();
@@ -296,13 +328,7 @@ void FileOptionState::create_directory()
     const bool commitError    = !createError && error::fslib(fslib::commit_data_to_file_system(fullTarget.get_device_name()));
     if (createError || (commitRequired && commitError))
     {
-        const char *popFormat = strings::get_by_name(strings::names::FILEMODE_POPS, 7);
-        const std::string pop = stringutil::get_formatted_string(popFormat, nameBuffer);
-        ui::PopMessageManager::push_message(popTicks, pop);
-    }
-    else
-    {
-        const char *popFormat = strings::get_by_name(strings::names::FILEMODE_POPS, 6);
+        const char *popFormat = strings::get_by_name(strings::names::FILEOPTION_POPS, 3);
         const std::string pop = stringutil::get_formatted_string(popFormat, nameBuffer);
         ui::PopMessageManager::push_message(popTicks, pop);
     }
@@ -384,6 +410,13 @@ void FileOptionState::get_show_file_properties(const fslib::Path &path)
                                                                  lastAccessed);
 
     MessageState::create_and_push(message);
+}
+
+void FileOptionState::pop_system_error()
+{
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
+    const char *error  = strings::get_by_name(strings::names::FILEOPTION_POPS, 5);
+    ui::PopMessageManager::push_message(popTicks, error);
 }
 
 void FileOptionState::close()

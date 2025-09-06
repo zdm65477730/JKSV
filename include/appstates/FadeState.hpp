@@ -20,9 +20,6 @@ class FadeState final : public BaseState
         /// @param nextState The next state to push after the the fade is finished.
         FadeState(sdl::Color baseColor, uint8_t startAlpha, uint8_t endAlpha, std::shared_ptr<BaseState> nextState);
 
-        /// @brief Required destructor.
-        ~FadeState() {};
-
         /// @brief Returns a new fade in state. See constructor.
         static inline std::shared_ptr<FadeState> create(sdl::Color baseColor,
                                                         uint8_t startAlpha,

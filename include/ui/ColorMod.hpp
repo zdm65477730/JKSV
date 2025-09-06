@@ -24,6 +24,6 @@ namespace ui
             bool m_direction = true;
 
             /// @brief Color value.
-            uint8_t m_colorMod = 0;
+            uint8_t m_colorMod{};
     };
 } // namespace ui

@@ -17,9 +17,6 @@ class SaveCreateState final : public BaseState
         /// @param titleSelect The selection view for the user for refreshing and rendering.
         SaveCreateState(data::User *user, TitleSelectCommon *titleSelect);
 
-        /// @brief Required destructor.
-        ~SaveCreateState() {};
-
         /// @brief Returns a new SaveCreate state. See constructor for arguments.
         static inline std::shared_ptr<SaveCreateState> create(data::User *user, TitleSelectCommon *titleSelect)
         {

@@ -25,9 +25,6 @@ class ProgressState final : public BaseTask
             m_task = std::make_unique<sys::ProgressTask>(function, std::forward<Args>(args)...);
         }
 
-        /// @brief Required destructor.
-        ~ProgressState() {};
-
         /// @brief Creates and returns a new progress state.
         template <typename... Args>
         static inline std::shared_ptr<ProgressState> create(void (*function)(sys::ProgressTask *, Args...), Args... args)
@@ -66,6 +63,9 @@ class ProgressState final : public BaseTask
 
         /// @brief This is the dialog box everything is rendered to.
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
+
+        /// @brief This is rendered over the edges of the bar to give it a slightly rounded look.
+        static inline sdl::SharedTexture sm_barEdges{};
 
         /// @brief Initializes the shared dialog box.
         void initialize_static_members();

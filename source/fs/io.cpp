@@ -228,7 +228,9 @@ void fs::copy_directory_commit(const fslib::Path &source,
         {
             const bool destExists  = fslib::directory_exists(fullDest);
             const bool createError = !destExists && error::fslib(fslib::create_directory(fullDest));
-            if (!destExists && createError) { continue; }
+            const bool commitError =
+                !createError && error::fslib(fslib::commit_data_to_file_system(fullDest.get_device_name()));
+            if (!destExists && (createError || commitError)) { continue; }
 
             fs::copy_directory_commit(fullSource, fullDest, journalSize, task);
         }

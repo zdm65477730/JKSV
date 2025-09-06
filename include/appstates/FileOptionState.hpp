@@ -14,8 +14,6 @@ class FileOptionState final : public BaseState
         /// @param spawningState Pointer to spawning state to grab its goodies.
         FileOptionState(FileModeState *spawningState);
 
-        ~FileOptionState() {};
-
         /// @brief Inline creation function.
         static inline std::shared_ptr<FileOptionState> create(FileModeState *spawningState)
         {
@@ -124,6 +122,9 @@ class FileOptionState final : public BaseState
         /// @param path
         void get_show_file_properties(const fslib::Path &path);
 
+        /// @brief Pops the error writing to system message.
+        void pop_system_error();
+
         /// @brief Closes and hides the state.
         void close();
 
@@ -132,4 +133,24 @@ class FileOptionState final : public BaseState
 
         /// @brief Sets the menu index back to 0 and deactivates the state.
         void deactivate_state();
+
+        /// @brief Returns if the copy/from is allowed before continuing.
+        inline bool system_write_check()
+        {
+            const bool target      = m_spawningState->m_target;
+            const bool isSystem    = m_spawningState->m_isSystem;
+            const bool allowSystem = m_spawningState->m_allowSystem;
+
+            return target && isSystem && !allowSystem;
+        }
+
+        /// @brief Returns if the operation is allowed.
+        inline bool system_operation_check()
+        {
+            const bool target      = m_spawningState->m_target;
+            const bool isSystem    = m_spawningState->m_isSystem;
+            const bool allowSystem = m_spawningState->m_allowSystem;
+
+            return !target && isSystem && !allowSystem;
+        }
 };

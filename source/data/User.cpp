@@ -6,7 +6,6 @@
 #include "fs/fs.hpp"
 #include "graphics/colors.hpp"
 #include "graphics/gfxutil.hpp"
-#include "logging/logger.hpp"
 #include "sdl.hpp"
 #include "stringutil.hpp"
 
@@ -172,8 +171,9 @@ void data::User::load_user_data()
                 const uint64_t saveInfoAppID = saveInfo.application_id;
                 const uint64_t saveInfoSysID = saveInfo.system_save_data_id;
                 const uint64_t applicationID = saveInfoAppID != 0 ? saveInfoAppID : saveInfoSysID;
-                const uint8_t saveDataType   = saveInfo.save_data_type;
-                const bool isSystemSave = saveDataType == FsSaveDataType_System || saveDataType == FsSaveDataType_SystemBcat;
+
+                const uint8_t saveDataType = saveInfo.save_data_type;
+                const bool isSystemSave    = saveDataType == FsSaveDataType_System || saveDataType == FsSaveDataType_SystemBcat;
 
                 const bool isBlacklisted = config::is_blacklisted(applicationID);
                 const bool systemFilter  = (!accountSys && isAccountUser && isSystemSave);

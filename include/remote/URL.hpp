@@ -52,7 +52,7 @@ namespace remote
 
         private:
             /// @brief This is where the actual URL is held.
-            std::string m_url;
+            std::string m_url{};
 
             /// @brief This checks and appends the necessary separator to the URL string.
             void append_separator();

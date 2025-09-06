@@ -56,9 +56,6 @@ class ConfirmState final : public BaseState
             ConfirmState::load_holding_strings();
         }
 
-        /// @brief Required even if it does nothing.
-        ~ConfirmState() {};
-
         /// @brief Returns a new ConfirmState. See constructor.
         static inline std::shared_ptr<ConfirmState> create(std::string_view query,
                                                            bool holdRequired,
@@ -145,7 +142,7 @@ class ConfirmState final : public BaseState
         const bool m_holdRequired{};
 
         /// @brief These are pointers to the holding strings.
-        const char *m_holdText[3];
+        const char *m_holdText[3]{};
 
         /// @brief Keep track of the ticks/time needed to confirm.
         uint64_t m_startingTickCount{};

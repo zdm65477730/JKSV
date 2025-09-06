@@ -20,9 +20,6 @@ class BackupMenuState final : public BaseState
         /// @param saveType Save data type we're working with.
         BackupMenuState(data::User *user, data::TitleInfo *titleInfo);
 
-        /// @brief Destructor. This is required even if it doesn't free or do anything.
-        ~BackupMenuState() {};
-
         /// @brief Creates and returns a new BackupMenuState.
         static inline std::shared_ptr<BackupMenuState> create(data::User *user, data::TitleInfo *titleInfo)
         {

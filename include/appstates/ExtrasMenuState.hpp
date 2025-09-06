@@ -10,9 +10,6 @@ class ExtrasMenuState final : public BaseState
         /// @brief Constructor.
         ExtrasMenuState();
 
-        /// @brief Required even if nothing happens.
-        ~ExtrasMenuState() {};
-
         /// @brief Returns a new ExtrasMenuState
         static inline std::shared_ptr<ExtrasMenuState> create() { return std::make_shared<ExtrasMenuState>(); }
 
@@ -24,7 +21,7 @@ class ExtrasMenuState final : public BaseState
 
     private:
         /// @brief Menu
-        ui::Menu m_extrasMenu;
+        std::shared_ptr<ui::Menu> m_extrasMenu{};
 
         /// @brief Render target for menu.
         sdl::SharedTexture m_renderTarget{};

@@ -78,15 +78,14 @@
     "FileOptionStatus": [
         "0: Reading #%s#'s data..."
     ],
-    "FileModePops": [
-        "0: Copied #%s#!",
-        "1: Failed to copy #%s#!",
-        "2: Deleted #%s#!",
-        "3: Failed to delete #%s#!",
-        "4: Renamed #%s# to #%s#!",
-        "5: Failed to rename #%s#!",
-        "6: Created #%s#!",
-        "7: Failed to create #%s#!"
+    "FileOptionPops": [
+        "0: Failed to copy #%s%!",
+        "1: Failed to delete #%s#!",
+        "2: Failed to rename #%s#!",
+        "3: Failed to create #%s#!",
+        "4: #%s# is not a directory!",
+        "5: Writing to the system is disabled!",
+        "6: Deleting files from system partitions is disabled!"
     ],
     "GeneralPops": [
         "0: Unable to exit JKSV while tasks are running!"
@@ -217,8 +216,8 @@
     "TitleInfo": [
         "0: App ID: %016lX",
         "1: Save ID: %016lx",
-        "2: First Played: %x - %X",
-        "3: Last Played: %x - %X",
+        "2: First Played: %c",
+        "3: Last Played: %c",
         "4: Play Time: %02d:%02d:%02d",
         "5: Launches: %i",
         "6: Save Type: %s"

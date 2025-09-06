@@ -13,9 +13,6 @@ class TextTitleSelectState final : public TitleSelectCommon
         /// @param user User to construct title select for.
         TextTitleSelectState(data::User *user);
 
-        /// @brief Required destructor.
-        ~TextTitleSelectState() {};
-
         /// @brief Creates and returns a new TextTitleSelect. See constructor.
         static inline std::shared_ptr<TextTitleSelectState> create(data::User *user)
         {

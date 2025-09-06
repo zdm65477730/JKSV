@@ -17,9 +17,6 @@ class TitleInfoState final : public BaseState
         /// @param titleInfo Title to display info for.
         TitleInfoState(data::User *user, data::TitleInfo *titleInfo);
 
-        /// @brief Required destructor.
-        ~TitleInfoState() {};
-
         /// @brief Creates a new TitleInfoState.
         static inline std::shared_ptr<TitleInfoState> create(data::User *user, data::TitleInfo *titleInfo)
         {

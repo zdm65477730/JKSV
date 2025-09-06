@@ -16,9 +16,6 @@ class UserOptionState final : public BaseState
         /// @param titleSelect Pointer to the selection state for refresh and rendering.
         UserOptionState(data::User *user, TitleSelectCommon *titleSelect);
 
-        /// @brief Required destructor.
-        ~UserOptionState() {};
-
         /// @brief Returns a new UserOptionState. See constructor.
         static inline std::shared_ptr<UserOptionState> create(data::User *user, TitleSelectCommon *titleSelect)
         {

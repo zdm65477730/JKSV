@@ -115,7 +115,7 @@ void data::DataContext::load_application_records(sys::Task *task)
     } while (!listError);
 }
 
-bool data::DataContext::title_is_loaded(uint64_t applicationID)
+bool data::DataContext::title_is_loaded(uint64_t applicationID) noexcept
 {
     const bool isSystem = applicationID & 0x8000000000000000;
 
@@ -259,7 +259,7 @@ bool data::DataContext::write_cache(sys::Task *task)
         if (!opened) { continue; }
 
         const bool controlWritten = cacheZip.write(controlData, SIZE_CTRL_DATA);
-        if (!controlWritten) { logger::log("Error writing control data to zip!"); }
+        if (!controlWritten) { logger::log("Error writing control data to cache!"); }
         cacheZip.close_current_file();
     }
     m_cacheIsValid = true;

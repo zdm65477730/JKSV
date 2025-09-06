@@ -26,9 +26,6 @@ class DataLoadingState final : public BaseTask
             m_task = std::make_unique<sys::Task>(function, std::forward<Args>(args)...);
         }
 
-        /// @brief Destructor. Runs all DestructFunctions in the vector.
-        ~DataLoadingState() {};
-
         template <typename... Args>
         static inline std::shared_ptr<DataLoadingState> create(data::DataContext &context,
                                                                DestructFunction destructFunction,

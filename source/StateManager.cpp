@@ -32,7 +32,7 @@ void StateManager::update()
     back->update();
 }
 
-void StateManager::render()
+void StateManager::render() noexcept
 {
     StateManager &instance = StateManager::get_instance();
     auto &stateVector      = instance.m_stateVector;
@@ -40,7 +40,7 @@ void StateManager::render()
     for (std::shared_ptr<BaseState> &state : stateVector) { state->render(); }
 }
 
-bool StateManager::back_is_closable()
+bool StateManager::back_is_closable() noexcept
 {
     StateManager &instance = StateManager::get_instance();
     auto &stateVector      = instance.m_stateVector;

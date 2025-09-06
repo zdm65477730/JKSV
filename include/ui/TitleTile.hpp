@@ -35,10 +35,10 @@ namespace ui
 
         private:
             /// @brief Width in pixels to render icon at.
-            int m_renderWidth{128};
+            int m_renderWidth = 128;
 
             /// @brief Height in pixels to render icon at.
-            int m_renderHeight{128};
+            int m_renderHeight = 128;
 
             /// @brief Whether or not the title is a favorite.
             bool m_isFavorite{};
