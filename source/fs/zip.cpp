@@ -23,6 +23,9 @@ namespace
 
     /// @brief Buffer size used for decompressing files from ZIP.
     constexpr size_t SIZE_UNZIP_BUFFER = 0x600000;
+
+    /// @brief This is the file written to ZIP backups to preserve empty directories.
+    constexpr std::string_view NAME_SAVE_ME = ".save_me";
 } // namespace
 
 // Shared struct for Zip/File IO
@@ -99,6 +102,15 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
 
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
+
+    // This is needed to preserve empty directories.
+    if (sourceDir.get_count() <= 0)
+    {
+        const fslib::Path saveMe = source / NAME_SAVE_ME;
+        dest.open_new_file(saveMe.get_path());
+        dest.close_current_file();
+        return;
+    }
 
     for (const fslib::DirectoryEntry &entry : sourceDir)
     {
@@ -180,6 +192,9 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
         const bool createError = isValid && !exists && error::fslib(fslib::create_directories_recursively(dirPath));
         bool commitError       = !createError && error::fslib(fslib::commit_data_to_file_system(dirPath.get_device_name()));
         if (isValid && !exists && (createError || commitError)) { continue; }
+
+        // This is here so the directory still gets created if needed.
+        if (fullDest.get_filename() == NAME_SAVE_ME) { continue; }
 
         const int64_t fileSize = unzip.get_uncompressed_size();
         fslib::File destFile{fullDest, FsOpenMode_Create | FsOpenMode_Write, fileSize};
