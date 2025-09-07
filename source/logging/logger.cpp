@@ -5,6 +5,7 @@
 
 #include <array>
 #include <cstdarg>
+#include <ctime>
 #include <fstream>
 #include <mutex>
 #include <switch.h>
@@ -15,6 +16,8 @@ namespace
 
     /// @brief This is the buffer size for log strings.
     constexpr size_t VA_BUFFER_SIZE = 0x1000;
+
+    constexpr size_t TIME_BUFFER = 0x80;
 
     constexpr int64_t SIZE_LOG_LIMIT = 0x10000;
 } // namespace
@@ -31,11 +34,16 @@ void logger::log(const char *format, ...) noexcept
 {
     static std::mutex logLock{};
 
-    std::array<char, VA_BUFFER_SIZE> vaBuffer = {};
+    std::array<char, VA_BUFFER_SIZE> vaBuffer{};
     std::va_list vaList{};
     va_start(vaList, format);
     vsnprintf(vaBuffer.data(), VA_BUFFER_SIZE, format, vaList);
     va_end(vaList);
+
+    std::array<char, TIME_BUFFER> timeDateBuffer{};
+    std::time_t currentTime = std::time(nullptr);
+    std::tm localTime       = *std::localtime(&currentTime);
+    std::strftime(timeDateBuffer.data(), TIME_BUFFER, "[%c] ", &localTime);
 
     std::lock_guard<std::mutex> logGuard(logLock);
     const fslib::Path logPath{PATH_JKSV_LOG};
@@ -47,6 +55,6 @@ void logger::log(const char *format, ...) noexcept
     }
 
     if (!logFile.is_open()) { return; }
-    logFile << vaBuffer.data() << "\n";
+    logFile << timeDateBuffer.data() << vaBuffer.data() << "\n";
     logFile.flush();
 }
