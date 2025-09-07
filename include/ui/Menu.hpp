@@ -99,6 +99,9 @@ namespace ui
             /// @brief The target Y coordinate the menu should be rendered at.
             double m_targetY{};
 
+            /// @brief Maximum number of display options render target can show.
+            int m_maxDisplayOptions{};
+
             /// @brief How many options before scrolling happens.
             int m_scrollLength{};
 
@@ -114,14 +117,14 @@ namespace ui
             /// @brief Vertical size of the destination render target in pixels.
             int m_renderTargetHeight{};
 
-            /// @brief Maximum number of display options render target can show.
-            int m_maxDisplayOptions{};
-
             /// @brief Vector of options.
             std::vector<std::string> m_options{};
 
             /// @brief Text scroll for when the current option is too long to on screen.
             std::shared_ptr<ui::TextScroll> m_optionScroll{};
+
+            /// @brief Keeps track of the current menu ID for render target.
+            static inline int sm_menuID{};
 
             /// @brief Updates the text scroll for the currently highlighted option.
             void update_scroll_text();

@@ -108,6 +108,9 @@ namespace ui
             /// @brief Vector of elements.
             std::vector<std::shared_ptr<ui::Element>> m_elements{};
 
+            /// @brief Tracks the internal ID of render targets for panels.
+            static inline int sm_targetID{};
+
             /// @brief Handles sliding out logic.
             void slide_out() noexcept;
 

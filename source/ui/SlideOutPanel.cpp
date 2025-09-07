@@ -17,11 +17,8 @@ ui::SlideOutPanel::SlideOutPanel(int width, Side side)
     , m_width(width)
     , m_targetX(side == Side::Left ? 0.0f : static_cast<double>(SCREEN_WIDTH) - m_width)
     , m_side(side)
-{
-    static int targetID    = 0;
-    std::string targetName = "panelTarget_" + std::to_string(targetID++);
-    m_renderTarget         = sdl::TextureManager::load(targetName, width, 720, SDL_TEXTUREACCESS_TARGET);
-}
+    , m_renderTarget(
+          sdl::TextureManager::load("PANEL_" + std::to_string(sm_targetID++), m_width, 720, SDL_TEXTUREACCESS_TARGET)) {};
 
 void ui::SlideOutPanel::update(bool hasFocus)
 {

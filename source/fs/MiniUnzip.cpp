@@ -7,7 +7,7 @@ fs::MiniUnzip::MiniUnzip(const fslib::Path &path) { MiniUnzip::open(path); }
 
 fs::MiniUnzip::~MiniUnzip() { MiniUnzip::close(); }
 
-bool fs::MiniUnzip::is_open() const { return m_isOpen; }
+bool fs::MiniUnzip::is_open() const noexcept { return m_isOpen; }
 
 bool fs::MiniUnzip::open(const fslib::Path &path)
 {
@@ -59,8 +59,8 @@ bool fs::MiniUnzip::reset()
 
 ssize_t fs::MiniUnzip::read(void *buffer, size_t bufferSize) { return unzReadCurrentFile(m_unz, buffer, bufferSize); }
 
-const char *fs::MiniUnzip::get_filename() { return m_filename; }
+const char *fs::MiniUnzip::get_filename() const noexcept { return m_filename; }
 
-uint64_t fs::MiniUnzip::get_compressed_size() const { return m_fileInfo.compressed_size; }
+uint64_t fs::MiniUnzip::get_compressed_size() const noexcept { return m_fileInfo.compressed_size; }
 
-uint64_t fs::MiniUnzip::get_uncompressed_size() const { return m_fileInfo.uncompressed_size; }
+uint64_t fs::MiniUnzip::get_uncompressed_size() const noexcept { return m_fileInfo.uncompressed_size; }

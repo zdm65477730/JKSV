@@ -14,10 +14,9 @@ FadeState::FadeState(sdl::Color baseColor, uint8_t startAlpha, uint8_t endAlpha,
     : m_baseColor(baseColor)
     , m_alpha(startAlpha)
     , m_endAlpha(endAlpha)
+    , m_direction(m_endAlpha < m_alpha ? FadeState::Direction::In : FadeState::Direction::Out)
     , m_nextState(nextState)
 {
-    m_direction = m_endAlpha < m_alpha ? FadeState::Direction::In : FadeState::Direction::Out;
-
     FadeState::find_divisor();
     m_fadeTimer.start(TICKS_TIMER_TRIGGER);
 }

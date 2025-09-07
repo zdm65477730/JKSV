@@ -16,6 +16,7 @@
 #include "sdl.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
+#include "sys/OpTimer.hpp"
 #include "ui/PopMessageManager.hpp"
 
 #include <chrono>

@@ -15,14 +15,10 @@ class BaseTask : public BaseState
 
         /// @brief Runs the update routine for rendering the loading glyph animation.
         /// @param
-        void update() override;
+        virtual void update() = 0;
 
         /// @brief Virtual render function.
         virtual void render() = 0;
-
-        /// @brief This function renders the loading glyph in the bottom left corner.
-        /// @note This is mostly just so users don't think JKSV has frozen when operations take a long time.
-        void render_loading_glyph();
 
     protected:
         /// @brief Underlying system task. This needs to be allocated by the derived classes.
@@ -30,6 +26,13 @@ class BaseTask : public BaseState
 
         /// @brief Updates the loading glyph animation.
         void update_loading_glyph();
+
+        /// @brief Displays the "can't quit JKSV" when plus is pressed.
+        void pop_on_plus();
+
+        /// @brief This function renders the loading glyph in the bottom left corner.
+        /// @note This is mostly just so users don't think JKSV has frozen when operations take a long time.
+        void render_loading_glyph();
 
         /// @brief This is the font size used for displaying text during tasks.
         static inline constexpr int FONT_SIZE = 20;

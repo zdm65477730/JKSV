@@ -7,6 +7,7 @@
 #include "logging/logger.hpp"
 #include "stringutil.hpp"
 
+#include <array>
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -16,25 +17,24 @@ namespace
     // This is the actual map where the strings are.
     std::map<std::pair<std::string, int>, std::string> s_stringMap;
 
-    // This map is for matching files to the language value
-    std::unordered_map<SetLanguage, std::string_view> s_fileMap = {{SetLanguage_JA, "JA.json"},
-                                                                   {SetLanguage_ENUS, "ENUS.json"},
-                                                                   {SetLanguage_FR, "FR.json"},
-                                                                   {SetLanguage_DE, "DE.json"},
-                                                                   {SetLanguage_IT, "IT.json"},
-                                                                   {SetLanguage_ES, "ES.json"},
-                                                                   {SetLanguage_ZHCN, "ZHCN.json"},
-                                                                   {SetLanguage_KO, "KO.json"},
-                                                                   {SetLanguage_NL, "NL.json"},
-                                                                   {SetLanguage_PT, "PT.json"},
-                                                                   {SetLanguage_RU, "RU.json"},
-                                                                   {SetLanguage_ZHTW, "ZHTW.json"},
-                                                                   {SetLanguage_ENGB, "ENGB.json"},
-                                                                   {SetLanguage_FRCA, "FRCA.json"},
-                                                                   {SetLanguage_ES419, "ES419.json"},
-                                                                   {SetLanguage_ZHHANS, "ZHCN.json"},
-                                                                   {SetLanguage_ZHHANT, "ZHTW.json"},
-                                                                   {SetLanguage_PTBR, "PTBR.json"}};
+    const std::array<std::string_view, SetLanguage_Total> PATH_ARRAY = {"JA.json",
+                                                                        "ENUS.json",
+                                                                        "FR.json",
+                                                                        "DE.json",
+                                                                        "IT.json",
+                                                                        "ES.json",
+                                                                        "ZHCN.json",
+                                                                        "KO.json",
+                                                                        "NL.json",
+                                                                        "PT.json",
+                                                                        "RU.json",
+                                                                        "ZHTW.json",
+                                                                        "ENGB.json",
+                                                                        "FRCA.json",
+                                                                        "ES419.json",
+                                                                        "ZHCN.json",
+                                                                        "ZHTW.json",
+                                                                        "PTBR.json"};
 } // namespace
 
 // Definitions at bottom.
@@ -84,7 +84,7 @@ const char *strings::get_by_name(std::string_view name, int index) noexcept
     const auto findPair = s_stringMap.find(mapPair);
 
     if (findPair == s_stringMap.end()) { return nullptr; }
-    return s_stringMap.at(mapPair).c_str();
+    return findPair->second.c_str();
 }
 
 static fslib::Path get_file_path()
@@ -98,8 +98,8 @@ static fslib::Path get_file_path()
     const bool forceEnglish = config::get_by_key(config::keys::FORCE_ENGLISH);
     const bool codeError    = error::libnx(setGetLanguageCode(&languageCode));
     const bool langError    = !codeError && error::libnx(setMakeLanguage(languageCode, &language));
-    if (forceEnglish || codeError || langError) { returnPath /= s_fileMap[SetLanguage_ENUS]; }
-    else { returnPath /= s_fileMap[language]; }
+    if (forceEnglish || codeError || langError) { returnPath /= PATH_ARRAY[SetLanguage_ENUS]; }
+    else { returnPath /= PATH_ARRAY[language]; }
 
     return returnPath;
 }

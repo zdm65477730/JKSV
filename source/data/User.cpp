@@ -33,8 +33,8 @@ namespace
 static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDataEntry &entryB);
 
 data::User::User(AccountUid accountID, FsSaveDataType saveType) noexcept
-    : m_accountID{accountID}
-    , m_saveType{saveType}
+    : m_accountID(accountID)
+    , m_saveType(saveType)
 {
     AccountProfile profile{};
     AccountProfileBase profileBase{};
@@ -50,11 +50,11 @@ data::User::User(AccountUid accountID,
                  std::string_view nickname,
                  std::string_view pathSafeNickname,
                  FsSaveDataType saveType) noexcept
-    : m_accountID{accountID}
-    , m_saveType{saveType}
+    : m_accountID(accountID)
+    , m_saveType(saveType)
 {
-    std::memcpy(m_nickname, nickname.data(), nickname.length());
-    std::memcpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
+    std::strncpy(m_nickname, nickname.data(), nickname.length());
+    std::strncpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
 }
 
 data::User::User(data::User &&user) noexcept { *this = std::move(user); }
@@ -72,9 +72,7 @@ data::User &data::User::operator=(data::User &&user) noexcept
 
     user.m_accountID = {0};
     user.m_saveType  = static_cast<FsSaveDataType>(0);
-    std::memset(user.m_nickname, 0x00, SIZE_NICKNAME);
-    std::memset(user.m_pathSafeNickname, 0x00, SIZE_NICKNAME);
-    user.m_icon = nullptr;
+    user.m_icon      = nullptr;
 
     return *this;
 }

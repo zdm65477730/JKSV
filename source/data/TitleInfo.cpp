@@ -41,10 +41,9 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) noexcept
 // To do: Make this safer...
 data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &controlData) noexcept
     : m_applicationID(applicationID)
+    , m_data(controlData)
+    , m_hasData(true)
 {
-    m_hasData = true;
-    m_data    = controlData;
-
     const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data.nacp, &m_entry));
     if (entryError)
     {

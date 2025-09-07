@@ -18,7 +18,7 @@ namespace fs
             ~MiniUnzip();
 
             /// @brief Returns whether or not the unzFile was successfully opened.
-            bool is_open() const;
+            bool is_open() const noexcept;
 
             /// @brief Attempts to open the path passed as a ZIP file.
             bool open(const fslib::Path &path);
@@ -42,13 +42,13 @@ namespace fs
             ssize_t read(void *buffer, size_t bufferSize);
 
             /// @brief Returns the name of the current file.
-            const char *get_filename();
+            const char *get_filename() const noexcept;
 
             /// @brief Returns the compressed size of the currently open file.
-            uint64_t get_compressed_size() const;
+            uint64_t get_compressed_size() const noexcept;
 
             /// @brief Returns the uncompressed size of the the currently open file.
-            uint64_t get_uncompressed_size() const;
+            uint64_t get_uncompressed_size() const noexcept;
 
         private:
             /// @brief Underlying unzFile.

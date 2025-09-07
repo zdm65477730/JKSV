@@ -27,6 +27,8 @@ void ProgressState::update()
     const double current    = task->get_progress();
 
     BaseTask::update_loading_glyph();
+    BaseTask::pop_on_plus();
+
     if (!m_task->is_running()) { ProgressState::deactivate_state(); }
 
     m_progressBarWidth        = std::round(SIZE_BAR_WIDTH * current);

@@ -10,6 +10,7 @@
 void TaskState::update()
 {
     BaseTask::update_loading_glyph();
+    BaseTask::pop_on_plus();
     if (!m_task->is_running()) { TaskState::deactivate_state(); }
 }
 

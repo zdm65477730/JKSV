@@ -17,7 +17,7 @@ fs::MiniZip::MiniZip(const fslib::Path &path)
 
 fs::MiniZip::~MiniZip() { MiniZip::close(); }
 
-bool fs::MiniZip::is_open() const { return m_isOpen; }
+bool fs::MiniZip::is_open() const noexcept { return m_isOpen; }
 
 bool fs::MiniZip::open(const fslib::Path &path)
 {

@@ -8,13 +8,13 @@ BaseState::BaseState(bool isClosable)
     : m_isClosable(isClosable)
 {
     if (m_isClosable) { return; }
-    error::libnx(appletBeginBlockingHomeButton(0));
+    error::libnx(appletBeginBlockingHomeButtonShortAndLongPressed(0));
 }
 
 BaseState::~BaseState()
 {
     if (m_isClosable) { return; }
-    error::libnx(appletEndBlockingHomeButton());
+    error::libnx(appletEndBlockingHomeButtonShortAndLongPressed());
 }
 
 void BaseState::deactivate() { m_isActive = false; }
