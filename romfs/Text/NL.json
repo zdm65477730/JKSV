@@ -33,7 +33,8 @@
         "0: [A] Selecteer   [Y] Dump alle opslaggegevens   [X] Gebruikersopties",
         "1: [A] Selecteer   [L] [R] Spring   [Y] Favoriet   [X] Titelopties  [B] Terug",
         "2: [A] Selecteer  [Y] Herstel  [X] Verwijder  [ZR] Upload  [B] Sluit",
-        "3: [A] Wissel  [-] Beschrijving   [X] Standaardinstellingen   [B] Terug"
+        "3: [A] Wissel  [-] Beschrijving   [X] Standaardinstellingen   [B] Terug",
+        "4: [A] Bevestigen   [B] Terug/Omhoog   [X] Opties   [ZL]/[ZR] Doel wijzigen   [-] Sluiten"
     ],
     "DataLoadingStatus": [
         "0: Gebruikersaccounts laden vanuit het systeem...",
@@ -57,6 +58,34 @@
     "ExtrasPops": [
         "0: Gegevens opnieuw geïnitialiseerd!",
         "1: Initialisatie van gegevens mislukt!"
+    ],
+    "FileOptionMenu": [
+        "0: Kopiëren",
+        "1: Verwijderen",
+        "2: Hernoemen",
+        "3: Map aanmaken",
+        "4: Eigenschappen",
+        "5: Sluiten"
+    ],
+    "FileOptionConfs": [
+        "0: Weet u zeker dat u #%s# naar #%s# wilt kopiëren?",
+        "1: Weet u zeker dat u #%s# wilt verwijderen?"
+    ],
+    "FileOptionMessages": [
+        "0: #%s#:\n\t\tSubmappen: %lli\n\t\tAantal bestanden: %lli\n\t\tTotale grootte: %s",
+        "1: #%s#:\n\t\tGrootte: %s\n\t\tAangemaakt: %s\n\t\tLaatst gewijzigd: %s\n\t\tLaatst geopend: %s"
+    ],
+    "FileOptionStatus": [
+        "0: Gegevens van #%s# lezen..."
+    ],
+    "FileOptionPops": [
+        "0: Kopiëren van #%s# mislukt!",
+        "1: Verwijderen van #%s# mislukt!",
+        "2: Hernoemen van #%s# mislukt!",
+        "3: Aanmaken van #%s# mislukt!",
+        "4: #%s# is geen map!",
+        "5: Schrijven naar het systeem is uitgeschakeld!",
+        "6: Bestanden verwijderen van systeempartities is uitgeschakeld!"
     ],
     "GeneralPops": [
         "0: Kan JKSV niet afsluiten terwijl taken actief zijn!"
@@ -92,7 +121,8 @@
         "5: Voer een nieuwe naam in voor het doelitem.",
         "6: Voer een naam in voor de nieuwe map.",
         "7: Voer een nieuwe uitvoermapnaam in voor %s.",
-        "8: Voer in hoeveel je wilt uitbreiden (in MB)."
+        "8: Voer in hoeveel je wilt uitbreiden (in MB).",
+        "9: Voer een nieuwe naam in voor %s."
     ],
     "MainMenuConfs": [
         "0: Weet je zeker dat je de opslaggegevens van elke gebruiker op dit systeem wilt back-uppen? Dit kan *extreem* lang duren!"
@@ -186,8 +216,8 @@
     "TitleInfo": [
         "0: App ID: %016lX",
         "1: Opslag ID: %016lx",
-        "2: Eerste keer gespeeld: %x - %X",
-        "3: Laatste keer gespeeld: %x - %X",
+        "2: Eerste keer gespeeld: %c",
+        "3: Laatste keer gespeeld: %c",
         "4: Speeltijd: %02d:%02d:%02d",
         "5: Aantal keer gestart: %i",
         "6: Opslagtype: %s"

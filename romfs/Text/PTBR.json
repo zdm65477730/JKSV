@@ -33,7 +33,8 @@
         "0: [A] Selecionar   [Y] Descartar Todos os Saves   [X] Opções do Usuário",
         "1: [A] Selecionar   [L] [R] Pular   [Y] Favorito   [X] Opções do Título  [B] Voltar",
         "2: [A] Selecionar  [Y] Restaurar  [X] Deletar  [ZR] Enviar  [B] Fechar",
-        "3: [A] Alternar  [-] Descrição   [X] Padrões   [B] Voltar"
+        "3: [A] Alternar  [-] Descrição   [X] Padrões   [B] Voltar",
+        "4: [A] Entrar   [B] Voltar/Cima   [X] Opções   [ZL]/[ZR] Alterar alvo   [-] Fechar"
     ],
     "DataLoadingStatus": [
         "0: Carregando contas de usuário do sistema...",
@@ -57,6 +58,34 @@
     "ExtrasPops": [
         "0: Dados reinicializados!",
         "1: Falha ao reinicializar dados!"
+    ],
+    "FileOptionMenu": [
+        "0: Copiar",
+        "1: Apagar",
+        "2: Renomear",
+        "3: Criar pasta",
+        "4: Propriedades",
+        "5: Fechar"
+    ],
+    "FileOptionConfs": [
+        "0: Tem certeza que deseja copiar #%s# para #%s#?",
+        "1: Tem certeza que deseja apagar #%s#?"
+    ],
+    "FileOptionMessages": [
+        "0: #%s#:\n\t\tSubdiretórios: %lli\n\t\tNúmero de arquivos: %lli\n\t\tTamanho total: %s",
+        "1: #%s#:\n\t\tTamanho: %s\n\t\tPrimeira criação: %s\n\t\tÚltima modificação: %s\n\t\tÚltimo acesso: %s"
+    ],
+    "FileOptionStatus": [
+        "0: Lendo dados de #%s#..."
+    ],
+    "FileOptionPops": [
+        "0: Falha ao copiar #%s#!",
+        "1: Falha ao apagar #%s#!",
+        "2: Falha ao renomear #%s#!",
+        "3: Falha ao criar #%s#!",
+        "4: #%s# não é um diretório!",
+        "5: Escrita no sistema desativada!",
+        "6: Eliminar arquivos de partições do sistema desativado!"
     ],
     "GeneralPops": [
         "0: Não é possível sair do JKSV enquanto tarefas estiverem em execução!"
@@ -92,7 +121,8 @@
         "5: Digite um novo nome para o item alvo.",
         "6: Digite um nome para a nova pasta.",
         "7: Digite um novo nome de pasta de saída para %s.",
-        "8: Digite quanto expandir (em MB)."
+        "8: Digite quanto expandir (em MB).",
+        "9: Digite um novo nome para %s."
     ],
     "MainMenuConfs": [
         "0: Tem certeza que deseja fazer backup dos dados salvos para todos os usuários deste sistema? Isso pode levar *muito* tempo!"
@@ -186,8 +216,8 @@
     "TitleInfo": [
         "0: ID do App: %016lX",
         "1: ID do Save: %016lx",
-        "2: Primeiro Jogo: %x - %X",
-        "3: Último Jogo: %x - %X",
+        "2: Primeiro Jogo: %c",
+        "3: Último Jogo: %c",
         "4: Tempo de Jogo: %02d:%02d:%02d",
         "5: Lançamentos: %i",
         "6: Tipo de Save: %s"

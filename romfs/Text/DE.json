@@ -33,7 +33,8 @@
         "0: [A] Auswählen   [Y] Alle Speicherdaten dumpen   [X] Benutzeroptionen",
         "1: [A] Auswählen   [L] [R] Springen   [Y] Favorit   [X] Titeloptionen  [B] Zurück",
         "2: [A] Auswählen  [Y] Wiederherstellen  [X] Löschen  [ZR] Hochladen  [B] Schließen",
-        "3: [A] Umschalten  [-] Beschreibung   [X] Standardwerte   [B] Zurück"
+        "3: [A] Umschalten  [-] Beschreibung   [X] Standardwerte   [B] Zurück",
+        "4: [A] Eingeben   [B] Zurück/Hoch   [X] Optionen   [ZL]/[ZR] Ziel wechseln   [-] Schließen"
     ],
     "DataLoadingStatus": [
         "0: Benutzerkonten vom System werden geladen...",
@@ -57,6 +58,34 @@
     "ExtrasPops": [
         "0: Daten neu initialisiert!",
         "1: Daten-Neuinitialisierung fehlgeschlagen!"
+    ],
+    "FileOptionMenu": [
+        "0: Kopieren",
+        "1: Löschen",
+        "2: Umbenennen",
+        "3: Ordner erstellen",
+        "4: Eigenschaften",
+        "5: Schließen"
+    ],
+    "FileOptionConfs": [
+        "0: Sind Sie sicher, dass Sie #%s# nach #%s# kopieren möchten?",
+        "1: Sind Sie sicher, dass Sie #%s# löschen möchten?"
+    ],
+    "FileOptionMessages": [
+        "0: #%s#:\n\t\tUnterverzeichnisse: %lli\n\t\tDateien: %lli\n\t\tGesamtgröße: %s",
+        "1: #%s#:\n\t\tGröße: %s\n\t\tErstellt: %s\n\t\tZuletzt geändert: %s\n\t\tZuletzt geöffnet: %s"
+    ],
+    "FileOptionStatus": [
+        "0: Lese Daten von #%s#..."
+    ],
+    "FileOptionPops": [
+        "0: Konnte #%s# nicht kopieren!",
+        "1: Konnte #%s# nicht löschen!",
+        "2: Konnte #%s# nicht umbenennen!",
+        "3: Konnte #%s# nicht erstellen!",
+        "4: #%s# ist kein Verzeichnis!",
+        "5: Schreiben ins System ist deaktiviert!",
+        "6: Löschen von Dateien auf Systempartitionen ist deaktiviert!"
     ],
     "GeneralPops": [
         "0: JKSV kann nicht beendet werden, solange Aufgaben laufen!"
@@ -92,7 +121,8 @@
         "5: Gib einen neuen Namen für das Zielobjekt ein.",
         "6: Gib einen Namen für den neuen Ordner ein.",
         "7: Gib einen neuen Ausgabeordnernamen für %s ein.",
-        "8: Gib an, wie viel erweitert werden soll (in MB)."
+        "8: Gib an, wie viel erweitert werden soll (in MB).",
+        "9: Geben Sie einen neuen Namen für %s ein."
     ],
     "MainMenuConfs": [
         "0: Sind Sie sicher, dass Sie die Speicherdaten für alle Benutzer auf diesem System sichern möchten? Dies kann *extrem* lange dauern!"
@@ -186,8 +216,8 @@
     "TitleInfo": [
         "0: App-ID: %016lX",
         "1: Save-ID: %016lx",
-        "2: Erstes Spielen: %x - %X",
-        "3: Zuletzt gespielt: %x - %X",
+        "2: Erstes Spielen: %c",
+        "3: Zuletzt gespielt: %c",
         "4: Spielzeit: %02d:%02d:%02d",
         "5: Starts: %i",
         "6: Speichertyp: %s"

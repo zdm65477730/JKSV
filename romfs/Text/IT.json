@@ -33,7 +33,8 @@
         "0: [A] Seleziona   [Y] Esporta tutti i salvataggi   [X] Opzioni utente",
         "1: [A] Seleziona   [L] [R] Salta   [Y] Preferito   [X] Opzioni titolo  [B] Indietro",
         "2: [A] Seleziona  [Y] Ripristina  [X] Elimina  [ZR] Carica  [B] Chiudi",
-        "3: [A] Attiva/disattiva  [-] Descrizione   [X] Predefiniti   [B] Indietro"
+        "3: [A] Attiva/disattiva  [-] Descrizione   [X] Predefiniti   [B] Indietro",
+        "4: [A] Conferma   [B] Indietro/Su   [X] Opzioni   [ZL]/[ZR] Cambia obiettivo   [-] Chiudi"
     ],
     "DataLoadingStatus": [
         "0: Caricamento account utente dal sistema...",
@@ -57,6 +58,34 @@
     "ExtrasPops": [
         "0: Dati reinizializzati!",
         "1: Fallito il reset dei dati!"
+    ],
+    "FileOptionMenu": [
+        "0: Copia",
+        "1: Elimina",
+        "2: Rinomina",
+        "3: Crea cartella",
+        "4: Proprietà",
+        "5: Chiudi"
+    ],
+    "FileOptionConfs": [
+        "0: Sei sicuro di voler copiare #%s# in #%s#?",
+        "1: Sei sicuro di voler eliminare #%s#?"
+    ],
+    "FileOptionMessages": [
+        "0: #%s#:\n\t\tSottocartelle: %lli\n\t\tNumero di file: %lli\n\t\tDimensione totale: %s",
+        "1: #%s#:\n\t\tDimensione: %s\n\t\tPrima creazione: %s\n\t\tUltima modifica: %s\n\t\tUltimo accesso: %s"
+    ],
+    "FileOptionStatus": [
+        "0: Lettura dei dati di #%s#..."
+    ],
+    "FileOptionPops": [
+        "0: Copia di #%s# fallita!",
+        "1: Eliminazione di #%s# fallita!",
+        "2: Rinomina di #%s# fallita!",
+        "3: Creazione di #%s# fallita!",
+        "4: #%s# non è una cartella!",
+        "5: Scrittura sul sistema disabilitata!",
+        "6: Eliminazione di file dalle partizioni di sistema disabilitata!"
     ],
     "GeneralPops": [
         "0: Impossibile uscire da JKSV mentre ci sono attività in corso!"
@@ -92,7 +121,8 @@
         "5: Inserisci un nuovo nome per l'elemento di destinazione.",
         "6: Inserisci un nome per la nuova cartella.",
         "7: Inserisci un nuovo nome di cartella di output per %s.",
-        "8: Inserisci quanto espandere (in MB)."
+        "8: Inserisci quanto espandere (in MB).",
+        "9: Inserisci un nuovo nome per %s."
     ],
     "MainMenuConfs": [
         "0: Sei sicuro di voler fare il backup dei dati di salvataggio per ogni utente su questo sistema? Questo può richiedere *molto* tempo!"
@@ -186,8 +216,8 @@
     "TitleInfo": [
         "0: ID app: %016lX",
         "1: ID salvataggio: %016lx",
-        "2: Prima partita: %x - %X",
-        "3: Ultima partita: %x - %X",
+        "2: Prima partita: %c",
+        "3: Ultima partita: %c",
         "4: Tempo di gioco: %02d:%02d:%02d",
         "5: Lancii: %i",
         "6: Tipo di salvataggio: %s"

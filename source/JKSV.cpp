@@ -103,7 +103,7 @@ JKSV::~JKSV()
     appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
 }
 
-bool JKSV::is_running() const noexcept { return m_isRunning; }
+bool JKSV::is_running() const noexcept { return m_isRunning && appletMainLoop(); }
 
 void JKSV::update()
 {
