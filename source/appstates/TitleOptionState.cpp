@@ -172,11 +172,11 @@ void TitleOptionState::change_output_directory()
         return;
     }
 
-    const fslib::Path workDir = config::get_working_directory();
-    const fslib::Path oldPath = workDir / pathSafe;
-    const fslib::Path newPath = workDir / pathBuffer.data();
-    const bool oldExists      = fslib::directory_exists(oldPath);
-    const bool renameFailed   = oldExists && error::fslib(fslib::rename_directory(oldPath, newPath));
+    const fslib::Path workDir{config::get_working_directory()};
+    const fslib::Path oldPath{workDir / pathSafe};
+    const fslib::Path newPath{workDir / pathBuffer.data()};
+    const bool oldExists    = fslib::directory_exists(oldPath);
+    const bool renameFailed = oldExists && error::fslib(fslib::rename_directory(oldPath, newPath));
     if (oldExists && renameFailed) { ui::PopMessageManager::push_message(popTicks, popFailed); }
 
     // Need to change WebDav to match.
@@ -307,8 +307,8 @@ void TitleOptionState::export_svi_file()
 
     const uint64_t applicationID = m_titleInfo->get_application_id();
     const std::string titleIdHex = stringutil::get_formatted_string("%016llX", applicationID);
-    const fslib::Path sviDir     = config::get_working_directory() / "svi";
-    const fslib::Path sviPath    = sviDir / titleIdHex + ".svi";
+    const fslib::Path sviDir{config::get_working_directory() / "svi"};
+    const fslib::Path sviPath{sviDir / titleIdHex + ".svi"};
 
     const bool dirExists   = fslib::directory_exists(sviDir);
     const bool createError = !dirExists && error::fslib(fslib::create_directory(sviDir));

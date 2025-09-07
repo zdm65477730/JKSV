@@ -181,7 +181,7 @@ bool JKSV::initialize_sdl()
 bool JKSV::create_directories()
 {
     // Working directory creation.
-    const fslib::Path workDir = config::get_working_directory();
+    const fslib::Path workDir{config::get_working_directory()};
     const bool needsWorkDir   = !fslib::directory_exists(workDir);
     const bool workDirCreated = needsWorkDir && fslib::create_directories_recursively(workDir);
     if (needsWorkDir && !workDirCreated) { return false; }

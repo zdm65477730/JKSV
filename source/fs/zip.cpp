@@ -106,7 +106,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
     // This is needed to preserve empty directories.
     if (sourceDir.get_count() <= 0)
     {
-        const fslib::Path saveMe = source / NAME_SAVE_ME;
+        const fslib::Path saveMe{source / NAME_SAVE_ME};
         dest.open_new_file(saveMe.get_path());
         dest.close_current_file();
         return;

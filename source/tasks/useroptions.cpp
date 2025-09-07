@@ -16,9 +16,9 @@ void tasks::useroptions::backup_all_for_user_local(sys::ProgressTask *task, User
     data::User *user = taskData->user;
     if (error::is_null(user)) { TASK_FINISH_RETURN(task); }
 
-    const fslib::Path workDir = config::get_working_directory();
-    const bool exportToZip    = config::get_by_key(config::keys::EXPORT_TO_ZIP);
-    const int titleCount      = user->get_total_data_entries();
+    const fslib::Path workDir{config::get_working_directory()};
+    const bool exportToZip = config::get_by_key(config::keys::EXPORT_TO_ZIP);
+    const int titleCount   = user->get_total_data_entries();
     for (int i = 0; i < titleCount; i++)
     {
         const FsSaveDataInfo *saveInfo = user->get_save_info_at(i);

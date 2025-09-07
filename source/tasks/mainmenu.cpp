@@ -34,10 +34,10 @@ void tasks::mainmenu::backup_all_for_all_local(sys::ProgressTask *task, MainMenu
             data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
             if (error::is_null(titleInfo)) { continue; }
 
-            const fslib::Path workDir   = config::get_working_directory();
-            const fslib::Path targetDir = workDir / titleInfo->get_path_safe_title();
-            const bool exists           = fslib::directory_exists(targetDir);
-            const bool createError      = !exists && error::fslib(fslib::create_directories_recursively(targetDir));
+            const fslib::Path workDir{config::get_working_directory()};
+            const fslib::Path targetDir{workDir / titleInfo->get_path_safe_title()};
+            const bool exists      = fslib::directory_exists(targetDir);
+            const bool createError = !exists && error::fslib(fslib::create_directories_recursively(targetDir));
             if (!exists && createError) { continue; }
 
             const char *pathSafe         = user->get_path_safe_nickname();

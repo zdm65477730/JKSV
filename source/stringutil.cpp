@@ -51,30 +51,38 @@ void stringutil::strip_character(char c, std::string &target)
 bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut, size_t stringOutSize)
 {
     uint32_t codepoint{};
-    const size_t length = std::char_traits<char>::length(stringIn);
-    for (size_t i = 0, offset = 0; i < length;)
-    {
-        const uint8_t *point  = reinterpret_cast<const uint8_t *>(&stringIn[i]);
-        const ssize_t count   = decode_utf8(&codepoint, point);
-        const bool countCheck = count <= 0 || i + count >= stringOutSize;
-        const bool codeCheck  = codepoint < 0x20 || codepoint > 0x7E;
-        if (countCheck) { break; }
-        else if (codepoint == L'é') { stringOut[offset++] = 'e'; }
-        else if (codeCheck) { return false; }
+    const int length = std::char_traits<char>::length(stringIn);
 
-        const bool forbidden = std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) !=
-                               FORBIDDEN_PATH_CHARACTERS.end();
-        if (forbidden) { stringOut[offset++] = 0x20; }
+    for (int i = 0, outOffset = 0; i < length;)
+    {
+        const uint8_t *point = reinterpret_cast<const uint8_t *>(&stringIn[i]);
+        const ssize_t count  = decode_utf8(&codepoint, point);
+        if (count <= 0 || i + count >= static_cast<int>(stringOutSize)) { return false; }
+
+        if (codepoint == L'é')
+        {
+            stringOut[outOffset++] = 'e';
+            i += count;
+            continue;
+        }
+
+        const bool asciiCheck = codepoint < 0x0 || codepoint >= 0x7E;
+        if (asciiCheck) { return false; }
+
+        const bool isForbidden = std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) !=
+                                 FORBIDDEN_PATH_CHARACTERS.end();
+        if (isForbidden) { stringOut[outOffset++] = 0x20; }
         else
         {
-            std::memcpy(&stringOut[offset], &stringIn[i], static_cast<size_t>(count));
-            offset += count;
+            std::memcpy(&stringOut[outOffset], &stringIn[i], static_cast<size_t>(count));
+            outOffset += count;
         }
+
         i += count;
     }
 
     const int outLength = std::char_traits<char>::length(stringOut) - 1;
-    for (int i = outLength; i > 0 && (stringOut[i] == ' ' || stringOut[i] == '.'); --i) { stringOut[i] = '\0'; }
+    for (int i = outLength; i-- > 0 && (stringOut[i] == ' ' || stringOut[i] == '.');) { stringOut[i] = '\0'; }
 
     return true;
 }

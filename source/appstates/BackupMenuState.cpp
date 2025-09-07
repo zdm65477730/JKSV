@@ -297,7 +297,7 @@ void BackupMenuState::confirm_restore()
     {
         const char *popBackupEmpty = strings::get_by_name(strings::names::BACKUPMENU_POPS, 1);
 
-        const fslib::Path target     = m_directoryPath / m_directoryListing[entry.index];
+        const fslib::Path target{m_directoryPath / m_directoryListing[entry.index]};
         const bool targetIsDirectory = fslib::directory_exists(target);
         const bool backupIsGood      = targetIsDirectory ? fs::directory_has_contents(target) : fs::zip_has_contents(target);
         if (!backupIsGood)
@@ -359,9 +359,8 @@ void BackupMenuState::upload_backup()
     const MenuEntry &entry = m_menuEntries[selected];
     if (entry.type != BackupMenuState::MenuEntryType::Local) { return; }
 
-    const char *targetName = m_directoryListing[entry.index].get_filename();
-    fslib::Path target     = m_directoryPath / targetName;
-    const bool isDir       = fslib::directory_exists(target);
+    fslib::Path target{m_directoryPath / m_directoryListing[entry.index]};
+    const bool isDir = fslib::directory_exists(target);
     if (isDir)
     {
         const char *popNotZip = strings::get_by_name(strings::names::BACKUPMENU_POPS, 13);
