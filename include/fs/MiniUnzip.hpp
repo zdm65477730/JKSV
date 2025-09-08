@@ -41,6 +41,9 @@ namespace fs
             /// @brief Reads from the currently open file to the buffer passed.
             ssize_t read(void *buffer, size_t bufferSize);
 
+            /// @brief Returns if the entry is just a directory.
+            bool is_directory() const noexcept;
+
             /// @brief Returns the name of the current file.
             const char *get_filename() const noexcept;
 

@@ -59,6 +59,13 @@ bool fs::MiniUnzip::reset()
 
 ssize_t fs::MiniUnzip::read(void *buffer, size_t bufferSize) { return unzReadCurrentFile(m_unz, buffer, bufferSize); }
 
+bool fs::MiniUnzip::is_directory() const noexcept
+{
+    const size_t length = std::char_traits<char>::length(m_filename);
+
+    return m_filename[length - 1] == '/';
+}
+
 const char *fs::MiniUnzip::get_filename() const noexcept { return m_filename; }
 
 uint64_t fs::MiniUnzip::get_compressed_size() const noexcept { return m_fileInfo.compressed_size; }

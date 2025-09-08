@@ -37,6 +37,15 @@ void fs::MiniZip::close()
     m_isOpen = false;
 }
 
+void fs::MiniZip::add_directory(std::string_view filename)
+{
+    std::string zipPath{filename};
+    if (zipPath.back() != '/') { zipPath.append("/"); }
+
+    MiniZip::open_new_file(zipPath);
+    MiniZip::close_current_file();
+}
+
 bool fs::MiniZip::open_new_file(std::string_view filename, bool trimPath, size_t trimPlaces)
 {
     const size_t pathBegin = filename.find_first_of('/');

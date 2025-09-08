@@ -23,9 +23,6 @@ namespace
 
     /// @brief Buffer size used for decompressing files from ZIP.
     constexpr size_t SIZE_UNZIP_BUFFER = 0x600000;
-
-    /// @brief This is the file written to ZIP backups to preserve empty directories.
-    constexpr std::string_view NAME_SAVE_ME = ".save_me";
 } // namespace
 
 // Shared struct for Zip/File IO
@@ -103,19 +100,14 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
     fslib::Directory sourceDir{source};
     if (error::fslib(sourceDir.is_open())) { return; }
 
-    // This is needed to preserve empty directories.
-    if (sourceDir.get_count() <= 0)
-    {
-        const fslib::Path saveMe{source / NAME_SAVE_ME};
-        dest.open_new_file(saveMe.get_path());
-        dest.close_current_file();
-        return;
-    }
-
     for (const fslib::DirectoryEntry &entry : sourceDir)
     {
         const fslib::Path fullSource{source / entry};
-        if (entry.is_directory()) { fs::copy_directory_to_zip(fullSource, dest, task); }
+        if (entry.is_directory())
+        {
+            dest.add_directory(fullSource.string());
+            fs::copy_directory_to_zip(fullSource, dest, task);
+        }
         else
         {
             fslib::File sourceFile{fullSource, FsOpenMode_Read};
@@ -181,20 +173,27 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
 
     do {
         if (unzip.get_filename() == fs::NAME_SAVE_META) { continue; }
+        else if (unzip.is_directory())
+        {
+            // Just do this and continue.
+            const fslib::Path dirPath{dest / unzip.get_filename()};
+            error::fslib(fslib::create_directories_recursively(dirPath));
+            continue;
+        }
 
         fslib::Path fullDest{dest / unzip.get_filename()};
         const size_t lastDir = fullDest.find_last_of('/');
         if (lastDir == fullDest.NOT_FOUND) { continue; }
 
-        const fslib::Path dirPath{fullDest.sub_path(lastDir)};
-        const bool isValid     = dirPath.is_valid();
-        const bool exists      = isValid && fslib::directory_exists(dirPath);
-        const bool createError = isValid && !exists && error::fslib(fslib::create_directories_recursively(dirPath));
-        bool commitError       = !createError && error::fslib(fslib::commit_data_to_file_system(dirPath.get_device_name()));
-        if (isValid && !exists && (createError || commitError)) { continue; }
-
-        // This is here so the directory still gets created if needed.
-        if (fullDest.get_filename() == NAME_SAVE_ME) { continue; }
+        if (lastDir > 0)
+        {
+            const fslib::Path dirPath{fullDest.sub_path(lastDir)};
+            const bool isValid     = dirPath.is_valid();
+            const bool exists      = isValid && fslib::directory_exists(dirPath);
+            const bool createError = isValid && !exists && error::fslib(fslib::create_directories_recursively(dirPath));
+            bool commitError       = !createError && error::fslib(fslib::commit_data_to_file_system(dirPath.get_device_name()));
+            if (isValid && !exists && (createError || commitError)) { continue; }
+        }
 
         const int64_t fileSize = unzip.get_uncompressed_size();
         fslib::File destFile{fullDest, FsOpenMode_Create | FsOpenMode_Write, fileSize};
@@ -237,7 +236,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
             if (commitNeeded)
             {
                 destFile.close();
-                commitError = error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
+                const bool commitError = error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
                 if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); } // To do: How to recover?
 
                 destFile.open(fullDest, FsOpenMode_Write);
@@ -254,7 +253,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
         readThread.join();
         destFile.close();
 
-        commitError = needCommits && error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
+        const bool commitError = needCommits && error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
         if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); }
     } while (unzip.next_file());
 }

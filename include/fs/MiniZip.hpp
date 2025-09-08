@@ -28,6 +28,10 @@ namespace fs
             /// @brief Manual call for closing the zipFile.
             void close();
 
+            /// @brief Creates a new dummy directory entry in the ZIP.
+            /// @param Path Path of the directory. Will be appended with a trailing slash if needed.
+            void add_directory(std::string_view path);
+
             /// @brief Opens a new file with filename as the path.
             bool open_new_file(std::string_view filename, bool trimPath = false, size_t trimPlaces = 0);
 
