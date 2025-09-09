@@ -38,7 +38,11 @@ void TitleSelectState::update()
     if (aPressed) { TitleSelectState::create_backup_menu(); }
     else if (xPressed) { TitleSelectState::create_title_option_menu(); }
     else if (yPressed) { TitleSelectState::add_remove_favorite(); }
-    else if (bPressed) { TitleSelectState::deactivate_state(); }
+    else if (bPressed)
+    {
+        TitleSelectState::deactivate_state();
+        return;
+    }
 
     m_titleView->update(hasFocus);
 }

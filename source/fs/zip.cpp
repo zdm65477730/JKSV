@@ -201,7 +201,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
 
         if (task)
         {
-            const std::string status = stringutil::get_formatted_string(statusTemplate, unzip.get_filename());
+            const std::string status = stringutil::get_formatted_string(statusTemplate, fullDest.get_filename());
             task->set_status(status);
             task->reset(static_cast<double>(fileSize));
         }

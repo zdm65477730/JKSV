@@ -180,7 +180,7 @@ void SettingsState::change_working_directory()
     }
 
     const std::string newPathString = newPath.string();
-    const std::string popMessage    = stringutil::get_formatted_string(popSuccessFormat, newPathString);
+    const std::string popMessage    = stringutil::get_formatted_string(popSuccessFormat, newPathString.c_str());
     ui::PopMessageManager::push_message(popTicks, popMessage);
 }
 

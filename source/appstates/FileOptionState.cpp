@@ -14,6 +14,7 @@
 #include "mathutil.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
+#include "sys/OpTimer.hpp"
 #include "tasks/fileoptions.hpp"
 
 #include <ctime>
@@ -360,6 +361,7 @@ void FileOptionState::get_show_directory_properties(const fslib::Path &path)
     int64_t subDirCount{};
     int64_t fileCount{};
     int64_t totalSize{};
+
     const bool getInfo = fs::get_directory_information(path, subDirCount, fileCount, totalSize);
     if (!getInfo) { return; }
 
