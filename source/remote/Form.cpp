@@ -1,28 +1,24 @@
 #include "remote/Form.hpp"
 
-remote::Form::Form(const remote::Form &form) { m_form = form.m_form; }
-
-remote::Form::Form(remote::Form &&form) noexcept { m_form = std::move(form.m_form); }
-
-remote::Form &remote::Form::operator=(const remote::Form &form)
-{
-    m_form = form.m_form;
-    return *this;
-}
-
-remote::Form &remote::Form::operator=(remote::Form &&form) noexcept
-{
-    m_form = std::move(form.m_form);
-    return *this;
-}
+#include <cstring>
 
 remote::Form &remote::Form::append_parameter(std::string_view param, std::string_view value)
 {
-    if (!m_form.empty() && m_form.back() != '&') { m_form.append("&"); }
-    m_form.append(param).append("=").append(value);
+    if (m_offset > 0 && m_formBuffer[m_offset] != '&') { m_formBuffer[m_offset++] = '&'; }
+
+    const size_t paramLength = param.length();
+    std::memcpy(&m_formBuffer[m_offset], param.data(), paramLength);
+    m_offset += paramLength;
+
+    m_formBuffer[m_offset++] = '=';
+
+    const size_t valueLength = value.length();
+    std::memcpy(&m_formBuffer[m_offset], value.data(), valueLength);
+    m_offset += valueLength;
+
     return *this;
 }
 
-const char *remote::Form::get() const noexcept { return m_form.c_str(); }
+const char *remote::Form::get() const noexcept { return m_formBuffer; }
 
-size_t remote::Form::length() const noexcept { return m_form.length(); }
+size_t remote::Form::length() const noexcept { return m_offset; }

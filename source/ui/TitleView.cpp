@@ -22,7 +22,7 @@ ui::TitleView::TitleView(data::User *user)
 
 void ui::TitleView::update(bool hasFocus)
 {
-    if (m_titleTiles.empty() || !hasFocus) { return; }
+    if (m_titleTiles.empty()) { return; }
 
     m_bounding->update(hasFocus);
     TitleView::handle_input();

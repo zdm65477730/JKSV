@@ -422,6 +422,7 @@ bool remote::GoogleDrive::get_sign_in_data(std::string &message, std::string &co
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
     curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
     curl::set_option(m_curl, CURLOPT_POSTFIELDS, post.get());
+    curl::set_option(m_curl, CURLOPT_POSTFIELDSIZE, post.length());
 
     if (!curl::perform(m_curl)) { return false; }
 
@@ -473,6 +474,7 @@ bool remote::GoogleDrive::poll_sign_in(std::string_view code)
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::write_response_string);
     curl::set_option(m_curl, CURLOPT_WRITEDATA, &response);
     curl::set_option(m_curl, CURLOPT_POSTFIELDS, post.get());
+    curl::set_option(m_curl, CURLOPT_POSTFIELDSIZE, post.length());
 
     if (!curl::perform(m_curl) || response.empty()) { return false; }
 
