@@ -157,7 +157,8 @@ void FileModeState::enter_selected(fslib::Path &path, fslib::Directory &director
 {
     const int selected = menu.get_selected();
 
-    if (selected == 1) { FileModeState::up_one_directory(path, directory, menu); }
+    if (selected == 0) { return; }
+    else if (selected == 1) { FileModeState::up_one_directory(path, directory, menu); }
     else
     {
         const int dirIndex                 = selected - 2;
