@@ -6,6 +6,7 @@
 #include "fs/fs.hpp"
 #include "graphics/colors.hpp"
 #include "graphics/gfxutil.hpp"
+#include "logging/logger.hpp"
 #include "sdl.hpp"
 #include "stringutil.hpp"
 
@@ -202,6 +203,8 @@ void data::User::load_user_data()
 
 void data::User::load_icon()
 {
+    const std::string iconName =
+        stringutil::get_formatted_string("%016llX%016llX", m_nickname, m_accountID.uid[0], m_accountID.uid[1]);
     if (m_saveType == FsSaveDataType_Account)
     {
         uint32_t iconSize{};
@@ -219,9 +222,9 @@ void data::User::load_icon()
         if (loadError) { return; }
 
         accountProfileClose(&profile);
-        m_icon = sdl::TextureManager::load(m_nickname, iconBuffer.get(), iconSize);
+        m_icon = sdl::TextureManager::load(iconName, iconBuffer.get(), iconSize);
     }
-    else { m_icon = gfxutil::create_generic_icon(m_nickname, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE); }
+    else { m_icon = gfxutil::create_generic_icon(iconName, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE); }
 }
 
 void data::User::load_account(AccountProfile &profile, AccountProfileBase &profileBase)

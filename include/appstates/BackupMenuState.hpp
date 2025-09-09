@@ -9,6 +9,7 @@
 #include "ui/ui.hpp"
 
 #include <memory>
+#include <mutex>
 
 /// @brief This is the state where the user can backup and restore saves.
 class BackupMenuState final : public BaseState
@@ -112,6 +113,9 @@ class BackupMenuState final : public BaseState
 
         /// @brief The menu used by all instances of BackupMenuState.
         static inline std::shared_ptr<ui::Menu> sm_backupMenu{};
+
+        /// @brief Prevents this and threads calling refresh() from causing races.
+        static inline std::mutex sm_menuMutex{};
 
         /// @brief The slide out panel used by all instances of BackupMenuState.
         static inline std::shared_ptr<ui::SlideOutPanel> sm_slidePanel{};

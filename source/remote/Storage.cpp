@@ -105,7 +105,8 @@ remote::Storage::List::iterator remote::Storage::find_directory_by_id(std::strin
     auto is_match = [&](const Item &item) noexcept
     {
         const bool isDir   = item.is_directory();
-        const bool idMatch = item.get_id() == id;
+        const bool idMatch = isDir && item.get_id() == id;
+
         return isDir && idMatch;
     };
 
@@ -117,7 +118,7 @@ remote::Storage::List::const_iterator remote::Storage::find_directory_by_id(std:
     auto is_match = [&](const Item &item) noexcept
     {
         const bool isDir   = item.is_directory();
-        const bool idMatch = item.get_id() == id;
+        const bool idMatch = isDir && item.get_id() == id;
 
         return isDir && idMatch;
     };
@@ -144,7 +145,7 @@ remote::Storage::List::const_iterator remote::Storage::find_file_by_name(std::st
     auto is_match = [&](const Item &item) noexcept
     {
         const bool isFile      = !item.is_directory();
-        const bool parentMatch = !isFile && item.get_parent_id() == m_parent;
+        const bool parentMatch = isFile && item.get_parent_id() == m_parent;
         const bool nameMatch   = parentMatch && item.get_name() == name;
 
         return isFile && parentMatch && nameMatch;
@@ -158,7 +159,7 @@ remote::Storage::List::iterator remote::Storage::find_file_by_id(std::string_vie
     auto is_match = [&](const Item &item) noexcept
     {
         const bool isFile  = !item.is_directory();
-        const bool isMatch = item.get_id() == id;
+        const bool isMatch = isFile && item.get_id() == id;
 
         return isFile && isMatch;
     };
@@ -171,7 +172,7 @@ remote::Storage::List::const_iterator remote::Storage::find_file_by_id(std::stri
     auto is_match = [&](const remote::Item &item) noexcept
     {
         const bool isFile  = !item.is_directory();
-        const bool isMatch = item.get_id() == id;
+        const bool isMatch = isFile && item.get_id() == id;
 
         return isFile && isMatch;
     };

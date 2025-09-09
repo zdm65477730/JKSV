@@ -52,6 +52,8 @@ void BackupMenuState::update()
     sm_slidePanel->update(hasFocus);
     if (!isOpen) { return; }
 
+    std::lock_guard menuGuard{sm_menuMutex};
+
     const int selected   = sm_backupMenu->get_selected();
     const bool aPressed  = input::button_pressed(HidNpadButton_A);
     const bool bPressed  = input::button_pressed(HidNpadButton_B);
@@ -75,7 +77,6 @@ void BackupMenuState::update()
     else if (popEmpty) { BackupMenuState::pop_save_empty(); }
     else if (bPressed) { sm_slidePanel->close(); }
     else if (sm_slidePanel->is_closed()) { BackupMenuState::deactivate_state(); }
-
     sm_backupMenu->update(hasFocus);
 }
 
@@ -104,6 +105,9 @@ void BackupMenuState::refresh()
 
     m_directoryListing.open(m_directoryPath);
     if (!autoUpload && !m_directoryListing.is_open()) { return; }
+
+    std::lock_guard menuGuard{sm_menuMutex};
+
     sm_backupMenu->reset();
     m_menuEntries.clear();
 

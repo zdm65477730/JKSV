@@ -157,13 +157,17 @@ void FileModeState::enter_selected(fslib::Path &path, fslib::Directory &director
 {
     const int selected = menu.get_selected();
 
-    if (selected == 0) { return; }
-    else if (selected == 1) { FileModeState::up_one_directory(path, directory, menu); }
-    else
+    switch (selected)
     {
-        const int dirIndex                 = selected - 2;
-        const fslib::DirectoryEntry &entry = directory[dirIndex];
-        if (entry.is_directory()) { FileModeState::enter_directory(path, directory, menu, entry); }
+        case 0: return;
+        case 1: FileModeState::up_one_directory(path, directory, menu); break;
+        default:
+        {
+            const int dirIndex                 = selected - 2;
+            const fslib::DirectoryEntry &entry = directory[dirIndex];
+            if (entry.is_directory()) { FileModeState::enter_directory(path, directory, menu, entry); }
+        }
+        break;
     }
 }
 
