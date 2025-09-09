@@ -1,20 +1,19 @@
 #include "remote/Form.hpp"
 
+#include <algorithm>
 #include <cstring>
 
 remote::Form &remote::Form::append_parameter(std::string_view param, std::string_view value)
 {
     if (m_offset > 0 && m_formBuffer[m_offset] != '&') { m_formBuffer[m_offset++] = '&'; }
 
-    const size_t paramLength = param.length();
-    std::memcpy(&m_formBuffer[m_offset], param.data(), paramLength);
-    m_offset += paramLength;
+    std::copy(param.begin(), param.end(), &m_formBuffer[m_offset]);
+    m_offset += param.length();
 
     m_formBuffer[m_offset++] = '=';
 
-    const size_t valueLength = value.length();
-    std::memcpy(&m_formBuffer[m_offset], value.data(), valueLength);
-    m_offset += valueLength;
+    std::copy(value.begin(), value.end(), &m_formBuffer[m_offset]);
+    m_offset += value.length();
 
     return *this;
 }
