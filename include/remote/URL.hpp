@@ -13,30 +13,30 @@ namespace remote
 
             /// @brief Constructs a URL with a base URL already in place.
             /// @param base String_view containing the base URL.
-            URL(std::string_view base);
+            URL(std::string_view base) noexcept;
 
             /// @brief Appends the string passed as a path to the URL
             /// @param path Path to append;
-            URL &append_path(std::string_view path);
+            URL &append_path(std::string_view path) noexcept;
 
             /// @brief Appends a string parameter
             /// @param param Parameter to append.
             /// @param value Value of the parameter to append.
-            URL &append_parameter(std::string_view param, std::string_view value);
+            URL &append_parameter(std::string_view param, std::string_view value) noexcept;
 
             /// @brief Appends a trailing slash if needed.
-            URL &append_slash();
+            URL &append_slash() noexcept;
 
             /// @brief Returns the C string of the url string.
             const char *get() const noexcept;
 
         private:
-            static inline constexpr int SIZE_URL_BUFFER = 0x800;
+            static inline constexpr size_t SIZE_URL_BUFFER = 0x800;
 
             /// @brief This is where the actual URL is held.
             char m_urlBuffer[SIZE_URL_BUFFER] = {0};
 
             // Current offset in the buffer.
-            int m_offset{};
+            size_t m_offset{};
     };
 } // namespace remote
