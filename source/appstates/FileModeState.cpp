@@ -217,6 +217,7 @@ fslib::Directory &FileModeState::get_destination_directory() noexcept { return m
 void FileModeState::deactivate_state() noexcept
 {
     sm_frame->set_y(720);
+    sm_controlGuide->reset();
     fslib::close_file_system(m_mountA);
     fslib::close_file_system(m_mountB);
     BaseState::deactivate();

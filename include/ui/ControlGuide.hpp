@@ -26,6 +26,9 @@ namespace ui
             /// @brief Renders the control guide. Both arguments are ignored in this case.
             void render(sdl::SharedTexture &target, bool hasFocus) override;
 
+            /// @brief This is a workaround for states where the guide can't really be hidden correctly. Ex: FileMode.
+            void reset() noexcept;
+
         private:
             /// @brief Stores the pointer to the guide string.
             const char *m_guide{};

@@ -36,7 +36,7 @@ void ui::ControlGuide::render(sdl::SharedTexture &target, bool hasFocus)
     const int guideY = m_transition.get_y();
 
     sm_controlCap->render(sdl::Texture::Null, guideX, guideY);
-    sdl::render_rect_fill(sdl::Texture::Null, guideX + 16, guideY, m_guideWidth - 16, 48, colors::SLIDE_PANEL_CLEAR);
+    sdl::render_rect_fill(sdl::Texture::Null, guideX + 16, guideY, m_guideWidth - 16, 48, colors::GUIDE_COLOR);
     sdl::text::render(sdl::Texture::Null, guideX + 24, guideY + 10, 23, sdl::text::NO_WRAP, colors::WHITE, m_guide);
 }
 
@@ -47,4 +47,10 @@ void ui::ControlGuide::initialize_static_members()
     if (sm_controlCap) { return; }
 
     sm_controlCap = sdl::TextureManager::load(NAME_CAP, "romfs:/Textures/GuideCap.png");
+}
+
+void ui::ControlGuide::reset() noexcept
+{
+    m_transition.set_target_x(1280);
+    m_transition.set_x(1280);
 }

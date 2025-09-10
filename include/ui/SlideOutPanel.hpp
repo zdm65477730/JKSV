@@ -1,6 +1,7 @@
 #pragma once
 #include "sdl.hpp"
 #include "ui/Element.hpp"
+#include "ui/Transition.hpp"
 
 #include <memory>
 #include <vector>
@@ -90,9 +91,6 @@ namespace ui
             /// @brief Whether or not to hide the panel.
             bool m_hidePanel{};
 
-            /// @brief Current X coordinate to render to. Panels are always 720 pixels in height so no Y is required.
-            double m_x{};
-
             /// @brief Width of the panel in pixels.
             int m_width{};
 
@@ -101,6 +99,9 @@ namespace ui
 
             /// @brief Which side the panel is on.
             SlideOutPanel::Side m_side{};
+
+            /// @brief Transition for the slide out effect.
+            ui::Transition m_transition{};
 
             /// @brief Render target if panel.
             sdl::SharedTexture m_renderTarget{};
@@ -111,16 +112,10 @@ namespace ui
             /// @brief Tracks the internal ID of render targets for panels.
             static inline int sm_targetID{};
 
-            /// @brief Handles sliding out logic.
-            void slide_out() noexcept;
+            /// @brief Returns the target X to open the panel.
+            inline int get_target_open_x() { return m_side == Side::Left ? 0 : 1280 - m_width; }
 
-            /// @brief Slides the panel out from the left side.
-            void slide_out_left() noexcept;
-
-            /// @brief Slides the panel out from the right side.
-            void slide_out_right() noexcept;
-
-            /// @brief Contains the logic for hiding/closing the panel.
-            void close_hide_panel() noexcept;
+            /// @brief Returns the target X to close/hide the panel.
+            inline int get_target_close_x() { return m_side == Side::Left ? -m_width : 1280; }
     };
 } // namespace ui
