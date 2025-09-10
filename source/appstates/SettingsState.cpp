@@ -63,8 +63,7 @@ namespace
 
 SettingsState::SettingsState()
     : m_settingsMenu(ui::Menu::create(32, 8, 1000, 24, 555))
-    , m_controlGuide(strings::get_by_name(strings::names::CONTROL_GUIDES, 3))
-    , m_controlGuideX(1220 - sdl::text::get_width(22, m_controlGuide))
+    , m_controlGuide(ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 3)))
     , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     SettingsState::load_settings_menu();
@@ -83,7 +82,11 @@ void SettingsState::update()
     if (aPressed) { SettingsState::toggle_options(); }
     else if (minusPressed) { SettingsState::create_push_description_message(); }
     else if (bPressed) { BaseState::deactivate(); }
+
+    m_controlGuide->update(hasFocus);
 }
+
+void SettingsState::sub_update() { m_controlGuide->sub_update(); }
 
 void SettingsState::render()
 {
@@ -92,11 +95,7 @@ void SettingsState::render()
     m_renderTarget->clear(colors::TRANSPARENT);
     m_settingsMenu->render(m_renderTarget, hasFocus);
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
-
-    if (hasFocus)
-    {
-        sdl::text::render(sdl::Texture::Null, m_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
-    }
+    m_controlGuide->render(sdl::Texture::Null, hasFocus);
 }
 
 void SettingsState::load_settings_menu()

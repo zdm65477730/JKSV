@@ -1,6 +1,7 @@
 #pragma once
 #include "ui/BoundingBox.hpp"
 #include "ui/ColorMod.hpp"
+#include "ui/ControlGuide.hpp"
 #include "ui/DialogBox.hpp"
 #include "ui/Element.hpp"
 #include "ui/Frame.hpp"

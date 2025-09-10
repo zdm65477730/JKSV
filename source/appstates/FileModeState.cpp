@@ -51,6 +51,7 @@ void FileModeState::update()
     else if (FileModeState::is_hidden()) { FileModeState::deactivate_state(); }
 
     menu.update(hasFocus);
+    sm_controlGuide->update(hasFocus);
 }
 
 void FileModeState::render()
@@ -60,7 +61,7 @@ void FileModeState::render()
     sm_renderTarget->clear(colors::TRANSPARENT);
 
     // This is here so it's rendered underneath the pop-up frame.
-    if (hasFocus) { FileModeState::render_control_guide(); }
+    sm_controlGuide->render(sdl::Texture::Null, hasFocus);
 
     sdl::render_line(sm_renderTarget, 617, 0, 617, 538, colors::WHITE);
     sdl::render_line(sm_renderTarget, 618, 0, 618, 538, colors::DIALOG_DARK);
@@ -76,14 +77,11 @@ void FileModeState::initialize_static_members()
 {
     static constexpr std::string_view RENDER_TARGET_NAME = "FMRenderTarget";
 
-    static constexpr int CONTROL_GUIDE_START_X = 1220;
+    if (sm_frame && sm_renderTarget && sm_controlGuide) { return; }
 
-    if (sm_frame && sm_renderTarget) { return; }
-
-    sm_frame         = ui::Frame::create(15, 720, 1250, 555);
-    sm_renderTarget  = sdl::TextureManager::load(RENDER_TARGET_NAME, 1234, 538, SDL_TEXTUREACCESS_TARGET);
-    sm_controlGuide  = strings::get_by_name(strings::names::CONTROL_GUIDES, 4);
-    sm_controlGuideX = CONTROL_GUIDE_START_X - sdl::text::get_width(22, sm_controlGuide);
+    sm_frame        = ui::Frame::create(15, 720, 1250, 555);
+    sm_renderTarget = sdl::TextureManager::load(RENDER_TARGET_NAME, 1234, 538, SDL_TEXTUREACCESS_TARGET);
+    sm_controlGuide = ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 4));
 }
 
 void FileModeState::initialize_paths()
@@ -202,11 +200,6 @@ void FileModeState::enter_directory(fslib::Path &path,
 
     path /= entry.get_filename();
     FileModeState::initialize_directory_menu(path, directory, menu);
-}
-
-void FileModeState::render_control_guide()
-{
-    sdl::text::render(sdl::Texture::Null, sm_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, sm_controlGuide);
 }
 
 ui::Menu &FileModeState::get_source_menu() noexcept { return m_target ? *m_dirMenuB.get() : *m_dirMenuA.get(); }

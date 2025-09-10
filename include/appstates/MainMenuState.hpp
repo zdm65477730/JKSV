@@ -3,6 +3,7 @@
 #include "appstates/BaseState.hpp"
 #include "data/data.hpp"
 #include "sdl.hpp"
+#include "ui/ControlGuide.hpp"
 #include "ui/IconMenu.hpp"
 
 #include <memory>
@@ -27,6 +28,9 @@ class MainMenuState final : public BaseState
 
         /// @brief Runs update routine.
         void update() override;
+
+        /// @brief Runs the sub-update routine.
+        void sub_update() override;
 
         /// @brief Renders menu to screen.
         void render() override;
@@ -62,11 +66,8 @@ class MainMenuState final : public BaseState
         /// @brief Special menu type that uses icons.
         std::shared_ptr<ui::IconMenu> m_mainMenu{};
 
-        /// @brief Pointer to control guide string so I don't need to call string::getByName every loop.
-        const char *m_controlGuide{};
-
-        /// @brief X coordinate of the control guide in the bottom right corner.
-        int m_controlGuideX{};
+        /// @brief Control guide in the bottom right.
+        std::shared_ptr<ui::ControlGuide> m_controlGuide{};
 
         /// @brief This is the data struct passed to tasks.
         MainMenuState::TaskData m_dataStruct{};

@@ -4,20 +4,13 @@
 #include "sdl.hpp"
 #include "strings/strings.hpp"
 
-TitleSelectCommon::TitleSelectCommon()
+TitleSelectCommon::TitleSelectCommon() { TitleSelectCommon::initialize_control_guide(); }
+
+void TitleSelectCommon::sub_update() { sm_controlGuide->sub_update(); }
+
+void TitleSelectCommon::initialize_control_guide()
 {
-    if (sm_controlGuide && sm_controlGuideX != 0) { return; }
+    if (sm_controlGuide) { return; }
 
-    sm_controlGuide  = strings::get_by_name(strings::names::CONTROL_GUIDES, 1);
-    sm_controlGuideX = 1220 - sdl::text::get_width(22, sm_controlGuide);
-}
-
-void TitleSelectCommon::render_control_guide()
-{
-    const bool hasFocus = BaseState::has_focus();
-
-    if (hasFocus)
-    {
-        sdl::text::render(sdl::Texture::Null, sm_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, sm_controlGuide);
-    }
+    sm_controlGuide = ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 1));
 }

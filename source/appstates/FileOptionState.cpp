@@ -93,9 +93,6 @@ void FileOptionState::render()
 
     sm_dialog->render(sdl::Texture::Null, hasFocus);
     sm_copyMenu->render(sdl::Texture::Null, hasFocus);
-
-    // I just didn't like this disappearing.
-    m_spawningState->render_control_guide();
 }
 
 void FileOptionState::update_source() { m_updateSource = true; }

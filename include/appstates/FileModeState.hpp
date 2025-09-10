@@ -87,11 +87,8 @@ class FileModeState final : public BaseState
         /// @brief This is the render target the browsers are rendered to.
         static inline sdl::SharedTexture sm_renderTarget{};
 
-        /// @brief Stores a pointer to the guide in the bottom-right corner.
-        static inline const char *sm_controlGuide{};
-
-        /// @brief Calculated X coordinate of the control guide text.
-        static inline int sm_controlGuideX{};
+        /// @brief Control guide shared by all instances.
+        static inline std::shared_ptr<ui::ControlGuide> sm_controlGuide{};
 
         /// @brief Initializes the members shared by all instances of FileModeState.
         void initialize_static_members();
@@ -135,9 +132,6 @@ class FileModeState final : public BaseState
                              fslib::Directory &directory,
                              ui::Menu &menu,
                              const fslib::DirectoryEntry &entry);
-
-        /// @brief Renders the control guide string on the bottom of the screen.
-        void render_control_guide();
 
         /// @brief Returns a reference to the currently active menu.
         ui::Menu &get_source_menu() noexcept;
