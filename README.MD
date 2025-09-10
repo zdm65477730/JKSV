@@ -6,8 +6,7 @@ If you appreciate my work, or if JKSM or JKSV has gotten you out of a jam, pleas
 <p align="center">
 <a href='https://ko-fi.com/W7W51JF9W6' target='_blank'><img height='42' style='border:px;height:42px;' src='https://storage.ko-fi.com/cdn/kofi3.png?v=6' border='0' alt='Support me for the countless hours I poured into JKSV' /></a>
 </p>
-
-<img src="https://i.imgur.com/1nMbJte.png" />
+<img src="https://i.imgur.com/aUrq46c.png" />
 
 ## Rewritten from the ground up:
 
