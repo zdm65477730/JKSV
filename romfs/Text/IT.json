@@ -34,7 +34,8 @@
         "1: [A] Seleziona   [L] [R] Salta   [Y] Preferito   [X] Opzioni titolo  [B] Indietro",
         "2: [A] Seleziona  [Y] Ripristina  [X] Elimina  [ZR] Carica  [B] Chiudi",
         "3: [A] Attiva/disattiva  [-] Descrizione   [X] Predefiniti   [B] Indietro",
-        "4: [A] Conferma   [B] Indietro/Su   [X] Opzioni   [ZL]/[ZR] Cambia obiettivo   [-] Chiudi"
+        "4: [A] Conferma   [B] Indietro/Su   [X] Opzioni   [ZL]/[ZR] Cambia obiettivo   [-] Chiudi",
+        "5: [A] Seleziona"
     ],
     "DataLoadingStatus": [
         "0: Caricamento account utente dal sistema...",

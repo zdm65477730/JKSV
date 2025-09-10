@@ -35,6 +35,7 @@ static void finish_reinitialization();
 
 ExtrasMenuState::ExtrasMenuState()
     : m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
+    , m_controlGuide(ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 5)))
 {
     ExtrasMenuState::initialize_menu();
 }
@@ -46,6 +47,7 @@ void ExtrasMenuState::update()
     const bool bPressed = input::button_pressed(HidNpadButton_B);
 
     m_extrasMenu->update(hasFocus);
+    m_controlGuide->update(hasFocus);
 
     if (aPressed)
     {
@@ -63,6 +65,8 @@ void ExtrasMenuState::update()
     else if (bPressed) { BaseState::deactivate(); }
 }
 
+void ExtrasMenuState::sub_update() { m_controlGuide->sub_update(); }
+
 void ExtrasMenuState::render()
 {
     const bool hasFocus = BaseState::has_focus();
@@ -70,6 +74,7 @@ void ExtrasMenuState::render()
     m_renderTarget->clear(colors::TRANSPARENT);
     m_extrasMenu->render(m_renderTarget, hasFocus);
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
+    m_controlGuide->render(sdl::Texture::Null, hasFocus);
 }
 
 void ExtrasMenuState::initialize_menu()

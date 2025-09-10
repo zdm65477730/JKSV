@@ -34,7 +34,8 @@
         "1: [A] Seleccionar   [L] [R] Saltar   [Y] Favorito   [X] Opciones de título  [B] Volver",
         "2: [A] Seleccionar  [Y] Restaurar  [X] Eliminar  [ZR] Subir  [B] Cerrar",
         "3: [A] Alternar  [-] Descripción   [X] Valores por defecto   [B] Volver",
-        "4: [A] Aceptar   [B] Atrás/Arriba   [X] Opciones   [ZL]/[ZR] Cambiar objetivo   [-] Cerrar"
+        "4: [A] Aceptar   [B] Atrás/Arriba   [X] Opciones   [ZL]/[ZR] Cambiar objetivo   [-] Cerrar",
+        "5: [A] Seleccionar"
     ],
     "DataLoadingStatus": [
         "0: Cargando cuentas de usuario desde el sistema...",

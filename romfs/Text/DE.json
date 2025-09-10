@@ -34,7 +34,8 @@
         "1: [A] Auswählen   [L] [R] Springen   [Y] Favorit   [X] Titeloptionen  [B] Zurück",
         "2: [A] Auswählen  [Y] Wiederherstellen  [X] Löschen  [ZR] Hochladen  [B] Schließen",
         "3: [A] Umschalten  [-] Beschreibung   [X] Standardwerte   [B] Zurück",
-        "4: [A] Eingeben   [B] Zurück/Hoch   [X] Optionen   [ZL]/[ZR] Ziel wechseln   [-] Schließen"
+        "4: [A] Eingeben   [B] Zurück/Hoch   [X] Optionen   [ZL]/[ZR] Ziel wechseln   [-] Schließen",
+        "5: [A] Auswählen"
     ],
     "DataLoadingStatus": [
         "0: Benutzerkonten vom System werden geladen...",
