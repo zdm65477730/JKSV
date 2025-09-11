@@ -27,7 +27,7 @@ namespace
 
 // Shared struct for Zip/File IO
 // clang-format off
-struct ZipIOStruct
+struct ZipIOBase : sys::threadpool::DataStruct
 {
     std::mutex lock{};
     std::condition_variable condition{};
@@ -35,16 +35,29 @@ struct ZipIOStruct
     bool bufferReady{};
     std::unique_ptr<sys::byte[]> sharedBuffer{};
 };
+
+struct ZipReadStruct : ZipIOBase
+{
+    fslib::File *source{};
+};
+
+struct UnzipReadStruct : ZipIOBase
+{
+    fs::MiniUnzip *unzip{};
+};
 // clang-format on
 
 // Function for reading files for Zipping.
-static void zipReadThreadFunction(fslib::File &source, std::shared_ptr<ZipIOStruct> sharedData)
+static void zip_read_thread_function(sys::threadpool::JobData jobData)
 {
-    std::mutex &lock                           = sharedData->lock;
-    std::condition_variable &condition         = sharedData->condition;
-    ssize_t &readSize                          = sharedData->readSize;
-    bool &bufferReady                          = sharedData->bufferReady;
-    std::unique_ptr<sys::byte[]> &sharedBuffer = sharedData->sharedBuffer;
+    auto castData = std::static_pointer_cast<ZipReadStruct>(jobData);
+
+    std::mutex &lock                           = castData->lock;
+    std::condition_variable &condition         = castData->condition;
+    ssize_t &readSize                          = castData->readSize;
+    bool &bufferReady                          = castData->bufferReady;
+    std::unique_ptr<sys::byte[]> &sharedBuffer = castData->sharedBuffer;
+    fslib::File &source                        = *castData->source;
     const int64_t fileSize                     = source.get_size();
 
     for (int64_t i = 0; i < fileSize;)
@@ -66,7 +79,7 @@ static void zipReadThreadFunction(fslib::File &source, std::shared_ptr<ZipIOStru
 }
 
 // Function for reading data from Zip to buffer.
-static void unzipReadThreadFunction(fs::MiniUnzip &unzip, std::shared_ptr<ZipIOStruct> sharedData)
+static void unzipReadThreadFunction(fs::MiniUnzip &unzip, std::shared_ptr<UnzipReadStruct> sharedData)
 {
     std::mutex &lock                           = sharedData->lock;
     std::condition_variable &condition         = sharedData->condition;
@@ -116,9 +129,11 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
             if (error::fslib(sourceFile.is_open()) || !newZipFile) { continue; }
 
             const int64_t fileSize   = sourceFile.get_size();
-            auto sharedData          = std::make_shared<ZipIOStruct>();
+            auto sharedData          = std::make_shared<ZipReadStruct>();
+            sharedData->source       = &sourceFile;
             sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_ZIP_BUFFER);
-            auto localBuffer         = std::make_unique<sys::byte[]>(SIZE_ZIP_BUFFER);
+
+            auto localBuffer = std::make_unique<sys::byte[]>(SIZE_ZIP_BUFFER);
 
             if (task)
             {
@@ -134,7 +149,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
             bool &bufferReady                  = sharedData->bufferReady;
             auto &sharedBuffer                 = sharedData->sharedBuffer;
 
-            std::thread readThread(zipReadThreadFunction, std::ref(sourceFile), sharedData);
+            sys::threadpool::push_job(zip_read_thread_function, sharedData);
             for (int64_t i = 0; i < fileSize;)
             {
                 ssize_t localRead{};
@@ -156,9 +171,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
 
                 if (task) { task->update_current(static_cast<double>(i)); }
             }
-
             dest.close_current_file();
-            readThread.join();
         }
     }
 }
@@ -206,7 +219,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
             task->reset(static_cast<double>(fileSize));
         }
 
-        auto sharedData          = std::make_shared<ZipIOStruct>();
+        auto sharedData          = std::make_shared<UnzipReadStruct>();
         sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_UNZIP_BUFFER);
         auto localBuffer         = std::make_unique<sys::byte[]>(SIZE_UNZIP_BUFFER);
 
