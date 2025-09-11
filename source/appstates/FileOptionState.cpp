@@ -148,7 +148,7 @@ void FileOptionState::update_x_coord()
     if (m_x == m_targetX) { return; }
 
     // We're going to borrow the scaling from the FileMode
-    const int add = (m_targetX - m_x) / m_spawningState->m_scaling;
+    const int add = (m_targetX - m_x) / config::get_animation_scaling();
     m_x += add;
 
     const int distance = math::Util<int>::absolute_distance(m_x, m_targetX);

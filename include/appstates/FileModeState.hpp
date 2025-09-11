@@ -63,17 +63,11 @@ class FileModeState final : public BaseState
         /// @brief Stores the size for committing data (if needed) to mountA.
         int64_t m_journalSize{};
 
-        /// @brief The beginning Y coord of the dialog.
-        double m_y = 720.0f;
+        /// @brief Stores whether or not the panel should be closed.
+        bool m_close{};
 
-        /// @brief This is the targetY. Used for the opening and hiding effect.
-        double m_targetY = 91.0f;
-
-        /// @brief Config scaling for the "transition"
-        double m_scaling{};
-
-        /// @brief Stores whether or not the dialog has reached its targetted position.
-        bool m_inPlace{};
+        /// @brief Transition for the pop-up effect.
+        ui::Transition m_transition{};
 
         /// @brief Stores whether the instance is dealing with sensitive data.
         bool m_isSystem{};
@@ -101,9 +95,6 @@ class FileModeState final : public BaseState
 
         /// @brief Loads the current directory listings and menus.
         void initialize_directory_menu(const fslib::Path &path, fslib::Directory &directory, ui::Menu &menu);
-
-        /// @brief Updates the dialog's coordinates in the beginning.
-        void update_y_coord() noexcept;
 
         /// @brief Starts the dialog hiding process.
         void hide_dialog() noexcept;

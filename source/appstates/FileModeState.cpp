@@ -15,9 +15,7 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
     : m_mountA(mountA)
     , m_mountB(mountB)
     , m_journalSize(journalSize)
-    , m_y(720.f)
-    , m_targetY(91.0f)
-    , m_scaling(config::get_animation_scaling())
+    , m_transition(23, 720, 23, 91, 4)
     , m_isSystem(isSystem)
     , m_allowSystem(config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
 {
@@ -28,8 +26,15 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
 
 void FileModeState::update()
 {
-    FileModeState::update_y_coord();
-    if (!m_inPlace) { return; }
+    m_transition.update();
+    if (!m_transition.in_place())
+    {
+        const int x = m_transition.get_x();
+        const int y = m_transition.get_y();
+        sm_frame->set_x(x);
+        sm_frame->set_y(y);
+        return;
+    }
 
     const bool hasFocus = BaseState::has_focus();
 
@@ -70,7 +75,11 @@ void FileModeState::render()
     m_dirMenuB->render(sm_renderTarget, hasFocus && m_target);
 
     sm_frame->render(sdl::Texture::Null, true);
-    sm_renderTarget->render(sdl::Texture::Null, 23, m_y + 12);
+
+    const int x = m_transition.get_x();
+    const int y = m_transition.get_y();
+
+    sm_renderTarget->render(sdl::Texture::Null, x, y + 12);
 }
 
 void FileModeState::initialize_static_members()
@@ -125,31 +134,14 @@ void FileModeState::initialize_directory_menu(const fslib::Path &path, fslib::Di
     }
 }
 
-void FileModeState::update_y_coord() noexcept
-{
-    if (m_y == m_targetY) { return; }
-
-    const double add      = (m_targetY - m_y) / m_scaling;
-    const double distance = math::Util<double>::absolute_distance(m_targetY, m_y);
-    m_y += std::round(add);
-
-    // The second condition is a fix for when scaling is 1.
-    if (distance <= 4 || m_y == m_targetY)
-    {
-        m_y       = m_targetY;
-        m_inPlace = true;
-    }
-
-    sm_frame->set_y(m_y);
-}
-
 void FileModeState::hide_dialog() noexcept
 {
-    if (!m_inPlace) { return; }
-    m_targetY = 720;
+    if (!m_transition.in_place()) { return; }
+    m_transition.set_target_y(720);
+    m_close = true;
 }
 
-bool FileModeState::is_hidden() noexcept { return m_inPlace && m_targetY == 720; }
+bool FileModeState::is_hidden() noexcept { return m_close && m_transition.in_place(); }
 
 void FileModeState::enter_selected(fslib::Path &path, fslib::Directory &directory, ui::Menu &menu)
 {
