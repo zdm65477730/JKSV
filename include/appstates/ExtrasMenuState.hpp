@@ -1,6 +1,7 @@
 #pragma once
 #include "appstates/BaseState.hpp"
 #include "sdl.hpp"
+#include "ui/ControlGuide.hpp"
 #include "ui/Menu.hpp"
 
 /// @brief Extras menu.
@@ -16,6 +17,9 @@ class ExtrasMenuState final : public BaseState
         /// @brief Updates the menu.
         void update() override;
 
+        /// @brief Sub-update routine.
+        void sub_update() override;
+
         /// @brief Renders the menu to screen.
         void render() override;
 
@@ -25,6 +29,9 @@ class ExtrasMenuState final : public BaseState
 
         /// @brief Render target for menu.
         sdl::SharedTexture m_renderTarget{};
+
+        /// @brief Control guider for bottom right corner.
+        std::shared_ptr<ui::ControlGuide> m_controlGuide{};
 
         /// @brief Creates and loads the menu strings.
         void initialize_menu();

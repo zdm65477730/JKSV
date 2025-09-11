@@ -45,6 +45,7 @@ void TitleSelectState::update()
     }
 
     m_titleView->update(hasFocus);
+    sm_controlGuide->update(hasFocus);
 }
 
 void TitleSelectState::render()
@@ -53,7 +54,7 @@ void TitleSelectState::render()
 
     m_renderTarget->clear(colors::TRANSPARENT);
     m_titleView->render(m_renderTarget, hasFocus);
-    TitleSelectCommon::render_control_guide();
+    sm_controlGuide->render(sdl::Texture::Null, hasFocus);
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
 }
 

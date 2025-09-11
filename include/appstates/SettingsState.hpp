@@ -1,6 +1,7 @@
 #pragma once
 #include "appstates/BaseState.hpp"
 #include "sdl.hpp"
+#include "ui/ControlGuide.hpp"
 #include "ui/Menu.hpp"
 
 /// @brief The state for settings.
@@ -16,6 +17,9 @@ class SettingsState final : public BaseState
         /// @brief Runs the update routine.
         void update() override;
 
+        /// @brief Sub update routine.
+        void sub_update() override;
+
         /// @brief Runs the render routine.
         void render() override;
 
@@ -23,15 +27,12 @@ class SettingsState final : public BaseState
         /// @brief Menu for selecting and toggling settings.
         std::shared_ptr<ui::Menu> m_settingsMenu{};
 
-        /// @brief Pointer to the control guide string.
-        const char *m_controlGuide{};
-
         // These are pointers to strings this state uses constantly.
         const char *m_onOff[2]{};
         const char *m_sortTypes[3]{};
 
-        /// @brief X coordinate of the control guide in the bottom right corner.
-        int m_controlGuideX{};
+        /// @brief Control guide.
+        std::shared_ptr<ui::ControlGuide> m_controlGuide{};
 
         /// @brief Render target to render to.
         sdl::SharedTexture m_renderTarget{};

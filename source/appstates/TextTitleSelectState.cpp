@@ -43,13 +43,17 @@ void TextTitleSelectState::update()
     else if (xPressed) { TextTitleSelectState::create_title_option_menu(); }
     else if (yPressed) { TextTitleSelectState::add_remove_favorite(); }
     else if (bPressed) { BaseState::deactivate(); }
+
+    sm_controlGuide->update(hasFocus);
 }
 
 void TextTitleSelectState::render()
 {
+    const bool hasFocus = BaseState::has_focus();
+
     m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleSelectMenu->render(m_renderTarget, BaseState::has_focus());
-    TitleSelectCommon::render_control_guide();
+    m_titleSelectMenu->render(m_renderTarget, hasFocus);
+    sm_controlGuide->render(sdl::Texture::Null, hasFocus);
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
 }
 

@@ -245,6 +245,7 @@ void tasks::backup::restore_backup_local(sys::ProgressTask *task, BackupMenuStat
         fs::copy_file_commit(target, fs::DEFAULT_SAVE_ROOT, journalSize, task);
     }
 
+    spawningState->save_data_written();
     spawningState->refresh();
     task->complete();
 }
@@ -253,9 +254,10 @@ void tasks::backup::restore_backup_remote(sys::ProgressTask *task, BackupMenuSta
 {
     if (error::is_null(task)) { return; }
 
-    data::User *user           = taskData->user;
-    data::TitleInfo *titleInfo = taskData->titleInfo;
-    remote::Storage *remote    = remote::get_remote_storage();
+    data::User *user               = taskData->user;
+    data::TitleInfo *titleInfo     = taskData->titleInfo;
+    remote::Storage *remote        = remote::get_remote_storage();
+    BackupMenuState *spawningState = taskData->spawningState;
     if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(remote)) { TASK_FINISH_RETURN(task); }
 
     const bool autoBackup          = config::get_by_key(config::keys::AUTO_BACKUP_ON_RESTORE);
@@ -327,6 +329,7 @@ void tasks::backup::restore_backup_remote(sys::ProgressTask *task, BackupMenuSta
         ui::PopMessageManager::push_message(popTicks, popErrorDeleting);
     }
 
+    spawningState->save_data_written();
     task->complete();
 }
 

@@ -2,7 +2,7 @@
 
 #include <switch.h>
 
-int main()
+int main(int argc, const char *argv[])
 {
     JKSV jksv{};
     while (appletMainLoop() && jksv.is_running())

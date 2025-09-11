@@ -13,57 +13,70 @@ namespace
 }
 
 ui::SlideOutPanel::SlideOutPanel(int width, Side side)
-    : m_x(side == Side::Left ? static_cast<double>(-width) : static_cast<double>(SCREEN_WIDTH))
-    , m_width(width)
+    : m_width(width)
     , m_targetX(side == Side::Left ? 0.0f : static_cast<double>(SCREEN_WIDTH) - m_width)
     , m_side(side)
+    , m_transition(m_side == Side::Left ? -m_width : SCREEN_WIDTH, 0, m_targetX, 0, 4)
     , m_renderTarget(
           sdl::TextureManager::load("PANEL_" + std::to_string(sm_targetID++), m_width, 720, SDL_TEXTUREACCESS_TARGET)) {};
 
 void ui::SlideOutPanel::update(bool hasFocus)
 {
-    if (hasFocus && SlideOutPanel::is_hidden()) { SlideOutPanel::unhide(); }
+    const int targetX = m_transition.get_target_x();
+    if (hasFocus && targetX != m_targetX) { SlideOutPanel::unhide(); }
 
-    slide_out();
+    m_transition.update();
 
-    if (m_isOpen)
+    if (m_transition.in_place())
     {
         for (auto &currentElement : m_elements) { currentElement->update(hasFocus); }
     }
 }
 
-void ui::SlideOutPanel::sub_update() { SlideOutPanel::close_hide_panel(); }
+void ui::SlideOutPanel::sub_update() { m_transition.update(); }
 
 void ui::SlideOutPanel::render(sdl::SharedTexture &target, bool hasFocus)
 {
     for (auto &currentElement : m_elements) { currentElement->render(m_renderTarget, hasFocus); }
 
-    m_renderTarget->render(target, m_x, 0);
+    const int x = m_transition.get_x();
+    m_renderTarget->render(target, x, 0);
 }
 
 void ui::SlideOutPanel::clear_target() { m_renderTarget->clear(colors::SLIDE_PANEL_CLEAR); }
 
 void ui::SlideOutPanel::reset() noexcept
 {
-    m_x          = m_side == Side::Left ? -(m_width) : SCREEN_WIDTH;
+    const int x = SlideOutPanel::get_target_close_x();
+    m_transition.set_x(x);
     m_isOpen     = false;
     m_closePanel = false;
 }
 
-void ui::SlideOutPanel::close() noexcept { m_closePanel = true; }
-
-void ui::SlideOutPanel::hide() noexcept { m_hidePanel = true; }
-
-void ui::SlideOutPanel::unhide() noexcept { m_hidePanel = false; }
-
-bool ui::SlideOutPanel::is_open() const noexcept { return m_isOpen; }
-
-bool ui::SlideOutPanel::is_closed() noexcept
+void ui::SlideOutPanel::close() noexcept
 {
-    close_hide_panel();
-    const bool closed = m_side == Side::Left ? m_x <= -m_width : m_x >= SCREEN_WIDTH;
-    return m_closePanel && closed;
+    const int targetX = SlideOutPanel::get_target_close_x();
+    m_transition.set_target_x(targetX);
+    m_closePanel = true;
 }
+
+void ui::SlideOutPanel::hide() noexcept
+{
+    const int targetX = SlideOutPanel::get_target_close_x();
+    m_transition.set_target_x(targetX);
+    m_hidePanel = true;
+}
+
+void ui::SlideOutPanel::unhide() noexcept
+{
+    const int targetX = SlideOutPanel::get_target_open_x();
+    m_transition.set_target_x(targetX);
+    m_hidePanel = false;
+}
+
+bool ui::SlideOutPanel::is_open() const noexcept { return m_transition.in_place(); }
+
+bool ui::SlideOutPanel::is_closed() noexcept { return m_closePanel && m_transition.in_place(); }
 
 bool ui::SlideOutPanel::is_hidden() const noexcept { return m_hidePanel; }
 
@@ -72,59 +85,3 @@ void ui::SlideOutPanel::push_new_element(std::shared_ptr<ui::Element> newElement
 void ui::SlideOutPanel::clear_elements() { m_elements.clear(); }
 
 sdl::SharedTexture &ui::SlideOutPanel::get_target() noexcept { return m_renderTarget; }
-
-void ui::SlideOutPanel::slide_out() noexcept
-{
-    const bool needsSlideOut = !m_isOpen && !m_closePanel && !m_hidePanel;
-    if (!needsSlideOut) { return; }
-
-    const bool slideRight = m_side == SlideOutPanel::Side::Left && m_x < 0;
-    const bool slideLeft  = m_side == SlideOutPanel::Side::Right && m_x > SCREEN_WIDTH - m_width;
-
-    if (slideRight) { SlideOutPanel::slide_out_left(); }
-    else if (slideLeft) { SlideOutPanel::slide_out_right(); }
-}
-
-void ui::SlideOutPanel::slide_out_left() noexcept
-{
-    const double scaling = config::get_animation_scaling();
-
-    m_x -= std::round(m_x / scaling);
-
-    // This is a workaround for the floating points never lining up quite right.
-    const int distance = math::Util<double>::absolute_distance(m_x, m_targetX);
-    if (distance <= 2)
-    {
-        m_x      = m_targetX;
-        m_isOpen = true;
-    }
-}
-
-void ui::SlideOutPanel::slide_out_right() noexcept
-{
-    const double scaling     = config::get_animation_scaling();
-    const double screenWidth = static_cast<double>(SCREEN_WIDTH);
-    const double width       = static_cast<double>(m_width);
-    const double pixels      = (screenWidth - width - m_x) / scaling;
-    m_x += std::round(pixels);
-
-    const int distance = math::Util<double>::absolute_distance(m_x, m_targetX);
-    if (distance <= 2)
-    {
-        m_x      = m_targetX;
-        m_isOpen = true;
-    }
-}
-
-void ui::SlideOutPanel::close_hide_panel() noexcept
-{
-    const double scaling    = config::get_animation_scaling();
-    const bool closeHide    = m_closePanel || m_hidePanel;
-    const bool closeToLeft  = closeHide && m_side == Side::Left && m_x > -m_width;
-    const bool closeToRight = closeHide && m_side == Side::Right && m_x < SCREEN_WIDTH;
-    if (closeToLeft) { m_x += -((m_width - m_x) / scaling); }
-    else if (closeToRight) { m_x += m_x / scaling; }
-
-    const bool closedOrHidden = (m_x <= -m_width) || (m_x >= SCREEN_WIDTH);
-    if (closedOrHidden) { m_isOpen = false; }
-}

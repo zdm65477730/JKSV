@@ -135,12 +135,16 @@ void UserOptionState::backup_all()
 
 void UserOptionState::create_save_create()
 {
+    if (m_user->get_account_save_type() == FsSaveDataType_System) { return; }
+
     sm_menuPanel->hide();
     SaveCreateState::create_and_push(m_user, m_titleSelect);
 }
 
 void UserOptionState::create_all_save_data()
 {
+    if (m_user->get_account_save_type() == FsSaveDataType_System) { return; }
+
     const char *confirmFormat = strings::get_by_name(strings::names::USEROPTION_CONFS, 1);
     const char *nickname      = m_user->get_nickname();
 

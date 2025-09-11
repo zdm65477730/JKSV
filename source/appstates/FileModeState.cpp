@@ -15,9 +15,7 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
     : m_mountA(mountA)
     , m_mountB(mountB)
     , m_journalSize(journalSize)
-    , m_y(720.f)
-    , m_targetY(91.0f)
-    , m_scaling(config::get_animation_scaling())
+    , m_transition(15, 720, 15, 87, 4)
     , m_isSystem(isSystem)
     , m_allowSystem(config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
 {
@@ -28,8 +26,15 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
 
 void FileModeState::update()
 {
-    FileModeState::update_y_coord();
-    if (!m_inPlace) { return; }
+    m_transition.update();
+    if (!m_transition.in_place())
+    {
+        const int x = m_transition.get_x();
+        const int y = m_transition.get_y();
+        sm_frame->set_x(x);
+        sm_frame->set_y(y);
+        return;
+    }
 
     const bool hasFocus = BaseState::has_focus();
 
@@ -51,6 +56,7 @@ void FileModeState::update()
     else if (FileModeState::is_hidden()) { FileModeState::deactivate_state(); }
 
     menu.update(hasFocus);
+    sm_controlGuide->update(hasFocus);
 }
 
 void FileModeState::render()
@@ -60,7 +66,7 @@ void FileModeState::render()
     sm_renderTarget->clear(colors::TRANSPARENT);
 
     // This is here so it's rendered underneath the pop-up frame.
-    if (hasFocus) { FileModeState::render_control_guide(); }
+    sm_controlGuide->render(sdl::Texture::Null, hasFocus);
 
     sdl::render_line(sm_renderTarget, 617, 0, 617, 538, colors::WHITE);
     sdl::render_line(sm_renderTarget, 618, 0, 618, 538, colors::DIALOG_DARK);
@@ -69,21 +75,20 @@ void FileModeState::render()
     m_dirMenuB->render(sm_renderTarget, hasFocus && m_target);
 
     sm_frame->render(sdl::Texture::Null, true);
-    sm_renderTarget->render(sdl::Texture::Null, 23, m_y + 12);
+
+    const int y = m_transition.get_y();
+    sm_renderTarget->render(sdl::Texture::Null, 23, y + 12);
 }
 
 void FileModeState::initialize_static_members()
 {
     static constexpr std::string_view RENDER_TARGET_NAME = "FMRenderTarget";
 
-    static constexpr int CONTROL_GUIDE_START_X = 1220;
+    if (sm_frame && sm_renderTarget && sm_controlGuide) { return; }
 
-    if (sm_frame && sm_renderTarget) { return; }
-
-    sm_frame         = ui::Frame::create(15, 720, 1250, 555);
-    sm_renderTarget  = sdl::TextureManager::load(RENDER_TARGET_NAME, 1234, 538, SDL_TEXTUREACCESS_TARGET);
-    sm_controlGuide  = strings::get_by_name(strings::names::CONTROL_GUIDES, 4);
-    sm_controlGuideX = CONTROL_GUIDE_START_X - sdl::text::get_width(22, sm_controlGuide);
+    sm_frame        = ui::Frame::create(15, 720, 1250, 555);
+    sm_renderTarget = sdl::TextureManager::load(RENDER_TARGET_NAME, 1234, 538, SDL_TEXTUREACCESS_TARGET);
+    sm_controlGuide = ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 4));
 }
 
 void FileModeState::initialize_paths()
@@ -127,31 +132,14 @@ void FileModeState::initialize_directory_menu(const fslib::Path &path, fslib::Di
     }
 }
 
-void FileModeState::update_y_coord() noexcept
-{
-    if (m_y == m_targetY) { return; }
-
-    const double add      = (m_targetY - m_y) / m_scaling;
-    const double distance = math::Util<double>::absolute_distance(m_targetY, m_y);
-    m_y += std::round(add);
-
-    // The second condition is a fix for when scaling is 1.
-    if (distance <= 4 || m_y == m_targetY)
-    {
-        m_y       = m_targetY;
-        m_inPlace = true;
-    }
-
-    sm_frame->set_y(m_y);
-}
-
 void FileModeState::hide_dialog() noexcept
 {
-    if (!m_inPlace) { return; }
-    m_targetY = 720;
+    if (!m_transition.in_place()) { return; }
+    m_transition.set_target_y(720);
+    m_close = true;
 }
 
-bool FileModeState::is_hidden() noexcept { return m_inPlace && m_targetY == 720; }
+bool FileModeState::is_hidden() noexcept { return m_close && m_transition.in_place(); }
 
 void FileModeState::enter_selected(fslib::Path &path, fslib::Directory &directory, ui::Menu &menu)
 {
@@ -204,11 +192,6 @@ void FileModeState::enter_directory(fslib::Path &path,
     FileModeState::initialize_directory_menu(path, directory, menu);
 }
 
-void FileModeState::render_control_guide()
-{
-    sdl::text::render(sdl::Texture::Null, sm_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, sm_controlGuide);
-}
-
 ui::Menu &FileModeState::get_source_menu() noexcept { return m_target ? *m_dirMenuB.get() : *m_dirMenuA.get(); }
 
 ui::Menu &FileModeState::get_destination_menu() noexcept { return m_target ? *m_dirMenuA.get() : *m_dirMenuB.get(); }
@@ -224,6 +207,7 @@ fslib::Directory &FileModeState::get_destination_directory() noexcept { return m
 void FileModeState::deactivate_state() noexcept
 {
     sm_frame->set_y(720);
+    sm_controlGuide->reset();
     fslib::close_file_system(m_mountA);
     fslib::close_file_system(m_mountB);
     BaseState::deactivate();

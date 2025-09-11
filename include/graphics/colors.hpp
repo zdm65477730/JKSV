@@ -20,8 +20,8 @@ namespace colors
     inline constexpr sdl::Color TRANSPARENT       = {0x00000000};
     inline constexpr sdl::Color SLIDE_PANEL_CLEAR = {0x000000CC};
     inline constexpr sdl::Color DIV_COLOR         = {0x707070FF};
+    inline constexpr sdl::Color GUIDE_COLOR       = {0x0000007F};
 
     inline constexpr uint8_t ALPHA_FADE_BEGIN = 0x00;
     inline constexpr uint8_t ALPHA_FADE_END   = 0x88;
-
 } // namespace colors

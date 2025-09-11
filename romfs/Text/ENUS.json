@@ -34,7 +34,8 @@
         "1: [A] Select   [L] [R] Jump   [Y] Favorite   [X] Title Options  [B] Back",
         "2: [A] Select  [Y] Restore  [X] Delete  [ZR] Upload  [B] Close",
         "3: [A] Toggle  [-] Description   [X] Defaults   [B] Back",
-        "4: [A] Enter   [B] Back/Up   [X] Options   [ZL]/[ZR] Change Target   [-] Close"
+        "4: [A] Enter   [B] Back/Up   [X] Options   [ZL]/[ZR] Change Target   [-] Close",
+        "5: [A] Select"
     ],
     "DataLoadingStatus": [
         "0: Loading user accounts from system...",

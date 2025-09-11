@@ -92,7 +92,10 @@ void BackupMenuState::render()
     sdl::text::render(target, 32, 673, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
 
     sm_menuRenderTarget->clear(colors::TRANSPARENT);
-    sm_backupMenu->render(sm_menuRenderTarget, hasFocus);
+    {
+        std::lock_guard menuGuard{sm_menuMutex};
+        sm_backupMenu->render(sm_menuRenderTarget, hasFocus);
+    }
     sm_menuRenderTarget->render(target, 0, 43);
 
     sm_slidePanel->render(sdl::Texture::Null, hasFocus);

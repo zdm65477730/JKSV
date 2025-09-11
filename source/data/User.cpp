@@ -224,7 +224,7 @@ void data::User::load_icon()
         accountProfileClose(&profile);
         m_icon = sdl::TextureManager::load(iconName, iconBuffer.get(), iconSize);
     }
-    else { m_icon = gfxutil::create_generic_icon(iconName, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE); }
+    else { m_icon = gfxutil::create_generic_icon(m_nickname, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE); }
 }
 
 void data::User::load_account(AccountProfile &profile, AccountProfileBase &profileBase)

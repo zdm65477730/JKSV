@@ -41,20 +41,26 @@ static std::string get_size_string(int64_t totalSize);
 
 FileOptionState::FileOptionState(FileModeState *spawningState)
     : m_spawningState(spawningState)
+    , m_target(spawningState->m_target)
+    , m_transition(m_target ? 1280 : -240, 218, m_target ? 840 : 200, 218, 4)
     , m_dataStruct(std::make_shared<FileOptionState::DataStruct>())
 {
     FileOptionState::initialize_static_members();
-    FileOptionState::set_menu_side();
     FileOptionState::initialize_data_struct();
 }
 
 void FileOptionState::update()
 {
+    m_transition.update();
+    if (!m_transition.in_place())
+    {
+        const int x = m_transition.get_x();
+        sm_dialog->set_x(x);
+        sm_copyMenu->set_x(x + 9);
+        return;
+    }
+
     const bool hasFocus = BaseState::has_focus();
-
-    FileOptionState::update_x_coord();
-    if (!m_inPlace) { return; }
-
     if (m_updateSource)
     {
         FileOptionState::update_filemode_source();
@@ -93,9 +99,6 @@ void FileOptionState::render()
 
     sm_dialog->render(sdl::Texture::Null, hasFocus);
     sm_copyMenu->render(sdl::Texture::Null, hasFocus);
-
-    // I just didn't like this disappearing.
-    m_spawningState->render_control_guide();
 }
 
 void FileOptionState::update_source() { m_updateSource = true; }
@@ -104,26 +107,23 @@ void FileOptionState::update_destination() { m_updateDest = true; }
 
 void FileOptionState::initialize_static_members()
 {
-    if (sm_copyMenu && sm_dialog) { return; }
+    if (sm_copyMenu && sm_dialog)
+    {
+        const int x = m_transition.get_x();
 
-    sm_copyMenu = ui::Menu::create(0, 236, 234, 20, 720); // High target height is a workaround.
-    sm_dialog   = ui::DialogBox::create(520, 218, 256, 256);
+        sm_dialog->set_x(x);
+        sm_copyMenu->set_x(x + 9);
+        return;
+    }
+
+    sm_copyMenu = ui::Menu::create(1280, 236, 234, 20, 720); // High target height is a workaround.
+    sm_dialog   = ui::DialogBox::create(1280, 218, 256, 256);
 
     // This never changes, so...
     for (int i = 0; const char *menuOption = strings::get_by_name(strings::names::FILEOPTION_MENU, i); i++)
     {
         sm_copyMenu->add_option(menuOption);
     }
-}
-
-void FileOptionState::set_menu_side()
-{
-    const bool target = m_spawningState->m_target;
-    m_x               = target ? 1280 : -240;
-
-    m_targetX = target ? 840 : 200;
-    sm_dialog->set_x(m_x);
-    sm_copyMenu->set_x(m_x + 9);
 }
 
 void FileOptionState::initialize_data_struct() { m_dataStruct->spawningState = this; }
@@ -144,24 +144,6 @@ void FileOptionState::update_filemode_dest()
     ui::Menu &destMenu          = m_spawningState->get_destination_menu();
 
     m_spawningState->initialize_directory_menu(destPath, destDir, destMenu);
-}
-
-void FileOptionState::update_x_coord()
-{
-    if (m_x == m_targetX) { return; }
-
-    // We're going to borrow the scaling from the FileMode
-    const int add = (m_targetX - m_x) / m_spawningState->m_scaling;
-    m_x += add;
-
-    const int distance = math::Util<int>::absolute_distance(m_x, m_targetX);
-    if (distance <= 4)
-    {
-        m_x       = m_targetX;
-        m_inPlace = true;
-    }
-    sm_dialog->set_x(m_x);
-    sm_copyMenu->set_x(m_x + 9);
 }
 
 void FileOptionState::copy_target()
@@ -285,7 +267,7 @@ void FileOptionState::rename_target()
     const std::string newString = newPath.string();
 
     // If this is false and there's a journaling size set, we need to commit on renaming for it to stick.
-    const bool isSource       = !m_spawningState->m_target;
+    const bool isSource       = !m_target;
     const int64_t journalSize = m_spawningState->m_journalSize;
     const bool commitNeeded   = isSource && journalSize > 0;
 
@@ -423,13 +405,12 @@ void FileOptionState::pop_system_error()
 
 void FileOptionState::close()
 {
-    const bool target = m_spawningState->m_target;
-
-    m_close   = true;
-    m_targetX = target ? 1280 : -240;
+    m_close           = true;
+    const int targetX = m_target ? 1280 : -240;
+    m_transition.set_target_x(targetX);
 }
 
-bool FileOptionState::is_closed() { return m_close && m_x == m_targetX; }
+bool FileOptionState::is_closed() { return m_close && m_transition.in_place(); }
 
 void FileOptionState::deactivate_state()
 {

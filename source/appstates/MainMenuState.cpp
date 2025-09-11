@@ -30,8 +30,7 @@ MainMenuState::MainMenuState()
     , m_settingsIcon(sdl::TextureManager::load("settingsIcon", "romfs:/Textures/SettingsIcon.png"))
     , m_extrasIcon(sdl::TextureManager::load("extrasIcon", "romfs:/Textures/ExtrasIcon.png"))
     , m_mainMenu(ui::IconMenu::create(50, 15, 555))
-    , m_controlGuide(strings::get_by_name(strings::names::CONTROL_GUIDES, 0))
-    , m_controlGuideX(1220 - sdl::text::get_width(22, m_controlGuide))
+    , m_controlGuide(ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 0)))
     , m_dataStruct(std::make_shared<MainMenuState::DataStruct>())
 {
     MainMenuState::initialize_settings_extras();
@@ -55,7 +54,12 @@ void MainMenuState::update()
     else if (yPressed) { MainMenuState::backup_all_for_all(); }
 
     m_mainMenu->update(hasFocus);
+    m_controlGuide->update(hasFocus);
+
+    for (auto &state : sm_states) { state->sub_update(); }
 }
+
+void MainMenuState::sub_update() { m_controlGuide->sub_update(); }
 
 void MainMenuState::render()
 {
@@ -65,13 +69,12 @@ void MainMenuState::render()
     m_background->render(m_renderTarget, 0, 0);
     m_mainMenu->render(m_renderTarget, hasFocus);
     m_renderTarget->render(sdl::Texture::Null, 0, 91);
+    m_controlGuide->render(sdl::Texture::Null, hasFocus);
 
     if (hasFocus)
     {
         BaseState *target = sm_states[selected].get();
-
         target->render();
-        sdl::text::render(sdl::Texture::Null, m_controlGuideX, 673, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
     }
 }
 

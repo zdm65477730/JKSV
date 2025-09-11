@@ -106,21 +106,21 @@ static fslib::Path get_file_path()
 
 static void replace_buttons_in_string(std::string &target)
 {
-    stringutil::replace_in_string(target, "[A]", "\ue0e0");
-    stringutil::replace_in_string(target, "[B]", "\ue0e1");
-    stringutil::replace_in_string(target, "[X]", "\ue0e2");
-    stringutil::replace_in_string(target, "[Y]", "\ue0e3");
-    stringutil::replace_in_string(target, "[L]", "\ue0e4");
-    stringutil::replace_in_string(target, "[R]", "\ue0e5");
-    stringutil::replace_in_string(target, "[ZL]", "\ue0e6");
-    stringutil::replace_in_string(target, "[ZR]", "\ue0e7");
-    stringutil::replace_in_string(target, "[SL]", "\ue0e8");
-    stringutil::replace_in_string(target, "[SR]", "\ue0e9");
-    stringutil::replace_in_string(target, "[DPAD]", "\ue0ea");
-    stringutil::replace_in_string(target, "[DUP]", "\ue0eb");
-    stringutil::replace_in_string(target, "[DDOWN]", "\ue0ec");
-    stringutil::replace_in_string(target, "[DLEFT]", "\ue0ed");
-    stringutil::replace_in_string(target, "[DRIGHT]", "\ue0ee");
-    stringutil::replace_in_string(target, "[+]", "\ue0ef");
-    stringutil::replace_in_string(target, "[-]", "\ue0f0");
+    stringutil::replace_in_string(target, "[A]", "\ue0a0");
+    stringutil::replace_in_string(target, "[B]", "\ue0a1");
+    stringutil::replace_in_string(target, "[X]", "\ue0a2");
+    stringutil::replace_in_string(target, "[Y]", "\ue0a3");
+    stringutil::replace_in_string(target, "[L]", "\ue0a4");
+    stringutil::replace_in_string(target, "[R]", "\ue0a5");
+    stringutil::replace_in_string(target, "[ZL]", "\ue0a6");
+    stringutil::replace_in_string(target, "[ZR]", "\ue0a7");
+    stringutil::replace_in_string(target, "[SL]", "\ue0a8");
+    stringutil::replace_in_string(target, "[SR]", "\ue0a9");
+    stringutil::replace_in_string(target, "[DPAD]", "\ue0d0");
+    stringutil::replace_in_string(target, "[DUP]", "\ue0d1");
+    stringutil::replace_in_string(target, "[DDOWN]", "\ue0d2");
+    stringutil::replace_in_string(target, "[DLEFT]", "\ue0d3");
+    stringutil::replace_in_string(target, "[DRIGHT]", "\ue0d4");
+    stringutil::replace_in_string(target, "[+]", "\ue0b3");
+    stringutil::replace_in_string(target, "[-]", "\ue0b4");
 }

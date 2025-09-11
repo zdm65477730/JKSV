@@ -63,17 +63,11 @@ class FileModeState final : public BaseState
         /// @brief Stores the size for committing data (if needed) to mountA.
         int64_t m_journalSize{};
 
-        /// @brief The beginning Y coord of the dialog.
-        double m_y = 720.0f;
+        /// @brief Stores whether or not the panel should be closed.
+        bool m_close{};
 
-        /// @brief This is the targetY. Used for the opening and hiding effect.
-        double m_targetY = 91.0f;
-
-        /// @brief Config scaling for the "transition"
-        double m_scaling{};
-
-        /// @brief Stores whether or not the dialog has reached its targetted position.
-        bool m_inPlace{};
+        /// @brief Transition for the pop-up effect.
+        ui::Transition m_transition{};
 
         /// @brief Stores whether the instance is dealing with sensitive data.
         bool m_isSystem{};
@@ -87,11 +81,8 @@ class FileModeState final : public BaseState
         /// @brief This is the render target the browsers are rendered to.
         static inline sdl::SharedTexture sm_renderTarget{};
 
-        /// @brief Stores a pointer to the guide in the bottom-right corner.
-        static inline const char *sm_controlGuide{};
-
-        /// @brief Calculated X coordinate of the control guide text.
-        static inline int sm_controlGuideX{};
+        /// @brief Control guide shared by all instances.
+        static inline std::shared_ptr<ui::ControlGuide> sm_controlGuide{};
 
         /// @brief Initializes the members shared by all instances of FileModeState.
         void initialize_static_members();
@@ -104,9 +95,6 @@ class FileModeState final : public BaseState
 
         /// @brief Loads the current directory listings and menus.
         void initialize_directory_menu(const fslib::Path &path, fslib::Directory &directory, ui::Menu &menu);
-
-        /// @brief Updates the dialog's coordinates in the beginning.
-        void update_y_coord() noexcept;
 
         /// @brief Starts the dialog hiding process.
         void hide_dialog() noexcept;
@@ -135,9 +123,6 @@ class FileModeState final : public BaseState
                              fslib::Directory &directory,
                              ui::Menu &menu,
                              const fslib::DirectoryEntry &entry);
-
-        /// @brief Renders the control guide string on the bottom of the screen.
-        void render_control_guide();
 
         /// @brief Returns a reference to the currently active menu.
         ui::Menu &get_source_menu() noexcept;

@@ -34,7 +34,8 @@
         "1: [A] Selecteer   [L] [R] Spring   [Y] Favoriet   [X] Titelopties  [B] Terug",
         "2: [A] Selecteer  [Y] Herstel  [X] Verwijder  [ZR] Upload  [B] Sluit",
         "3: [A] Wissel  [-] Beschrijving   [X] Standaardinstellingen   [B] Terug",
-        "4: [A] Bevestigen   [B] Terug/Omhoog   [X] Opties   [ZL]/[ZR] Doel wijzigen   [-] Sluiten"
+        "4: [A] Bevestigen   [B] Terug/Omhoog   [X] Opties   [ZL]/[ZR] Doel wijzigen   [-] Sluiten",
+        "5: [A] Selecteer"
     ],
     "DataLoadingStatus": [
         "0: Gebruikersaccounts laden vanuit het systeem...",

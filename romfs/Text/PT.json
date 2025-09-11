@@ -34,7 +34,8 @@
         "1: [A] Selecionar   [L] [R] Saltar   [Y] Favorito   [X] Opções do Título  [B] Voltar",
         "2: [A] Selecionar  [Y] Restaurar  [X] Eliminar  [ZR] Enviar  [B] Fechar",
         "3: [A] Alternar  [-] Descrição   [X] Padrões   [B] Voltar",
-        "4: [A] Entrar   [B] Voltar/Cima   [X] Opções   [ZL]/[ZR] Alterar alvo   [-] Fechar"
+        "4: [A] Entrar   [B] Voltar/Cima   [X] Opções   [ZL]/[ZR] Alterar alvo   [-] Fechar",
+        "5: [A] Selecionar"
     ],
     "DataLoadingStatus": [
         "0: A carregar contas de utilizador a partir do sistema...",

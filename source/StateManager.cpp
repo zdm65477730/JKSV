@@ -25,7 +25,7 @@ void StateManager::update()
     if (stateVector.empty()) { return; }
 
     // Run sub update routines.
-    for (auto &state : stateVector) { state->sub_update(); }
+    for (auto iter = stateVector.begin(); iter < stateVector.end() - 1; iter++) { (*iter)->sub_update(); }
 
     std::shared_ptr<BaseState> &back = stateVector.back();
     if (!back->has_focus()) { back->give_focus(); }
