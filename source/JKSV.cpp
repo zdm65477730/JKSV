@@ -16,7 +16,7 @@
 #include "sdl.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
-#include "sys/OpTimer.hpp"
+#include "sys/sys.hpp"
 #include "ui/PopMessageManager.hpp"
 
 #include <chrono>
@@ -88,6 +88,8 @@ JKSV::JKSV()
     // This needs the config init'd or read to work.
     JKSV::create_directories();
 
+    sys::threadpool::initialize();
+
     data::launch_initialization(false, finish_initialization);
 
     m_isRunning = true;
@@ -95,6 +97,7 @@ JKSV::JKSV()
 
 JKSV::~JKSV()
 {
+    sys::threadpool::exit();
     config::save();
     curl::exit();
     JKSV::exit_services();
