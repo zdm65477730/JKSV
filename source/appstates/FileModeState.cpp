@@ -15,7 +15,7 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
     : m_mountA(mountA)
     , m_mountB(mountB)
     , m_journalSize(journalSize)
-    , m_transition(23, 720, 23, 91, 4)
+    , m_transition(15, 720, 15, 87, 4)
     , m_isSystem(isSystem)
     , m_allowSystem(config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
 {
@@ -76,10 +76,8 @@ void FileModeState::render()
 
     sm_frame->render(sdl::Texture::Null, true);
 
-    const int x = m_transition.get_x();
     const int y = m_transition.get_y();
-
-    sm_renderTarget->render(sdl::Texture::Null, x, y + 12);
+    sm_renderTarget->render(sdl::Texture::Null, 23, y + 12);
 }
 
 void FileModeState::initialize_static_members()

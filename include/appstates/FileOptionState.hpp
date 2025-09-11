@@ -57,14 +57,11 @@ class FileOptionState final : public BaseState
         /// @brief Pointer to spawning FileMode state.
         FileModeState *m_spawningState{};
 
-        /// @brief X coordinate. This is set at construction according to the target from the spawning state.
-        int m_x{};
+        /// @brief Stores the target for easier access.
+        bool m_target{};
 
-        /// @brief X coordinate for the target to reach.
-        int m_targetX{};
-
-        /// @brief Whether or not the dialog/menu is in place.
-        bool m_inPlace{};
+        /// @brief Transition.
+        ui::Transition m_transition{};
 
         /// @brief Whether or not the state should be closed.
         bool m_close{};
@@ -85,9 +82,6 @@ class FileOptionState final : public BaseState
         /// @brief Ensures static members of all instances are allocated.
         void initialize_static_members();
 
-        /// @brief Sets whether the dialog/menu are positioned left or right depending on the menu active in the spawning state.
-        void set_menu_side();
-
         /// @brief Assigns the pointer to this.
         void initialize_data_struct();
 
@@ -96,9 +90,6 @@ class FileOptionState final : public BaseState
 
         /// @brief Updates the FileModeState's destination data.
         void update_filemode_dest();
-
-        /// @brief Updates the Y coordinate
-        void update_x_coord();
 
         /// @brief Sets up and begins the copy task.
         void copy_target();
