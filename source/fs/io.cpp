@@ -22,24 +22,28 @@ namespace
 } // namespace
 
 // clang-format off
-struct FileThreadStruct
+struct FileThreadStruct : sys::threadpool::DataStruct
 {
     std::mutex lock{};
     std::condition_variable condition{};
     bool bufferReady{};
     ssize_t readSize{};
     std::unique_ptr<sys::byte[]> sharedBuffer{};
+    fslib::File *source{};
 };
 // clang-format on
 
-static void readThreadFunction(fslib::File &sourceFile, std::shared_ptr<FileThreadStruct> sharedData)
+static void read_thread_function(sys::threadpool::JobData jobData)
 {
-    std::mutex &lock                           = sharedData->lock;
-    std::condition_variable &condition         = sharedData->condition;
-    bool &bufferReady                          = sharedData->bufferReady;
-    ssize_t &readSize                          = sharedData->readSize;
-    std::unique_ptr<sys::byte[]> &sharedBuffer = sharedData->sharedBuffer;
-    const int64_t fileSize                     = sourceFile.get_size();
+    auto castData = std::static_pointer_cast<FileThreadStruct>(jobData);
+
+    std::mutex &lock                           = castData->lock;
+    std::condition_variable &condition         = castData->condition;
+    bool &bufferReady                          = castData->bufferReady;
+    ssize_t &readSize                          = castData->readSize;
+    std::unique_ptr<sys::byte[]> &sharedBuffer = castData->sharedBuffer;
+    fslib::File &source                        = *castData->source;
+    const int64_t fileSize                     = source.get_size();
 
     for (int64_t i = 0; i < fileSize;)
     {
@@ -48,7 +52,7 @@ static void readThreadFunction(fslib::File &sourceFile, std::shared_ptr<FileThre
             std::unique_lock<std::mutex> bufferLock(lock);
             condition.wait(bufferLock, [&]() { return bufferReady == false; });
 
-            readSize  = sourceFile.read(sharedBuffer.get(), SIZE_FILE_BUFFER);
+            readSize  = source.read(sharedBuffer.get(), SIZE_FILE_BUFFER);
             localRead = readSize;
 
             bufferReady = true;
@@ -78,7 +82,9 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
 
     auto sharedData          = std::make_shared<FileThreadStruct>();
     sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
-    auto localBuffer         = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
+    sharedData->source       = &sourceFile;
+
+    auto localBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
 
     std::mutex &lock                   = sharedData->lock;
     std::condition_variable &condition = sharedData->condition;
@@ -86,7 +92,7 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
     ssize_t &readSize                  = sharedData->readSize;
     auto &sharedBuffer                 = sharedData->sharedBuffer;
 
-    std::thread readThread(readThreadFunction, std::ref(sourceFile), sharedData);
+    sys::threadpool::push_job(read_thread_function, sharedData);
     for (int64_t i = 0; i < sourceSize; i++)
     {
         ssize_t localRead{};
@@ -107,7 +113,6 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
         i += localRead;
         if (task) { task->update_current(static_cast<double>(i)); }
     }
-    readThread.join();
 }
 
 void fs::copy_file_commit(const fslib::Path &source,
@@ -133,8 +138,10 @@ void fs::copy_file_commit(const fslib::Path &source,
     }
 
     auto sharedData          = std::make_shared<FileThreadStruct>();
-    auto localBuffer         = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
     sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
+    sharedData->source       = &sourceFile;
+
+    auto localBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
 
     std::mutex &lock                   = sharedData->lock;
     std::condition_variable &condition = sharedData->condition;
@@ -142,8 +149,8 @@ void fs::copy_file_commit(const fslib::Path &source,
     ssize_t &readSize                  = sharedData->readSize;
     auto &sharedBuffer                 = sharedData->sharedBuffer;
 
-    std::thread readThread{readThreadFunction, std::ref(sourceFile), sharedData};
     int64_t journalCount{};
+    sys::threadpool::push_job(read_thread_function, sharedData);
     for (int64_t i = 0; i < sourceSize;)
     {
         ssize_t localRead{};
@@ -178,7 +185,6 @@ void fs::copy_file_commit(const fslib::Path &source,
         journalCount += localRead;
         if (task) { task->update_current(static_cast<double>(i)); }
     }
-    readThread.join();
     destFile.close();
 
     const bool commitError = error::fslib(fslib::commit_data_to_file_system(destination.get_device_name()));
