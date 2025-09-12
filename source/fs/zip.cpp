@@ -79,13 +79,16 @@ static void zip_read_thread_function(sys::threadpool::JobData jobData)
 }
 
 // Function for reading data from Zip to buffer.
-static void unzipReadThreadFunction(fs::MiniUnzip &unzip, std::shared_ptr<UnzipReadStruct> sharedData)
+static void unzip_read_thread_function(sys::threadpool::JobData jobData)
 {
-    std::mutex &lock                           = sharedData->lock;
-    std::condition_variable &condition         = sharedData->condition;
-    ssize_t &readSize                          = sharedData->readSize;
-    bool &bufferReady                          = sharedData->bufferReady;
-    std::unique_ptr<sys::byte[]> &sharedBuffer = sharedData->sharedBuffer;
+    auto castData = std::static_pointer_cast<UnzipReadStruct>(jobData);
+
+    std::mutex &lock                           = castData->lock;
+    std::condition_variable &condition         = castData->condition;
+    ssize_t &readSize                          = castData->readSize;
+    bool &bufferReady                          = castData->bufferReady;
+    std::unique_ptr<sys::byte[]> &sharedBuffer = castData->sharedBuffer;
+    fs::MiniUnzip &unzip                       = *castData->unzip;
     const int64_t fileSize                     = unzip.get_uncompressed_size();
 
     for (int64_t i = 0; i < fileSize;)
@@ -221,7 +224,9 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
 
         auto sharedData          = std::make_shared<UnzipReadStruct>();
         sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_UNZIP_BUFFER);
-        auto localBuffer         = std::make_unique<sys::byte[]>(SIZE_UNZIP_BUFFER);
+        sharedData->unzip        = &unzip;
+
+        auto localBuffer = std::make_unique<sys::byte[]>(SIZE_UNZIP_BUFFER);
 
         std::mutex &lock                           = sharedData->lock;
         std::condition_variable &condition         = sharedData->condition;
@@ -230,7 +235,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
         std::unique_ptr<sys::byte[]> &sharedBuffer = sharedData->sharedBuffer;
 
         int64_t journalCount{};
-        std::thread readThread(unzipReadThreadFunction, std::ref(unzip), sharedData);
+        sys::threadpool::push_job(unzip_read_thread_function, sharedData);
         for (int64_t i = 0; i < fileSize;)
         {
             ssize_t localRead{};
@@ -263,7 +268,6 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
             journalCount += localRead;
             if (task) { task->update_current(static_cast<double>(i)); }
         }
-        readThread.join();
         destFile.close();
 
         const bool commitError = needCommits && error::fslib(fslib::commit_data_to_file_system(dest.get_device_name()));
