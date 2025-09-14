@@ -89,6 +89,7 @@ void tasks::titleoptions::delete_all_remote_backups_for_title(sys::Task *task, T
 
     remote::Item *workDir = remote->get_directory_by_name(remoteTitle);
     remote->change_directory(workDir);
+
     remote::Storage::DirectoryListing remoteListing{};
     remote->get_directory_listing(remoteListing);
 
@@ -106,6 +107,8 @@ void tasks::titleoptions::delete_all_remote_backups_for_title(sys::Task *task, T
         const bool deleted = remote->delete_item(item);
         if (!deleted) { ui::PopMessageManager::push_message(popTicks, popFailure); }
     }
+
+    remote->return_to_root();
 
     const std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
     ui::PopMessageManager::push_message(popTicks, popMessage);
