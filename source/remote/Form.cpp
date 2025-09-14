@@ -10,7 +10,7 @@ remote::Form &remote::Form::append_parameter(std::string_view param, std::string
     const size_t endLength   = m_offset + paramLength + valueLength + 1;
     if (endLength >= SIZE_FORM_BUFFER) { return *this; }
 
-    if (m_offset > 0 && m_formBuffer[m_offset] != '&') { m_formBuffer[m_offset++] = '&'; }
+    if (m_offset > 0 && m_formBuffer[m_offset - 1] != '&') { m_formBuffer[m_offset++] = '&'; }
 
     std::copy(param.begin(), param.end(), &m_formBuffer[m_offset]);
     m_offset += paramLength;

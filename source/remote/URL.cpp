@@ -18,7 +18,7 @@ remote::URL &remote::URL::append_path(std::string_view path) noexcept
     const size_t pathLength = path.length();
     if (m_offset + pathLength >= SIZE_URL_BUFFER) { return *this; }
 
-    if (m_urlBuffer[m_offset] != '/' && path.front() != '/') { m_urlBuffer[m_offset++] = '/'; }
+    if (m_urlBuffer[m_offset - 1] != '/' && path.front() != '/') { m_urlBuffer[m_offset++] = '/'; }
 
     std::copy(path.begin(), path.end(), &m_urlBuffer[m_offset]);
     m_offset += pathLength;
@@ -51,7 +51,7 @@ remote::URL &remote::URL::append_parameter(std::string_view param, std::string_v
 remote::URL &remote::URL::append_slash() noexcept
 {
     if (m_offset >= SIZE_URL_BUFFER) { return *this; }
-    else if (m_urlBuffer[m_offset] != '/') { m_urlBuffer[m_offset++] = '/'; }
+    else if (m_urlBuffer[m_offset - 1] != '/') { m_urlBuffer[m_offset++] = '/'; }
 
     return *this;
 }
