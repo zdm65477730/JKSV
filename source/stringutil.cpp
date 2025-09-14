@@ -71,7 +71,11 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
 
         const bool isForbidden = std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) !=
                                  FORBIDDEN_PATH_CHARACTERS.end();
-        if (isForbidden) { stringOut[outOffset++] = 0x20; }
+        if (isForbidden)
+        {
+            i += count;
+            continue;
+        }
         else
         {
             std::memcpy(&stringOut[outOffset], &stringIn[i], static_cast<size_t>(count));
@@ -82,7 +86,7 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
     }
 
     const int outLength = std::char_traits<char>::length(stringOut) - 1;
-    for (int i = outLength; i-- > 0 && (stringOut[i] == ' ' || stringOut[i] == '.');) { stringOut[i] = '\0'; }
+    for (int i = outLength; i > 0 && (stringOut[i] == ' ' || stringOut[i] == '.'); i--) { stringOut[i] = '\0'; }
 
     return true;
 }
