@@ -8,15 +8,24 @@
 #include "stringutil.hpp"
 #include "tasks/backup.hpp"
 
-void tasks::mainmenu::backup_all_for_all_local(sys::ProgressTask *task, MainMenuState::TaskData taskData)
+void tasks::mainmenu::backup_all_for_all_local(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<MainMenuState::DataStruct>(taskData);
 
+    sys::ProgressTask *task  = static_cast<sys::ProgressTask *>(castData->task);
+    data::UserList &userList = castData->userList;
     const bool exportZip     = config::get_by_key(config::keys::EXPORT_TO_ZIP);
-    data::UserList &userList = taskData->userList;
 
+    // This is to pass and use the already written backup function.
+    auto backupStruct      = std::make_shared<BackupMenuState::DataStruct>();
+    backupStruct->task     = castData->task;
+    backupStruct->killTask = false; // Just to be sure.
+
+    if (error::is_null(task)) { return; }
     for (data::User *user : userList)
     {
+        backupStruct->user = user;
+
         const int64_t titleCount = user->get_total_data_entries();
         for (int64_t i = 0; i < titleCount; i++)
         {
@@ -34,6 +43,7 @@ void tasks::mainmenu::backup_all_for_all_local(sys::ProgressTask *task, MainMenu
             data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
             if (error::is_null(titleInfo)) { continue; }
 
+            backupStruct->titleInfo = titleInfo;
             const fslib::Path workDir{config::get_working_directory()};
             const fslib::Path targetDir{workDir / titleInfo->get_path_safe_title()};
             const bool exists      = fslib::directory_exists(targetDir);
@@ -42,7 +52,7 @@ void tasks::mainmenu::backup_all_for_all_local(sys::ProgressTask *task, MainMenu
 
             const char *pathSafe         = user->get_path_safe_nickname();
             const std::string dateString = stringutil::get_date_string();
-            std::string name             = stringutil::get_formatted_string("%s - %s", pathSafe, dateString.c_str());
+            const std::string name       = stringutil::get_formatted_string("%s - %s", pathSafe, dateString.c_str());
             fslib::Path finalTarget{targetDir / name};
             if (exportZip) { finalTarget += ".zip"; }
             else
@@ -51,23 +61,32 @@ void tasks::mainmenu::backup_all_for_all_local(sys::ProgressTask *task, MainMenu
                 if (createError) { continue; }
             }
 
-            tasks::backup::create_new_backup_local(task, user, titleInfo, finalTarget, nullptr, false);
+            backupStruct->path = std::move(finalTarget);
+            tasks::backup::create_new_backup_local(backupStruct);
         }
     }
     task->complete();
 }
 
-void tasks::mainmenu::backup_all_for_all_remote(sys::ProgressTask *task, MainMenuState::TaskData taskData)
+void tasks::mainmenu::backup_all_for_all_remote(sys::threadpool::JobData taskData)
 {
+    auto castData = std::static_pointer_cast<MainMenuState::DataStruct>(taskData);
+
+    sys::ProgressTask *task = static_cast<sys::ProgressTask *>(castData->task);
     if (error::is_null(task)) { return; }
 
     remote::Storage *remote = remote::get_remote_storage();
     if (error::is_null(remote)) { TASK_FINISH_RETURN(task); }
 
-    const data::UserList &userList = taskData->userList;
+    auto backupStruct      = std::make_shared<BackupMenuState::DataStruct>();
+    backupStruct->task     = task;
+    backupStruct->killTask = false;
+
+    const data::UserList &userList = castData->userList;
     for (data::User *user : userList)
     {
         if (user->get_account_save_type() == FsSaveDataType_System) { continue; }
+        backupStruct->user = user;
 
         const int64_t titleCount = user->get_total_data_entries();
         for (int64_t i = 0; i < titleCount; i++)
@@ -84,6 +103,7 @@ void tasks::mainmenu::backup_all_for_all_remote(sys::ProgressTask *task, MainMen
             data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
             if (error::is_null(titleInfo)) { continue; }
 
+            backupStruct->titleInfo = titleInfo;
             const std::string_view remoteTitle =
                 remote->supports_utf8() ? titleInfo->get_title() : titleInfo->get_path_safe_title();
             const bool exists  = remote->directory_exists(remoteTitle);
@@ -95,9 +115,10 @@ void tasks::mainmenu::backup_all_for_all_remote(sys::ProgressTask *task, MainMen
 
             const char *pathSafe         = user->get_path_safe_nickname();
             const std::string dateString = stringutil::get_date_string();
-            const std::string remoteName = stringutil::get_formatted_string("%s - %s.zip", pathSafe, dateString.c_str());
+            std::string remoteName       = stringutil::get_formatted_string("%s - %s.zip", pathSafe, dateString.c_str());
+            backupStruct->remoteName     = std::move(remoteName);
 
-            tasks::backup::create_new_backup_remote(task, user, titleInfo, remoteName, nullptr, false);
+            tasks::backup::create_new_backup_remote(backupStruct);
             remote->return_to_root();
         }
     }

@@ -38,9 +38,6 @@ namespace
         EXTEND_CONTAINER,
         EXPORT_SVI
     };
-
-    using TaskConfirm     = ConfirmState<sys::Task, TaskState, TitleOptionState::DataStruct>;
-    using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, TitleOptionState::DataStruct>;
 } // namespace
 
 TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo, TitleSelectCommon *titleSelect)
@@ -144,7 +141,7 @@ void TitleOptionState::add_to_blacklist()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 0);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
 
-    TaskConfirm::create_and_push(query, false, tasks::titleoptions::blacklist_title, m_dataStruct);
+    ConfirmTask::create_push_fade(query, false, tasks::titleoptions::blacklist_title, m_dataStruct);
 }
 
 void TitleOptionState::change_output_directory()
@@ -193,7 +190,7 @@ void TitleOptionState::change_output_directory()
     config::add_custom_path(applicationID, pathBuffer.data());
 
     const char *popSuccessFormat = strings::get_by_name(strings::names::TITLEOPTION_POPS, 8);
-    const std::string popSuccess = stringutil::get_formatted_string(popSuccessFormat, pathBuffer.data());
+    std::string popSuccess       = stringutil::get_formatted_string(popSuccessFormat, pathBuffer.data());
     ui::PopMessageManager::push_message(popTicks, popSuccess);
 }
 
@@ -224,7 +221,7 @@ void TitleOptionState::delete_all_local_backups()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 1);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
 
-    TaskConfirm::create_and_push(query, true, tasks::titleoptions::delete_all_local_backups_for_title, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_all_local_backups_for_title, m_dataStruct);
 }
 
 void TitleOptionState::delete_all_remote_backups()
@@ -233,7 +230,7 @@ void TitleOptionState::delete_all_remote_backups()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 1);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
 
-    TaskConfirm::create_and_push(query, true, tasks::titleoptions::delete_all_remote_backups_for_title, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_all_remote_backups_for_title, m_dataStruct);
 }
 
 void TitleOptionState::reset_save_data()
@@ -255,7 +252,7 @@ void TitleOptionState::reset_save_data()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 2);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
 
-    TaskConfirm::create_and_push(query, true, tasks::titleoptions::reset_save_data, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::reset_save_data, m_dataStruct);
 }
 
 void TitleOptionState::delete_save_from_system()
@@ -278,7 +275,7 @@ void TitleOptionState::delete_save_from_system()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 3);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, nickname, title);
 
-    TaskConfirm::create_and_push(query, true, tasks::titleoptions::delete_save_data_from_system, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_save_data_from_system, m_dataStruct);
 }
 
 void TitleOptionState::extend_save_container()

@@ -27,6 +27,9 @@ namespace ui
             /// @brief Pushes a new message to the queue for processing.
             static void push_message(int displayTicks, std::string_view message);
 
+            /// @brief Move version of above.
+            static void push_message(int displayTicks, std::string &message);
+
             /// @brief The default duration of ticks for messages to be shown.
             static constexpr int DEFAULT_TICKS = 2500;
 

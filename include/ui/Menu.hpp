@@ -41,9 +41,12 @@ namespace ui
             /// @param hasFocus Whether or not the calling state has focus.
             void render(sdl::SharedTexture &target, bool hasFocus) override;
 
-            /// @brief Adds and option to the menu.
+            /// @brief Adds an option to the menu.
             /// @param newOption Option to add to menu.
             void add_option(std::string_view newOption);
+
+            /// @brief Adds an option to the menu. Moves the string instead of creating a new one.
+            void add_option(std::string &newOption);
 
             /// @brief Allows updating and editing the option.
             /// @param newOption Option to change text to.
@@ -71,7 +74,7 @@ namespace ui
             bool is_empty() const noexcept;
 
             /// @brief Resets the menu and returns it to an empty, default state.
-            void reset();
+            void reset(bool full = true);
 
         protected:
             /// @brief X coordinate menu is rendered to.

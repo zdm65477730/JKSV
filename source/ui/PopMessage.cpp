@@ -16,6 +16,17 @@ ui::PopMessage::PopMessage(int ticks, std::string_view message)
                                      PopMessage::PERMA_HEIGHT,
                                      ui::DialogBox::Type::Light)) {};
 
+ui::PopMessage::PopMessage(int ticks, std::string &message)
+    : m_ticks(ticks)
+    , m_message(std::move(message))
+    , m_y(PopMessage::START_Y)
+    , m_width(PopMessage::START_WIDTH)
+    , m_dialog(ui::DialogBox::create(PopMessage::START_X,
+                                     m_y - 6,
+                                     PopMessage::START_WIDTH,
+                                     PopMessage::PERMA_HEIGHT,
+                                     ui::DialogBox::Type::Light)) {};
+
 void ui::PopMessage::update(double targetY)
 {
     update_y(targetY);

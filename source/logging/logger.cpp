@@ -34,7 +34,7 @@ void logger::log(const char *format, ...) noexcept
 {
     static std::mutex logLock{};
 
-    std::array<char, VA_BUFFER_SIZE> vaBuffer{};
+    std::array<char, VA_BUFFER_SIZE> vaBuffer = {0};
     std::va_list vaList{};
     va_start(vaList, format);
     vsnprintf(vaBuffer.data(), VA_BUFFER_SIZE, format, vaList);

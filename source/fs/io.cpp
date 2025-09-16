@@ -3,6 +3,7 @@
 #include "error.hpp"
 #include "fs/SaveMetaData.hpp"
 #include "fslib.hpp"
+#include "logging/logger.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "sys/sys.hpp"
@@ -16,9 +17,9 @@
 namespace
 {
     // Size of buffer shared between threads.
-    // constexpr size_t FILE_BUFFER_SIZE = 0x600000;
+    constexpr size_t SIZE_FILE_BUFFER = 0x600000;
     // This one is just for testing something.
-    constexpr size_t SIZE_FILE_BUFFER = 0x200000;
+    // constexpr size_t SIZE_FILE_BUFFER = 0x200000;
 } // namespace
 
 // clang-format off
@@ -75,7 +76,7 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
     if (task)
     {
         const std::string sourceString = source.string();
-        const std::string status       = stringutil::get_formatted_string(statusTemplate, sourceString.c_str());
+        std::string status             = stringutil::get_formatted_string(statusTemplate, sourceString.c_str());
         task->set_status(status);
         task->reset(static_cast<double>(sourceSize));
     }
@@ -110,6 +111,7 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
         }
         // This should be checked. Not sure how yet...
         destFile.write(localBuffer.get(), localRead);
+
         i += localRead;
         if (task) { task->update_current(static_cast<double>(i)); }
     }
@@ -132,7 +134,7 @@ void fs::copy_file_commit(const fslib::Path &source,
     if (task)
     {
         const std::string sourceString = source.string();
-        const std::string status       = stringutil::get_formatted_string(copyingStatus, sourceString.c_str());
+        std::string status             = stringutil::get_formatted_string(copyingStatus, sourceString.c_str());
         task->set_status(status);
         task->reset(static_cast<double>(sourceSize));
     }

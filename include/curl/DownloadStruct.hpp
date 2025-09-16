@@ -2,14 +2,17 @@
 #include "fslib.hpp"
 #include "sys/sys.hpp"
 
+#include <array>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
-#include <vector>
 
 namespace curl
 {
+    inline constexpr size_t SHARED_BUFFER_SIZE = 0x500000;
+
     // clang-format off
-    struct DownloadStruct
+    struct DownloadStruct : sys::threadpool::DataStruct
     {
         /// @brief Buffer mutex.
         std::mutex lock{};
@@ -18,7 +21,10 @@ namespace curl
         std::condition_variable condition{};
 
         /// @brief Shared buffer that is read into.
-        std::vector<sys::byte> sharedBuffer{};
+        std::array<sys::byte, SHARED_BUFFER_SIZE> sharedBuffer{};
+
+        /// @brief Current offset in the shared buffer.
+        size_t sharedOffset{};
 
         /// @brief Bool to signal when the buffer is ready/empty.
         bool bufferReady{};
@@ -36,4 +42,15 @@ namespace curl
         int64_t fileSize{};
     };
     // clang-format on
+
+    static inline std::shared_ptr<curl::DownloadStruct> create_download_struct(fslib::File &dest,
+                                                                               sys::ProgressTask *task,
+                                                                               int64_t fileSize)
+    {
+        auto downloadStruct    = std::make_shared<curl::DownloadStruct>();
+        downloadStruct->dest   = &dest;
+        downloadStruct->task   = task;
+        downloadStruct->offset = fileSize;
+        return downloadStruct;
+    }
 }

@@ -30,10 +30,6 @@ namespace
         PROPERTIES,
         CLOSE
     };
-
-    // These make things easier to read and type.
-    using TaskConfirm     = ConfirmState<sys::Task, TaskState, FileOptionState::DataStruct>;
-    using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, FileOptionState::DataStruct>;
 }
 
 // Defined at bottom.
@@ -183,7 +179,7 @@ void FileOptionState::copy_target()
         if (!entry.is_directory())
         {
             const char *errorFormat = strings::get_by_name(strings::names::FILEOPTION_POPS, 4);
-            const std::string pop   = stringutil::get_formatted_string(errorFormat, entry.get_filename());
+            std::string pop         = stringutil::get_formatted_string(errorFormat, entry.get_filename());
             ui::PopMessageManager::push_message(popTicks, pop);
             return;
         }
@@ -202,7 +198,7 @@ void FileOptionState::copy_target()
     const char *copyFormat  = strings::get_by_name(strings::names::FILEOPTION_CONFS, 0);
     const std::string query = stringutil::get_formatted_string(copyFormat, sourceString.c_str(), destString.c_str());
 
-    ProgressConfirm::create_push_fade(query, false, tasks::fileoptions::copy_source_to_destination, m_dataStruct);
+    ConfirmProgress::create_push_fade(query, false, tasks::fileoptions::copy_source_to_destination, m_dataStruct);
 }
 
 void FileOptionState::delete_target()
@@ -233,7 +229,7 @@ void FileOptionState::delete_target()
     m_dataStruct->sourcePath  = std::move(fullTarget);
     m_dataStruct->journalSize = m_spawningState->m_journalSize;
 
-    TaskConfirm::create_push_fade(query, holdRequired, tasks::fileoptions::delete_target, m_dataStruct);
+    ConfirmTask::create_push_fade(query, holdRequired, tasks::fileoptions::delete_target, m_dataStruct);
 }
 
 void FileOptionState::rename_target()
@@ -278,7 +274,7 @@ void FileOptionState::rename_target()
     if (dirError && fileError && commitError)
     {
         const char *popFormat = strings::get_by_name(strings::names::FILEOPTION_POPS, 2);
-        const std::string pop = stringutil::get_formatted_string(popFormat, filename);
+        std::string pop       = stringutil::get_formatted_string(popFormat, filename);
         ui::PopMessageManager::push_message(popTicks, pop);
     }
 
@@ -312,7 +308,7 @@ void FileOptionState::create_directory()
     if (createError || (commitRequired && commitError))
     {
         const char *popFormat = strings::get_by_name(strings::names::FILEOPTION_POPS, 3);
-        const std::string pop = stringutil::get_formatted_string(popFormat, nameBuffer);
+        std::string pop       = stringutil::get_formatted_string(popFormat, nameBuffer);
         ui::PopMessageManager::push_message(popTicks, pop);
     }
 

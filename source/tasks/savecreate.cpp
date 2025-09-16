@@ -6,11 +6,15 @@
 #include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
 
-void tasks::savecreate::create_save_data_for(sys::Task *task,
-                                             data::User *user,
-                                             data::TitleInfo *titleInfo,
-                                             SaveCreateState *spawningState)
+void tasks::savecreate::create_save_data_for(sys::threadpool::JobData taskData)
 {
+    auto castData = std::static_pointer_cast<SaveCreateState::DataStruct>(taskData);
+
+    sys::Task *task                = castData->task;
+    data::User *user               = castData->user;
+    data::TitleInfo *titleInfo     = castData->titleInfo;
+    SaveCreateState *spawningState = castData->spawningState;
+
     if (error::is_null(task) || error::is_null(user) || error::is_null(titleInfo) || error::is_null(spawningState)) { return; }
 
     const int popTicks       = ui::PopMessageManager::DEFAULT_TICKS;
@@ -20,7 +24,7 @@ void tasks::savecreate::create_save_data_for(sys::Task *task,
     const char *title        = titleInfo->get_title();
 
     {
-        const std::string status = stringutil::get_formatted_string(statusFormat, title);
+        std::string status = stringutil::get_formatted_string(statusFormat, title);
         task->set_status(status);
     }
 
@@ -28,7 +32,7 @@ void tasks::savecreate::create_save_data_for(sys::Task *task,
     if (!saveCreated) { ui::PopMessageManager::push_message(popTicks, popFailed); }
     else
     {
-        const std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
+        std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
         ui::PopMessageManager::push_message(popTicks, popMessage);
         spawningState->refresh_required();
     }

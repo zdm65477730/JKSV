@@ -21,13 +21,6 @@
 
 #include <cstring>
 
-namespace
-{
-    // These make some things cleaner and easier to type.
-    using TaskConfirm     = ConfirmState<sys::Task, TaskState, BackupMenuState::DataStruct>;
-    using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, BackupMenuState::DataStruct>;
-} // namespace
-
 BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo)
     : m_user(user)
     , m_titleInfo(titleInfo)
@@ -238,23 +231,21 @@ void BackupMenuState::name_and_create_backup()
     const bool named = autoNamed || keyboard::get_input(SwkbdType_QWERTY, name, keyboardHeader, name, SIZE_NAME_LENGTH);
     if (!named) { return; }
 
-    const bool hasZipExt = std::strstr(name, STRING_ZIP_EXT); // This might not be the best check.
+    m_dataStruct->killTask = true;                              // Need to make sure these kill the task.
+    const bool hasZipExt   = std::strstr(name, STRING_ZIP_EXT); // This might not be the best check.
     if (autoUpload && remote)
     {
         if (!hasZipExt) { std::strncat(name, STRING_ZIP_EXT, SIZE_NAME_LENGTH); }
-        ProgressState::create_and_push(tasks::backup::create_new_backup_remote,
-                                       m_user,
-                                       m_titleInfo,
-                                       std::string{name},
-                                       this,
-                                       true);
+
+        ProgressState::create_and_push(tasks::backup::create_new_backup_remote, m_dataStruct);
     }
     else
     {
         fslib::Path target{m_directoryPath / name};
         if (!hasZipExt && (autoUpload || exportZip)) { target += STRING_ZIP_EXT; } // We're going to append zip either way.
 
-        ProgressState::create_and_push(tasks::backup::create_new_backup_local, m_user, m_titleInfo, target, this, true);
+        m_dataStruct->path = std::move(target);
+        ProgressState::create_and_push(tasks::backup::create_new_backup_local, m_dataStruct);
     }
 }
 
@@ -270,14 +261,16 @@ void BackupMenuState::confirm_overwrite()
         m_dataStruct->remoteItem = m_remoteListing.at(entry.index);
         const char *itemName     = m_dataStruct->remoteItem->get_name().data();
         const std::string query  = stringutil::get_formatted_string(confirmTemplate, itemName);
-        ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::overwrite_backup_remote, m_dataStruct);
+
+        ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::overwrite_backup_remote, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Local)
     {
         m_dataStruct->path      = m_directoryPath / m_directoryListing[entry.index];
         const char *targetName  = m_directoryListing[entry.index].get_filename();
         const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
-        ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::overwrite_backup_local, m_dataStruct);
+
+        ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::overwrite_backup_local, m_dataStruct);
     }
 }
 
@@ -317,7 +310,7 @@ void BackupMenuState::confirm_restore()
         const char *targetName  = m_directoryListing[entry.index].get_filename();
         const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
 
-        ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::restore_backup_local, m_dataStruct);
+        ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::restore_backup_local, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Remote)
     {
@@ -326,7 +319,7 @@ void BackupMenuState::confirm_restore()
         m_dataStruct->remoteItem = target;
         m_dataStruct->path       = m_directoryPath + "//"; // To-do: This is a workaround.
 
-        ProgressConfirm::create_push_fade(query, holdRequired, tasks::backup::restore_backup_remote, m_dataStruct);
+        ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::restore_backup_remote, m_dataStruct);
     }
 }
 
@@ -337,14 +330,13 @@ void BackupMenuState::confirm_delete()
     const bool holdRequired     = config::get_by_key(config::keys::HOLD_FOR_DELETION);
     const char *confirmTemplate = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 2);
 
-    std::shared_ptr<TaskConfirm> confirm{};
     if (entry.type == MenuEntryType::Local)
     {
         m_dataStruct->path      = m_directoryPath / m_directoryListing[entry.index];
         const char *targetName  = m_directoryListing[entry.index].get_filename();
         const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
 
-        TaskConfirm::create_and_push(query, holdRequired, tasks::backup::delete_backup_local, m_dataStruct);
+        ConfirmTask::create_push_fade(query, holdRequired, tasks::backup::delete_backup_local, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Remote)
     {
@@ -352,7 +344,7 @@ void BackupMenuState::confirm_delete()
         const char *itemName     = m_dataStruct->remoteItem->get_name().data();
         const std::string query  = stringutil::get_formatted_string(confirmTemplate, itemName);
 
-        TaskConfirm::create_and_push(query, holdRequired, tasks::backup::delete_backup_remote, m_dataStruct);
+        ConfirmTask::create_push_fade(query, holdRequired, tasks::backup::delete_backup_remote, m_dataStruct);
     }
 }
 
@@ -386,7 +378,7 @@ void BackupMenuState::upload_backup()
         const bool holdRequired  = config::get_by_key(config::keys::HOLD_FOR_OVERWRITE);
         m_dataStruct->remoteItem = remoteItem;
 
-        ProgressConfirm::create_and_push(query, holdRequired, tasks::backup::patch_backup, m_dataStruct);
+        ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::patch_backup, m_dataStruct);
     }
     else { ProgressState::create_and_push(tasks::backup::upload_backup, m_dataStruct); }
 }

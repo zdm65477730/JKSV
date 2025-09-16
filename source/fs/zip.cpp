@@ -139,7 +139,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
 
             if (task)
             {
-                const std::string status = stringutil::get_formatted_string(ioStatus, sourceString.c_str());
+                std::string status = stringutil::get_formatted_string(ioStatus, sourceString.c_str());
                 task->set_status(status);
                 task->reset(static_cast<double>(fileSize));
             }
@@ -216,7 +216,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
 
         if (task)
         {
-            const std::string status = stringutil::get_formatted_string(statusTemplate, fullDest.get_filename());
+            std::string status = stringutil::get_formatted_string(statusTemplate, fullDest.get_filename());
             task->set_status(status);
             task->reset(static_cast<double>(fileSize));
         }

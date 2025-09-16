@@ -21,11 +21,19 @@ namespace
 
     /// @brief This is the single (for now) instance of a storage class.
     std::unique_ptr<remote::Storage> s_storage{};
+
+    // clang-format off
+    struct DriveStruct : sys::Task::DataStruct
+    {
+        remote::GoogleDrive *drive{};
+    };
+    // clang-format on
+
 } // namespace
 
 // Declarations here. Definitions at bottom.
 /// @brief This is the thread function that handles logging into Google.
-static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive);
+static void drive_sign_in(sys::threadpool::JobData taskData);
 
 /// @brief This creates (if needed) the JKSV folder for Google Drive and sets it as the root.
 /// @param drive Pointer to the drive instance..
@@ -56,7 +64,10 @@ void remote::initialize_google_drive()
     remote::GoogleDrive *drive = static_cast<remote::GoogleDrive *>(s_storage.get());
     if (drive->sign_in_required())
     {
-        TaskState::create_and_push(drive_sign_in, drive);
+        auto driveStruct   = std::make_shared<DriveStruct>();
+        driveStruct->drive = drive;
+
+        TaskState::create_and_push(drive_sign_in, driveStruct);
         return;
     }
 
@@ -92,9 +103,14 @@ remote::Storage *remote::get_remote_storage() noexcept
     return s_storage.get();
 }
 
-static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
+static void drive_sign_in(sys::threadpool::JobData taskData)
 {
     static constexpr const char *STRING_ERROR_SIGNING_IN = "Error signing into Google Drive: %s";
+
+    auto castData = std::static_pointer_cast<DriveStruct>(taskData);
+
+    sys::Task *task            = castData->task;
+    remote::GoogleDrive *drive = castData->drive;
 
     const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
     std::string message{}, deviceCode{};
@@ -106,7 +122,7 @@ static void drive_sign_in(sys::Task *task, remote::GoogleDrive *drive)
         TASK_FINISH_RETURN(task);
     }
 
-    task->set_status(message.c_str());
+    task->set_status(message);
 
     while (std::time(NULL) < expiration && !drive->poll_sign_in(deviceCode))
     {

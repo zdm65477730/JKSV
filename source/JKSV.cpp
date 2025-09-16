@@ -87,7 +87,6 @@ JKSV::JKSV()
 
     // This needs the config init'd or read to work.
     JKSV::create_directories();
-
     sys::threadpool::initialize();
 
     data::launch_initialization(false, finish_initialization);
@@ -105,6 +104,7 @@ JKSV::~JKSV()
     sdl::exit();
 
     appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
+    appletUnlockExit();
 }
 
 bool JKSV::is_running() const noexcept { return m_isRunning && appletMainLoop(); }
@@ -170,6 +170,7 @@ bool JKSV::initialize_services()
     serviceInit      = serviceInit && initialize_service(setsysInitialize, "SetSys");
     serviceInit      = serviceInit && initialize_service(socketInitialize, "Socket", &SOCKET_INIT_CONFIG);
     serviceInit      = serviceInit && initialize_service(nifmInitialize, "NIFM", NifmServiceType_User);
+    serviceInit      = serviceInit && initialize_service(appletLockExit, "AppletLockExit");
     return serviceInit;
 }
 

@@ -292,7 +292,7 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
     if (!GoogleDrive::token_is_valid() && !GoogleDrive::refresh_token()) { return false; }
 
     const int64_t itemSize = file->get_size();
-    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write, itemSize};
+    fslib::File destFile{destination, FsOpenMode_Create | FsOpenMode_Write};
     if (!destFile)
     {
         logger::log("Error downloading file: local file could not be opened for writing!");
@@ -307,16 +307,19 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
     remote::URL url{URL_DRIVE_FILE_API};
     url.append_path(file->get_id()).append_parameter("alt", "media");
 
-    curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = itemSize};
+    auto download      = std::make_shared<curl::DownloadStruct>();
+    download->dest     = &destFile;
+    download->task     = task;
+    download->fileSize = itemSize;
+
     curl::prepare_get(m_curl);
     curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
     curl::set_option(m_curl, CURLOPT_URL, url.get());
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::download_file_threaded);
-    curl::set_option(m_curl, CURLOPT_WRITEDATA, &download);
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, download.get());
 
-    std::thread writeThread(curl::download_write_thread_function, std::ref(download));
+    sys::threadpool::push_job(curl::download_write_thread_function, download);
     if (!curl::perform(m_curl)) { return false; }
-    writeThread.join();
 
     return true;
 }

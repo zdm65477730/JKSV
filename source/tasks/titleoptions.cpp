@@ -13,12 +13,15 @@
 
 #include <array>
 
-void tasks::titleoptions::blacklist_title(sys::Task *task, TitleOptionState::TaskData taskData)
+void tasks::titleoptions::blacklist_title(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<TitleOptionState::DataStruct>(taskData);
 
-    data::TitleInfo *titleInfo      = taskData->titleInfo;
-    TitleOptionState *spawningState = taskData->spawningState;
+    sys::Task *task                 = castData->task;
+    data::TitleInfo *titleInfo      = castData->titleInfo;
+    TitleOptionState *spawningState = castData->spawningState;
+
+    if (error::is_null(task)) { return; }
     if (error::is_null(titleInfo) || error::is_null(spawningState))
     {
         task->complete();
@@ -39,11 +42,14 @@ void tasks::titleoptions::blacklist_title(sys::Task *task, TitleOptionState::Tas
     task->complete();
 }
 
-void tasks::titleoptions::delete_all_local_backups_for_title(sys::Task *task, TitleOptionState::TaskData taskData)
+void tasks::titleoptions::delete_all_local_backups_for_title(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<TitleOptionState::DataStruct>(taskData);
 
-    data::TitleInfo *titleInfo = taskData->titleInfo;
+    sys::Task *task            = castData->task;
+    data::TitleInfo *titleInfo = castData->titleInfo;
+
+    if (error::is_null(task)) { return; }
     if (error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
 
     const int popTicks     = ui::PopMessageManager::DEFAULT_TICKS;
@@ -53,7 +59,7 @@ void tasks::titleoptions::delete_all_local_backups_for_title(sys::Task *task, Ti
     {
         const char *title        = titleInfo->get_title();
         const char *statusFormat = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 0);
-        const std::string status = stringutil::get_formatted_string(statusFormat, title);
+        std::string status       = stringutil::get_formatted_string(statusFormat, title);
         task->set_status(status);
     }
 
@@ -66,20 +72,23 @@ void tasks::titleoptions::delete_all_local_backups_for_title(sys::Task *task, Ti
     if (deleteFailed) { ui::PopMessageManager::push_message(popTicks, popFailure); }
     else
     {
-        const char *title            = titleInfo->get_title();
-        const std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
+        const char *title      = titleInfo->get_title();
+        std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
         ui::PopMessageManager::push_message(popTicks, popMessage);
     }
 
     task->complete();
 }
 
-void tasks::titleoptions::delete_all_remote_backups_for_title(sys::Task *task, TitleOptionState::TaskData taskData)
+void tasks::titleoptions::delete_all_remote_backups_for_title(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<TitleOptionState::DataStruct>(taskData);
 
-    data::TitleInfo *titleInfo = taskData->titleInfo;
+    sys::Task *task            = castData->task;
+    data::TitleInfo *titleInfo = castData->titleInfo;
     remote::Storage *remote    = remote::get_remote_storage();
+
+    if (error::is_null(task)) { return; }
     if (error::is_null(titleInfo) || error::is_null(remote)) { TASK_FINISH_RETURN(task); }
 
     const char *title                  = titleInfo->get_title();
@@ -95,7 +104,7 @@ void tasks::titleoptions::delete_all_remote_backups_for_title(sys::Task *task, T
 
     {
         const char *statusFormat = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 0);
-        const std::string status = stringutil::get_formatted_string(statusFormat, title);
+        std::string status       = stringutil::get_formatted_string(statusFormat, title);
         task->set_status(status);
     }
 
@@ -110,17 +119,19 @@ void tasks::titleoptions::delete_all_remote_backups_for_title(sys::Task *task, T
 
     remote->return_to_root();
 
-    const std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
+    std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
     ui::PopMessageManager::push_message(popTicks, popMessage);
     task->complete();
 }
 
-void tasks::titleoptions::reset_save_data(sys::Task *task, TitleOptionState::TaskData taskData)
+void tasks::titleoptions::reset_save_data(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<TitleOptionState::DataStruct>(taskData);
 
-    data::User *user           = taskData->user;
-    data::TitleInfo *titleInfo = taskData->titleInfo;
+    sys::Task *task            = castData->task;
+    data::User *user           = castData->user;
+    data::TitleInfo *titleInfo = castData->titleInfo;
+    if (error::is_null(task)) { return; }
     if (error::is_null(user) || error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
 
     const uint64_t applicationID   = titleInfo->get_application_id();
@@ -134,7 +145,7 @@ void tasks::titleoptions::reset_save_data(sys::Task *task, TitleOptionState::Tas
     {
         const char *statusFormat = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 1);
         const char *title        = titleInfo->get_title();
-        const std::string status = stringutil::get_formatted_string(statusFormat, title);
+        std::string status       = stringutil::get_formatted_string(statusFormat, title);
         task->set_status(status);
     }
 
@@ -149,14 +160,16 @@ void tasks::titleoptions::reset_save_data(sys::Task *task, TitleOptionState::Tas
     task->complete();
 }
 
-void tasks::titleoptions::delete_save_data_from_system(sys::Task *task, TitleOptionState::TaskData taskData)
+void tasks::titleoptions::delete_save_data_from_system(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<TitleOptionState::DataStruct>(taskData);
 
-    data::User *user                = taskData->user;
-    data::TitleInfo *titleInfo      = taskData->titleInfo;
-    TitleSelectCommon *titleSelect  = taskData->titleSelect;
-    TitleOptionState *spawningState = taskData->spawningState;
+    sys::Task *task                 = castData->task;
+    data::User *user                = castData->user;
+    data::TitleInfo *titleInfo      = castData->titleInfo;
+    TitleSelectCommon *titleSelect  = castData->titleSelect;
+    TitleOptionState *spawningState = castData->spawningState;
+    if (error::is_null(task)) { return; }
     if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(titleSelect) || error::is_null(spawningState))
     {
         TASK_FINISH_RETURN(task);
@@ -171,7 +184,7 @@ void tasks::titleoptions::delete_save_data_from_system(sys::Task *task, TitleOpt
         const char *statusFormat = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 2);
         const char *nickname     = user->get_nickname();
         const char *title        = titleInfo->get_title();
-        const std::string status = stringutil::get_formatted_string(statusFormat, nickname, title);
+        std::string status       = stringutil::get_formatted_string(statusFormat, nickname, title);
         task->set_status(status);
     }
 
@@ -180,12 +193,7 @@ void tasks::titleoptions::delete_save_data_from_system(sys::Task *task, TitleOpt
     {
         const char *popError = strings::get_by_name(strings::names::SAVECREATE_POPS, 2);
         ui::PopMessageManager::push_message(popTicks, popError);
-    }
-    else
-    {
-        const char *title            = titleInfo->get_title();
-        const char *popSuccessFormat = strings::get_by_name(strings::names::SAVECREATE_POPS, 0);
-        const std::string popMessage = stringutil::get_formatted_string(popSuccessFormat, title);
+        return;
     }
 
     user->erase_save_info_by_id(applicationID);
@@ -194,14 +202,16 @@ void tasks::titleoptions::delete_save_data_from_system(sys::Task *task, TitleOpt
     task->complete();
 }
 
-void tasks::titleoptions::extend_save_data(sys::Task *task, TitleOptionState::TaskData taskData)
+void tasks::titleoptions::extend_save_data(sys::threadpool::JobData taskData)
 {
     static constexpr int SIZE_MB = 0x100000;
 
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<TitleOptionState::DataStruct>(taskData);
 
-    data::User *user           = taskData->user;
-    data::TitleInfo *titleInfo = taskData->titleInfo;
+    sys::Task *task            = castData->task;
+    data::User *user           = castData->user;
+    data::TitleInfo *titleInfo = castData->titleInfo;
+    if (error::is_null(task)) { return; }
     if (error::is_null(user) || error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
 
     const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
@@ -224,7 +234,7 @@ void tasks::titleoptions::extend_save_data(sys::Task *task, TitleOptionState::Ta
         const char *nickname        = user->get_nickname();
         const char *title           = titleInfo->get_title();
         const char *extendingFormat = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 3);
-        const std::string status    = stringutil::get_formatted_string(extendingFormat, nickname, title);
+        std::string status          = stringutil::get_formatted_string(extendingFormat, nickname, title);
 
         task->set_status(status);
     }

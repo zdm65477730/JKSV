@@ -24,11 +24,13 @@ static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB);
 SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelect)
     : m_user(user)
     , m_titleSelect(titleSelect)
-    , m_saveMenu(ui::Menu::create(8, 8, 624, 22, 720))
+    , m_saveMenu(ui::Menu::create(8, 8, 624, 23, 720))
+    , m_dataStruct(std::make_shared<SaveCreateState::DataStruct>())
 {
     SaveCreateState::initialize_static_members();
     SaveCreateState::initialize_title_info_vector();
     SaveCreateState::initialize_menu();
+    SaveCreateState::initialize_data_struct();
 }
 
 void SaveCreateState::update()
@@ -87,13 +89,19 @@ void SaveCreateState::initialize_menu()
     sm_slidePanel->push_new_element(m_saveMenu);
 }
 
+void SaveCreateState::initialize_data_struct()
+{
+    m_dataStruct->user          = m_user;
+    m_dataStruct->spawningState = this;
+}
+
 void SaveCreateState::create_save_data_for()
 {
     const int selected         = m_saveMenu->get_selected();
     data::TitleInfo *titleInfo = m_titleInfoVector[selected];
-    auto createTask            = TaskState::create(tasks::savecreate::create_save_data_for, m_user, titleInfo, this);
+    m_dataStruct->titleInfo    = titleInfo;
 
-    StateManager::push_state(createTask);
+    TaskState::create_and_push(tasks::savecreate::create_save_data_for, m_dataStruct);
 }
 
 void SaveCreateState::deactivate_state()

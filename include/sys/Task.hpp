@@ -1,9 +1,10 @@
 #pragma once
+#include "sys/threadpool.hpp"
+
 #include <atomic>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 
 // This macro helps keep things a bit easier to read and cuts down on repetition.
 #define TASK_FINISH_RETURN(x)                                                                                                  \
@@ -16,18 +17,21 @@ namespace sys
     class Task
     {
         public:
-            /// @brief Default constructor.
-            Task() = default;
-
-            template <typename... Args>
-            Task(void (*function)(sys::Task *, Args...), Args... args)
+            // clang-format off
+            struct DataStruct : sys::threadpool::DataStruct
             {
-                m_thread = std::thread(function, this, std::forward<Args>(args)...);
-                m_isRunning.store(true);
-            }
+                sys::Task *task{};
+            };
+            // clang-format on
 
-            /// @brief Required destructor.
-            virtual ~Task();
+            /// @brief This makes some things easier to type and read in other places.
+            using TaskData = std::shared_ptr<Task::DataStruct>;
+
+            /// @brief Default constructor.
+            Task();
+
+            /// @brief Starts a new task.
+            Task(sys::threadpool::JobFunction function, sys::Task::TaskData taskData);
 
             /// @brief Returns if the thread has signaled it's finished running.
             /// @return True if the thread is still running. False if it isn't.
@@ -40,6 +44,9 @@ namespace sys
             /// @brief Sets the task/threads current status string. Thread safe.
             void set_status(std::string_view status);
 
+            /// @brief Moves the status string instead of creating a copy.
+            void set_status(std::string &status);
+
             /// @brief Returns the status string. Thread safe.
             /// @return Copy of the status string.
             std::string get_status() noexcept;
@@ -47,9 +54,6 @@ namespace sys
         protected:
             // Whether task is still running.
             std::atomic<bool> m_isRunning{};
-
-            // Thread
-            std::thread m_thread{};
 
         private:
             // Status string the thread can set that the main thread can display.

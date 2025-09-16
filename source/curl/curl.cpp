@@ -67,13 +67,14 @@ size_t curl::write_data_to_file(const char *buffer, size_t size, size_t count, f
 
 size_t curl::download_file_threaded(const char *buffer, size_t size, size_t count, curl::DownloadStruct *download)
 {
-    std::mutex &lock                     = download->lock;
-    std::condition_variable &condition   = download->condition;
-    std::vector<sys::byte> &sharedBuffer = download->sharedBuffer;
-    bool &bufferReady                    = download->bufferReady;
-    sys::ProgressTask *task              = download->task;
-    size_t &offset                       = download->offset;
-    int64_t &fileSize                    = download->fileSize;
+    std::mutex &lock                   = download->lock;
+    std::condition_variable &condition = download->condition;
+    auto &sharedBuffer                 = download->sharedBuffer;
+    size_t &sharedOffset               = download->sharedOffset;
+    bool &bufferReady                  = download->bufferReady;
+    sys::ProgressTask *task            = download->task;
+    size_t &offset                     = download->offset;
+    int64_t &fileSize                  = download->fileSize;
 
     const size_t downloadSize = size * count;
     const std::span<const sys::byte> bufferSpan{reinterpret_cast<const sys::byte *>(buffer), downloadSize};
@@ -81,11 +82,12 @@ size_t curl::download_file_threaded(const char *buffer, size_t size, size_t coun
     {
         std::unique_lock<std::mutex> bufferLock(lock);
         condition.wait(bufferLock, [&]() { return bufferReady == false; });
-        sharedBuffer.append_range(bufferSpan);
 
-        const size_t sharedSize  = sharedBuffer.size();
+        std::copy(bufferSpan.begin(), bufferSpan.end(), &sharedBuffer[sharedOffset]);
+        sharedOffset += downloadSize;
+
         const int64_t nextOffset = offset + downloadSize;
-        if (sharedSize >= SIZE_DOWNLOAD_THRESHOLD || nextOffset >= fileSize)
+        if (sharedOffset >= SIZE_DOWNLOAD_THRESHOLD || nextOffset >= fileSize)
         {
             bufferReady = true;
             condition.notify_one();
@@ -99,14 +101,17 @@ size_t curl::download_file_threaded(const char *buffer, size_t size, size_t coun
     return downloadSize;
 }
 
-void curl::download_write_thread_function(curl::DownloadStruct &download)
+void curl::download_write_thread_function(sys::threadpool::JobData jobData)
 {
-    std::mutex &lock                     = download.lock;
-    std::condition_variable &condition   = download.condition;
-    std::vector<sys::byte> &sharedBuffer = download.sharedBuffer;
-    bool &bufferReady                    = download.bufferReady;
-    fslib::File *dest                    = download.dest;
-    size_t fileSize                      = download.fileSize;
+    auto castData = std::static_pointer_cast<curl::DownloadStruct>(jobData);
+
+    std::mutex &lock                   = castData->lock;
+    std::condition_variable &condition = castData->condition;
+    auto &sharedBuffer                 = castData->sharedBuffer;
+    size_t &sharedOffset               = castData->sharedOffset;
+    bool &bufferReady                  = castData->bufferReady;
+    fslib::File &dest                  = *castData->dest;
+    size_t fileSize                    = castData->fileSize;
 
     auto localBuffer = std::make_unique<sys::byte[]>(SIZE_DOWNLOAD_THRESHOLD + 0x100000); // Gonna give this some room.
 
@@ -117,14 +122,15 @@ void curl::download_write_thread_function(curl::DownloadStruct &download)
             std::unique_lock<std::mutex> bufferLock(lock);
             condition.wait(bufferLock, [&]() { return bufferReady == true; });
 
-            bufferSize = sharedBuffer.size();
-            std::memcpy(localBuffer.get(), sharedBuffer.data(), bufferSize);
+            // Copy and reset the offset.
+            bufferSize = sharedOffset;
+            std::copy(sharedBuffer.begin(), sharedBuffer.begin() + sharedOffset, localBuffer.get());
+            sharedOffset = 0;
 
-            sharedBuffer.clear();
             bufferReady = false;
             condition.notify_one();
         }
-        dest->write(localBuffer.get(), bufferSize);
+        dest.write(localBuffer.get(), bufferSize);
         i += bufferSize;
     }
 }

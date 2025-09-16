@@ -111,7 +111,7 @@ namespace curl
 
     /// @brief Function used to download files threaded.
     /// @param download Struct shared by both threads.
-    void download_write_thread_function(curl::DownloadStruct &download);
+    void download_write_thread_function(sys::threadpool::JobData jobData);
 
     /// @brief Gets the value of a header from an array of headers.
     /// @param array Array of headers to search.

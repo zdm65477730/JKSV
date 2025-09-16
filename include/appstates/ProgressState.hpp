@@ -14,30 +14,19 @@ class ProgressState final : public BaseTask
 {
     public:
         /// @brief Constructs a new ProgressState.
-        /// @param function Function for the task to run.
-        /// @param args Variadic arguments to be forwarded to the function passed.
-        /// @note All functions passed to this must follow this signature: void function(sys::ProgressTask *, <arguments>)
-        template <typename... Args>
-        ProgressState(void (*function)(sys::ProgressTask *, Args...), Args... args)
-            : BaseTask()
-        {
-            ProgressState::initialize_static_members();
-            m_task = std::make_unique<sys::ProgressTask>(function, std::forward<Args>(args)...);
-        }
+        ProgressState(sys::threadpool::JobFunction function, sys::Task::TaskData taskData);
 
-        /// @brief Creates and returns a new progress state.
-        template <typename... Args>
-        static inline std::shared_ptr<ProgressState> create(void (*function)(sys::ProgressTask *, Args...), Args... args)
+        /// @brief Creates and returns a new ProgressState
+        static inline std::shared_ptr<ProgressState> create(sys::threadpool::JobFunction function, sys::Task::TaskData taskData)
         {
-            return std::make_shared<ProgressState>(function, std::forward<Args>(args)...);
+            return std::make_shared<ProgressState>(function, taskData);
         }
 
         /// @brief Creates, pushes, then returns a new ProgressState.
-        template <typename... Args>
-        static inline std::shared_ptr<ProgressState> create_and_push(void (*function)(sys::ProgressTask *, Args...),
-                                                                     Args... args)
+        static inline std::shared_ptr<ProgressState> create_and_push(sys::threadpool::JobFunction function,
+                                                                     sys::Task::TaskData taskData)
         {
-            auto newState = ProgressState::create(function, std::forward<Args>(args)...);
+            auto newState = ProgressState::create(function, taskData);
             StateManager::push_state(newState);
             return newState;
         }

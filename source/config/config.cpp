@@ -33,7 +33,6 @@ bool config::set_working_directory(const fslib::Path &path) noexcept
     const bool pathSet = s_context.set_working_directory(path);
     if (!pathSet) { return false; }
 
-    s_context.save();
     return true;
 }
 
@@ -46,7 +45,6 @@ void config::add_remove_favorite(uint64_t applicationID)
     const bool favorite = s_context.is_favorite(applicationID);
     if (favorite) { s_context.remove_favorite(applicationID); }
     else { s_context.add_favorite(applicationID); }
-    s_context.save();
 }
 
 bool config::is_favorite(uint64_t applicationID) noexcept { return s_context.is_favorite(applicationID); }
@@ -56,7 +54,6 @@ void config::add_remove_blacklist(uint64_t applicationID)
     const bool blacklisted = s_context.is_blacklisted(applicationID);
     if (blacklisted) { s_context.remove_from_blacklist(applicationID); }
     else { s_context.add_to_blacklist(applicationID); }
-    s_context.save();
 }
 
 void config::get_blacklisted_titles(std::vector<uint64_t> &listOut) { s_context.get_blacklist(listOut); }

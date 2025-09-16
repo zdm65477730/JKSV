@@ -23,7 +23,7 @@ namespace
 TextTitleSelectState::TextTitleSelectState(data::User *user)
     : TitleSelectCommon()
     , m_user(user)
-    , m_titleSelectMenu(ui::Menu::create(32, 8, 1000, 22, 555))
+    , m_titleSelectMenu(ui::Menu::create(32, 10, 1000, 23, 555))
     , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
     TextTitleSelectState::refresh();
@@ -61,7 +61,7 @@ void TextTitleSelectState::refresh()
 {
     static constexpr const char *STRING_HEART = "^\uE017^ ";
 
-    m_titleSelectMenu->reset();
+    m_titleSelectMenu->reset(false);
 
     const size_t totalEntries = m_user->get_total_data_entries();
     for (size_t i = 0; i < totalEntries; i++)
@@ -118,7 +118,7 @@ void TextTitleSelectState::add_remove_favorite()
         const uint64_t appIDAt = m_user->get_application_id_at(i);
         if (appIDAt == applicationID) { break; }
     }
-    m_titleSelectMenu->set_selected(i);
 
     MainMenuState::refresh_view_states();
+    m_titleSelectMenu->set_selected(i);
 }

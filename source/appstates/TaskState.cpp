@@ -7,10 +7,15 @@
 #include "strings/strings.hpp"
 #include "ui/PopMessageManager.hpp"
 
+TaskState::TaskState(sys::threadpool::JobFunction function, sys::Task::TaskData taskData)
+{
+    m_task = std::make_unique<sys::Task>(function, taskData);
+}
+
 void TaskState::update()
 {
-    BaseTask::update_loading_glyph();
     BaseTask::pop_on_plus();
+    BaseTask::update_loading_glyph();
     if (!m_task->is_running()) { TaskState::deactivate_state(); }
 }
 

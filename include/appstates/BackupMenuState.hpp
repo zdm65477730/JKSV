@@ -61,17 +61,18 @@ class BackupMenuState final : public BaseState
             int index{};
         };
 
-        struct DataStruct
+        struct DataStruct : sys::Task::DataStruct
         {
             data::User *user{};
             data::TitleInfo *titleInfo{};
             fslib::Path path{}; // This and
+            std::string remoteName{}; // and this and
             remote::Item *remoteItem{}; // this are set when needed.
             BackupMenuState *spawningState{};
+            bool killTask = false; // Some tasks use other tasks instead of repeating code.
         };
         // clang-format on
 
-        // This makes some things elsewhere easier to type.
         using TaskData = std::shared_ptr<BackupMenuState::DataStruct>;
 
     private:

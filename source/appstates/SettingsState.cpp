@@ -62,7 +62,7 @@ namespace
 } // namespace
 
 SettingsState::SettingsState()
-    : m_settingsMenu(ui::Menu::create(32, 8, 1000, 24, 555))
+    : m_settingsMenu(ui::Menu::create(32, 10, 1000, 23, 555))
     , m_controlGuide(ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 3)))
     , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
 {
@@ -179,7 +179,7 @@ void SettingsState::change_working_directory()
     }
 
     const std::string newPathString = newPath.string();
-    const std::string popMessage    = stringutil::get_formatted_string(popSuccessFormat, newPathString.c_str());
+    std::string popMessage          = stringutil::get_formatted_string(popSuccessFormat, newPathString.c_str());
     ui::PopMessageManager::push_message(popTicks, popMessage);
 }
 
@@ -211,7 +211,7 @@ void SettingsState::toggle_options()
         case CYCLE_SCALING:   SettingsState::cycle_anim_scaling(); break;
         default:              config::toggle_by_key(CONFIG_KEY_ARRAY[selected]); break;
     }
-    config::save();
+
     SettingsState::update_menu_options();
 }
 
@@ -227,6 +227,7 @@ void SettingsState::cycle_zip_level()
 {
     uint8_t zipLevel = config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL);
     if (++zipLevel % 10 == 0) { zipLevel = 0; }
+
     config::set_by_key(config::keys::ZIP_COMPRESSION_LEVEL, zipLevel);
 }
 
@@ -239,12 +240,14 @@ void SettingsState::cycle_sort_type()
     data::UserList users{};
     data::get_users(users);
     for (data::User *user : users) { user->sort_data(); }
+
     MainMenuState::refresh_view_states();
 }
 
 void SettingsState::toggle_jksm_mode()
 {
     config::toggle_by_key(config::keys::JKSM_TEXT_MODE);
+
     MainMenuState::initialize_view_states();
 }
 
@@ -262,17 +265,20 @@ void SettingsState::cycle_anim_scaling()
 {
     double scaling = config::get_animation_scaling();
     if ((scaling += 0.25f) > 4.0f) { scaling = 1.0f; }
+
     config::set_animation_scaling(scaling);
 }
 
 const char *SettingsState::get_status_text(uint8_t value)
 {
     if (value > 1) { return nullptr; }
+
     return m_onOff[value];
 }
 
 const char *SettingsState::get_sort_type_text(uint8_t value)
 {
     if (value > 2) { return nullptr; }
+
     return m_sortTypes[value];
 }

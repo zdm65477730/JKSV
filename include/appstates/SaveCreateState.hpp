@@ -40,6 +40,15 @@ class SaveCreateState final : public BaseState
         /// @brief This signals so data and the view can be refreshed on the next update() to avoid threading shenanigans.
         void refresh_required();
 
+        // clang-format off
+        struct DataStruct : sys::Task::DataStruct
+        {
+            data::User *user{};
+            data::TitleInfo *titleInfo{};
+            SaveCreateState *spawningState{};
+        };
+        // clang-format on
+
     private:
         /// @brief Pointer to target user.
         data::User *m_user{};
@@ -56,6 +65,9 @@ class SaveCreateState final : public BaseState
         /// @brief Whether or not a refresh is required on the next update() call.
         std::atomic<bool> m_refreshRequired{};
 
+        /// @brief Data struct passed to the task.
+        std::shared_ptr<SaveCreateState::DataStruct> m_dataStruct{};
+
         /// @brief Shared slide panel all instances use. There's no point in allocating a new one every time.
         static inline std::unique_ptr<ui::SlideOutPanel> sm_slidePanel{};
 
@@ -67,6 +79,9 @@ class SaveCreateState final : public BaseState
 
         /// @brief Pushes the titles to the menu
         void initialize_menu();
+
+        /// @brief Assigns the user and title info.
+        void initialize_data_struct();
 
         /// @brief Launches the save creation task.
         void create_save_data_for();

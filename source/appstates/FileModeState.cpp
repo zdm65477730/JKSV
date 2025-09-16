@@ -102,8 +102,8 @@ void FileModeState::initialize_paths()
 
 void FileModeState::initialize_menus()
 {
-    m_dirMenuA = ui::Menu::create(8, 8, 594, 22, 538);
-    m_dirMenuB = ui::Menu::create(626, 8, 594, 22, 538);
+    m_dirMenuA = ui::Menu::create(8, 5, 594, 20, 538);
+    m_dirMenuB = ui::Menu::create(626, 5, 594, 20, 538);
 
     FileModeState::initialize_directory_menu(m_pathA, m_dirA, *m_dirMenuA.get());
     FileModeState::initialize_directory_menu(m_pathB, m_dirB, *m_dirMenuB.get());
