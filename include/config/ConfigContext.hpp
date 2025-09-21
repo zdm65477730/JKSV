@@ -3,8 +3,9 @@
 
 #include <cstdint>
 #include <json-c/json.h>
-#include <map>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace config
@@ -81,8 +82,23 @@ namespace config
             void get_custom_path(uint64_t applicationID, char *buffer, size_t bufferSize);
 
         private:
+            /// @brief These allow unordered_map with string key and string_view finds.
+            // clang-format off
+            struct StringViewHash
+            {
+                using is_transparent = void;
+                size_t operator() (std::string_view view) const noexcept { return std::hash<std::string_view>{}(view); }
+            };
+
+            struct StringViewEqual
+            {
+                using is_transparent = void;
+                bool operator() (std::string_view viewA, std::string_view viewB) const noexcept { return viewA == viewB; }
+            };
+            // clang-format on
+
             /// @brief This is where the majority of the config values are.
-            std::map<std::string, uint8_t, std::less<>> m_configMap{};
+            std::unordered_map<std::string, uint8_t, StringViewHash, StringViewEqual> m_configMap{};
 
             /// @brief The main directory JKSV operates from.
             fslib::Path m_workingDirectory{};
@@ -91,13 +107,13 @@ namespace config
             double m_animationScaling{};
 
             /// @brief This holds the favorite titles.
-            std::vector<uint64_t> m_favorites{};
+            std::unordered_set<uint64_t> m_favorites{};
 
             /// @brief This holds the blacklisted titles.
-            std::vector<uint64_t> m_blacklist{};
+            std::unordered_set<uint64_t> m_blacklist{};
 
             /// @brief This holds user defined paths.
-            std::map<uint64_t, std::string> m_paths{};
+            std::unordered_map<uint64_t, std::string> m_paths{};
 
             /// @brief Loads the config file from SD.
             bool load_config_file();
@@ -106,16 +122,12 @@ namespace config
             void save_config_file();
 
             /// @brief Reads a json array to the vector passed.
-            void read_array_to_vector(std::vector<uint64_t> &vector, json_object *array);
+            void read_array_to_set(std::unordered_set<uint64_t> &set, json_object *array);
 
             /// @brief Loads the custom output path file from the SD if possible.
             void load_custom_paths();
 
             /// @brief Saves the custom output paths to the SD card.
             void save_custom_paths();
-
-            /// @brief Searches the vector passed for the application ID passed.
-            std::vector<uint64_t>::const_iterator find_application_id(const std::vector<uint64_t> &vector,
-                                                                      uint64_t applicationID) const;
     };
 }

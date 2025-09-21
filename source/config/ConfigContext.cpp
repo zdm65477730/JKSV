@@ -105,35 +105,39 @@ void config::ConfigContext::set_animation_scaling(double scaling) noexcept { m_a
 
 void config::ConfigContext::add_favorite(uint64_t applicationID)
 {
-    const auto findFav = ConfigContext::find_application_id(m_favorites, applicationID);
-    if (findFav != m_favorites.end()) { return; }
-    m_favorites.push_back(applicationID);
+    const auto findID = m_favorites.find(applicationID);
+    if (findID != m_favorites.end()) { return; }
+
+    m_favorites.insert(applicationID);
 }
 
 void config::ConfigContext::remove_favorite(uint64_t applicationID) noexcept
 {
-    const auto findFav = ConfigContext::find_application_id(m_favorites, applicationID);
-    if (findFav == m_favorites.end()) { return; }
-    m_favorites.erase(findFav);
+    const auto findID = m_favorites.find(applicationID);
+    if (findID == m_favorites.end()) { return; }
+
+    m_favorites.erase(findID);
 }
 
 bool config::ConfigContext::is_favorite(uint64_t applicationID) const noexcept
 {
-    return ConfigContext::find_application_id(m_favorites, applicationID) != m_favorites.end();
+    return m_favorites.find(applicationID) != m_favorites.end();
 }
 
 void config::ConfigContext::add_to_blacklist(uint64_t applicationID)
 {
-    const auto findTitle = ConfigContext::find_application_id(m_blacklist, applicationID);
-    if (findTitle != m_blacklist.end()) { return; }
-    m_blacklist.push_back(applicationID);
+    auto findID = m_blacklist.find(applicationID);
+    if (findID != m_blacklist.end()) { return; }
+
+    m_blacklist.insert(applicationID);
 }
 
 void config::ConfigContext::remove_from_blacklist(uint64_t applicationID) noexcept
 {
-    const auto findTitle = ConfigContext::find_application_id(m_blacklist, applicationID);
-    if (findTitle == m_blacklist.end()) { return; }
-    m_blacklist.erase(findTitle);
+    const auto findID = m_blacklist.find(applicationID);
+    if (findID == m_blacklist.end()) { return; }
+
+    m_blacklist.erase(findID);
 }
 
 void config::ConfigContext::get_blacklist(std::vector<uint64_t> &listOut)
@@ -143,7 +147,7 @@ void config::ConfigContext::get_blacklist(std::vector<uint64_t> &listOut)
 
 bool config::ConfigContext::is_blacklisted(uint64_t applicationID) const noexcept
 {
-    return ConfigContext::find_application_id(m_blacklist, applicationID) != m_blacklist.end();
+    return m_blacklist.find(applicationID) != m_blacklist.end();
 }
 
 bool config::ConfigContext::blacklist_empty() const noexcept { return m_blacklist.empty(); }
@@ -161,9 +165,10 @@ void config::ConfigContext::add_custom_path(uint64_t applicationID, std::string_
 
 void config::ConfigContext::get_custom_path(uint64_t applicationID, char *buffer, size_t bufferSize)
 {
-    if (!ConfigContext::has_custom_path(applicationID)) { return; }
+    const auto findPath = m_paths.find(applicationID);
+    if (findPath == m_paths.end()) { return; }
 
-    const std::string &path = m_paths[applicationID];
+    const std::string &path = findPath->second;
     if (path.length() >= bufferSize) { return; }
 
     std::memset(buffer, 0x00, bufferSize);
@@ -193,8 +198,8 @@ bool config::ConfigContext::load_config_file()
 
         if (workDir) { m_workingDirectory = json_object_get_string(value); }
         else if (scaling) { m_animationScaling = json_object_get_double(value); }
-        else if (favorites) { ConfigContext::read_array_to_vector(m_favorites, value); }
-        else if (blacklist) { ConfigContext::read_array_to_vector(m_blacklist, value); }
+        else if (favorites) { ConfigContext::read_array_to_set(m_favorites, value); }
+        else if (blacklist) { ConfigContext::read_array_to_set(m_blacklist, value); }
         else { m_configMap[key] = json_object_get_uint64(value); }
 
         json_object_iter_next(&configIter);
@@ -247,7 +252,7 @@ void config::ConfigContext::save_config_file()
     configFile << jsonString;
 }
 
-void config::ConfigContext::read_array_to_vector(std::vector<uint64_t> &vector, json_object *array)
+void config::ConfigContext::read_array_to_set(std::unordered_set<uint64_t> &set, json_object *array)
 {
     const size_t arrayLength = json_object_array_length(array);
     for (size_t i = 0; i < arrayLength; i++)
@@ -256,7 +261,7 @@ void config::ConfigContext::read_array_to_vector(std::vector<uint64_t> &vector, 
         const char *idHex            = json_object_get_string(element);
         const uint64_t applicationID = std::strtoull(idHex, nullptr, 16);
 
-        vector.push_back(applicationID);
+        set.insert(applicationID);
     }
 }
 
@@ -299,10 +304,4 @@ void config::ConfigContext::save_custom_paths()
     fslib::File pathsFile{PATH_PATHS_FILE, FsOpenMode_Create | FsOpenMode_Write, jsonLength};
     if (error::fslib(pathsFile.is_open())) { return; }
     pathsFile << jsonString;
-}
-
-std::vector<uint64_t>::const_iterator config::ConfigContext::find_application_id(const std::vector<uint64_t> &vector,
-                                                                                 uint64_t applicationID) const
-{
-    return std::find(vector.begin(), vector.end(), applicationID);
 }

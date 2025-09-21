@@ -60,7 +60,6 @@ bool fs::move_directory_recursively(const fslib::Path &oldPath, const fslib::Pat
             const bool exists      = fslib::directory_exists(fullDest);
             const bool renameError = !exists && error::fslib(fslib::rename_directory(fullSource, fullDest));
             const bool moved       = exists && fs::move_directory_recursively(fullSource, fullDest);
-
             if (renameError && !moved) { return false; }
         }
         else
@@ -70,6 +69,5 @@ bool fs::move_directory_recursively(const fslib::Path &oldPath, const fslib::Pat
             if (!exists && !renamed) { return false; }
         }
     }
-
     return true;
 }
