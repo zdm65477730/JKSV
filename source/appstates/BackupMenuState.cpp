@@ -237,6 +237,7 @@ void BackupMenuState::name_and_create_backup()
     {
         if (!hasZipExt) { std::strncat(name, STRING_ZIP_EXT, SIZE_NAME_LENGTH); }
 
+        m_dataStruct->remoteName = name;
         ProgressState::create_and_push(tasks::backup::create_new_backup_remote, m_dataStruct);
     }
     else
