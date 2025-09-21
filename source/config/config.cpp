@@ -28,13 +28,7 @@ void config::set_by_key(std::string_view key, uint8_t value) noexcept { s_contex
 
 fslib::Path config::get_working_directory() { return s_context.get_working_directory(); }
 
-bool config::set_working_directory(const fslib::Path &path) noexcept
-{
-    const bool pathSet = s_context.set_working_directory(path);
-    if (!pathSet) { return false; }
-
-    return true;
-}
+bool config::set_working_directory(const fslib::Path &path) noexcept { return s_context.set_working_directory(path); }
 
 double config::get_animation_scaling() noexcept { return s_context.get_animation_scaling(); }
 

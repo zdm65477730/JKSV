@@ -43,3 +43,33 @@ bool fs::directory_has_contents(const fslib::Path &directoryPath)
 
     return false;
 }
+
+bool fs::move_directory_recursively(const fslib::Path &oldPath, const fslib::Path &newPath)
+{
+    fslib::Directory sourceDir{oldPath};
+    if (!sourceDir.is_open()) { return false; }
+
+    for (const fslib::DirectoryEntry &entry : sourceDir)
+    {
+        const fslib::Path fullSource{oldPath / entry};
+        const fslib::Path fullDest{newPath / entry};
+        logger::log("%s -> %s", fullSource.string().c_str(), fullDest.string().c_str());
+
+        if (entry.is_directory())
+        {
+            const bool exists      = fslib::directory_exists(fullDest);
+            const bool renameError = !exists && error::fslib(fslib::rename_directory(fullSource, fullDest));
+            const bool moved       = exists && fs::move_directory_recursively(fullSource, fullDest);
+
+            if (renameError && !moved) { return false; }
+        }
+        else
+        {
+            const bool exists  = fslib::file_exists(fullDest);
+            const bool renamed = !exists && fslib::rename_file(fullSource, fullDest);
+            if (!exists && !renamed) { return false; }
+        }
+    }
+
+    return true;
+}

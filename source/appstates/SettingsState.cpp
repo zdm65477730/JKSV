@@ -6,6 +6,7 @@
 #include "config/config.hpp"
 #include "data/data.hpp"
 #include "error.hpp"
+#include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "graphics/colors.hpp"
 #include "input.hpp"
@@ -156,27 +157,33 @@ void SettingsState::change_working_directory()
     const char *popSuccessFormat = strings::get_by_name(strings::names::SETTINGS_POPS, 1);
     const char *popFailed        = strings::get_by_name(strings::names::SETTINGS_POPS, 2);
 
-    const std::string oldPath                = config::get_working_directory().string();
+    const fslib::Path oldPath                = config::get_working_directory();
     std::array<char, FS_MAX_PATH> pathBuffer = {0};
 
-    const bool input = keyboard::get_input(SwkbdType_Normal, oldPath, inputHeader, pathBuffer.data(), FS_MAX_PATH);
+    const bool input =
+        keyboard::get_input(SwkbdType_Normal, oldPath.string().c_str(), inputHeader, pathBuffer.data(), FS_MAX_PATH);
     if (!input) { return; }
 
     const fslib::Path newPath{pathBuffer.data()};
-    const bool exists = fslib::directory_exists(newPath);
-    if (exists)
+    if (!newPath.is_valid())
     {
         ui::PopMessageManager::push_message(popTicks, popFailed);
         return;
     }
 
-    const bool pathSet     = config::set_working_directory(newPath);
-    const bool renameError = pathSet && error::fslib(fslib::rename_directory(oldPath, newPath));
-    if (!pathSet || renameError)
+    const bool exists = fslib::directory_exists(newPath);
+    bool moved{};
+    if (exists) { moved = fs::move_directory_recursively(oldPath, newPath); }
+    else { moved = fslib::rename_directory(oldPath, newPath); }
+
+    if (!moved)
     {
         ui::PopMessageManager::push_message(popTicks, popFailed);
         return;
     }
+
+    // Since the path was validated before, this shouldn't need to be checked.
+    config::set_working_directory(newPath);
 
     const std::string newPathString = newPath.string();
     std::string popMessage          = stringutil::get_formatted_string(popSuccessFormat, newPathString.c_str());

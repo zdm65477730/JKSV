@@ -18,4 +18,7 @@ namespace fs
     /// @param directoryPath Path to directory to check.
     /// @return True if directory has files inside.
     bool directory_has_contents(const fslib::Path &directoryPath);
+
+    /// @brief Recursively moves (renames) everything in oldPath to newPath.
+    bool move_directory_recursively(const fslib::Path &oldPath, const fslib::Path &newPath);
 } // namespace fs
