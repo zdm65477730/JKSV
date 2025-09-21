@@ -14,6 +14,7 @@
 #include <ctime>
 #include <memory>
 #include <mutex>
+#include <semaphore>
 
 namespace
 {
@@ -33,6 +34,7 @@ struct ZipIOBase : sys::threadpool::DataStruct
     ssize_t readSize{};
     bool bufferReady{};
     std::unique_ptr<sys::Byte[]> sharedBuffer{};
+    std::binary_semaphore writeComplete{0};
 };
 
 struct ZipReadStruct : ZipIOBase

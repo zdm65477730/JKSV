@@ -13,14 +13,13 @@
 #include <cstring>
 #include <memory>
 #include <mutex>
-#include <semaphore>
 
 namespace
 {
     // Size of buffer shared between threads.
-    constexpr size_t SIZE_FILE_BUFFER = 0x600000;
+    // constexpr size_t SIZE_FILE_BUFFER = 0x600000;
     // This one is just for testing something.
-    // constexpr size_t SIZE_FILE_BUFFER = 0x200000;
+    constexpr size_t SIZE_FILE_BUFFER = 0x200000;
 } // namespace
 
 // clang-format off
@@ -32,7 +31,6 @@ struct FileThreadStruct : sys::threadpool::DataStruct
     ssize_t readSize{};
     std::unique_ptr<sys::Byte[]> sharedBuffer{};
     fslib::File *source{};
-    std::binary_semaphore writeComplete{0};
 };
 // clang-format on
 
@@ -46,7 +44,6 @@ static void read_thread_function(sys::threadpool::JobData jobData)
     ssize_t &readSize                          = castData->readSize;
     std::unique_ptr<sys::Byte[]> &sharedBuffer = castData->sharedBuffer;
     fslib::File &source                        = *castData->source;
-    auto &writeComplete                        = castData->writeComplete;
     const int64_t fileSize                     = source.get_size();
 
     for (int64_t i = 0; i < fileSize;)
@@ -65,8 +62,6 @@ static void read_thread_function(sys::threadpool::JobData jobData)
         if (localRead == -1) { break; }
         i += localRead;
     }
-
-    writeComplete.release();
 }
 
 void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sys::ProgressTask *task)
@@ -97,7 +92,6 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
     bool &bufferReady                  = sharedData->bufferReady;
     ssize_t &readSize                  = sharedData->readSize;
     auto &sharedBuffer                 = sharedData->sharedBuffer;
-    auto &writeComplete                = sharedData->writeComplete;
 
     sys::threadpool::push_job(read_thread_function, sharedData);
     for (int64_t i = 0; i < sourceSize; i++)
@@ -121,8 +115,6 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
         i += localRead;
         if (task) { task->update_current(static_cast<double>(i)); }
     }
-
-    writeComplete.acquire();
 }
 
 void fs::copy_file_commit(const fslib::Path &source,
@@ -158,7 +150,6 @@ void fs::copy_file_commit(const fslib::Path &source,
     bool &bufferReady                  = sharedData->bufferReady;
     ssize_t &readSize                  = sharedData->readSize;
     auto &sharedBuffer                 = sharedData->sharedBuffer;
-    auto &writeComplete                = sharedData->writeComplete;
 
     int64_t journalCount{};
     sys::threadpool::push_job(read_thread_function, sharedData);
@@ -196,9 +187,7 @@ void fs::copy_file_commit(const fslib::Path &source,
         journalCount += localRead;
         if (task) { task->update_current(static_cast<double>(i)); }
     }
-
     destFile.close();
-    writeComplete.acquire();
 
     const bool commitError = error::fslib(fslib::commit_data_to_file_system(destination.get_device_name()));
     if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); }

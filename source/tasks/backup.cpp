@@ -41,6 +41,8 @@ void tasks::backup::create_new_backup_local(sys::threadpool::JobData taskData)
     if (error::is_null(user) || error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
 
     const std::string targetString = target.string();
+    logger::log("targetString: %s", targetString.c_str());
+
     const bool hasZipExt           = std::strstr(targetString.c_str(), STRING_ZIP_EXT);
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
@@ -513,8 +515,19 @@ static void auto_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskD
     std::string backupName       = stringutil::get_formatted_string("AUTO - %s - %s", safeNickname, dateString.c_str());
     if (zip) { backupName += STRING_ZIP_EXT; }
 
-    taskData->killTask = false;
-    if (autoUpload && remote) { tasks::backup::create_new_backup_remote(taskData); }
+    auto tempData           = std::make_shared<BackupMenuState::DataStruct>();
+    tempData->task          = task;
+    tempData->user          = user;
+    tempData->titleInfo     = titleInfo;
+    tempData->spawningState = spawningState;
+    tempData->killTask      = false;
+
+    if (autoUpload && remote)
+    {
+        tempData->remoteName = std::move(backupName);
+
+        tasks::backup::create_new_backup_remote(tempData);
+    }
     else
     {
         // We're going to get the target dir from the path passed.
@@ -522,7 +535,11 @@ static void auto_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskD
         if (lastSlash == target.NOT_FOUND) { return; }
 
         fslib::Path autoTarget{target.sub_path(lastSlash) / backupName};
-        tasks::backup::create_new_backup_local(taskData);
+        logger::log("autoTarget: %s", autoTarget.string().c_str());
+
+        tempData->path = std::move(autoTarget);
+
+        tasks::backup::create_new_backup_local(tempData);
     }
 }
 

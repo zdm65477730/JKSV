@@ -144,7 +144,7 @@ void BackupMenuState::initialize_static_members()
     if (sm_backupMenu && sm_slidePanel && sm_menuRenderTarget && sm_panelWidth) { return; }
 
     sm_panelWidth       = sdl::text::get_width(22, m_controlGuide) + 64;
-    sm_backupMenu       = ui::Menu::create(8, 8, sm_panelWidth - 16, 24, 600);
+    sm_backupMenu       = ui::Menu::create(8, 8, sm_panelWidth - 16, 22, 600);
     sm_slidePanel       = ui::SlideOutPanel::create(sm_panelWidth, ui::SlideOutPanel::Side::Right);
     sm_menuRenderTarget = sdl::TextureManager::load("backupMenuTarget", sm_panelWidth, 600, SDL_TEXTUREACCESS_TARGET);
 }
