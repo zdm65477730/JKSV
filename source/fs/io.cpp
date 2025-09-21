@@ -9,58 +9,53 @@
 #include "sys/sys.hpp"
 #include "ui/PopMessageManager.hpp"
 
-#include <condition_variable>
 #include <cstring>
 #include <memory>
 #include <mutex>
+#include <queue>
 
 namespace
 {
     // Size of buffer shared between threads.
     // constexpr size_t SIZE_FILE_BUFFER = 0x600000;
     // This one is just for testing something.
-    constexpr size_t SIZE_FILE_BUFFER = 0x200000;
-} // namespace
+    constexpr size_t SIZE_FILE_BUFFER = 0x80000;
 
-// clang-format off
-struct FileThreadStruct : sys::threadpool::DataStruct
-{
-    std::mutex lock{};
-    std::condition_variable condition{};
-    bool bufferReady{};
-    ssize_t readSize{};
-    std::unique_ptr<sys::Byte[]> sharedBuffer{};
-    fslib::File *source{};
-};
-// clang-format on
+    /// @brief Easier to type later.
+    using QueuePair = std::pair<std::unique_ptr<sys::Byte[]>, ssize_t>;
+
+    // clang-format off
+    struct FileThreadStruct : sys::threadpool::DataStruct
+    {
+        std::mutex lock{};
+        std::queue<QueuePair> bufferQueue{};
+        fslib::File *source{};
+    };
+    // clang-format on
+} // namespace
 
 static void read_thread_function(sys::threadpool::JobData jobData)
 {
     auto castData = std::static_pointer_cast<FileThreadStruct>(jobData);
 
-    std::mutex &lock                           = castData->lock;
-    std::condition_variable &condition         = castData->condition;
-    bool &bufferReady                          = castData->bufferReady;
-    ssize_t &readSize                          = castData->readSize;
-    std::unique_ptr<sys::Byte[]> &sharedBuffer = castData->sharedBuffer;
-    fslib::File &source                        = *castData->source;
-    const int64_t fileSize                     = source.get_size();
+    std::mutex &lock       = castData->lock;
+    auto &bufferQueue      = castData->bufferQueue;
+    fslib::File &source    = *castData->source;
+    const int64_t fileSize = source.get_size();
 
     for (int64_t i = 0; i < fileSize;)
     {
-        ssize_t localRead{};
+        auto readBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
+
+        const ssize_t readSize = source.read(readBuffer.get(), SIZE_FILE_BUFFER);
+        auto queuePair         = std::make_pair(std::move(readBuffer), readSize);
         {
-            std::unique_lock<std::mutex> bufferLock(lock);
-            condition.wait(bufferLock, [&]() { return bufferReady == false; });
 
-            readSize  = source.read(sharedBuffer.get(), SIZE_FILE_BUFFER);
-            localRead = readSize;
-
-            bufferReady = true;
-            condition.notify_one();
+            std::lock_guard queueGuard{lock};
+            bufferQueue.push(std::move(queuePair));
         }
-        if (localRead == -1) { break; }
-        i += localRead;
+
+        i += readSize;
     }
 }
 
@@ -81,38 +76,30 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
         task->reset(static_cast<double>(sourceSize));
     }
 
-    auto sharedData          = std::make_shared<FileThreadStruct>();
-    sharedData->sharedBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
-    sharedData->source       = &sourceFile;
+    auto sharedData    = std::make_shared<FileThreadStruct>();
+    sharedData->source = &sourceFile;
 
-    auto localBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
-
-    std::mutex &lock                   = sharedData->lock;
-    std::condition_variable &condition = sharedData->condition;
-    bool &bufferReady                  = sharedData->bufferReady;
-    ssize_t &readSize                  = sharedData->readSize;
-    auto &sharedBuffer                 = sharedData->sharedBuffer;
+    std::mutex &lock  = sharedData->lock;
+    auto &bufferQueue = sharedData->bufferQueue;
 
     sys::threadpool::push_job(read_thread_function, sharedData);
-    for (int64_t i = 0; i < sourceSize; i++)
+    for (int64_t i = 0; i < sourceSize;)
     {
-        ssize_t localRead{};
+        QueuePair queuePair{};
         {
-            std::unique_lock<std::mutex> bufferLock(lock);
-            condition.wait(bufferLock, [&]() { return bufferReady == true; });
+            std::lock_guard queueGuard{lock};
+            if (bufferQueue.empty()) { continue; }
 
-            localRead = readSize;
-            if (localRead == -1) { break; }
-
-            std::memcpy(localBuffer.get(), sharedBuffer.get(), localRead);
-
-            bufferReady = false;
-            condition.notify_one();
+            queuePair = std::move(bufferQueue.front());
+            bufferQueue.pop();
         }
-        // This should be checked. Not sure how yet...
-        destFile.write(localBuffer.get(), localRead);
 
-        i += localRead;
+        auto &[buffer, bufferSize] = queuePair;
+
+        destFile.write(buffer.get(), bufferSize);
+
+        i += bufferSize;
+
         if (task) { task->update_current(static_cast<double>(i)); }
     }
 }
@@ -139,37 +126,27 @@ void fs::copy_file_commit(const fslib::Path &source,
         task->reset(static_cast<double>(sourceSize));
     }
 
-    auto sharedData          = std::make_shared<FileThreadStruct>();
-    sharedData->sharedBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
-    sharedData->source       = &sourceFile;
+    auto sharedData    = std::make_shared<FileThreadStruct>();
+    sharedData->source = &sourceFile;
 
-    auto localBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
-
-    std::mutex &lock                   = sharedData->lock;
-    std::condition_variable &condition = sharedData->condition;
-    bool &bufferReady                  = sharedData->bufferReady;
-    ssize_t &readSize                  = sharedData->readSize;
-    auto &sharedBuffer                 = sharedData->sharedBuffer;
+    std::mutex &lock  = sharedData->lock;
+    auto &bufferQueue = sharedData->bufferQueue;
 
     int64_t journalCount{};
     sys::threadpool::push_job(read_thread_function, sharedData);
     for (int64_t i = 0; i < sourceSize;)
     {
-        ssize_t localRead{};
+        QueuePair queuePair{};
         {
-            std::unique_lock<std::mutex> bufferlock{lock};
-            condition.wait(bufferlock, [&]() { return bufferReady == true; });
+            std::lock_guard queueGuard{lock};
+            if (bufferQueue.empty()) { continue; }
 
-            localRead = readSize;
-            std::memcpy(localBuffer.get(), sharedBuffer.get(), localRead);
-
-            bufferReady = false;
-            condition.notify_one();
+            queuePair = std::move(bufferQueue.front());
+            bufferQueue.pop();
         }
 
-        if (localRead == -1) { break; }
-
-        const bool needsCommit = journalCount + localRead >= journalSize;
+        const auto &[buffer, bufferSize] = queuePair;
+        const bool needsCommit           = journalCount + bufferSize >= journalSize;
         if (needsCommit)
         {
             destFile.close();
@@ -181,10 +158,10 @@ void fs::copy_file_commit(const fslib::Path &source,
             destFile.seek(i, destFile.BEGINNING);
         }
 
-        destFile.write(localBuffer.get(), localRead);
+        destFile.write(buffer.get(), bufferSize);
 
-        i += localRead;
-        journalCount += localRead;
+        i += bufferSize;
+        journalCount += bufferSize;
         if (task) { task->update_current(static_cast<double>(i)); }
     }
     destFile.close();
