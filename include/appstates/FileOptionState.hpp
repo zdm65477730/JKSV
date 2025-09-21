@@ -3,6 +3,7 @@
 #include "appstates/BaseState.hpp"
 #include "appstates/FileModeState.hpp"
 #include "fslib.hpp"
+#include "sys/sys.hpp"
 #include "ui/ui.hpp"
 
 #include <atomic>
@@ -41,7 +42,7 @@ class FileOptionState final : public BaseState
         void update_destination();
 
         // clang-format off
-        struct DataStruct
+        struct DataStruct : sys::Task::DataStruct
         {
             fslib::Path sourcePath{};
             fslib::Path destPath{};
@@ -49,9 +50,6 @@ class FileOptionState final : public BaseState
             FileOptionState *spawningState{};
         };
         // clang-format on
-
-        /// @brief This makes some other stuff easier to read and type.
-        using TaskData = std::shared_ptr<FileOptionState::DataStruct>;
 
     private:
         /// @brief Pointer to spawning FileMode state.

@@ -1,26 +1,16 @@
 #pragma once
 #include "sys/Task.hpp"
 
-#include <functional>
-#include <memory>
-
 namespace sys
 {
     /// @brief Derived class of Task that has methods for tracking progress.
     class ProgressTask final : public sys::Task
     {
         public:
-            /// @brief Contstructs a new ProgressTask
-            /// @param function Function for thread to execute.
-            /// @param args Arguments to forward to the thread function.
-            /// @note All functions passed to this must follow this signature: void function(sys::ProgressTask *,
-            //<arguments>)
-            template <typename... Args>
-            ProgressTask(void (*function)(sys::ProgressTask *, Args...), Args... args)
-            {
-                m_thread = std::thread(function, this, std::forward<Args>(args)...);
-                m_isRunning.store(true);
-            }
+            /// @brief Creates a Progress task.
+            /// @param function
+            /// @param taskData
+            ProgressTask(sys::threadpool::JobFunction function, sys::ProgressTask::TaskData taskData);
 
             /// @brief Resets the progress and sets a new goal.
             /// @param goal The goal we all strive for.

@@ -202,21 +202,21 @@ bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &
     remote::URL url{m_origin};
     url.append_path(item->get_id());
 
-    curl::DownloadStruct download{.dest = &destFile, .task = task, .fileSize = itemSize};
+    auto download = curl::create_download_struct(destFile, task, itemSize);
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
     curl::set_option(m_curl, CURLOPT_HTTPGET, 1L);
     curl::set_option(m_curl, CURLOPT_URL, url.get());
     curl::set_option(m_curl, CURLOPT_WRITEFUNCTION, curl::download_file_threaded);
-    curl::set_option(m_curl, CURLOPT_WRITEDATA, &download);
-
-    std::thread writeThread{curl::download_write_thread_function, std::ref(download)};
-    if (!curl::perform(m_curl)) { return false; }
+    curl::set_option(m_curl, CURLOPT_WRITEDATA, download.get());
 
     // Copied from gd.cpp implementation.
     // TODO: Not sure how a thread helps if this parent waits here.
     // TODO: Read and understand what's actually happening before making comments on other's choices.
-    writeThread.join();
+    sys::threadpool::push_job(curl::download_write_thread_function, download);
+    if (!curl::perform(m_curl)) { return false; }
+
+    download->writeComplete.acquire();
 
     return true;
 }

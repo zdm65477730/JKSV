@@ -78,8 +78,8 @@ void data::DataContext::load_user_save_info(sys::Task *task)
     {
         std::lock_guard userGuard{m_userMutex};
         {
-            const char *nickname     = user.get_nickname();
-            const std::string status = stringutil::get_formatted_string(statusLoadingUserInfo, nickname);
+            const char *nickname = user.get_nickname();
+            std::string status   = stringutil::get_formatted_string(statusLoadingUserInfo, nickname);
             task->set_status(status);
         }
         user.load_user_data();
@@ -108,7 +108,7 @@ void data::DataContext::load_application_records(sys::Task *task)
         if (DataContext::title_is_loaded(record.application_id)) { continue; }
 
         {
-            const std::string status = stringutil::get_formatted_string(statusLoadingRecords, record.application_id);
+            std::string status = stringutil::get_formatted_string(statusLoadingRecords, record.application_id);
             task->set_status(status);
         }
         DataContext::load_title(record.application_id);
@@ -171,7 +171,8 @@ void data::DataContext::import_svi_files(sys::Task *task)
 
     task->set_status(statusLoadingSvi);
 
-    auto controlData = std::make_unique<NsApplicationControlData>();
+    // auto controlData = std::make_unique<NsApplicationControlData>();
+    NsApplicationControlData controlData{};
     for (const fslib::DirectoryEntry &entry : sviDir)
     {
         const fslib::Path target{sviPath / entry};
@@ -186,11 +187,11 @@ void data::DataContext::import_svi_files(sys::Task *task)
         const bool exists    = DataContext::title_is_loaded(applicationID);
         if (!magicRead || magic != fs::SAVE_META_MAGIC || !idRead || exists) { continue; }
 
-        const bool dataRead = sviFile.read(controlData.get(), SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
+        const bool dataRead = sviFile.read(&controlData, SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
         if (!dataRead) { continue; }
 
         std::scoped_lock multiGuard{m_iconQueueMutex, m_titleMutex};
-        m_titleInfo.try_emplace(applicationID, applicationID, *controlData);
+        m_titleInfo.try_emplace(applicationID, applicationID, controlData);
         m_iconQueue.push_back(&m_titleInfo.at(applicationID));
     }
 }
@@ -213,9 +214,9 @@ bool data::DataContext::read_cache(sys::Task *task)
     const char *statusLoadingCache = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 4);
     task->set_status(statusLoadingCache);
 
-    auto controlData = std::make_unique<NsApplicationControlData>();
+    NsApplicationControlData controlData{};
     do {
-        const bool dataRead = cacheZip.read(controlData.get(), SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
+        const bool dataRead = cacheZip.read(&controlData, SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
         if (!dataRead) { continue; }
 
         std::string_view filename{cacheZip.get_filename()};
@@ -227,7 +228,7 @@ bool data::DataContext::read_cache(sys::Task *task)
 
         std::scoped_lock multiGuard{m_iconQueueMutex, m_titleMutex};
 
-        m_titleInfo.try_emplace(applicationID, applicationID, *controlData);
+        m_titleInfo.try_emplace(applicationID, applicationID, controlData);
         m_iconQueue.push_back(&m_titleInfo.at(applicationID));
     } while (cacheZip.next_file());
     m_cacheIsValid = true;

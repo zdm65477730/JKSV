@@ -42,13 +42,11 @@ class MainMenuState final : public BaseState
         static void refresh_view_states();
 
         // clang-format off
-        struct DataStruct
+        struct DataStruct : sys::Task::DataStruct
         {
             data::UserList userList;
         };
         // clang-format on
-
-        using TaskData = std::shared_ptr<MainMenuState::DataStruct>;
 
     private:
         /// @brief Render target this state renders to.
@@ -70,7 +68,7 @@ class MainMenuState final : public BaseState
         std::shared_ptr<ui::ControlGuide> m_controlGuide{};
 
         /// @brief This is the data struct passed to tasks.
-        MainMenuState::TaskData m_dataStruct{};
+        std::shared_ptr<MainMenuState::DataStruct> m_dataStruct{};
 
         /// @brief Records the size of the sm_users vector.
         static inline int sm_userCount{};

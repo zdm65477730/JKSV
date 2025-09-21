@@ -28,27 +28,26 @@ namespace
 /// @tparam TaskType The type of task spawned on confirmation. Ex: Task, ProgressTask
 /// @tparam StateType The state type spawned on confirmation. Ex: TaskState, ProgressState
 /// @tparam StructType The type of struct passed to the state on confirmation.
-template <typename TaskType, typename StateType, typename StructType>
+template <typename TaskType, typename StateType>
 class ConfirmState final : public BaseState
 {
     public:
-        /// @brief All functions passed to this state need to follow this signature: void function(<TaskType> *,
-        /// std::shared_ptr<<StructType>>)
-        using TaskFunction = void (*)(TaskType *, std::shared_ptr<StructType>);
-
         /// @brief Constructor for new ConfirmState.
         /// @param query The string displayed.
         /// @param holdRequired Whether or not confirmation requires holding A for three seconds.
         /// @param function Function executed on confirmation.
         /// @param dataStruct shared_ptr<StructType> that is passed to function. I tried templating this and it was a nightmare.
-        ConfirmState(std::string_view query, bool holdRequired, TaskFunction function, std::shared_ptr<StructType> dataStruct)
+        ConfirmState(std::string_view query,
+                     bool holdRequired,
+                     sys::threadpool::JobFunction function,
+                     sys::Task::TaskData taskData)
             : BaseState(false)
             , m_query(query)
             , m_yesText(strings::get_by_name(strings::names::YES_NO_OK, 0))
             , m_noText(strings::get_by_name(strings::names::YES_NO_OK, 1))
             , m_holdRequired(holdRequired)
             , m_function(function)
-            , m_dataStruct(dataStruct)
+            , m_taskData(taskData)
         {
             ConfirmState::initialize_static_members();
             ConfirmState::center_no();
@@ -59,20 +58,20 @@ class ConfirmState final : public BaseState
         /// @brief Returns a new ConfirmState. See constructor.
         static inline std::shared_ptr<ConfirmState> create(std::string_view query,
                                                            bool holdRequired,
-                                                           TaskFunction function,
-                                                           std::shared_ptr<StructType> dataStruct)
+                                                           sys::threadpool::JobFunction function,
+                                                           sys::Task::TaskData taskData)
         {
-            return std::make_shared<ConfirmState>(query, holdRequired, function, dataStruct);
+            return std::make_shared<ConfirmState>(query, holdRequired, function, taskData);
         }
 
         /// @brief Creates and returns a new ConfirmState and pushes it.
         static inline std::shared_ptr<ConfirmState> create_and_push(std::string_view query,
                                                                     bool holdRequired,
-                                                                    TaskFunction function,
-                                                                    std::shared_ptr<StructType> dataStruct)
+                                                                    sys::threadpool::JobFunction function,
+                                                                    sys::Task::TaskData taskData)
         {
             // I'm gonna use a sneaky trick here. This shouldn't do this because it's confusing.
-            auto newState = create(query, holdRequired, function, dataStruct);
+            auto newState = create(query, holdRequired, function, taskData);
             StateManager::push_state(newState);
             return newState;
         }
@@ -80,10 +79,10 @@ class ConfirmState final : public BaseState
         /// @brief Same as above but with a fade transition pushed  in between.
         static std::shared_ptr<ConfirmState> create_push_fade(std::string_view query,
                                                               bool holdRequired,
-                                                              TaskFunction function,
-                                                              std::shared_ptr<StructType> dataStruct)
+                                                              sys::threadpool::JobFunction function,
+                                                              sys::Task::TaskData taskData)
         {
-            auto newState = ConfirmState::create(query, holdRequired, function, dataStruct);
+            auto newState = ConfirmState::create(query, holdRequired, function, taskData);
             FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, newState);
             return newState;
         }
@@ -151,10 +150,10 @@ class ConfirmState final : public BaseState
         int m_stage{};
 
         /// @brief Function to execute if action is confirmed.
-        const TaskFunction m_function{};
+        const sys::threadpool::JobFunction m_function{};
 
         /// @brief Pointer to data struct passed to ^
-        const std::shared_ptr<StructType> m_dataStruct{};
+        const sys::Task::TaskData m_taskData{};
 
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
 
@@ -188,8 +187,8 @@ class ConfirmState final : public BaseState
 
         void confirmed()
         {
-            auto newState = std::make_shared<StateType>(m_function, m_dataStruct);
-            StateManager::push_state(newState);
+            // auto newState = std::make_shared<StateType>(m_function, m_taskData);
+            auto newState = StateType::create_and_push(m_function, m_taskData);
             BaseState::deactivate();
         }
 
@@ -229,3 +228,6 @@ class ConfirmState final : public BaseState
             ConfirmState::center_yes();
         }
 };
+
+using ConfirmTask     = ConfirmState<sys::Task, TaskState>;
+using ConfirmProgress = ConfirmState<sys::ProgressTask, ProgressState>;

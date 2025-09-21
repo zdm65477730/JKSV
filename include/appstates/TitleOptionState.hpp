@@ -49,7 +49,7 @@ class TitleOptionState final : public BaseState
         void refresh_required();
 
         // clang-format off
-        struct DataStruct
+       struct DataStruct : sys::Task::DataStruct
         {
             data::User *user{};
             data::TitleInfo *titleInfo{};
@@ -57,8 +57,6 @@ class TitleOptionState final : public BaseState
             TitleSelectCommon *titleSelect{};
         };
         // clang-format on
-
-        using TaskData = std::shared_ptr<TitleOptionState::DataStruct>;
 
     private:
         /// @brief This is just in case the option should only apply to the current user.

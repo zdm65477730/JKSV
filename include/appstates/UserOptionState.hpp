@@ -44,14 +44,12 @@ class UserOptionState final : public BaseState
         void refresh_required();
 
         // clang-format off
-        struct DataStruct
+        struct DataStruct : sys::Task::DataStruct
         {
             data::User *user{};
             UserOptionState *spawningState{};
         };
         // clang-format on
-
-        using TaskData = std::shared_ptr<UserOptionState::DataStruct>;
 
     private:
         /// @brief Pointer to the target user.

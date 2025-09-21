@@ -10,15 +10,26 @@
 
 namespace
 {
+    // clang-format off
+    // This seems stupid, but it's the only way, really.
+    struct StateDataStruct : sys::Task::DataStruct
+    {
+        bool clearCache{};
+    };
+    // clang-format on
+
     data::DataContext s_context{};
 } // namespace
 
 /// @brief The main routine for the task to load data.
-static void data_initialize_task(sys::Task *task, bool clearCache);
+static void data_initialize_task(sys::threadpool::JobData taskData);
 
 void data::launch_initialization(bool clearCache, std::function<void()> onDestruction)
 {
-    auto loadingState = DataLoadingState::create(s_context, onDestruction, data_initialize_task, clearCache);
+    auto taskData        = std::make_shared<StateDataStruct>();
+    taskData->clearCache = clearCache;
+
+    auto loadingState = DataLoadingState::create(s_context, onDestruction, data_initialize_task, taskData);
     StateManager::push_state(loadingState);
 }
 
@@ -40,8 +51,12 @@ void data::get_title_info_by_type(FsSaveDataType saveType, data::TitleInfoList &
     s_context.get_title_info_list_by_type(saveType, listOut);
 }
 
-static void data_initialize_task(sys::Task *task, bool clearCache)
+static void data_initialize_task(sys::threadpool::JobData taskData)
 {
+    auto castData         = std::static_pointer_cast<StateDataStruct>(taskData);
+    sys::Task *task       = castData->task;
+    const bool clearCache = castData->clearCache;
+
     if (error::is_null(task)) { return; }
     const char *statusFinalizing = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 6);
 

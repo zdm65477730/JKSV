@@ -86,3 +86,26 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string_view mess
     auto queuePair = std::make_pair(displayTicks, std::string{message});
     messageQueue.push_back(std::move(queuePair));
 }
+
+void ui::PopMessageManager::push_message(int displayTicks, std::string &message)
+{
+    PopMessageManager &manager = PopMessageManager::get_instance();
+    std::mutex &queueMutex     = manager.m_queueMutex;
+    std::mutex &messageMutex   = manager.m_messageMutex;
+    auto &messageQueue         = manager.m_messageQueue;
+    auto &messages             = manager.m_messages;
+
+    {
+        std::lock_guard messageGuard{messageMutex};
+        if (!messages.empty())
+        {
+            ui::PopMessage &back               = messages.back();
+            const std::string_view lastMessage = back.get_message();
+            if (lastMessage == message) { return; }
+        }
+    }
+
+    std::lock_guard queueGuard(queueMutex);
+    auto queuePair = std::make_pair(displayTicks, std::move(message));
+    messageQueue.push_back(std::move(queuePair));
+}

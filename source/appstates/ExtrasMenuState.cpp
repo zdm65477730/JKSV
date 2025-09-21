@@ -79,7 +79,7 @@ void ExtrasMenuState::render()
 
 void ExtrasMenuState::initialize_menu()
 {
-    if (!m_extrasMenu) { m_extrasMenu = ui::Menu::create(32, 8, 1000, 24, 555); }
+    if (!m_extrasMenu) { m_extrasMenu = ui::Menu::create(32, 10, 1000, 23, 555); }
 
     for (int i = 0; const char *option = strings::get_by_name(strings::names::EXTRASMENU_MENU, i); i++)
     {

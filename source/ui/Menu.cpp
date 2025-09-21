@@ -11,7 +11,7 @@
 ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     : m_x(x)
     , m_y(y)
-    , m_optionHeight(std::round(static_cast<double>(fontSize) * 1.8f))
+    , m_optionHeight(std::floor(static_cast<double>(fontSize) * 1.8f))
     , m_optionTarget(
           sdl::TextureManager::load("MENU_" + std::to_string(sm_menuID++), width, m_optionHeight, SDL_TEXTUREACCESS_TARGET))
     , m_boundingBox(ui::BoundingBox::create(0, 0, width + 12, m_optionHeight + 12))
@@ -75,6 +75,12 @@ void ui::Menu::add_option(std::string_view newOption)
     m_options.push_back(newOption.data());
 }
 
+void ui::Menu::add_option(std::string &newOption)
+{
+    if (m_options.empty()) { m_optionScroll->set_text(newOption, false); }
+    m_options.push_back(std::move(newOption));
+}
+
 void ui::Menu::edit_option(int index, std::string_view newOption)
 {
     const int optionSize = m_options.size();
@@ -95,10 +101,14 @@ void ui::Menu::set_y(int y) noexcept { m_y = y; }
 
 void ui::Menu::set_width(int width) noexcept { m_width = width; }
 
-void ui::Menu::reset()
+void ui::Menu::reset(bool full)
 {
-    m_selected = 0;
-    m_y        = m_originalY;
+    if (full)
+    {
+        m_selected = 0;
+        m_y        = m_originalY;
+    }
+
     m_options.clear();
 }
 

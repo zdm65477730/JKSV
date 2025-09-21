@@ -66,7 +66,7 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
             continue;
         }
 
-        const bool asciiCheck = codepoint < 0x0 || codepoint >= 0x7E;
+        const bool asciiCheck = codepoint < 0x1E || codepoint >= 0x7E;
         if (asciiCheck) { return false; }
 
         const bool isForbidden = std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) !=

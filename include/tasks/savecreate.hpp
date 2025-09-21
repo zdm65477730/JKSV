@@ -5,5 +5,5 @@
 
 namespace tasks::savecreate
 {
-    void create_save_data_for(sys::Task *task, data::User *user, data::TitleInfo *titleInfo, SaveCreateState *spawningState);
+    void create_save_data_for(sys::threadpool::JobData taskData);
 }

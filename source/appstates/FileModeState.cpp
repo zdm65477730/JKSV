@@ -15,7 +15,7 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
     : m_mountA(mountA)
     , m_mountB(mountB)
     , m_journalSize(journalSize)
-    , m_transition(15, 720, 15, 87, 4)
+    , m_transition(15, 720, 15, 85, 4)
     , m_isSystem(isSystem)
     , m_allowSystem(config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
 {
@@ -102,8 +102,8 @@ void FileModeState::initialize_paths()
 
 void FileModeState::initialize_menus()
 {
-    m_dirMenuA = ui::Menu::create(8, 8, 594, 22, 538);
-    m_dirMenuB = ui::Menu::create(626, 8, 594, 22, 538);
+    m_dirMenuA = ui::Menu::create(8, 5, 594, 20, 538);
+    m_dirMenuB = ui::Menu::create(626, 5, 594, 20, 538);
 
     FileModeState::initialize_directory_menu(m_pathA, m_dirA, *m_dirMenuA.get());
     FileModeState::initialize_directory_menu(m_pathB, m_dirB, *m_dirMenuB.get());

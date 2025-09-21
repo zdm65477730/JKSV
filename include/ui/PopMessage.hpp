@@ -12,6 +12,9 @@ namespace ui
             /// @brief PopMessage constructor.
             PopMessage(int ticks, std::string_view message);
 
+            /// @brief Same as above. Moves string instead of copying.
+            PopMessage(int ticks, std::string &message);
+
             /// @brief Updates the width, target, and typing.
             void update(double targetY);
 

@@ -14,35 +14,25 @@ class DataLoadingState final : public BaseTask
         /// @brief This is a definition for functions that are called at destruction.
         using DestructFunction = std::function<void()>;
 
-        template <typename... Args>
         DataLoadingState(data::DataContext &context,
                          DestructFunction destructFunction,
-                         void (*function)(sys::Task *, Args...),
-                         Args... args)
-            : BaseTask()
-            , m_context(context)
-            , m_destructFunction(destructFunction)
-        {
-            DataLoadingState::initialize_static_members();
-            m_task = std::make_unique<sys::Task>(function, std::forward<Args>(args)...);
-        }
+                         sys::threadpool::JobFunction function,
+                         sys::Task::TaskData taskData);
 
-        template <typename... Args>
         static inline std::shared_ptr<DataLoadingState> create(data::DataContext &context,
                                                                DestructFunction destructFunction,
-                                                               void (*function)(sys::Task *, Args...),
-                                                               Args... args)
+                                                               sys::threadpool::JobFunction function,
+                                                               sys::Task::TaskData taskData)
         {
-            return std::make_shared<DataLoadingState>(context, destructFunction, function, std::forward<Args>(args)...);
+            return std::make_shared<DataLoadingState>(context, destructFunction, function, taskData);
         }
 
-        template <typename... Args>
         static inline std::shared_ptr<DataLoadingState> create_and_push(data::DataContext &context,
                                                                         DestructFunction destructFunction,
-                                                                        void (*function)(sys::Task *, Args...),
-                                                                        Args... args)
+                                                                        sys::threadpool::JobFunction function,
+                                                                        sys::Task::TaskData taskData)
         {
-            auto newState = DataLoadingState::create(context, destructFunction, function, std::forward<Args>(args)...);
+            auto newState = DataLoadingState::create(context, destructFunction, function, taskData);
             StateManager::push_state(newState);
             return newState;
         }

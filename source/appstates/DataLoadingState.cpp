@@ -8,6 +8,18 @@ namespace
     constexpr int SCREEN_CENTER = 640;
 }
 
+DataLoadingState::DataLoadingState(data::DataContext &context,
+                                   DestructFunction destructFunction,
+                                   sys::threadpool::JobFunction function,
+                                   sys::Task::TaskData taskData)
+    : BaseTask()
+    , m_context(context)
+    , m_destructFunction(destructFunction)
+{
+    DataLoadingState::initialize_static_members();
+    m_task = std::make_unique<sys::Task>(function, taskData);
+}
+
 void DataLoadingState::update()
 {
     BaseTask::update_loading_glyph();

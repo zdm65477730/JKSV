@@ -1,5 +1,14 @@
 #include "sys/ProgressTask.hpp"
 
+#include "logging/logger.hpp"
+
+sys::ProgressTask::ProgressTask(sys::threadpool::JobFunction function, sys::ProgressTask::TaskData taskData)
+    : Task()
+{
+    taskData->task = this;
+    threadpool::push_job(function, taskData);
+}
+
 void sys::ProgressTask::reset(double goal) noexcept
 {
     m_current = 0;

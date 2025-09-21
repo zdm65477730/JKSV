@@ -55,8 +55,6 @@ void config::ConfigContext::reset()
     m_configMap[config::keys::SHOW_SYSTEM_USER.data()]        = 0;
     m_configMap[config::keys::ENABLE_TRASH_BIN.data()]        = 0;
     m_animationScaling                                        = DEFAULT_SCALING;
-
-    ConfigContext::save();
 }
 
 bool config::ConfigContext::load()
@@ -110,7 +108,6 @@ void config::ConfigContext::add_favorite(uint64_t applicationID)
     const auto findFav = ConfigContext::find_application_id(m_favorites, applicationID);
     if (findFav != m_favorites.end()) { return; }
     m_favorites.push_back(applicationID);
-    ConfigContext::save_config_file();
 }
 
 void config::ConfigContext::remove_favorite(uint64_t applicationID) noexcept
@@ -118,7 +115,6 @@ void config::ConfigContext::remove_favorite(uint64_t applicationID) noexcept
     const auto findFav = ConfigContext::find_application_id(m_favorites, applicationID);
     if (findFav == m_favorites.end()) { return; }
     m_favorites.erase(findFav);
-    ConfigContext::save_config_file();
 }
 
 bool config::ConfigContext::is_favorite(uint64_t applicationID) const noexcept

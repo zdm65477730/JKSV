@@ -2,5 +2,5 @@
 
 namespace sys
 {
-    using byte = unsigned char;
+    using Byte = unsigned char;
 }

@@ -30,10 +30,6 @@ namespace
         CREATE_ALL_SAVE,
         DELETE_ALL_SAVE
     };
-
-    // These make things easier to type later.
-    using TaskConfirm     = ConfirmState<sys::Task, TaskState, UserOptionState::DataStruct>;
-    using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, UserOptionState::DataStruct>;
 } // namespace
 
 UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelect)
@@ -128,9 +124,9 @@ void UserOptionState::backup_all()
     const std::string query = stringutil::get_formatted_string(confirmFormat, nickname);
     if (remote && autoUpload)
     {
-        ProgressConfirm::create_and_push(query, true, tasks::useroptions::backup_all_for_user_remote, m_dataStruct);
+        ConfirmProgress::create_push_fade(query, true, tasks::useroptions::backup_all_for_user_remote, m_dataStruct);
     }
-    else { ProgressConfirm::create_and_push(query, true, tasks::useroptions::backup_all_for_user_local, m_dataStruct); }
+    else { ConfirmProgress::create_push_fade(query, true, tasks::useroptions::backup_all_for_user_local, m_dataStruct); }
 }
 
 void UserOptionState::create_save_create()
@@ -149,7 +145,7 @@ void UserOptionState::create_all_save_data()
     const char *nickname      = m_user->get_nickname();
 
     const std::string query = stringutil::get_formatted_string(confirmFormat, nickname);
-    TaskConfirm::create_and_push(query, true, tasks::useroptions::create_all_save_data_for_user, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::useroptions::create_all_save_data_for_user, m_dataStruct);
 }
 
 void UserOptionState::delete_all_save_data()
@@ -160,7 +156,7 @@ void UserOptionState::delete_all_save_data()
     const char *confirmFormat     = strings::get_by_name(strings::names::USEROPTION_CONFS, 2);
     const char *nickname          = m_user->get_nickname();
     const std::string queryString = stringutil::get_formatted_string(confirmFormat, nickname);
-    TaskConfirm::create_and_push(queryString, true, tasks::useroptions::delete_all_save_data_for_user, m_dataStruct);
+    ConfirmTask::create_push_fade(queryString, true, tasks::useroptions::delete_all_save_data_for_user, m_dataStruct);
 }
 
 void UserOptionState::deactivate_state()

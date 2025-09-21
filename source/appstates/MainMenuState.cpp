@@ -19,11 +19,6 @@
 #include "tasks/mainmenu.hpp"
 #include "ui/PopMessageManager.hpp"
 
-namespace
-{
-    using ProgressConfirm = ConfirmState<sys::ProgressTask, ProgressState, MainMenuState::DataStruct>;
-}
-
 MainMenuState::MainMenuState()
     : m_renderTarget(sdl::TextureManager::load("mainMenuTarget", 200, 555, SDL_TEXTUREACCESS_TARGET))
     , m_background(sdl::TextureManager::load("mainBackground", "romfs:/Textures/MenuBackground.png"))
@@ -138,8 +133,8 @@ void MainMenuState::push_target_state()
         const int titleCount   = user->get_total_data_entries();
         if (titleCount <= 0)
         {
-            const char *nickname       = user->get_nickname();
-            const std::string popError = stringutil::get_formatted_string(popNoSaveFormat, nickname);
+            const char *nickname = user->get_nickname();
+            std::string popError = stringutil::get_formatted_string(popNoSaveFormat, nickname);
             ui::PopMessageManager::push_message(popTicks, popError);
             return;
         }
@@ -166,7 +161,7 @@ void MainMenuState::backup_all_for_all()
     const char *query       = strings::get_by_name(strings::names::MAINMENU_CONFS, 0);
     if (remote && autoUpload)
     {
-        ProgressConfirm::create_and_push(query, true, tasks::mainmenu::backup_all_for_all_remote, m_dataStruct);
+        ConfirmProgress::create_push_fade(query, true, tasks::mainmenu::backup_all_for_all_remote, m_dataStruct);
     }
-    else { ProgressConfirm::create_and_push(query, true, tasks::mainmenu::backup_all_for_all_local, m_dataStruct); }
+    else { ConfirmProgress::create_push_fade(query, true, tasks::mainmenu::backup_all_for_all_local, m_dataStruct); }
 }

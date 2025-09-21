@@ -9,12 +9,20 @@
 #include "tasks/backup.hpp"
 #include "ui/ui.hpp"
 
-void tasks::useroptions::backup_all_for_user_local(sys::ProgressTask *task, UserOptionState::TaskData taskData)
+void tasks::useroptions::backup_all_for_user_local(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<UserOptionState::DataStruct>(taskData);
 
-    data::User *user = taskData->user;
+    sys::ProgressTask *task = static_cast<sys::ProgressTask *>(castData->task);
+    data::User *user        = castData->user;
+
+    if (error::is_null(task)) { return; }
     if (error::is_null(user)) { TASK_FINISH_RETURN(task); }
+
+    auto backupStruct      = std::make_shared<BackupMenuState::DataStruct>();
+    backupStruct->task     = task;
+    backupStruct->user     = user;
+    backupStruct->killTask = false;
 
     const fslib::Path workDir{config::get_working_directory()};
     const bool exportToZip = config::get_by_key(config::keys::EXPORT_TO_ZIP);
@@ -31,6 +39,7 @@ void tasks::useroptions::backup_all_for_user_local(sys::ProgressTask *task, User
 
         data::TitleInfo *titleInfo = data::get_title_info_by_id(saveInfo->application_id);
         if (error::is_null(titleInfo)) { continue; }
+        backupStruct->titleInfo = titleInfo;
 
         const fslib::Path targetDir{workDir / titleInfo->get_path_safe_title()};
         const bool targetExists = fslib::directory_exists(targetDir);
@@ -48,18 +57,26 @@ void tasks::useroptions::backup_all_for_user_local(sys::ProgressTask *task, User
             if (createError) { continue; }
         }
 
-        tasks::backup::create_new_backup_local(task, user, titleInfo, finalTarget, nullptr, false);
+        backupStruct->path = std::move(finalTarget);
+        tasks::backup::create_new_backup_local(backupStruct);
     }
     task->complete();
 }
 
-void tasks::useroptions::backup_all_for_user_remote(sys::ProgressTask *task, UserOptionState::TaskData taskData)
+void tasks::useroptions::backup_all_for_user_remote(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<UserOptionState::DataStruct>(taskData);
 
-    data::User *user        = taskData->user;
+    sys::ProgressTask *task = static_cast<sys::ProgressTask *>(castData->task);
+    data::User *user        = castData->user;
     remote::Storage *remote = remote::get_remote_storage();
+    if (error::is_null(task)) { return; }
     if (error::is_null(user) || error::is_null(remote)) { TASK_FINISH_RETURN(task); }
+
+    auto backupStruct      = std::make_shared<BackupMenuState::DataStruct>();
+    backupStruct->task     = task;
+    backupStruct->user     = user;
+    backupStruct->killTask = false;
 
     const int titleCount = user->get_total_data_entries();
     for (int i = 0; i < titleCount; i++)
@@ -75,6 +92,7 @@ void tasks::useroptions::backup_all_for_user_remote(sys::ProgressTask *task, Use
         data::TitleInfo *titleInfo = data::get_title_info_by_id(saveInfo->application_id);
         if (error::is_null(saveInfo)) { continue; }
 
+        backupStruct->titleInfo = titleInfo;
         const std::string_view remoteTitle =
             remote->supports_utf8() ? titleInfo->get_title() : titleInfo->get_path_safe_title();
         const bool dirExists = remote->directory_exists(remoteTitle);
@@ -85,21 +103,23 @@ void tasks::useroptions::backup_all_for_user_remote(sys::ProgressTask *task, Use
         remote->change_directory(target);
 
         const std::string dateString = stringutil::get_date_string();
-        const std::string remoteName =
-            stringutil::get_formatted_string("%s - %s.zip", user->get_nickname(), dateString.c_str());
-        tasks::backup::create_new_backup_remote(task, user, titleInfo, remoteName, nullptr, false);
+
+        backupStruct->remoteName = stringutil::get_formatted_string("%s - %s.zip", user->get_nickname(), dateString.c_str());
+        tasks::backup::create_new_backup_remote(backupStruct);
 
         remote->return_to_root();
     }
     task->complete();
 }
 
-void tasks::useroptions::create_all_save_data_for_user(sys::Task *task, UserOptionState::TaskData taskData)
+void tasks::useroptions::create_all_save_data_for_user(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<UserOptionState::DataStruct>(taskData);
 
-    data::User *user               = taskData->user;
-    UserOptionState *spawningState = taskData->spawningState;
+    sys::Task *task                = castData->task;
+    data::User *user               = castData->user;
+    UserOptionState *spawningState = castData->spawningState;
+    if (error::is_null(task)) { return; }
     if (error::is_null(user) || error::is_null(spawningState)) { TASK_FINISH_RETURN(task); }
 
     data::TitleInfoList infoList{};
@@ -116,14 +136,14 @@ void tasks::useroptions::create_all_save_data_for_user(sys::Task *task, UserOpti
         if (!hasSaveType) { continue; }
 
         {
-            const std::string status = stringutil::get_formatted_string(statusFormat, title);
+            std::string status = stringutil::get_formatted_string(statusFormat, title);
             task->set_status(status);
         }
 
         const bool saveCreated = fs::create_save_data_for(user, titleInfo);
         if (!saveCreated)
         {
-            const std::string popMessage = stringutil::get_formatted_string(popFailure, title);
+            std::string popMessage = stringutil::get_formatted_string(popFailure, title);
             ui::PopMessageManager::push_message(popTicks, popMessage);
         }
     }
@@ -132,14 +152,18 @@ void tasks::useroptions::create_all_save_data_for_user(sys::Task *task, UserOpti
     task->complete();
 }
 
-void tasks::useroptions::delete_all_save_data_for_user(sys::Task *task, UserOptionState::TaskData taskData)
+void tasks::useroptions::delete_all_save_data_for_user(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+    auto castData = std::static_pointer_cast<UserOptionState::DataStruct>(taskData);
 
-    data::User *user               = taskData->user;
-    UserOptionState *spawningState = taskData->spawningState;
-    if (error::is_null(user) || error::is_null(spawningState)) { TASK_FINISH_RETURN(task); }
-    if (user->get_account_save_type() == FsSaveDataType_System) { TASK_FINISH_RETURN(task); }
+    sys::Task *task                = castData->task;
+    data::User *user               = castData->user;
+    UserOptionState *spawningState = castData->spawningState;
+    if (error::is_null(task)) { return; }
+    if (error::is_null(user) || error::is_null(spawningState) || user->get_account_save_type() == FsSaveDataType_System)
+    {
+        TASK_FINISH_RETURN(task);
+    }
 
     const int popTicks       = ui::PopMessageManager::DEFAULT_TICKS;
     const char *statusFormat = strings::get_by_name(strings::names::USEROPTION_STATUS, 1);
@@ -156,7 +180,7 @@ void tasks::useroptions::delete_all_save_data_for_user(sys::Task *task, UserOpti
         {
             data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
             const char *title          = titleInfo->get_title();
-            const std::string status   = stringutil::get_formatted_string(statusFormat, title);
+            std::string status         = stringutil::get_formatted_string(statusFormat, title);
             task->set_status(status);
         }
 

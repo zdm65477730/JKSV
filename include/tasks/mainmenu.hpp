@@ -4,6 +4,6 @@
 
 namespace tasks::mainmenu
 {
-    void backup_all_for_all_local(sys::ProgressTask *task, MainMenuState::TaskData taskData);
-    void backup_all_for_all_remote(sys::ProgressTask *task, MainMenuState::TaskData taskData);
+    void backup_all_for_all_local(sys::threadpool::JobData taskData);
+    void backup_all_for_all_remote(sys::threadpool::JobData taskData);
 }

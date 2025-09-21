@@ -4,18 +4,23 @@
 #include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
+#include "logging/logger.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
 
-void tasks::fileoptions::copy_source_to_destination(sys::ProgressTask *task, FileOptionState::TaskData taskData)
+void tasks::fileoptions::copy_source_to_destination(sys::threadpool::JobData taskData)
 {
-    if (error::is_null(task)) { return; }
+
+    auto castData = std::static_pointer_cast<FileOptionState::DataStruct>(taskData);
 
     const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
-    const fslib::Path &source      = taskData->sourcePath;
-    const fslib::Path &dest        = taskData->destPath;
-    const int64_t journalSpace     = taskData->journalSize;
-    FileOptionState *spawningState = taskData->spawningState;
+    sys::ProgressTask *task        = static_cast<sys::ProgressTask *>(castData->task);
+    const fslib::Path &source      = castData->sourcePath;
+    const fslib::Path &dest        = castData->destPath;
+    const int64_t journalSpace     = castData->journalSize;
+    FileOptionState *spawningState = castData->spawningState;
+
+    if (error::is_null(task)) { return; }
 
     const bool sourceIsDir = fslib::directory_exists(source);
     bool destError         = false;
@@ -33,7 +38,7 @@ void tasks::fileoptions::copy_source_to_destination(sys::ProgressTask *task, Fil
     if (destError)
     {
         const char *errorFormat = strings::get_by_name(strings::names::FILEOPTION_POPS, 0);
-        const std::string pop   = stringutil::get_formatted_string(errorFormat, source.get_filename());
+        std::string pop         = stringutil::get_formatted_string(errorFormat, source.get_filename());
         ui::PopMessageManager::push_message(popTicks, pop);
         TASK_FINISH_RETURN(task);
     }
@@ -49,8 +54,15 @@ void tasks::fileoptions::copy_source_to_destination(sys::ProgressTask *task, Fil
     task->complete();
 }
 
-void tasks::fileoptions::delete_target(sys::Task *task, FileOptionState::TaskData taskData)
+void tasks::fileoptions::delete_target(sys::threadpool::JobData taskData)
 {
+    auto castData = std::static_pointer_cast<FileOptionState::DataStruct>(taskData);
+
+    sys::Task *task                = castData->task;
+    const fslib::Path &target      = castData->sourcePath;
+    const int64_t journalSpace     = castData->journalSize;
+    FileOptionState *spawningState = castData->spawningState;
+
     if (error::is_null(task)) { return; }
 
     // Gonna borrow this. No point in duplicating it.
@@ -58,13 +70,9 @@ void tasks::fileoptions::delete_target(sys::Task *task, FileOptionState::TaskDat
     const char *deletingFormat = strings::get_by_name(strings::names::IO_STATUSES, 3);
     const char *errorFormat    = strings::get_by_name(strings::names::FILEOPTION_POPS, 1);
 
-    const fslib::Path &target      = taskData->sourcePath;
-    const int64_t journalSpace     = taskData->journalSize;
-    FileOptionState *spawningState = taskData->spawningState;
-
     {
-        const char *filename     = target.get_filename();
-        const std::string status = stringutil::get_formatted_string(deletingFormat, filename);
+        const char *filename = target.get_filename();
+        std::string status   = stringutil::get_formatted_string(deletingFormat, filename);
         task->set_status(status);
     }
 
@@ -77,16 +85,16 @@ void tasks::fileoptions::delete_target(sys::Task *task, FileOptionState::TaskDat
 
     if (deleteError)
     {
-        const char *filename  = target.get_filename();
-        const std::string pop = stringutil::get_formatted_string(errorFormat, filename);
+        const char *filename = target.get_filename();
+        std::string pop      = stringutil::get_formatted_string(errorFormat, filename);
         ui::PopMessageManager::push_message(popTicks, pop);
     }
 
     const bool commitError = needsCommit && error::fslib(fslib::commit_data_to_file_system(target.get_device_name()));
     if (commitError)
     {
-        const char *filename  = target.get_filename();
-        const std::string pop = stringutil::get_formatted_string(errorFormat, filename);
+        const char *filename = target.get_filename();
+        std::string pop      = stringutil::get_formatted_string(errorFormat, filename);
         ui::PopMessageManager::push_message(popTicks, pop);
     }
 
