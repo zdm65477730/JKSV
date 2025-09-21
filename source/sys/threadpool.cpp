@@ -44,7 +44,7 @@ void sys::threadpool::initialize()
     for (size_t i = 0; i < COUNT_THREADS; i++)
     {
         // NOTE: If pool size increases, i + 1 isn't going to work anymore.
-        error::libnx(threadCreate(&s_threads[i], thread_pool_function, nullptr, nullptr, SIZE_THREAD_STACK, 0x2C, i + 1));
+        error::libnx(threadCreate(&s_threads[i], thread_pool_function, nullptr, nullptr, SIZE_THREAD_STACK, 0x2B, i + 1));
         error::libnx(threadStart(&s_threads[i]));
     }
 }
@@ -64,7 +64,7 @@ void sys::threadpool::push_job(sys::threadpool::JobFunction function, sys::threa
 {
     std::lock_guard jobGuard{s_jobMutex};
     s_jobQueue.push(std::make_pair(function, data));
-    s_jobCondition.notify_one();
+    s_jobCondition.notify_all();
 }
 
 static void thread_pool_function(void *)

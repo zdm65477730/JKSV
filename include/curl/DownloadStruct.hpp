@@ -4,12 +4,20 @@
 
 #include <array>
 #include <condition_variable>
-#include <memory>
 #include <mutex>
+#include <semaphore>
+#include <vector>
 
 namespace curl
 {
     inline constexpr size_t SHARED_BUFFER_SIZE = 0x500000;
+
+    // This is for synchronizing the buffer.
+    enum class BufferState
+    {
+        Empty,
+        Full
+    };
 
     // clang-format off
     struct DownloadStruct : sys::threadpool::DataStruct
@@ -21,13 +29,10 @@ namespace curl
         std::condition_variable condition{};
 
         /// @brief Shared buffer that is read into.
-        std::array<sys::byte, SHARED_BUFFER_SIZE> sharedBuffer{};
-
-        /// @brief Current offset in the shared buffer.
-        size_t sharedOffset{};
+        std::vector<sys::Byte> sharedBuffer{};
 
         /// @brief Bool to signal when the buffer is ready/empty.
-        bool bufferReady{};
+        BufferState bufferState{};
 
         /// @brief Destination file to write to.
         fslib::File *dest{};
@@ -40,6 +45,9 @@ namespace curl
         
         /// @brief Size of the file being downloaded.
         int64_t fileSize{};
+
+        /// @brief Signals when the write thread is complete.
+        std::binary_semaphore writeComplete{0};
     };
     // clang-format on
 
@@ -47,10 +55,11 @@ namespace curl
                                                                                sys::ProgressTask *task,
                                                                                int64_t fileSize)
     {
-        auto downloadStruct    = std::make_shared<curl::DownloadStruct>();
-        downloadStruct->dest   = &dest;
-        downloadStruct->task   = task;
-        downloadStruct->offset = fileSize;
+        auto downloadStruct      = std::make_shared<curl::DownloadStruct>();
+        downloadStruct->dest     = &dest;
+        downloadStruct->task     = task;
+        downloadStruct->fileSize = fileSize;
+        downloadStruct->sharedBuffer.reserve(SHARED_BUFFER_SIZE);
         return downloadStruct;
     }
 }

@@ -13,6 +13,7 @@
 #include <cstring>
 #include <memory>
 #include <mutex>
+#include <semaphore>
 
 namespace
 {
@@ -29,8 +30,9 @@ struct FileThreadStruct : sys::threadpool::DataStruct
     std::condition_variable condition{};
     bool bufferReady{};
     ssize_t readSize{};
-    std::unique_ptr<sys::byte[]> sharedBuffer{};
+    std::unique_ptr<sys::Byte[]> sharedBuffer{};
     fslib::File *source{};
+    std::binary_semaphore writeComplete{0};
 };
 // clang-format on
 
@@ -42,8 +44,9 @@ static void read_thread_function(sys::threadpool::JobData jobData)
     std::condition_variable &condition         = castData->condition;
     bool &bufferReady                          = castData->bufferReady;
     ssize_t &readSize                          = castData->readSize;
-    std::unique_ptr<sys::byte[]> &sharedBuffer = castData->sharedBuffer;
+    std::unique_ptr<sys::Byte[]> &sharedBuffer = castData->sharedBuffer;
     fslib::File &source                        = *castData->source;
+    auto &writeComplete                        = castData->writeComplete;
     const int64_t fileSize                     = source.get_size();
 
     for (int64_t i = 0; i < fileSize;)
@@ -62,6 +65,8 @@ static void read_thread_function(sys::threadpool::JobData jobData)
         if (localRead == -1) { break; }
         i += localRead;
     }
+
+    writeComplete.release();
 }
 
 void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sys::ProgressTask *task)
@@ -82,16 +87,17 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
     }
 
     auto sharedData          = std::make_shared<FileThreadStruct>();
-    sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
+    sharedData->sharedBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
     sharedData->source       = &sourceFile;
 
-    auto localBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
+    auto localBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
 
     std::mutex &lock                   = sharedData->lock;
     std::condition_variable &condition = sharedData->condition;
     bool &bufferReady                  = sharedData->bufferReady;
     ssize_t &readSize                  = sharedData->readSize;
     auto &sharedBuffer                 = sharedData->sharedBuffer;
+    auto &writeComplete                = sharedData->writeComplete;
 
     sys::threadpool::push_job(read_thread_function, sharedData);
     for (int64_t i = 0; i < sourceSize; i++)
@@ -115,6 +121,8 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
         i += localRead;
         if (task) { task->update_current(static_cast<double>(i)); }
     }
+
+    writeComplete.acquire();
 }
 
 void fs::copy_file_commit(const fslib::Path &source,
@@ -140,16 +148,17 @@ void fs::copy_file_commit(const fslib::Path &source,
     }
 
     auto sharedData          = std::make_shared<FileThreadStruct>();
-    sharedData->sharedBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
+    sharedData->sharedBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
     sharedData->source       = &sourceFile;
 
-    auto localBuffer = std::make_unique<sys::byte[]>(SIZE_FILE_BUFFER);
+    auto localBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
 
     std::mutex &lock                   = sharedData->lock;
     std::condition_variable &condition = sharedData->condition;
     bool &bufferReady                  = sharedData->bufferReady;
     ssize_t &readSize                  = sharedData->readSize;
     auto &sharedBuffer                 = sharedData->sharedBuffer;
+    auto &writeComplete                = sharedData->writeComplete;
 
     int64_t journalCount{};
     sys::threadpool::push_job(read_thread_function, sharedData);
@@ -187,7 +196,9 @@ void fs::copy_file_commit(const fslib::Path &source,
         journalCount += localRead;
         if (task) { task->update_current(static_cast<double>(i)); }
     }
+
     destFile.close();
+    writeComplete.acquire();
 
     const bool commitError = error::fslib(fslib::commit_data_to_file_system(destination.get_device_name()));
     if (commitError) { ui::PopMessageManager::push_message(popTicks, popCommitFailed); }

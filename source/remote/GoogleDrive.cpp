@@ -307,10 +307,7 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
     remote::URL url{URL_DRIVE_FILE_API};
     url.append_path(file->get_id()).append_parameter("alt", "media");
 
-    auto download      = std::make_shared<curl::DownloadStruct>();
-    download->dest     = &destFile;
-    download->task     = task;
-    download->fileSize = itemSize;
+    auto download = curl::create_download_struct(destFile, task, itemSize);
 
     curl::prepare_get(m_curl);
     curl::set_option(m_curl, CURLOPT_HTTPHEADER, header.get());
@@ -320,6 +317,8 @@ bool remote::GoogleDrive::download_file(const remote::Item *file, const fslib::P
 
     sys::threadpool::push_job(curl::download_write_thread_function, download);
     if (!curl::perform(m_curl)) { return false; }
+
+    download->writeComplete.acquire();
 
     return true;
 }

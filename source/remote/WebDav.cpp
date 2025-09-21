@@ -202,11 +202,7 @@ bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &
     remote::URL url{m_origin};
     url.append_path(item->get_id());
 
-    auto download      = std::make_shared<curl::DownloadStruct>();
-    download->dest     = &destFile;
-    download->task     = task;
-    download->fileSize = itemSize;
-
+    auto download = curl::create_download_struct(destFile, task, itemSize);
     curl::reset_handle(m_curl);
     WebDav::append_credentials();
     curl::set_option(m_curl, CURLOPT_HTTPGET, 1L);
@@ -219,6 +215,8 @@ bool remote::WebDav::download_file(const remote::Item *item, const fslib::Path &
     // TODO: Read and understand what's actually happening before making comments on other's choices.
     sys::threadpool::push_job(curl::download_write_thread_function, download);
     if (!curl::perform(m_curl)) { return false; }
+
+    download->writeComplete.acquire();
 
     return true;
 }

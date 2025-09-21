@@ -28,27 +28,14 @@ static fs::ScopedSaveMount create_scoped_mount(const FsSaveDataInfo *saveInfo);
 
 void tasks::backup::create_new_backup_local(sys::threadpool::JobData taskData)
 {
-    logger::log("create_new_backup_local");
     auto castData = std::static_pointer_cast<BackupMenuState::DataStruct>(taskData);
-    logger::log("static_pointer_cast");
 
-    sys::ProgressTask *task = static_cast<sys::ProgressTask *>(castData->task);
-    logger::log("task");
-
-    data::User *user = castData->user;
-    logger::log("user");
-
-    data::TitleInfo *titleInfo = castData->titleInfo;
-    logger::log("titleInfo");
-
-    const fslib::Path &target = castData->path;
-    logger::log("path");
-
+    sys::ProgressTask *task        = static_cast<sys::ProgressTask *>(castData->task);
+    data::User *user               = castData->user;
+    data::TitleInfo *titleInfo     = castData->titleInfo;
+    const fslib::Path &target      = castData->path;
     BackupMenuState *spawningState = castData->spawningState;
-    logger::log("spawningState");
-
-    const bool killTask = castData->killTask;
-    logger::log("casts & references");
+    const bool killTask            = castData->killTask;
 
     if (error::is_null(task)) { return; }
     if (error::is_null(user) || error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }

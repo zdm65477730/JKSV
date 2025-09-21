@@ -70,29 +70,25 @@ size_t curl::download_file_threaded(const char *buffer, size_t size, size_t coun
     std::mutex &lock                   = download->lock;
     std::condition_variable &condition = download->condition;
     auto &sharedBuffer                 = download->sharedBuffer;
-    size_t &sharedOffset               = download->sharedOffset;
-    bool &bufferReady                  = download->bufferReady;
+    curl::BufferState &bufferState     = download->bufferState;
     sys::ProgressTask *task            = download->task;
     size_t &offset                     = download->offset;
-    int64_t &fileSize                  = download->fileSize;
+    int64_t fileSize                   = download->fileSize;
 
     const size_t downloadSize = size * count;
-    const std::span<const sys::byte> bufferSpan{reinterpret_cast<const sys::byte *>(buffer), downloadSize};
 
     {
-        std::unique_lock<std::mutex> bufferLock(lock);
-        condition.wait(bufferLock, [&]() { return bufferReady == false; });
+        std::unique_lock<std::mutex> bufferLock{lock};
+        condition.wait(bufferLock, [&]() { return bufferState == curl::BufferState::Empty; });
 
-        std::copy(bufferSpan.begin(), bufferSpan.end(), &sharedBuffer[sharedOffset]);
-        sharedOffset += downloadSize;
+        sharedBuffer.insert(sharedBuffer.end(), buffer, buffer + downloadSize);
 
         const int64_t nextOffset = offset + downloadSize;
-        if (sharedOffset >= SIZE_DOWNLOAD_THRESHOLD || nextOffset >= fileSize)
+        if (sharedBuffer.size() >= SIZE_DOWNLOAD_THRESHOLD || nextOffset >= fileSize)
         {
-            bufferReady = true;
+            bufferState = curl::BufferState::Full;
             condition.notify_one();
         }
-
         offset += downloadSize;
     }
 
@@ -108,31 +104,33 @@ void curl::download_write_thread_function(sys::threadpool::JobData jobData)
     std::mutex &lock                   = castData->lock;
     std::condition_variable &condition = castData->condition;
     auto &sharedBuffer                 = castData->sharedBuffer;
-    size_t &sharedOffset               = castData->sharedOffset;
-    bool &bufferReady                  = castData->bufferReady;
+    curl::BufferState &bufferState     = castData->bufferState;
     fslib::File &dest                  = *castData->dest;
-    size_t fileSize                    = castData->fileSize;
+    int64_t fileSize                   = castData->fileSize;
+    auto &writeComplete                = castData->writeComplete;
 
-    auto localBuffer = std::make_unique<sys::byte[]>(SIZE_DOWNLOAD_THRESHOLD + 0x100000); // Gonna give this some room.
+    std::vector<sys::Byte> localBuffer{};
+    localBuffer.reserve(curl::SHARED_BUFFER_SIZE);
 
-    for (size_t i = 0; i < fileSize;)
+    for (int64_t i = 0; i < fileSize;)
     {
-        size_t bufferSize{};
         {
-            std::unique_lock<std::mutex> bufferLock(lock);
-            condition.wait(bufferLock, [&]() { return bufferReady == true; });
+            std::unique_lock<std::mutex> bufferLock{lock};
+            condition.wait(bufferLock, [&]() { return bufferState == curl::BufferState::Full; });
 
             // Copy and reset the offset.
-            bufferSize = sharedOffset;
-            std::copy(sharedBuffer.begin(), sharedBuffer.begin() + sharedOffset, localBuffer.get());
-            sharedOffset = 0;
+            localBuffer.assign_range(sharedBuffer);
+            sharedBuffer.clear();
 
-            bufferReady = false;
+            bufferState = curl::BufferState::Empty;
             condition.notify_one();
         }
-        dest.write(localBuffer.get(), bufferSize);
-        i += bufferSize;
+
+        dest.write(localBuffer.data(), localBuffer.size());
+        i += localBuffer.size();
     }
+
+    writeComplete.release();
 }
 
 bool curl::get_header_value(const curl::HeaderArray &array, std::string_view header, std::string &valueOut)
