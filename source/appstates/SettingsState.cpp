@@ -176,7 +176,7 @@ void SettingsState::change_working_directory()
     if (exists)
     {
         moved = fs::move_directory_recursively(oldPath, newPath);
-        error::fslib(fslib::delete_directory_recursively(oldPath))
+        error::fslib(fslib::delete_directory_recursively(oldPath));
     }
     else { moved = fslib::rename_directory(oldPath, newPath); }
 
