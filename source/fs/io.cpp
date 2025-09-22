@@ -9,6 +9,7 @@
 #include "sys/sys.hpp"
 #include "ui/PopMessageManager.hpp"
 
+#include <condition_variable>
 #include <cstring>
 #include <memory>
 #include <mutex>

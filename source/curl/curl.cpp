@@ -4,6 +4,7 @@
 #include "logging/logger.hpp"
 #include "stringutil.hpp"
 
+#include <condition_variable>
 #include <cstring>
 
 namespace
@@ -67,32 +68,18 @@ size_t curl::write_data_to_file(const char *buffer, size_t size, size_t count, f
 
 size_t curl::download_file_threaded(const char *buffer, size_t size, size_t count, curl::DownloadStruct *download)
 {
-    std::mutex &lock                   = download->lock;
-    std::condition_variable &condition = download->condition;
-    auto &sharedBuffer                 = download->sharedBuffer;
-    curl::BufferState &bufferState     = download->bufferState;
-    sys::ProgressTask *task            = download->task;
-    size_t &offset                     = download->offset;
-    int64_t fileSize                   = download->fileSize;
+    std::mutex &lock  = download->lock;
+    auto &bufferQueue = download->bufferQueue;
 
     const size_t downloadSize = size * count;
+    auto chunkBuffer          = std::make_unique<sys::Byte[]>(downloadSize);
+    std::copy(buffer, buffer + downloadSize, chunkBuffer.get());
 
     {
-        std::unique_lock<std::mutex> bufferLock{lock};
-        condition.wait(bufferLock, [&]() { return bufferState == curl::BufferState::Empty; });
-
-        sharedBuffer.insert(sharedBuffer.end(), buffer, buffer + downloadSize);
-
-        const int64_t nextOffset = offset + downloadSize;
-        if (sharedBuffer.size() >= SIZE_DOWNLOAD_THRESHOLD || nextOffset >= fileSize)
-        {
-            bufferState = curl::BufferState::Full;
-            condition.notify_one();
-        }
-        offset += downloadSize;
+        std::lock_guard queueGuard{lock};
+        auto queuePair = std::make_pair(std::move(chunkBuffer), downloadSize);
+        bufferQueue.push(std::move(queuePair));
     }
-
-    if (task) { task->increase_current(static_cast<double>(downloadSize)); }
 
     return downloadSize;
 }
@@ -101,33 +88,31 @@ void curl::download_write_thread_function(sys::threadpool::JobData jobData)
 {
     auto castData = std::static_pointer_cast<curl::DownloadStruct>(jobData);
 
-    std::mutex &lock                   = castData->lock;
-    std::condition_variable &condition = castData->condition;
-    auto &sharedBuffer                 = castData->sharedBuffer;
-    curl::BufferState &bufferState     = castData->bufferState;
-    fslib::File &dest                  = *castData->dest;
-    int64_t fileSize                   = castData->fileSize;
-    auto &writeComplete                = castData->writeComplete;
-
-    std::vector<sys::Byte> localBuffer{};
-    localBuffer.reserve(curl::SHARED_BUFFER_SIZE);
+    std::mutex &lock        = castData->lock;
+    auto &bufferQueue       = castData->bufferQueue;
+    fslib::File &dest       = *castData->dest;
+    sys::ProgressTask *task = castData->task;
+    int64_t fileSize        = castData->fileSize;
+    auto &writeComplete     = castData->writeComplete;
 
     for (int64_t i = 0; i < fileSize;)
     {
+        curl::DownloadPair downloadPair{};
         {
-            std::unique_lock<std::mutex> bufferLock{lock};
-            condition.wait(bufferLock, [&]() { return bufferState == curl::BufferState::Full; });
+            std::lock_guard queueGuard{lock};
+            if (bufferQueue.empty()) { continue; }
 
-            // Copy and reset the offset.
-            localBuffer.assign_range(sharedBuffer);
-            sharedBuffer.clear();
-
-            bufferState = curl::BufferState::Empty;
-            condition.notify_one();
+            downloadPair = std::move(bufferQueue.front());
+            bufferQueue.pop();
         }
 
-        dest.write(localBuffer.data(), localBuffer.size());
-        i += localBuffer.size();
+        auto &[chunkBuffer, bufferSize] = downloadPair;
+
+        dest.write(chunkBuffer.get(), bufferSize);
+
+        i += bufferSize;
+
+        if (task) { task->update_current(static_cast<double>(i)); }
     }
 
     writeComplete.release();
