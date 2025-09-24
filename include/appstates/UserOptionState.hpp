@@ -91,6 +91,9 @@ class UserOptionState final : public BaseState
         /// @brief Deletes all save data for the user.
         void delete_all_save_data();
 
+        /// @brief Creates and pushes the save import state.
+        void create_push_save_import();
+
         /// @brief Performs operations to reset static members and marks the state for purging.
         void deactivate_state();
 };

@@ -5,6 +5,7 @@
 #include "appstates/MainMenuState.hpp"
 #include "appstates/ProgressState.hpp"
 #include "appstates/SaveCreateState.hpp"
+#include "appstates/SaveImportState.hpp"
 #include "appstates/TaskState.hpp"
 #include "config/config.hpp"
 #include "data/data.hpp"
@@ -28,7 +29,8 @@ namespace
         BACKUP_ALL,
         CREATE_SAVE,
         CREATE_ALL_SAVE,
-        DELETE_ALL_SAVE
+        DELETE_ALL_SAVE,
+        IMPORT_SAVE_DATA
     };
 } // namespace
 
@@ -64,10 +66,11 @@ void UserOptionState::update()
 
         switch (selected)
         {
-            case BACKUP_ALL:      UserOptionState::backup_all(); break;
-            case CREATE_SAVE:     UserOptionState::create_save_create(); break;
-            case CREATE_ALL_SAVE: UserOptionState::create_all_save_data(); break;
-            case DELETE_ALL_SAVE: UserOptionState::delete_all_save_data(); break;
+            case BACKUP_ALL:       UserOptionState::backup_all(); break;
+            case CREATE_SAVE:      UserOptionState::create_save_create(); break;
+            case CREATE_ALL_SAVE:  UserOptionState::create_all_save_data(); break;
+            case DELETE_ALL_SAVE:  UserOptionState::delete_all_save_data(); break;
+            case IMPORT_SAVE_DATA: UserOptionState::create_push_save_import(); break;
         }
     }
     else if (bPressed) { sm_menuPanel->close(); }
@@ -157,6 +160,15 @@ void UserOptionState::delete_all_save_data()
     const char *nickname          = m_user->get_nickname();
     const std::string queryString = stringutil::get_formatted_string(confirmFormat, nickname);
     ConfirmTask::create_push_fade(queryString, true, tasks::useroptions::delete_all_save_data_for_user, m_dataStruct);
+}
+
+void UserOptionState::create_push_save_import()
+{
+    const fslib::Path saveDirPath{config::get_working_directory() / "saves"};
+    if (!fs::directory_has_contents(saveDirPath)) { return; }
+
+    sm_menuPanel->hide();
+    SaveImportState::create_and_push(m_user);
 }
 
 void UserOptionState::deactivate_state()

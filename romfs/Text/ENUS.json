@@ -278,7 +278,8 @@
         "0: Dump all for `%s`",
         "1: Create Save Data for `%s`",
         "2: Create All Save Data for `%s`",
-        "3: Delete All Save Data for `%s`"
+        "3: Delete All Save Data for `%s`",
+        "4: Import Save Data for `%s`"
     ],
     "WebDavStrings": [
         "0: WebDav successfully started!",
