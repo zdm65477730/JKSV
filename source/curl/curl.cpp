@@ -68,17 +68,15 @@ size_t curl::write_data_to_file(const char *buffer, size_t size, size_t count, f
 
 size_t curl::download_file_threaded(const char *buffer, size_t size, size_t count, curl::DownloadStruct *download)
 {
-    std::mutex &lock  = download->lock;
     auto &bufferQueue = download->bufferQueue;
 
     const size_t downloadSize = size * count;
-    auto chunkBuffer          = std::make_unique<sys::Byte[]>(downloadSize);
+    auto chunkBuffer          = bufferQueue.allocate_buffer(downloadSize);
     std::copy(buffer, buffer + downloadSize, chunkBuffer.get());
 
     {
-        std::lock_guard queueGuard{lock};
-        auto queuePair = std::make_pair(std::move(chunkBuffer), downloadSize);
-        bufferQueue.push(std::move(queuePair));
+        auto queueGuard = bufferQueue.lock_queue();
+        bufferQueue.push_to_queue(chunkBuffer, downloadSize);
     }
 
     return downloadSize;
@@ -88,7 +86,6 @@ void curl::download_write_thread_function(sys::threadpool::JobData jobData)
 {
     auto castData = std::static_pointer_cast<curl::DownloadStruct>(jobData);
 
-    std::mutex &lock        = castData->lock;
     auto &bufferQueue       = castData->bufferQueue;
     fslib::File &dest       = *castData->dest;
     sys::ProgressTask *task = castData->task;
@@ -97,16 +94,15 @@ void curl::download_write_thread_function(sys::threadpool::JobData jobData)
 
     for (int64_t i = 0; i < fileSize;)
     {
-        curl::DownloadPair downloadPair{};
+        BufferQueue::QueuePair queuePair{};
         {
-            std::lock_guard queueGuard{lock};
-            if (bufferQueue.empty()) { continue; }
+            auto queueGuard = bufferQueue.lock_queue();
+            if (bufferQueue.is_empty()) { continue; }
 
-            downloadPair = std::move(bufferQueue.front());
-            bufferQueue.pop();
+            queuePair = bufferQueue.get_front();
         }
 
-        auto &[chunkBuffer, bufferSize] = downloadPair;
+        auto &[chunkBuffer, bufferSize] = queuePair;
 
         dest.write(chunkBuffer.get(), bufferSize);
 

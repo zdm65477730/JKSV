@@ -1,5 +1,6 @@
 #include "fs/io.hpp"
 
+#include "BufferQueue.hpp"
 #include "error.hpp"
 #include "fs/SaveMetaData.hpp"
 #include "fslib.hpp"
@@ -9,27 +10,22 @@
 #include "sys/sys.hpp"
 #include "ui/PopMessageManager.hpp"
 
-#include <condition_variable>
 #include <cstring>
-#include <memory>
-#include <mutex>
-#include <queue>
 
 namespace
 {
+    /// @brief Number of buffers before the queue is considered full.
+    constexpr int SIZE_QUEUE_LIMIT = 128;
+
     // Size of buffer shared between threads.
     // constexpr size_t SIZE_FILE_BUFFER = 0x600000;
     // This one is just for testing something.
     constexpr size_t SIZE_FILE_BUFFER = 0x80000;
 
-    /// @brief Easier to type later.
-    using QueuePair = std::pair<std::unique_ptr<sys::Byte[]>, ssize_t>;
-
     // clang-format off
     struct FileThreadStruct : sys::threadpool::DataStruct
     {
-        std::mutex lock{};
-        std::queue<QueuePair> bufferQueue{};
+        BufferQueue bufferQueue{SIZE_QUEUE_LIMIT, SIZE_FILE_BUFFER};
         fslib::File *source{};
     };
     // clang-format on
@@ -39,21 +35,20 @@ static void read_thread_function(sys::threadpool::JobData jobData)
 {
     auto castData = std::static_pointer_cast<FileThreadStruct>(jobData);
 
-    std::mutex &lock       = castData->lock;
     auto &bufferQueue      = castData->bufferQueue;
     fslib::File &source    = *castData->source;
     const int64_t fileSize = source.get_size();
 
     for (int64_t i = 0; i < fileSize;)
     {
-        auto readBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
-
-        const ssize_t readSize = source.read(readBuffer.get(), SIZE_FILE_BUFFER);
-        auto queuePair         = std::make_pair(std::move(readBuffer), readSize);
+        ssize_t readSize{};
         {
+            auto queueGuard = bufferQueue.lock_queue();
+            if (bufferQueue.is_full()) { continue; }
 
-            std::lock_guard queueGuard{lock};
-            bufferQueue.push(std::move(queuePair));
+            auto readBuffer = bufferQueue.allocate_buffer();
+            readSize        = source.read(readBuffer.get(), SIZE_FILE_BUFFER);
+            bufferQueue.push_to_queue(readBuffer, readSize);
         }
 
         i += readSize;
@@ -79,24 +74,20 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
 
     auto sharedData    = std::make_shared<FileThreadStruct>();
     sharedData->source = &sourceFile;
-
-    std::mutex &lock  = sharedData->lock;
-    auto &bufferQueue = sharedData->bufferQueue;
+    auto &bufferQueue  = sharedData->bufferQueue;
 
     sys::threadpool::push_job(read_thread_function, sharedData);
     for (int64_t i = 0; i < sourceSize;)
     {
-        QueuePair queuePair{};
+        BufferQueue::QueuePair queuePair{};
         {
-            std::lock_guard queueGuard{lock};
-            if (bufferQueue.empty()) { continue; }
+            auto queueGuard = bufferQueue.lock_queue();
+            if (bufferQueue.is_empty()) { continue; }
 
-            queuePair = std::move(bufferQueue.front());
-            bufferQueue.pop();
+            queuePair = bufferQueue.get_front();
         }
 
         auto &[buffer, bufferSize] = queuePair;
-
         destFile.write(buffer.get(), bufferSize);
 
         i += bufferSize;
@@ -129,21 +120,18 @@ void fs::copy_file_commit(const fslib::Path &source,
 
     auto sharedData    = std::make_shared<FileThreadStruct>();
     sharedData->source = &sourceFile;
-
-    std::mutex &lock  = sharedData->lock;
-    auto &bufferQueue = sharedData->bufferQueue;
+    auto &bufferQueue  = sharedData->bufferQueue;
 
     int64_t journalCount{};
     sys::threadpool::push_job(read_thread_function, sharedData);
     for (int64_t i = 0; i < sourceSize;)
     {
-        QueuePair queuePair{};
+        BufferQueue::QueuePair queuePair{};
         {
-            std::lock_guard queueGuard{lock};
-            if (bufferQueue.empty()) { continue; }
+            auto queueGuard = bufferQueue.lock_queue();
+            if (bufferQueue.is_empty()) { continue; }
 
-            queuePair = std::move(bufferQueue.front());
-            bufferQueue.pop();
+            queuePair = bufferQueue.get_front();
         }
 
         const auto &[buffer, bufferSize] = queuePair;

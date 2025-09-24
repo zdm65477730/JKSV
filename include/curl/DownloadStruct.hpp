@@ -1,4 +1,5 @@
 #pragma once
+#include "BufferQueue.hpp"
 #include "fslib.hpp"
 #include "sys/sys.hpp"
 
@@ -9,16 +10,12 @@
 
 namespace curl
 {
-    using DownloadPair = std::pair<std::unique_ptr<sys::Byte[]>, ssize_t>;
 
     // clang-format off
     struct DownloadStruct : sys::threadpool::DataStruct
     {
-        /// @brief Buffer mutex.
-        std::mutex lock{};
-
-        /// @brief Queue of buffers to write.
-        std::queue<DownloadPair> bufferQueue{};
+        /// @brief Buffer queue for downloads.
+        BufferQueue bufferQueue{BufferQueue::NO_LIMIT, 0};
 
         /// @brief Destination file to write to.
         fslib::File *dest{};

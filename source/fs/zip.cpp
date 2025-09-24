@@ -1,5 +1,6 @@
 #include "fs/zip.hpp"
 
+#include "BufferQueue.hpp"
 #include "config/config.hpp"
 #include "error.hpp"
 #include "fs/SaveMetaData.hpp"
@@ -11,37 +12,30 @@
 
 #include <cstring>
 #include <ctime>
-#include <memory>
-#include <mutex>
-#include <queue>
 
 namespace
 {
+    /// @brief Buffer limit for queues.
+    constexpr int SIZE_BUFFER_LIMIT = 128;
+
     /// @brief Buffer size used for writing files to ZIP.
     constexpr size_t SIZE_ZIP_BUFFER = 0x10000;
 
     /// @brief Buffer size used for decompressing files from ZIP.
     constexpr size_t SIZE_UNZIP_BUFFER = 0x80000;
 
-    using QueuePair = std::pair<std::unique_ptr<sys::Byte[]>, ssize_t>;
-
     // Shared struct for Zip/File IO
     // clang-format off
-    struct ZipIOBase : sys::threadpool::DataStruct
-    {
-        std::mutex lock{};
-        std::queue<QueuePair> bufferQueue{};
-
-    };
-
-    struct ZipReadStruct : ZipIOBase
+    struct ZipReadStruct : sys::threadpool::DataStruct
     {
         fslib::File *source{};
+        BufferQueue bufferQueue{SIZE_BUFFER_LIMIT, SIZE_ZIP_BUFFER};
     };
 
-    struct UnzipReadStruct : ZipIOBase
+    struct UnzipReadStruct : sys::threadpool::DataStruct
     {
         fs::MiniUnzip *unzip{};
+        BufferQueue bufferQueue{SIZE_BUFFER_LIMIT, SIZE_UNZIP_BUFFER};
     };
     // clang-format on
 } // namespace
@@ -51,19 +45,20 @@ static void zip_read_thread_function(sys::threadpool::JobData jobData)
 {
     auto castData = std::static_pointer_cast<ZipReadStruct>(jobData);
 
-    std::mutex &lock       = castData->lock;
     auto &bufferQueue      = castData->bufferQueue;
     fslib::File &source    = *castData->source;
     const int64_t fileSize = source.get_size();
 
     for (int64_t i = 0; i < fileSize;)
     {
-        auto readBuffer        = std::make_unique<sys::Byte[]>(SIZE_ZIP_BUFFER);
-        const ssize_t readSize = source.read(readBuffer.get(), SIZE_ZIP_BUFFER);
+        ssize_t readSize{};
         {
-            std::lock_guard queueGuard{lock};
-            auto queuePair = std::make_pair(std::move(readBuffer), readSize);
-            bufferQueue.push(std::move(queuePair));
+            auto queueGuard = bufferQueue.lock_queue();
+            if (bufferQueue.is_full()) { continue; }
+
+            auto readBuffer = bufferQueue.allocate_buffer();
+            readSize        = source.read(readBuffer.get(), SIZE_ZIP_BUFFER);
+            bufferQueue.push_to_queue(readBuffer, readSize);
         }
 
         i += readSize;
@@ -75,20 +70,22 @@ static void unzip_read_thread_function(sys::threadpool::JobData jobData)
 {
     auto castData = std::static_pointer_cast<UnzipReadStruct>(jobData);
 
-    std::mutex &lock       = castData->lock;
     auto &bufferQueue      = castData->bufferQueue;
     fs::MiniUnzip &unzip   = *castData->unzip;
     const int64_t fileSize = unzip.get_uncompressed_size();
 
     for (int64_t i = 0; i < fileSize;)
     {
-        auto readBuffer        = std::make_unique<sys::Byte[]>(SIZE_UNZIP_BUFFER);
-        const ssize_t readSize = unzip.read(readBuffer.get(), SIZE_UNZIP_BUFFER);
+        ssize_t readSize{};
         {
-            std::lock_guard queueGuard{lock};
-            auto queuePair = std::make_pair(std::move(readBuffer), readSize);
-            bufferQueue.push(std::move(queuePair));
+            auto queueGuard = bufferQueue.lock_queue();
+            if (bufferQueue.is_full()) { continue; }
+
+            auto readBuffer = bufferQueue.allocate_buffer();
+            readSize        = unzip.read(readBuffer.get(), SIZE_UNZIP_BUFFER);
+            bufferQueue.push_to_queue(readBuffer, readSize);
         }
+
         i += readSize;
     }
 }
@@ -118,6 +115,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
             const int64_t fileSize = sourceFile.get_size();
             auto sharedData        = std::make_shared<ZipReadStruct>();
             sharedData->source     = &sourceFile;
+            auto &bufferQueue      = sharedData->bufferQueue;
 
             if (task)
             {
@@ -126,20 +124,15 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
                 task->reset(static_cast<double>(fileSize));
             }
 
-            // I just like doing this. It makes things easier to type.
-            std::mutex &lock  = sharedData->lock;
-            auto &bufferQueue = sharedData->bufferQueue;
-
             sys::threadpool::push_job(zip_read_thread_function, sharedData);
             for (int64_t i = 0; i < fileSize;)
             {
-                QueuePair queuePair{};
+                BufferQueue::QueuePair queuePair{};
                 {
-                    std::lock_guard queueGuard{lock};
-                    if (bufferQueue.empty()) { continue; }
+                    auto queueGuard = bufferQueue.lock_queue();
+                    if (bufferQueue.is_empty()) { continue; }
 
-                    queuePair = std::move(bufferQueue.front());
-                    bufferQueue.pop();
+                    queuePair = bufferQueue.get_front();
                 }
 
                 auto &[buffer, bufferSize] = queuePair;
@@ -199,21 +192,18 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
 
         auto sharedData   = std::make_shared<UnzipReadStruct>();
         sharedData->unzip = &unzip;
-
-        std::mutex &lock  = sharedData->lock;
         auto &bufferQueue = sharedData->bufferQueue;
 
         int64_t journalCount{};
         sys::threadpool::push_job(unzip_read_thread_function, sharedData);
         for (int64_t i = 0; i < fileSize;)
         {
-            QueuePair queuePair{};
+            BufferQueue::QueuePair queuePair{};
             {
-                std::lock_guard queueGuard{lock};
-                if (bufferQueue.empty()) { continue; }
+                auto queueGuard = bufferQueue.lock_queue();
+                if (bufferQueue.is_empty()) { continue; }
 
-                queuePair = std::move(bufferQueue.front());
-                bufferQueue.pop();
+                queuePair = bufferQueue.get_front();
             }
 
             auto &[buffer, bufferSize] = queuePair;
