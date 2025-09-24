@@ -17,13 +17,13 @@ namespace fs
         uint8_t     saveDataType{};
         uint8_t     saveDataRank{};
         uint16_t    saveDataIndex{};
-        uint8_t     saveDataSpaceID{};
         uint64_t    ownerID{};
         uint64_t    timestamp{};
         uint32_t    flags{};
         int64_t     saveDataSize{};
         int64_t     journalSize{};
         uint64_t    commitID{};
+        uint8_t     saveDataSpaceID{};
     } __attribute__((packed));
     // clang-format on
 

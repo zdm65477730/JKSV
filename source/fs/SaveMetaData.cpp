@@ -5,6 +5,7 @@
 #include "fs/save_data_functions.hpp"
 #include "fs/save_mount.hpp"
 #include "fslib.hpp"
+#include "logging/logger.hpp"
 
 namespace
 {
@@ -25,13 +26,13 @@ bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &m
             .saveDataType    = extraData.attr.save_data_type,
             .saveDataRank    = extraData.attr.save_data_rank,
             .saveDataIndex   = extraData.attr.save_data_index,
-            .saveDataSpaceID = saveInfo->save_data_space_id,
             .ownerID         = extraData.owner_id,
             .timestamp       = extraData.timestamp,
             .flags           = extraData.flags,
             .saveDataSize    = extraData.data_size,
             .journalSize     = extraData.journal_size,
-            .commitID        = extraData.commit_id};
+            .commitID        = extraData.commit_id,
+            .saveDataSpaceID = saveInfo->save_data_space_id};
 
     return true;
 }
@@ -41,6 +42,8 @@ bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaDa
     FsSaveDataExtraData extraData{};
     const bool extraRead = fs::read_save_extra_data(saveInfo, extraData);
     if (!extraRead) { return false; }
+
+    logger::log("size: %X, %X", extraData.data_size, meta.saveDataSize);
 
     const bool needsExtend = extraData.data_size < meta.saveDataSize;
     const bool extended    = needsExtend && fs::extend_save_data(saveInfo, meta.saveDataSize, meta.journalSize);
