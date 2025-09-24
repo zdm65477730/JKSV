@@ -43,8 +43,6 @@ bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaDa
     const bool extraRead = fs::read_save_extra_data(saveInfo, extraData);
     if (!extraRead) { return false; }
 
-    logger::log("size: %X, %X", extraData.data_size, meta.saveDataSize);
-
     const bool needsExtend = extraData.data_size < meta.saveDataSize;
     const bool extended    = needsExtend && fs::extend_save_data(saveInfo, meta.saveDataSize, meta.journalSize);
     if (needsExtend && !extended) { return false; }

@@ -278,7 +278,8 @@
         "0: Dump alles voor `%s`",
         "1: Maak opslaggegevens aan voor `%s`",
         "2: Maak alle opslaggegevens aan voor `%s`",
-        "3: Verwijder alle opslaggegevens voor `%s`"
+        "3: Verwijder alle opslaggegevens voor `%s`",
+        "4: Savegegevens importeren voor `%s`"
     ],
     "WebDavStrings": [
         "0: WebDav succesvol gestart!",

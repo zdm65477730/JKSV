@@ -278,7 +278,8 @@
         "0: Exporter tout pour `%s`",
         "1: Créer des données sauvegardées pour `%s`",
         "2: Créer toutes les données sauvegardées pour `%s`",
-        "3: Supprimer toutes les données sauvegardées pour `%s`"
+        "3: Supprimer toutes les données sauvegardées pour `%s`",
+        "4: Importer les données de sauvegarde pour `%s`"
     ],
     "WebDavStrings": [
         "0: WebDav démarré avec succès !",
