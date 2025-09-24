@@ -17,20 +17,21 @@ bool fs::fill_save_meta_data(const FsSaveDataInfo *saveInfo, fs::SaveMetaData &m
     const bool extraRead = fs::read_save_extra_data(saveInfo, extraData);
     if (!extraRead) { return false; }
 
-    meta = {.magic         = fs::SAVE_META_MAGIC,
-            .revision      = 0x00,
-            .applicationID = extraData.attr.application_id,
-            .accountID     = extraData.attr.uid,
-            .systemSaveID  = extraData.attr.system_save_data_id,
-            .saveDataType  = extraData.attr.save_data_type,
-            .saveDataRank  = extraData.attr.save_data_rank,
-            .saveDataIndex = extraData.attr.save_data_index,
-            .ownerID       = extraData.owner_id,
-            .timestamp     = extraData.timestamp,
-            .flags         = extraData.flags,
-            .saveDataSize  = extraData.data_size,
-            .journalSize   = extraData.journal_size,
-            .commitID      = extraData.commit_id};
+    meta = {.magic           = fs::SAVE_META_MAGIC,
+            .revision        = 0x01,
+            .applicationID   = extraData.attr.application_id,
+            .accountID       = extraData.attr.uid,
+            .systemSaveID    = extraData.attr.system_save_data_id,
+            .saveDataType    = extraData.attr.save_data_type,
+            .saveDataRank    = extraData.attr.save_data_rank,
+            .saveDataIndex   = extraData.attr.save_data_index,
+            .saveDataSpaceID = saveInfo->save_data_space_id,
+            .ownerID         = extraData.owner_id,
+            .timestamp       = extraData.timestamp,
+            .flags           = extraData.flags,
+            .saveDataSize    = extraData.data_size,
+            .journalSize     = extraData.journal_size,
+            .commitID        = extraData.commit_id};
 
     return true;
 }

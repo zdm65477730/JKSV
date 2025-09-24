@@ -6,12 +6,6 @@
 
 namespace fs
 {
-    /// @brief This is the magic value written to the beginning.
-    constexpr uint32_t SAVE_META_MAGIC = 0x56534B4A;
-
-    /// @brief This is the filename used for the save data meta info.
-    static constexpr std::string_view NAME_SAVE_META = ".nx_save_meta.bin";
-
     // clang-format off
     struct SaveMetaData
     {
@@ -23,6 +17,7 @@ namespace fs
         uint8_t     saveDataType{};
         uint8_t     saveDataRank{};
         uint16_t    saveDataIndex{};
+        uint8_t     saveDataSpaceID{};
         uint64_t    ownerID{};
         uint64_t    timestamp{};
         uint32_t    flags{};
@@ -31,6 +26,14 @@ namespace fs
         uint64_t    commitID{};
     } __attribute__((packed));
     // clang-format on
+
+    /// @brief This is the magic value written to the beginning.
+    constexpr uint32_t SAVE_META_MAGIC = 0x56534B4A;
+
+    /// @brief This is the filename used for the save data meta info.
+    inline constexpr std::string_view NAME_SAVE_META = ".nx_save_meta.bin";
+
+    inline constexpr ssize_t SIZE_SAVE_META = sizeof(fs::SaveMetaData);
 
     /// @brief Didn't feel like a whole new file just for this. Fills an fs::SaveMetaData struct.
     bool fill_save_meta_data(const FsSaveDataInfo *saveInfo, SaveMetaData &meta) noexcept;

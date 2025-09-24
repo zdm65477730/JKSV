@@ -15,7 +15,6 @@ namespace
 {
     constexpr const char *STRING_ZIP_EXT = ".zip";
     constexpr const char *PATH_JKSV_TEMP = "sdmc:/jksvTemp.zip"; // This is named this so if something fails, people know.
-    constexpr size_t SIZE_SAVE_META      = sizeof(fs::SaveMetaData);
 }
 
 // Definitions at bottom.
@@ -267,8 +266,12 @@ void tasks::backup::restore_backup_local(sys::threadpool::JobData taskData)
         fs::copy_file_commit(target, fs::DEFAULT_SAVE_ROOT, journalSize, task);
     }
 
-    spawningState->save_data_written();
-    spawningState->refresh();
+    if (spawningState)
+    {
+        spawningState->save_data_written();
+        spawningState->refresh();
+    }
+
     task->complete();
 }
 
@@ -575,7 +578,7 @@ static bool read_and_process_meta(const fslib::Path &targetDir, BackupMenuState:
     }
 
     fs::SaveMetaData metaData{};
-    const bool metaRead  = metaFile.read(&metaData, SIZE_SAVE_META) == SIZE_SAVE_META;
+    const bool metaRead  = metaFile.read(&metaData, fs::SIZE_SAVE_META) <= fs::SIZE_SAVE_META;
     const bool processed = metaRead && fs::process_save_meta_data(saveInfo, metaData);
     if (!metaRead || !processed)
     {
@@ -618,7 +621,7 @@ static bool read_and_process_meta(fs::MiniUnzip &unzip, BackupMenuState::TaskDat
         return false;
     }
 
-    const bool metaRead      = metaFound && unzip.read(&saveMeta, SIZE_SAVE_META) == SIZE_SAVE_META;
+    const bool metaRead      = metaFound && unzip.read(&saveMeta, fs::SIZE_SAVE_META) <= fs::SIZE_SAVE_META;
     const bool metaProcessed = metaRead && fs::process_save_meta_data(saveInfo, saveMeta);
     if (!metaRead || !metaProcessed)
     {
@@ -638,14 +641,14 @@ static void write_meta_file(const fslib::Path &target, const FsSaveDataInfo *sav
     fs::SaveMetaData saveMeta{};
     const fslib::Path metaPath{target / fs::NAME_SAVE_META};
     const bool hasMeta = fs::fill_save_meta_data(saveInfo, saveMeta);
-    fslib::File metaFile{metaPath, FsOpenMode_Create | FsOpenMode_Write, SIZE_SAVE_META};
+    fslib::File metaFile{metaPath, FsOpenMode_Create | FsOpenMode_Write, fs::SIZE_SAVE_META};
     if (!metaFile.is_open() || !hasMeta)
     {
         ui::PopMessageManager::push_message(popTicks, popErrorWritingMeta);
         return;
     }
 
-    const bool metaWritten = metaFile.write(&saveMeta, SIZE_SAVE_META) == SIZE_SAVE_META;
+    const bool metaWritten = metaFile.write(&saveMeta, fs::SIZE_SAVE_META) <= fs::SIZE_SAVE_META;
     if (!metaWritten) { ui::PopMessageManager::push_message(popTicks, popErrorWritingMeta); }
 }
 
@@ -656,7 +659,7 @@ static void write_meta_zip(fs::MiniZip &zip, const FsSaveDataInfo *saveInfo)
     fs::SaveMetaData saveMeta{};
     const bool hasMeta   = fs::fill_save_meta_data(saveInfo, saveMeta);
     const bool openMeta  = hasMeta && zip.open_new_file(fs::NAME_SAVE_META);
-    const bool writeMeta = openMeta && zip.write(&saveMeta, SIZE_SAVE_META);
+    const bool writeMeta = openMeta && zip.write(&saveMeta, fs::SIZE_SAVE_META);
     const bool closeMeta = openMeta && zip.close_current_file();
     if (hasMeta && (!openMeta || !writeMeta || !closeMeta))
     {
