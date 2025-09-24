@@ -278,7 +278,8 @@
         "0: Volcar todo para `%s`",
         "1: Crear datos guardados para `%s`",
         "2: Crear todos los datos guardados para `%s`",
-        "3: Eliminar todos los datos guardados para `%s`"
+        "3: Eliminar todos los datos guardados para `%s`",
+        "4: Importar datos guardados de `%s`"
     ],
     "WebDavStrings": [
         "0: ¡WebDav iniciado correctamente!",

@@ -3,9 +3,13 @@
 #include "error.hpp"
 #include "logging/logger.hpp"
 
+namespace
+{
+    inline constexpr FsSaveDataMetaInfo SAVE_CREATE_META = {.size = 0x40060, .type = FsSaveDataMetaType_Thumbnail};
+}
+
 bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo) noexcept
 {
-    static constexpr FsSaveDataMetaInfo saveMeta = {.size = 0x40060, .type = FsSaveDataMetaType_Thumbnail};
 
     const uint8_t saveType       = targetUser->get_account_save_type();
     const uint64_t applicationID = titleInfo->get_application_id();
@@ -29,7 +33,26 @@ bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo
                                                  .save_data_space_id = FsSaveDataSpaceId_User};
 
     // I want this recorded.
-    return error::libnx(fsCreateSaveDataFileSystem(&saveAttributes, &saveCreation, &saveMeta)) == false;
+    return error::libnx(fsCreateSaveDataFileSystem(&saveAttributes, &saveCreation, &SAVE_CREATE_META)) == false;
+}
+
+bool fs::create_save_data_for(data::User *targetUser, const fs::SaveMetaData &saveMeta) noexcept
+{
+    const FsSaveDataAttribute saveAttributes = {.application_id      = saveMeta.applicationID,
+                                                .uid                 = targetUser->get_account_id(),
+                                                .system_save_data_id = saveMeta.systemSaveID,
+                                                .save_data_type      = saveMeta.saveDataType,
+                                                .save_data_rank      = saveMeta.saveDataRank,
+                                                .save_data_index     = saveMeta.saveDataIndex};
+
+    const FsSaveDataCreationInfo saveCreation = {.save_data_size     = saveMeta.saveDataSize,
+                                                 .journal_size       = saveMeta.journalSize,
+                                                 .available_size     = 0x4000,
+                                                 .owner_id           = saveMeta.ownerID,
+                                                 .flags              = 0,
+                                                 .save_data_space_id = saveMeta.saveDataSpaceID};
+
+    return error::libnx(fsCreateSaveDataFileSystem(&saveAttributes, &saveCreation, &SAVE_CREATE_META)) == false;
 }
 
 bool fs::delete_save_data(const FsSaveDataInfo *saveInfo) noexcept

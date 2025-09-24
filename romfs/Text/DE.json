@@ -278,7 +278,8 @@
         "0: Alle für `%s` dumpen",
         "1: Speicherdaten für `%s` erstellen",
         "2: Alle Speicherdaten für `%s` erstellen",
-        "3: Alle Speicherdaten für `%s` löschen"
+        "3: Alle Speicherdaten für `%s` löschen",
+        "4: Speicherdaten für `%s` importieren"
     ],
     "WebDavStrings": [
         "0: WebDav erfolgreich gestartet!",

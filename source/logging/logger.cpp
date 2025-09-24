@@ -33,6 +33,7 @@ void logger::initialize()
 void logger::log(const char *format, ...) noexcept
 {
     static std::mutex logLock{};
+    static const fslib::Path logPath{PATH_JKSV_LOG};
 
     std::array<char, VA_BUFFER_SIZE> vaBuffer = {0};
     std::va_list vaList{};
@@ -46,7 +47,6 @@ void logger::log(const char *format, ...) noexcept
     std::strftime(timeDateBuffer.data(), TIME_BUFFER, "[%c] ", &localTime);
 
     std::lock_guard<std::mutex> logGuard(logLock);
-    const fslib::Path logPath{PATH_JKSV_LOG};
     fslib::File logFile(logPath, FsOpenMode_Append);
     if (logFile.is_open() && logFile.get_size() >= SIZE_LOG_LIMIT)
     {

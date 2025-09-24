@@ -278,7 +278,8 @@
         "0: Despejar tudo para `%s`",
         "1: Criar dados guardados para `%s`",
         "2: Criar todos os dados guardados para `%s`",
-        "3: Eliminar todos os dados guardados para `%s`"
+        "3: Eliminar todos os dados guardados para `%s`",
+        "4: Importar dados de salvamento para `%s`"
     ],
     "WebDavStrings": [
         "0: WebDav iniciado com sucesso!",

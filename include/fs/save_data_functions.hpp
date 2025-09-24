@@ -1,5 +1,6 @@
 #pragma once
 #include "data/data.hpp"
+#include "fs/SaveMetaData.hpp"
 
 #include <switch.h>
 
@@ -10,6 +11,9 @@ namespace fs
     /// @param titleInfo Title to create save data for.
     /// @return True on success. False on failure.
     bool create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo) noexcept;
+
+    /// @brief Creates save data for the user passed using the meta data passed.
+    bool create_save_data_for(data::User *targetUser, const fs::SaveMetaData &saveMeta) noexcept;
 
     /// @brief Deletes the save data of the FsSaveDataInfo passed.
     /// @param saveInfo Save data to delete.
