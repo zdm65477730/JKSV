@@ -37,6 +37,7 @@ void config::ConfigContext::reset()
     m_configMap[config::keys::AUTO_BACKUP_ON_RESTORE.data()]  = 1;
     m_configMap[config::keys::AUTO_NAME_BACKUPS.data()]       = 0;
     m_configMap[config::keys::AUTO_UPLOAD.data()]             = 0;
+    m_configMap[config::keys::KEEP_LOCAL_BACKUPS.data()]      = 0;
     m_configMap[config::keys::USE_TITLE_IDS.data()]           = 0;
     m_configMap[config::keys::HOLD_FOR_DELETION.data()]       = 1;
     m_configMap[config::keys::HOLD_FOR_RESTORATION.data()]    = 1;

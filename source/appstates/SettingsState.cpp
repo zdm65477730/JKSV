@@ -28,20 +28,21 @@ namespace
     {
         CHANGE_WORK_DIR = 0,
         EDIT_BLACKLIST  = 1,
-        CYCLE_ZIP       = 14,
-        CYCLE_SORT_TYPE = 15,
-        TOGGLE_JKSM     = 16,
-        TOGGLE_TRASH    = 22,
-        CYCLE_SCALING   = 23
+        CYCLE_ZIP       = 15,
+        CYCLE_SORT_TYPE = 16,
+        TOGGLE_JKSM     = 17,
+        TOGGLE_TRASH    = 23,
+        CYCLE_SCALING   = 24
     };
 
     // This is needed to be able to get and set keys by index. Anything "NULL" isn't a key that can be easily toggled.
-    constexpr std::array<std::string_view, 24> CONFIG_KEY_ARRAY = {CONFIG_KEY_NULL,
+    constexpr std::array<std::string_view, 25> CONFIG_KEY_ARRAY = {CONFIG_KEY_NULL,
                                                                    CONFIG_KEY_NULL,
                                                                    config::keys::INCLUDE_DEVICE_SAVES,
                                                                    config::keys::AUTO_BACKUP_ON_RESTORE,
                                                                    config::keys::AUTO_NAME_BACKUPS,
                                                                    config::keys::AUTO_UPLOAD,
+                                                                   config::keys::KEEP_LOCAL_BACKUPS,
                                                                    config::keys::USE_TITLE_IDS,
                                                                    config::keys::HOLD_FOR_DELETION,
                                                                    config::keys::HOLD_FOR_RESTORATION,
@@ -118,7 +119,7 @@ void SettingsState::load_extra_strings()
 
 void SettingsState::update_menu_options()
 {
-    for (int i : {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 16, 17, 18, 19, 20, 21, 22})
+    for (int i : {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 22, 23})
     {
         const char *optionFormat = strings::get_by_name(strings::names::SETTINGS_MENU, i);
         const uint8_t value      = config::get_by_key(CONFIG_KEY_ARRAY[i]);

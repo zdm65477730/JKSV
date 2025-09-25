@@ -9,11 +9,11 @@ namespace
 
 void config::initialize()
 {
-    s_context.create_directory();
-    const bool configLoaded = s_context.load();
-    if (configLoaded) { return; }
-
+    // This is needed so new config options can be added without invalidating old configurations.
     s_context.reset();
+
+    s_context.create_directory();
+    s_context.load();
 }
 
 void config::reset_to_default() { s_context.reset(); }

@@ -74,14 +74,17 @@ void tasks::backup::create_new_backup_local(sys::threadpool::JobData taskData)
 
 void tasks::backup::create_new_backup_remote(sys::threadpool::JobData taskData)
 {
+
     auto castData = std::static_pointer_cast<BackupMenuState::DataStruct>(taskData);
 
     sys::ProgressTask *task        = static_cast<sys::ProgressTask *>(castData->task);
     data::User *user               = castData->user;
     data::TitleInfo *titleInfo     = castData->titleInfo;
+    const fslib::Path &path        = castData->path;
     const std::string &remoteName  = castData->remoteName;
     BackupMenuState *spawningState = castData->spawningState;
     const bool &killTask           = castData->killTask;
+    const bool keepLocal           = config::get_by_key(config::keys::KEEP_LOCAL_BACKUPS);
 
     if (error::is_null(task)) { return; }
 
@@ -92,10 +95,10 @@ void tasks::backup::create_new_backup_remote(sys::threadpool::JobData taskData)
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
     if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
 
-    const fslib::Path tempPath{PATH_JKSV_TEMP};
+    const fslib::Path zipPath{keepLocal ? path : PATH_JKSV_TEMP};
     const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
 
-    fs::MiniZip zip{tempPath};
+    fs::MiniZip zip{zipPath};
     if (!zip.is_open())
     {
         const char *popErrorCreating = strings::get_by_name(strings::names::BACKUPMENU_POPS, 5);
@@ -115,8 +118,9 @@ void tasks::backup::create_new_backup_remote(sys::threadpool::JobData taskData)
         std::string status       = stringutil::get_formatted_string(uploadFormat, remoteName.data());
         task->set_status(status);
     }
-    const bool uploaded    = remote->upload_file(tempPath, remoteName, task);
-    const bool deleteError = error::fslib(fslib::delete_file(tempPath));
+
+    const bool uploaded    = remote->upload_file(zipPath, remoteName, task);
+    const bool deleteError = uploaded && !keepLocal && error::fslib(fslib::delete_file(zipPath));
     if (!uploaded || deleteError)
     {
         const char *popErrorUploading = strings::get_by_name(strings::names::BACKUPMENU_POPS, 10);

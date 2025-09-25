@@ -157,7 +157,8 @@ void BackupMenuState::ensure_target_directory()
     // If this is enabled, don't bother.
     const remote::Storage *remote = remote::get_remote_storage();
     const bool autoUpload         = config::get_by_key(config::keys::AUTO_UPLOAD);
-    const bool directoryNeeded    = (!remote || !autoUpload) && !fslib::directory_exists(m_directoryPath);
+    const bool keepLocal          = config::get_by_key(config::keys::KEEP_LOCAL_BACKUPS);
+    const bool directoryNeeded    = (!remote || !autoUpload || keepLocal) && !fslib::directory_exists(m_directoryPath);
     const bool directoryFailed    = directoryNeeded && error::fslib(fslib::create_directory(m_directoryPath));
     if (directoryNeeded && directoryFailed) { ui::PopMessageManager::push_message(popTicks, popFailed); }
 }
@@ -235,9 +236,11 @@ void BackupMenuState::name_and_create_backup()
     const bool hasZipExt   = std::strstr(name, STRING_ZIP_EXT); // This might not be the best check.
     if (autoUpload && remote)
     {
+        const bool keepLocal = config::get_by_key(config::keys::KEEP_LOCAL_BACKUPS);
         if (!hasZipExt) { std::strncat(name, STRING_ZIP_EXT, SIZE_NAME_LENGTH); }
-
+        if (keepLocal) { m_dataStruct->path = m_directoryPath / name; }
         m_dataStruct->remoteName = name;
+
         ProgressState::create_and_push(tasks::backup::create_new_backup_remote, m_dataStruct);
     }
     else

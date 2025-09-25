@@ -58,7 +58,7 @@ void ProgressState::render()
 
     sdl::render_line(sdl::Texture::Null, 280, 454, 999, 454, colors::DIV_COLOR);
     sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, barWidth, 32, colors::BLACK);
-    sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, m_progressBarWidth, 32, colors::GREEN);
+    sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, m_progressBarWidth, 32, colors::BAR_GREEN);
 
     sm_barEdges->render_part(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, 0, 0, 16, 32);
     sm_barEdges->render_part(sdl::Texture::Null, RIGHT_EDGE_X, COORD_BAR_Y, 16, 0, 16, 32);
