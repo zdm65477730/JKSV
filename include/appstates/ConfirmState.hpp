@@ -46,6 +46,7 @@ class ConfirmState final : public BaseState
             , m_yesText(strings::get_by_name(strings::names::YES_NO_OK, 0))
             , m_noText(strings::get_by_name(strings::names::YES_NO_OK, 1))
             , m_holdRequired(holdRequired)
+            , m_transition(280, 720, 280, 262, 4)
             , m_function(function)
             , m_taskData(taskData)
         {
@@ -83,13 +84,16 @@ class ConfirmState final : public BaseState
                                                               sys::Task::TaskData taskData)
         {
             auto newState = ConfirmState::create(query, holdRequired, function, taskData);
-            FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, newState);
+            FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_BEGIN, colors::ALPHA_FADE_END, newState);
             return newState;
         }
 
         /// @brief Just updates the ConfirmState.
         void update() override
         {
+            m_transition.update();
+            if (!m_transition.in_place()) { return; }
+
             const bool aPressed  = input::button_pressed(HidNpadButton_A);
             const bool bPressed  = input::button_pressed(HidNpadButton_B);
             const bool aHeld     = input::button_held(HidNpadButton_A);
@@ -111,17 +115,19 @@ class ConfirmState final : public BaseState
         void render() override
         {
             const bool hasFocus = BaseState::has_focus();
+            const int y         = m_transition.get_y();
+            sm_dialog->set_y(y);
 
             sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
 
             sm_dialog->render(sdl::Texture::Null, hasFocus);
-            sdl::text::render(sdl::Texture::Null, 312, 288, 20, 656, colors::WHITE, m_query);
+            sdl::text::render(sdl::Texture::Null, 312, y + 32, 20, 656, colors::WHITE, m_query);
 
-            sdl::render_line(sdl::Texture::Null, 280, 454, 999, 454, colors::DIV_COLOR);
-            sdl::render_line(sdl::Texture::Null, 640, 454, 640, 517, colors::DIV_COLOR);
+            sdl::render_line(sdl::Texture::Null, 280, y + 192, 999, y + 192, colors::DIV_COLOR);
+            sdl::render_line(sdl::Texture::Null, 640, y + 192, 640, y + 255, colors::DIV_COLOR);
 
-            sdl::text::render(sdl::Texture::Null, m_yesX, 476, 22, sdl::text::NO_WRAP, colors::WHITE, m_yesText);
-            sdl::text::render(sdl::Texture::Null, m_noX, 476, 22, sdl::text::NO_WRAP, colors::WHITE, m_noText);
+            sdl::text::render(sdl::Texture::Null, m_yesX, y + 214, 22, sdl::text::NO_WRAP, colors::WHITE, m_yesText);
+            sdl::text::render(sdl::Texture::Null, m_noX, y + 214, 22, sdl::text::NO_WRAP, colors::WHITE, m_noText);
         }
 
     private:
@@ -146,8 +152,14 @@ class ConfirmState final : public BaseState
         /// @brief Keep track of the ticks/time needed to confirm.
         uint64_t m_startingTickCount{};
 
-        /// @brief Keeps track of which
+        /// @brief Keeps track of which stage the confirmation is in.
         int m_stage{};
+
+        /// @brief To make the dialog pop in from bottom to be more inline with the rest of the UI.
+        ui::Transition m_transition{};
+
+        // Controls whether or not to close or hide the dialog.
+        bool m_close{};
 
         /// @brief Function to execute if action is confirmed.
         const sys::threadpool::JobFunction m_function{};
@@ -161,7 +173,8 @@ class ConfirmState final : public BaseState
         {
             if (sm_dialog) { return; }
 
-            sm_dialog = ui::DialogBox::create(280, 262, 720, 256);
+            // sm_dialog = ui::DialogBox::create(280, 262, 720, 256);
+            sm_dialog = ui::DialogBox::create(280, 720, 720, 256);
         }
 
         // This just centers the Yes or holding text.
@@ -187,7 +200,6 @@ class ConfirmState final : public BaseState
 
         void confirmed()
         {
-            // auto newState = std::make_shared<StateType>(m_function, m_taskData);
             auto newState = StateType::create_and_push(m_function, m_taskData);
             BaseState::deactivate();
         }
@@ -218,7 +230,7 @@ class ConfirmState final : public BaseState
 
         void cancelled()
         {
-            FadeState::create_and_push(colors::DIM_BACKGROUND, 0x88, 0x00, nullptr);
+            FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
             BaseState::deactivate();
         }
 
@@ -226,6 +238,12 @@ class ConfirmState final : public BaseState
         {
             m_yesText = m_holdText[index];
             ConfirmState::center_yes();
+        }
+
+        void close_dialog()
+        {
+            m_close = true;
+            m_transition.set_target_y(720);
         }
 };
 

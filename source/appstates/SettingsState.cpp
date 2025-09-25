@@ -232,7 +232,7 @@ void SettingsState::create_push_description_message()
     const int selected      = m_settingsMenu->get_selected();
     const char *description = strings::get_by_name(strings::names::SETTINGS_DESCRIPTIONS, selected);
 
-    MessageState::create_and_push_fade(description);
+    MessageState::create_push_fade(description);
 }
 
 void SettingsState::cycle_zip_level()

@@ -4,6 +4,7 @@
 #include "appstates/FadeState.hpp"
 #include "graphics/colors.hpp"
 #include "ui/DialogBox.hpp"
+#include "ui/Transition.hpp"
 
 #include <memory>
 #include <string>
@@ -30,10 +31,11 @@ class MessageState final : public BaseState
         }
 
         /// @brief Same as above, but creates and pushes a transition fade in between.
-        static inline std::shared_ptr<MessageState> create_and_push_fade(std::string_view message)
+        static inline std::shared_ptr<MessageState> create_push_fade(std::string_view message)
         {
-            auto newState  = MessageState::create(message);
-            auto fadeState = FadeState::create_and_push(colors::DIM_BACKGROUND, 0x00, 0x88, newState);
+            auto newState = MessageState::create(message);
+            auto fadeState =
+                FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_BEGIN, colors::ALPHA_FADE_END, newState);
             return newState;
         }
 
@@ -50,6 +52,12 @@ class MessageState final : public BaseState
         /// @brief Prevents the state from auto triggering from a previous frame.
         bool m_triggerGuard{};
 
+        /// @brief Transition.
+        ui::Transition m_transition{};
+
+        /// @brief Bool to signal to close.
+        bool m_close{};
+
         /// @brief This is the OK string.
         static inline const char *sm_okText{};
 
@@ -61,6 +69,9 @@ class MessageState final : public BaseState
 
         /// @brief Allocates and ensures ^
         void initialize_static_members();
+
+        /// @brief Closes and "hides" the dialog.
+        void close_dialog();
 
         /// @brief Pushes and empty fade in and marks the stage for purging.
         void deactivate_state();

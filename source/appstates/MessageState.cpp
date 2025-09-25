@@ -8,29 +8,36 @@
 
 MessageState::MessageState(std::string_view message)
     : m_message(message)
+    , m_transition(280, 720, 280, 262, 4)
 {
     MessageState::initialize_static_members();
 }
 
 void MessageState::update()
 {
+    m_transition.update();
+    if (!m_transition.in_place()) { return; }
+
     // To do: I only use this in one place right now. I'm not sure this guards correctly here?
     const bool aPressed = input::button_pressed(HidNpadButton_A);
     m_triggerGuard      = m_triggerGuard || (aPressed && !m_triggerGuard);
     const bool finished = m_triggerGuard && aPressed;
 
-    if (finished) { MessageState::deactivate_state(); }
+    if (finished) { MessageState::close_dialog(); }
+    else if (m_close && m_transition.in_place()) { MessageState::deactivate_state(); }
 }
 
 void MessageState::render()
 {
     const bool hasFocus = BaseState::has_focus();
+    const int y         = m_transition.get_y();
+    sm_dialog->set_y(y);
 
     sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
     sm_dialog->render(sdl::Texture::Null, hasFocus);
-    sdl::text::render(sdl::Texture::Null, 312, 288, 20, 656, colors::WHITE, m_message);
-    sdl::render_line(sdl::Texture::Null, 280, 454, 999, 454, colors::DIV_COLOR);
-    sdl::text::render(sdl::Texture::Null, sm_okX, 476, 22, sdl::text::NO_WRAP, colors::WHITE, sm_okText);
+    sdl::text::render(sdl::Texture::Null, 312, y + 32, 20, 656, colors::WHITE, m_message);
+    sdl::render_line(sdl::Texture::Null, 280, y + 192, 999, y + 192, colors::DIV_COLOR);
+    sdl::text::render(sdl::Texture::Null, sm_okX, y + 214, 22, sdl::text::NO_WRAP, colors::WHITE, sm_okText);
 }
 
 void MessageState::initialize_static_members()
@@ -41,6 +48,12 @@ void MessageState::initialize_static_members()
     sm_okText = strings::get_by_name(strings::names::YES_NO_OK, 2);
     sm_okX    = HALF_WIDTH - (sdl::text::get_width(22, sm_okText) / 2);
     sm_dialog = ui::DialogBox::create(280, 262, 720, 256);
+}
+
+void MessageState::close_dialog()
+{
+    m_close = true;
+    m_transition.set_target_y(720);
 }
 
 void MessageState::deactivate_state()
