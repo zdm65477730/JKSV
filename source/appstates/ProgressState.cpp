@@ -13,9 +13,9 @@
 namespace
 {
     constexpr int COORD_BAR_X = 312;
-    constexpr int COORD_BAR_Y = 470;
+    constexpr int COORD_BAR_Y = 437;
 
-    constexpr int COORD_TEXT_Y = 475;
+    constexpr int COORD_TEXT_Y = 442;
 
     constexpr int COORD_DISPLAY_CENTER = 640;
     constexpr double SIZE_BAR_WIDTH    = 656.0f;
@@ -54,9 +54,9 @@ void ProgressState::render()
 
     sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
     sm_dialog->render(sdl::Texture::Null, hasFocus);
-    sdl::text::render(sdl::Texture::Null, 312, 288, BaseTask::FONT_SIZE, 656, colors::WHITE, status);
+    sdl::text::render(sdl::Texture::Null, 312, 255, BaseTask::FONT_SIZE, 656, colors::WHITE, status);
 
-    sdl::render_line(sdl::Texture::Null, 280, 454, 999, 454, colors::DIV_COLOR);
+    sdl::render_line(sdl::Texture::Null, 280, 421, 999, 421, colors::DIV_COLOR);
     sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, barWidth, 32, colors::BLACK);
     sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, m_progressBarWidth, 32, colors::BAR_GREEN);
 
@@ -80,7 +80,7 @@ void ProgressState::initialize_static_members()
 
     if (sm_dialog && sm_barEdges) { return; }
 
-    sm_dialog   = ui::DialogBox::create(280, 262, 720, 256);
+    sm_dialog   = ui::DialogBox::create(280, 229, 720, 256);
     sm_barEdges = sdl::TextureManager::load(BAR_EDGE_NAME, "romfs:/Textures/BarEdges.png");
 }
 

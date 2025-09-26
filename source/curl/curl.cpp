@@ -181,7 +181,7 @@ void curl::prepare_get(curl::Handle &curl)
 
     // Setup basic request.
     curl::set_option(curl, CURLOPT_HTTPGET, 1L);
-    // curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
+    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
 }
 
 void curl::prepare_post(curl::Handle &curl)
@@ -189,7 +189,7 @@ void curl::prepare_post(curl::Handle &curl)
     curl::reset_handle(curl);
 
     curl::set_option(curl, CURLOPT_POST, 1L);
-    // curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
+    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
 }
 
 void curl::prepare_upload(curl::Handle &curl)
@@ -197,5 +197,5 @@ void curl::prepare_upload(curl::Handle &curl)
     curl::reset_handle(curl);
 
     curl::set_option(curl, CURLOPT_UPLOAD, 1L);
-    // curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
+    curl::set_option(curl, CURLOPT_ACCEPT_ENCODING, "");
 }

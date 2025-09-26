@@ -8,7 +8,7 @@
 
 MessageState::MessageState(std::string_view message)
     : m_message(message)
-    , m_transition(280, 720, 280, 262, 4)
+    , m_transition(280, 720, 280, 229, 4)
 {
     MessageState::initialize_static_members();
 }

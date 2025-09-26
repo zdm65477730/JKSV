@@ -38,6 +38,7 @@ namespace strings::names
     inline constexpr std::string_view TITLEOPTION_STATUS    = "TitleOptionStatus";
     inline constexpr std::string_view TITLEOPTION           = "TitleOptions";
     inline constexpr std::string_view TRANSLATION           = "TranslationInfo";
+    inline constexpr std::string_view UPDATE_CONFIRMATION   = "UpdateConfirmation";
     inline constexpr std::string_view USEROPTION_CONFS      = "UserOptionConfirmations";
     inline constexpr std::string_view USEROPTION_STATUS     = "UserOptionStatus";
     inline constexpr std::string_view USEROPTION_MENU       = "UserOptions";

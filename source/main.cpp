@@ -5,7 +5,7 @@
 int main(int argc, const char *argv[])
 {
     JKSV jksv{};
-    while (appletMainLoop() && jksv.is_running())
+    while (jksv.is_running())
     {
         jksv.update();
         jksv.render();

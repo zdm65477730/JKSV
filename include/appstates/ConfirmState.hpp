@@ -46,7 +46,7 @@ class ConfirmState final : public BaseState
             , m_yesText(strings::get_by_name(strings::names::YES_NO_OK, 0))
             , m_noText(strings::get_by_name(strings::names::YES_NO_OK, 1))
             , m_holdRequired(holdRequired)
-            , m_transition(280, 720, 280, 262, 4)
+            , m_transition(280, 720, 280, 229, 4)
             , m_function(function)
             , m_taskData(taskData)
         {

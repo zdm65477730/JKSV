@@ -4,6 +4,7 @@
 #include "appstates/FileModeState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TaskState.hpp"
+#include "builddate.hpp"
 #include "config/config.hpp"
 #include "curl/curl.hpp"
 #include "data/data.hpp"
@@ -29,13 +30,6 @@
 
 namespace
 {
-    /// @brief Build month.
-    constexpr uint8_t BUILD_MON = 9;
-    /// @brief Build day.
-    constexpr uint8_t BUILD_DAY = 25;
-    /// @brief Year.
-    constexpr uint16_t BUILD_YEAR = 2025;
-
     /// @brief Config for socket.
     constexpr SocketInitConfig SOCKET_INIT_CONFIG = {.tcp_tx_buf_size     = 0x20000,
                                                      .tcp_rx_buf_size     = 0x20000,
@@ -83,7 +77,7 @@ JKSV::JKSV()
     const char *author            = strings::get_by_name(strings::names::TRANSLATION, 1);
     m_showTranslationInfo         = std::char_traits<char>::compare(author, "NULL", 4) != 0; // This is whether or not to show.
     m_translationInfo             = stringutil::get_formatted_string(translationFormat, author);
-    m_buildString                 = stringutil::get_formatted_string("v. %02d.%02d.%04d", BUILD_MON, BUILD_DAY, BUILD_YEAR);
+    m_buildString = stringutil::get_formatted_string("v. %02d.%02d.%04d", builddate::MONTH, builddate::DAY, builddate::YEAR);
 
     // This needs the config init'd or read to work.
     JKSV::create_directories();

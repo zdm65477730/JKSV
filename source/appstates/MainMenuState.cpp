@@ -16,7 +16,9 @@
 #include "sdl.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
+#include "sys/sys.hpp"
 #include "tasks/mainmenu.hpp"
+#include "tasks/update.hpp"
 #include "ui/PopMessageManager.hpp"
 
 MainMenuState::MainMenuState()
@@ -32,6 +34,7 @@ MainMenuState::MainMenuState()
     MainMenuState::initialize_menu();
     MainMenuState::initialize_view_states();
     MainMenuState::initialize_data_struct();
+    MainMenuState::check_for_update();
 }
 
 void MainMenuState::update()
@@ -47,6 +50,11 @@ void MainMenuState::update()
     if (aPressed) { MainMenuState::push_target_state(); }
     else if (toUserOptions) { MainMenuState::create_user_options(); }
     else if (yPressed) { MainMenuState::backup_all_for_all(); }
+    else if (m_updateFound.load())
+    {
+        m_updateFound.store(false);
+        MainMenuState::confirm_update();
+    }
 
     m_mainMenu->update(hasFocus);
     m_controlGuide->update(hasFocus);
@@ -72,6 +80,8 @@ void MainMenuState::render()
         target->render();
     }
 }
+
+void MainMenuState::signal_update_found() { m_updateFound.store(true); }
 
 void MainMenuState::initialize_view_states()
 {
@@ -118,7 +128,13 @@ void MainMenuState::initialize_menu()
     m_mainMenu->add_option(m_extrasIcon);
 }
 
-void MainMenuState::initialize_data_struct() { m_dataStruct->userList = sm_users; }
+void MainMenuState::initialize_data_struct()
+{
+    m_dataStruct->userList      = sm_users;
+    m_dataStruct->spawningState = this;
+}
+
+void MainMenuState::check_for_update() { sys::threadpool::push_job(tasks::update::check_for_update, m_dataStruct); }
 
 void MainMenuState::push_target_state()
 {
@@ -164,4 +180,12 @@ void MainMenuState::backup_all_for_all()
         ConfirmProgress::create_push_fade(query, true, tasks::mainmenu::backup_all_for_all_remote, m_dataStruct);
     }
     else { ConfirmProgress::create_push_fade(query, true, tasks::mainmenu::backup_all_for_all_local, m_dataStruct); }
+}
+
+void MainMenuState::confirm_update()
+{
+    const char *confirmUpdate = strings::get_by_name(strings::names::UPDATE_CONFIRMATION, 0);
+    auto taskData             = std::make_shared<sys::Task::DataStruct>();
+
+    ConfirmProgress::create_push_fade(confirmUpdate, false, tasks::update::download_update, taskData);
 }

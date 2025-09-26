@@ -35,6 +35,9 @@ class MainMenuState final : public BaseState
         /// @brief Renders menu to screen.
         void render() override;
 
+        /// @brief Allows the update task to signal it found an update.
+        void signal_update_found();
+
         /// @brief Signals to
         static void initialize_view_states();
 
@@ -45,6 +48,7 @@ class MainMenuState final : public BaseState
         struct DataStruct : sys::Task::DataStruct
         {
             data::UserList userList;
+            MainMenuState *spawningState{};
         };
         // clang-format on
 
@@ -70,6 +74,9 @@ class MainMenuState final : public BaseState
         /// @brief This is the data struct passed to tasks.
         std::shared_ptr<MainMenuState::DataStruct> m_dataStruct{};
 
+        /// @brief Allows the check_for_update task to signal that an update was found (to prevent corrupted textures!)
+        std::atomic_bool m_updateFound{};
+
         /// @brief Records the size of the sm_users vector.
         static inline int sm_userCount{};
 
@@ -94,6 +101,9 @@ class MainMenuState final : public BaseState
         /// @brief Initializes the data struct.
         void initialize_data_struct();
 
+        /// @brief Silently checks for an update in the background.
+        void check_for_update();
+
         /// @brief Pushes the target state to the vector.
         void push_target_state();
 
@@ -102,4 +112,6 @@ class MainMenuState final : public BaseState
 
         /// @brief Backups up all save data for all users.
         void backup_all_for_all();
+
+        void confirm_update();
 };

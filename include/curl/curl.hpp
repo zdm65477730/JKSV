@@ -56,6 +56,8 @@ namespace curl
     static inline void reset_handle(curl::Handle &curl)
     {
         curl_easy_reset(curl.get());
+        curl::set_option(curl, CURLOPT_SSL_VERIFYHOST, 0L);
+        curl::set_option(curl, CURLOPT_SSL_VERIFYPEER, 0L);
         curl::set_option(curl, CURLOPT_USERAGENT, curl::STRING_USER_AGENT);
         curl::set_option(curl, CURLOPT_CONNECTTIMEOUT, 5L);
     }
