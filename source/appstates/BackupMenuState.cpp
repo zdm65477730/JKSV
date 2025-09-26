@@ -241,7 +241,7 @@ void BackupMenuState::name_and_create_backup()
         if (keepLocal) { m_dataStruct->path = m_directoryPath / name; }
         m_dataStruct->remoteName = name;
 
-        ProgressState::create_and_push(tasks::backup::create_new_backup_remote, m_dataStruct);
+        ProgressState::create_push_fade(tasks::backup::create_new_backup_remote, m_dataStruct);
     }
     else
     {
@@ -249,7 +249,7 @@ void BackupMenuState::name_and_create_backup()
         if (!hasZipExt && (autoUpload || exportZip)) { target += STRING_ZIP_EXT; } // We're going to append zip either way.
 
         m_dataStruct->path = std::move(target);
-        ProgressState::create_and_push(tasks::backup::create_new_backup_local, m_dataStruct);
+        ProgressState::create_push_fade(tasks::backup::create_new_backup_local, m_dataStruct);
     }
 }
 
@@ -384,7 +384,7 @@ void BackupMenuState::upload_backup()
 
         ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::patch_backup, m_dataStruct);
     }
-    else { ProgressState::create_and_push(tasks::backup::upload_backup, m_dataStruct); }
+    else { ProgressState::create_push_fade(tasks::backup::upload_backup, m_dataStruct); }
 }
 
 void BackupMenuState::pop_save_empty()

@@ -8,6 +8,11 @@ void StateManager::update()
 
     if (stateVector.empty()) { return; }
 
+    {
+        auto &back = stateVector.back();
+        if (back->is_active() && back->has_focus()) { back->update(); }
+    }
+
     // Purge uneeded states.
     for (auto current = stateVector.begin(); current != stateVector.end();)
     {
@@ -27,9 +32,10 @@ void StateManager::update()
     // Run sub update routines.
     for (auto iter = stateVector.begin(); iter < stateVector.end() - 1; iter++) { (*iter)->sub_update(); }
 
-    std::shared_ptr<BaseState> &back = stateVector.back();
-    if (!back->has_focus()) { back->give_focus(); }
-    back->update();
+    {
+        auto &back = stateVector.back();
+        if (!back->has_focus()) { back->give_focus(); }
+    }
 }
 
 void StateManager::render() noexcept
