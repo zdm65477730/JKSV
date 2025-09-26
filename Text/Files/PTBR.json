@@ -267,6 +267,9 @@
         "0: Traduzido por: %s",
         "1: NULL"
     ],
+    "UpdateConfirmation": [
+        "Uma nova atualização do JKSV foi encontrada. Deseja baixá-la agora?"
+    ],
     "UserOptionConfirmations": [
         "0: Tem certeza que deseja fazer backup dos dados salvos para todos os títulos encontrados para `%s`? Isso pode demorar um pouco.",
         "1: Tem certeza que deseja criar dados salvos para todos os títulos encontrados no seu sistema para `%s`? Isso pode demorar um pouco.",

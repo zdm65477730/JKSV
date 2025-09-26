@@ -267,6 +267,9 @@
         "0: Vertaald door: %s",
         "1: NULL"
     ],
+    "UpdateConfirmation": [
+        "Er is een nieuwe update voor JKSV gevonden. Wilt u deze nu downloaden?"
+    ],
     "UserOptionConfirmations": [
         "0: Weet je zeker dat je de opslaggegevens voor alle gevonden titels van `%s` wilt back-uppen? Dit kan even duren.",
         "1: Weet je zeker dat je opslaggegevens wilt aanmaken voor alle gevonden titels op je systeem voor `%s`? Dit kan even duren.",

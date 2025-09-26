@@ -77,7 +77,7 @@ Detailed instructions for how to use JKSV's Google Drive and WebDav features can
 
 ## Building:
 
-1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx).
+1. Requires [devkitPro](https://devkitpro.org/), [libnx](https://github.com/switchbrew/libnx), and Python.
 
 2. Select Switch Development when installing or follow the instructions [here](https://devkitpro.org/wiki/Getting_Started) if you're not running Windows.
 

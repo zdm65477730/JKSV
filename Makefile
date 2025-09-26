@@ -149,9 +149,9 @@ endif
 .PHONY: $(BUILD) FsLib SDLLib clean all
 
 #---------------------------------------------------------------------------------
-all: FsLib SDLLib $(BUILD)
+all: FsLib SDLLib TextFiles $(BUILD)
 
-$(BUILD): FsLib SDLLib
+$(BUILD): FsLib SDLLib TextFiles
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
@@ -166,11 +166,18 @@ SDLLib:
 	@$(MAKE) -C ./Libraries/SDLLib/SDL/ -j
 
 #---------------------------------------------------------------------------------
+
+TextFiles:
+	@python ./Text/compress_text.py
+
+#---------------------------------------------------------------------------------
+
 clean:
 	@echo clean ...
 	@$(MAKE) -C ./Libraries/FsLib/Switch/FsLib clean
 	@$(MAKE) -C ./Libraries/SDLLib/SDL clean
 	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+	@rm -r ./romfs/Text
 
 #---------------------------------------------------------------------------------
 send: $(BUILD)

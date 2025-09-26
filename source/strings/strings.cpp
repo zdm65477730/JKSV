@@ -6,35 +6,37 @@
 #include "fslib.hpp"
 #include "logging/logger.hpp"
 #include "stringutil.hpp"
+#include "sys/defines.hpp"
 
 #include <array>
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <zlib.h>
 
 namespace
 {
     // This is the actual map where the strings are.
     std::map<std::pair<std::string, int>, std::string> s_stringMap;
 
-    const std::array<std::string_view, SetLanguage_Total> PATH_ARRAY = {"JA.json",
-                                                                        "ENUS.json",
-                                                                        "FR.json",
-                                                                        "DE.json",
-                                                                        "IT.json",
-                                                                        "ES.json",
-                                                                        "ZHCN.json",
-                                                                        "KO.json",
-                                                                        "NL.json",
-                                                                        "PT.json",
-                                                                        "RU.json",
-                                                                        "ZHTW.json",
-                                                                        "ENGB.json",
-                                                                        "FRCA.json",
-                                                                        "ES419.json",
-                                                                        "ZHCN.json",
-                                                                        "ZHTW.json",
-                                                                        "PTBR.json"};
+    constexpr std::array<std::string_view, SetLanguage_Total> PATH_ARRAY = {"JA.json.z",
+                                                                            "ENUS.json.z",
+                                                                            "FR.json.z",
+                                                                            "DE.json.z",
+                                                                            "IT.json.z",
+                                                                            "ES.json.z",
+                                                                            "ZHCN.json.z",
+                                                                            "KO.json.z",
+                                                                            "NL.json.z",
+                                                                            "PT.json.z",
+                                                                            "RU.json.z",
+                                                                            "ZHTW.json.z",
+                                                                            "ENGB.json.z",
+                                                                            "FRCA.json.z",
+                                                                            "ES419.json.z",
+                                                                            "ZHCN.json.z",
+                                                                            "ZHTW.json.z",
+                                                                            "PTBR.json.z"};
 } // namespace
 
 // Definitions at bottom.
@@ -44,7 +46,27 @@ static void replace_buttons_in_string(std::string &target);
 bool strings::initialize()
 {
     const std::string stringPath = get_file_path().string();
-    json::Object stringJSON      = json::new_object(json_object_from_file, stringPath.c_str());
+
+    // This is in the romfs, so fslib can't touch this.
+    std::FILE *textFile = std::fopen(stringPath.c_str(), "rb");
+    if (!textFile) { return false; }
+
+    uLongf uncompressedSize{};
+    uLongf compressedSize{};
+    const bool readFullSize = std::fread(&uncompressedSize, sizeof(uint32_t), 1, textFile) == 1;
+    const bool readCompSize = std::fread(&compressedSize, sizeof(uint32_t), 1, textFile) == 1;
+    if (!readFullSize || !readCompSize) { return false; }
+
+    auto readBuffer   = std::make_unique<sys::Byte[]>(compressedSize);
+    auto uncompBuffer = std::make_unique<sys::Byte[]>(uncompressedSize);
+    if (!readBuffer || !uncompBuffer) { return false; }
+
+    const bool goodRead = std::fread(readBuffer.get(), 1, compressedSize, textFile) == compressedSize;
+    const bool decompressed =
+        goodRead && uncompress(uncompBuffer.get(), &uncompressedSize, readBuffer.get(), compressedSize) == Z_OK;
+    if (!goodRead || !decompressed) { return false; }
+
+    json::Object stringJSON = json::new_object(json_tokener_parse, reinterpret_cast<const char *>(uncompBuffer.get()));
     if (!stringJSON) { return false; }
 
     json_object_iterator stringIterator = json::iter_begin(stringJSON);
@@ -99,7 +121,9 @@ static fslib::Path get_file_path()
     const bool codeError    = error::libnx(setGetLanguageCode(&languageCode));
     const bool langError    = !codeError && error::libnx(setMakeLanguage(languageCode, &language));
     if (forceEnglish || codeError || langError) { returnPath /= PATH_ARRAY[SetLanguage_ENUS]; }
-    else { returnPath /= PATH_ARRAY[language]; }
+    else {
+        returnPath /= PATH_ARRAY[language];
+    }
 
     return returnPath;
 }
