@@ -1,6 +1,8 @@
 #pragma once
 #include "StateManager.hpp"
 #include "appstates/BaseTask.hpp"
+#include "appstates/FadeState.hpp"
+#include "graphics/colors.hpp"
 #include "sys/sys.hpp"
 
 #include <switch.h>
@@ -24,6 +26,14 @@ class TaskState final : public BaseTask
         {
             auto newState = TaskState::create(function, taskData);
             StateManager::push_state(newState);
+            return newState;
+        }
+
+        static inline std::shared_ptr<TaskState> create_push_fade(sys::threadpool::JobFunction function,
+                                                                  sys::Task::TaskData taskData)
+        {
+            auto newState = TaskState::create(function, taskData);
+            FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_BEGIN, colors::ALPHA_FADE_END, newState);
             return newState;
         }
 

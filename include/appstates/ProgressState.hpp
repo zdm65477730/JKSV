@@ -37,8 +37,7 @@ class ProgressState final : public BaseTask
                                                                       sys::Task::TaskData taskData)
         {
             auto newState = ProgressState::create(function, taskData);
-            auto fade =
-                FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_BEGIN, colors::ALPHA_FADE_END, newState);
+            FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_BEGIN, colors::ALPHA_FADE_END, newState);
             return newState;
         }
 

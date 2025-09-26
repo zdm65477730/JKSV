@@ -108,7 +108,8 @@ class ConfirmState final : public BaseState
             else if (holdTriggered) { ConfirmState::hold_triggered(); }
             else if (holdSustained) { ConfirmState::hold_sustained(); }
             else if (aReleased) { ConfirmState::hold_released(); }
-            else if (bPressed) { ConfirmState::cancelled(); }
+            else if (bPressed) { ConfirmState::close_dialog(); }
+            else if (m_close && m_transition.in_place()) { ConfirmState::deactivate_cancelled(); }
         }
 
         /// @brief Renders the state to screen.
@@ -121,7 +122,7 @@ class ConfirmState final : public BaseState
             sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
 
             sm_dialog->render(sdl::Texture::Null, hasFocus);
-            sdl::text::render(sdl::Texture::Null, 312, y + 32, 20, 656, colors::WHITE, m_query);
+            sdl::text::render(sdl::Texture::Null, 312, y + 24, 20, 656, colors::WHITE, m_query);
 
             sdl::render_line(sdl::Texture::Null, 280, y + 192, 999, y + 192, colors::DIV_COLOR);
             sdl::render_line(sdl::Texture::Null, 640, y + 192, 640, y + 255, colors::DIV_COLOR);
@@ -228,7 +229,7 @@ class ConfirmState final : public BaseState
             ConfirmState::center_yes();
         }
 
-        void cancelled()
+        void deactivate_cancelled()
         {
             FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
             BaseState::deactivate();

@@ -35,7 +35,7 @@ void MessageState::render()
 
     sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
     sm_dialog->render(sdl::Texture::Null, hasFocus);
-    sdl::text::render(sdl::Texture::Null, 312, y + 32, 20, 656, colors::WHITE, m_message);
+    sdl::text::render(sdl::Texture::Null, 312, y + 24, 20, 656, colors::WHITE, m_message);
     sdl::render_line(sdl::Texture::Null, 280, y + 192, 999, y + 192, colors::DIV_COLOR);
     sdl::text::render(sdl::Texture::Null, sm_okX, y + 214, 22, sdl::text::NO_WRAP, colors::WHITE, sm_okText);
 }
