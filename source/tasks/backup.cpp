@@ -40,8 +40,6 @@ void tasks::backup::create_new_backup_local(sys::threadpool::JobData taskData)
     if (error::is_null(user) || error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
 
     const std::string targetString = target.string();
-    logger::log("targetString: %s", targetString.c_str());
-
     const bool hasZipExt           = std::strstr(targetString.c_str(), STRING_ZIP_EXT);
     const uint64_t applicationID   = titleInfo->get_application_id();
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
@@ -56,8 +54,7 @@ void tasks::backup::create_new_backup_local(sys::threadpool::JobData taskData)
         auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory_to_zip(fs::DEFAULT_SAVE_ROOT, zip, task);
     }
-    else
-    {
+    else {
         const bool needsDir    = !fslib::directory_exists(target);
         const bool createError = needsDir && error::fslib(fslib::create_directory(target));
         if (needsDir && createError) { TASK_FINISH_RETURN(task); }
@@ -264,8 +261,7 @@ void tasks::backup::restore_backup_local(sys::threadpool::JobData taskData)
         auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_directory_commit(target, fs::DEFAULT_SAVE_ROOT, journalSize, task);
     }
-    else
-    {
+    else {
         auto scopedMount = create_scoped_mount(saveInfo);
         fs::copy_file_commit(target, fs::DEFAULT_SAVE_ROOT, journalSize, task);
     }
@@ -395,8 +391,7 @@ void tasks::backup::delete_backup_local(sys::threadpool::JobData taskData)
         dirError  = isDir && error::fslib(fslib::rename_directory(path, newPath));
         fileError = !isDir && error::fslib(fslib::rename_file(path, newPath));
     }
-    else
-    {
+    else {
         dirError  = isDir && error::fslib(fslib::delete_directory_recursively(path));
         fileError = !isDir && error::fslib(fslib::delete_file(path));
     }
@@ -535,14 +530,12 @@ static void auto_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskD
 
         tasks::backup::create_new_backup_remote(tempData);
     }
-    else
-    {
+    else {
         // We're going to get the target dir from the path passed.
         const size_t lastSlash = target.find_last_of('/');
         if (lastSlash == target.NOT_FOUND) { return; }
 
         fslib::Path autoTarget{target.sub_path(lastSlash) / backupName};
-        logger::log("autoTarget: %s", autoTarget.string().c_str());
 
         tempData->path = std::move(autoTarget);
 

@@ -1,6 +1,7 @@
 #include "config/config.hpp"
 
 #include "config/ConfigContext.hpp"
+#include "logging/logger.hpp"
 
 namespace
 {
@@ -38,7 +39,9 @@ void config::add_remove_favorite(uint64_t applicationID)
 {
     const bool favorite = s_context.is_favorite(applicationID);
     if (favorite) { s_context.remove_favorite(applicationID); }
-    else { s_context.add_favorite(applicationID); }
+    else {
+        s_context.add_favorite(applicationID);
+    }
 }
 
 bool config::is_favorite(uint64_t applicationID) noexcept { return s_context.is_favorite(applicationID); }
@@ -47,7 +50,9 @@ void config::add_remove_blacklist(uint64_t applicationID)
 {
     const bool blacklisted = s_context.is_blacklisted(applicationID);
     if (blacklisted) { s_context.remove_from_blacklist(applicationID); }
-    else { s_context.add_to_blacklist(applicationID); }
+    else {
+        s_context.add_to_blacklist(applicationID);
+    }
 }
 
 void config::get_blacklisted_titles(std::vector<uint64_t> &listOut) { s_context.get_blacklist(listOut); }

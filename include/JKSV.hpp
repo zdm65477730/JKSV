@@ -2,6 +2,7 @@
 #include "appstates/BaseState.hpp"
 #include "sdl.hpp"
 
+#include <atomic>
 #include <memory>
 #include <vector>
 
@@ -25,9 +26,12 @@ class JKSV
         /// @brief Runs JKSV's render routine.
         void render();
 
+        /// @brief Function to allow tasks to tell JKSV to exit.
+        static void request_quit() noexcept;
+
     private:
         /// @brief Whether or not initialization was successful and JKSV is still running.
-        bool m_isRunning{};
+        static inline std::atomic_bool sm_isRunning{};
 
         /// @brief Whether or not to print the translation credits.
         bool m_showTranslationInfo{};

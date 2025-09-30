@@ -201,7 +201,9 @@ bool config::ConfigContext::load_config_file()
         else if (scaling) { m_animationScaling = json_object_get_double(value); }
         else if (favorites) { ConfigContext::read_array_to_set(m_favorites, value); }
         else if (blacklist) { ConfigContext::read_array_to_set(m_blacklist, value); }
-        else { m_configMap[key] = json_object_get_uint64(value); }
+        else {
+            m_configMap[key] = json_object_get_uint64(value);
+        }
 
         json_object_iter_next(&configIter);
     }

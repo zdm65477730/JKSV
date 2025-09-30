@@ -179,7 +179,9 @@ void SettingsState::change_working_directory()
         moved = fs::move_directory_recursively(oldPath, newPath);
         error::fslib(fslib::delete_directory_recursively(oldPath));
     }
-    else { moved = fslib::rename_directory(oldPath, newPath); }
+    else {
+        moved = fslib::rename_directory(oldPath, newPath);
+    }
 
     if (!moved)
     {
@@ -212,6 +214,7 @@ void SettingsState::create_push_blacklist_edit()
 void SettingsState::toggle_options()
 {
     const int selected = m_settingsMenu->get_selected();
+
     switch (selected)
     {
         case CHANGE_WORK_DIR: SettingsState::change_working_directory(); break;
@@ -270,7 +273,9 @@ void SettingsState::toggle_trash_folder()
     config::toggle_by_key(config::keys::ENABLE_TRASH_BIN);
 
     if (trashEnabled) { error::fslib(fslib::delete_directory_recursively(trashPath)); }
-    else { error::fslib(fslib::create_directory(trashPath)); }
+    else {
+        error::fslib(fslib::create_directory(trashPath));
+    }
 }
 
 void SettingsState::cycle_anim_scaling()

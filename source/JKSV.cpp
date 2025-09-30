@@ -85,7 +85,7 @@ JKSV::JKSV()
 
     data::launch_initialization(false, finish_initialization);
 
-    m_isRunning = true;
+    sm_isRunning = true;
 }
 
 JKSV::~JKSV()
@@ -101,7 +101,7 @@ JKSV::~JKSV()
     appletUnlockExit();
 }
 
-bool JKSV::is_running() const noexcept { return m_isRunning && appletMainLoop(); }
+bool JKSV::is_running() const noexcept { return sm_isRunning && appletMainLoop(); }
 
 void JKSV::update()
 {
@@ -109,7 +109,7 @@ void JKSV::update()
 
     const bool plusPressed = input::button_pressed(HidNpadButton_Plus);
     const bool isClosable  = StateManager::back_is_closable();
-    if (plusPressed && isClosable) { m_isRunning = false; }
+    if (plusPressed && isClosable) { sm_isRunning = false; }
 
     StateManager::update();
     ui::PopMessageManager::update();
@@ -140,6 +140,8 @@ void JKSV::render()
 
     sdl::frame_end();
 }
+
+void JKSV::request_quit() noexcept { sm_isRunning = false; }
 
 bool JKSV::initialize_filesystem()
 {

@@ -4,6 +4,7 @@
 #include "appstates/ConfirmState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "builddate.hpp"
+#include "cmdargs.hpp"
 #include "curl/curl.hpp"
 #include "error.hpp"
 #include "json.hpp"
@@ -75,8 +76,9 @@ void tasks::update::download_update(sys::threadpool::JobData jobData)
     task->reset(static_cast<double>(nroSize));
 
     // To do: Figure out how to get the argument from main here.
-    error::libnx(romfsExit()); // This is needed so I can overwrite the NRO.
-    fslib::File jksv{"sdmc:/switch/JKSV.nro", FsOpenMode_Create | FsOpenMode_Write, static_cast<int64_t>(nroSize)};
+    error::libnx(romfsExit());              // This is needed so I can overwrite the NRO.
+    const char *location = cmdargs::get(0); // This is the location from the command line args.
+    fslib::File jksv{location, FsOpenMode_Create | FsOpenMode_Write, static_cast<int64_t>(nroSize)};
     if (error::fslib(jksv.is_open())) { TASK_FINISH_RETURN(task); }
 
     auto download = curl::create_download_struct(jksv, task, nroSize);
@@ -90,6 +92,8 @@ void tasks::update::download_update(sys::threadpool::JobData jobData)
     download->writeComplete.acquire();
 
     task->complete();
+
+    JKSV::request_quit();
 }
 
 static std::string get_git_json(curl::Handle &handle)

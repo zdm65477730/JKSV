@@ -1,6 +1,7 @@
 #include "data/data.hpp"
 
 #include "appstates/DataLoadingState.hpp"
+#include "appstates/FadeState.hpp"
 #include "data/DataContext.hpp"
 #include "error.hpp"
 #include "logging/logger.hpp"
