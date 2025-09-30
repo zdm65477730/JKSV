@@ -60,6 +60,12 @@ class ProgressState final : public BaseTask
         /// @brief Percentage as a string for printing to screen.
         std::string m_percentageString{};
 
+        /// @brief Transition.
+        ui::Transition m_transition{};
+
+        /// @brief Controls the closing transition.
+        bool m_close{};
+
         /// @brief This is the dialog box everything is rendered to.
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
 
@@ -68,6 +74,9 @@ class ProgressState final : public BaseTask
 
         /// @brief Initializes the shared dialog box.
         void initialize_static_members();
+
+        /// @brief Closes the dialog.
+        void close_dialog();
 
         /// @brief Performs some cleanup and marks the state for purging.
         void deactivate_state();

@@ -57,6 +57,19 @@ void ui::DialogBox::set_width(int width) noexcept { m_width = width; }
 
 void ui::DialogBox::set_height(int height) noexcept { m_height = height; }
 
+void ui::DialogBox::set_from_transition(ui::Transition &transition, bool centered)
+{
+    const int x      = centered ? transition.get_centered_x() : transition.get_x();
+    const int y      = centered ? transition.get_centered_y() : transition.get_y();
+    const int width  = transition.get_width();
+    const int height = transition.get_height();
+
+    m_x      = x;
+    m_y      = y;
+    m_width  = width;
+    m_height = height;
+}
+
 void ui::DialogBox::initialize_static_members()
 {
     if (sm_darkCorners && sm_lightCorners) { return; }

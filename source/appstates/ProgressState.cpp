@@ -22,6 +22,7 @@ namespace
 }
 
 ProgressState::ProgressState(sys::threadpool::JobFunction function, sys::Task::TaskData taskData)
+    : m_transition(0, 0, 32, 32, 0, 0, 720, 256, 4)
 {
     initialize_static_members();
     m_task = std::make_unique<sys::ProgressTask>(function, taskData);
@@ -29,13 +30,18 @@ ProgressState::ProgressState(sys::threadpool::JobFunction function, sys::Task::T
 
 void ProgressState::update()
 {
+    BaseTask::update_loading_glyph();
+    BaseTask::pop_on_plus();
+    m_transition.update();
+    sm_dialog->set_from_transition(m_transition, true);
+    if (!m_transition.in_place()) { return; }
+
     sys::ProgressTask *task = static_cast<sys::ProgressTask *>(m_task.get());
     const double current    = task->get_progress();
 
-    BaseTask::update_loading_glyph();
-    BaseTask::pop_on_plus();
-
-    if (!m_task->is_running()) { ProgressState::deactivate_state(); }
+    const bool isRunning = m_task->is_running();
+    if (!isRunning && !m_close) { ProgressState::close_dialog(); }
+    else if (m_close && m_transition.in_place()) { ProgressState::deactivate_state(); }
 
     m_progressBarWidth        = std::round(SIZE_BAR_WIDTH * current);
     m_progress                = std::round(current * 100);
@@ -47,13 +53,15 @@ void ProgressState::update()
 void ProgressState::render()
 {
     static constexpr int RIGHT_EDGE_X = (COORD_BAR_X + SIZE_BAR_WIDTH) - 16;
-
-    const bool hasFocus      = BaseState::has_focus();
-    const int barWidth       = static_cast<int>(SIZE_BAR_WIDTH);
-    const std::string status = m_task->get_status();
+    const bool hasFocus               = BaseState::has_focus();
 
     sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
     sm_dialog->render(sdl::Texture::Null, hasFocus);
+    BaseTask::render_loading_glyph();
+    if (!m_transition.in_place()) { return; }
+
+    const int barWidth       = static_cast<int>(SIZE_BAR_WIDTH);
+    const std::string status = m_task->get_status();
     sdl::text::render(sdl::Texture::Null, 312, 255, BaseTask::FONT_SIZE, 656, colors::WHITE, status);
 
     sdl::render_line(sdl::Texture::Null, 280, 421, 999, 421, colors::DIV_COLOR);
@@ -70,8 +78,6 @@ void ProgressState::render()
                       sdl::text::NO_WRAP,
                       colors::WHITE,
                       m_percentageString);
-
-    BaseTask::render_loading_glyph();
 }
 
 void ProgressState::initialize_static_members()
@@ -80,8 +86,17 @@ void ProgressState::initialize_static_members()
 
     if (sm_dialog && sm_barEdges) { return; }
 
-    sm_dialog   = ui::DialogBox::create(280, 229, 720, 256);
+    sm_dialog   = ui::DialogBox::create(0, 0, 0, 0);
     sm_barEdges = sdl::TextureManager::load(BAR_EDGE_NAME, "romfs:/Textures/BarEdges.png");
+
+    sm_dialog->set_from_transition(m_transition, true);
+}
+
+void ProgressState::close_dialog()
+{
+    m_transition.set_target_width(32);
+    m_transition.set_target_height(32);
+    m_close = true;
 }
 
 void ProgressState::deactivate_state()

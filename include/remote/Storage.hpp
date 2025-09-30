@@ -64,6 +64,14 @@ namespace remote
             /// @param name Name of the file.
             bool file_exists(std::string_view name) const noexcept;
 
+            /// @brief Searches the list for a file matching name and the current parent.
+            /// @param name Name of the file to search for.
+            /// @return Pointer to the item if located. nullptr if not.
+            remote::Item *get_file_by_name(std::string_view name) noexcept;
+
+            /// @brief Searches for and returns the item with id. Returns nullptr on failure.
+            remote::Item *get_item_by_id(std::string_view id) noexcept;
+
             /// @brief Uploads a file from the SD card to the remote.
             /// @param source Path to the file to upload.
             virtual bool upload_file(const fslib::Path &source, std::string_view name, sys::ProgressTask *task = nullptr) = 0;
@@ -79,11 +87,6 @@ namespace remote
             virtual bool download_file(const remote::Item *file,
                                        const fslib::Path &destination,
                                        sys::ProgressTask *task = nullptr) = 0;
-
-            /// @brief Searches the list for a file matching name and the current parent.
-            /// @param name Name of the file to search for.
-            /// @return Pointer to the item if located. nullptr if not.
-            remote::Item *get_file_by_name(std::string_view name) noexcept;
 
             // General functions that apply to both.
             /// @brief Deletes a file or folder from the remote.

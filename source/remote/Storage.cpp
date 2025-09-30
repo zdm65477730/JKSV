@@ -68,6 +68,16 @@ remote::Item *remote::Storage::get_file_by_name(std::string_view name) noexcept
     return &(*findFile);
 }
 
+remote::Item *remote::Storage::get_item_by_id(std::string_view id) noexcept
+{
+    auto is_match = [&](const remote::Item &item) { return item.get_id() == id; };
+
+    auto findMatch = std::find_if(m_list.begin(), m_list.end(), is_match);
+    if (findMatch == m_list.end()) { return nullptr; }
+
+    return &(*findMatch);
+}
+
 bool remote::Storage::supports_utf8() const noexcept { return m_utf8Paths; }
 
 std::string_view remote::Storage::get_prefix() const noexcept { return m_prefix; }

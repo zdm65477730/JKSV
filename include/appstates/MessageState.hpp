@@ -70,6 +70,9 @@ class MessageState final : public BaseState
         /// @brief Allocates and ensures ^
         void initialize_static_members();
 
+        /// @brief Updates the dialog according to the transition.
+        void update_dialog();
+
         /// @brief Closes and "hides" the dialog.
         void close_dialog();
 

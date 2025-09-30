@@ -38,7 +38,7 @@ static std::string get_size_string(int64_t totalSize);
 FileOptionState::FileOptionState(FileModeState *spawningState)
     : m_spawningState(spawningState)
     , m_target(spawningState->m_target)
-    , m_transition(m_target ? 1280 : -240, 218, m_target ? 840 : 200, 218, 4)
+    , m_transition(m_target ? 1280 : -240, 218, 0, 0, m_target ? 840 : 200, 218, 0, 0, 4)
     , m_dataStruct(std::make_shared<FileOptionState::DataStruct>())
 {
     FileOptionState::initialize_static_members();
@@ -331,7 +331,9 @@ void FileOptionState::get_show_target_properties()
 
     const bool isDir = fslib::directory_exists(targetPath);
     if (isDir) { FileOptionState::get_show_directory_properties(targetPath); }
-    else { FileOptionState::get_show_file_properties(targetPath); }
+    else {
+        FileOptionState::get_show_file_properties(targetPath);
+    }
 }
 
 void FileOptionState::get_show_directory_properties(const fslib::Path &path)
@@ -432,8 +434,7 @@ static std::string get_size_string(int64_t totalSize)
         const double kilobytes = static_cast<double>(totalSize) / static_cast<double>(THRESHOLD_BYTES);
         sizeString             = stringutil::get_formatted_string("%.02f KB", kilobytes);
     }
-    else
-    {
+    else {
         const double megabytes = static_cast<double>(totalSize) / static_cast<double>(THRESHOLD_KB);
         sizeString             = stringutil::get_formatted_string("%.02f MB", megabytes);
     }

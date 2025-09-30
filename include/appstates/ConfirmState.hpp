@@ -46,7 +46,7 @@ class ConfirmState final : public BaseState
             , m_yesText(strings::get_by_name(strings::names::YES_NO_OK, 0))
             , m_noText(strings::get_by_name(strings::names::YES_NO_OK, 1))
             , m_holdRequired(holdRequired)
-            , m_transition(280, 720, 280, 229, 4)
+            , m_transition(280, 229, 32, 32, 280, 229, 720, 256, 4)
             , m_function(function)
             , m_taskData(taskData)
         {
@@ -92,6 +92,7 @@ class ConfirmState final : public BaseState
         void update() override
         {
             m_transition.update();
+            sm_dialog->set_from_transition(m_transition, true);
             if (!m_transition.in_place()) { return; }
 
             const bool aPressed  = input::button_pressed(HidNpadButton_A);
@@ -109,7 +110,7 @@ class ConfirmState final : public BaseState
             else if (holdSustained) { ConfirmState::hold_sustained(); }
             else if (aReleased) { ConfirmState::hold_released(); }
             else if (bPressed) { ConfirmState::close_dialog(); }
-            else if (m_close && m_transition.in_place()) { ConfirmState::deactivate_cancelled(); }
+            else if (m_close && m_transition.in_place()) { ConfirmState::deactivate_state(); }
         }
 
         /// @brief Renders the state to screen.
@@ -117,11 +118,11 @@ class ConfirmState final : public BaseState
         {
             const bool hasFocus = BaseState::has_focus();
             const int y         = m_transition.get_y();
-            sm_dialog->set_y(y);
 
             sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
-
             sm_dialog->render(sdl::Texture::Null, hasFocus);
+            if (!m_transition.in_place() || m_close) { return; }
+
             sdl::text::render(sdl::Texture::Null, 312, y + 24, 20, 656, colors::WHITE, m_query);
 
             sdl::render_line(sdl::Texture::Null, 280, y + 192, 999, y + 192, colors::DIV_COLOR);
@@ -143,6 +144,9 @@ class ConfirmState final : public BaseState
 
         /// @brief This is to prevent the dialog from triggering immediately.
         bool m_triggerGuard{};
+
+        /// @brief Whether or not the action was confirmed
+        bool m_confirmed{};
 
         /// @brief Whether or not holding [A] to confirm is required.
         const bool m_holdRequired{};
@@ -174,8 +178,8 @@ class ConfirmState final : public BaseState
         {
             if (sm_dialog) { return; }
 
-            // sm_dialog = ui::DialogBox::create(280, 262, 720, 256);
-            sm_dialog = ui::DialogBox::create(280, 720, 720, 256);
+            sm_dialog = ui::DialogBox::create(0, 0, 0, 0);
+            sm_dialog->set_from_transition(m_transition, true);
         }
 
         // This just centers the Yes or holding text.
@@ -201,8 +205,8 @@ class ConfirmState final : public BaseState
 
         void confirmed()
         {
-            auto newState = StateType::create_and_push(m_function, m_taskData);
-            BaseState::deactivate();
+            m_confirmed = true;
+            ConfirmState::close_dialog();
         }
 
         void hold_triggered()
@@ -229,9 +233,12 @@ class ConfirmState final : public BaseState
             ConfirmState::center_yes();
         }
 
-        void deactivate_cancelled()
+        void deactivate_state()
         {
-            FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
+            if (m_confirmed) { StateType::create_and_push(m_function, m_taskData); }
+            else {
+                FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
+            }
             BaseState::deactivate();
         }
 
@@ -244,7 +251,8 @@ class ConfirmState final : public BaseState
         void close_dialog()
         {
             m_close = true;
-            m_transition.set_target_y(720);
+            m_transition.set_target_width(32);
+            m_transition.set_target_height(32);
         }
 };
 

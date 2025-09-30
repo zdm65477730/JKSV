@@ -70,8 +70,7 @@ void tasks::titleoptions::delete_all_local_backups_for_title(sys::threadpool::Jo
     const bool dirExists    = fslib::directory_exists(targetPath);
     const bool deleteFailed = dirExists && error::fslib(fslib::delete_directory_recursively(targetPath));
     if (deleteFailed) { ui::PopMessageManager::push_message(popTicks, popFailure); }
-    else
-    {
+    else {
         const char *title      = titleInfo->get_title();
         std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
         ui::PopMessageManager::push_message(popTicks, popMessage);
@@ -97,10 +96,15 @@ void tasks::titleoptions::delete_all_remote_backups_for_title(sys::threadpool::J
     if (!exists) { TASK_FINISH_RETURN(task); }
 
     remote::Item *workDir = remote->get_directory_by_name(remoteTitle);
+    if (!workDir) { TASK_FINISH_RETURN(task); }
     remote->change_directory(workDir);
 
     remote::Storage::DirectoryListing remoteListing{};
     remote->get_directory_listing(remoteListing);
+
+    // This is needed because deleting one throws the vector out of whack.
+    std::vector<std::string> ids{};
+    for (remote::Item *item : remoteListing) { ids.emplace_back(item->get_id()); }
 
     {
         const char *statusFormat = strings::get_by_name(strings::names::TITLEOPTION_STATUS, 0);
@@ -111,10 +115,18 @@ void tasks::titleoptions::delete_all_remote_backups_for_title(sys::threadpool::J
     const int popTicks     = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popSuccess = strings::get_by_name(strings::names::TITLEOPTION_POPS, 0);
     const char *popFailure = strings::get_by_name(strings::names::TITLEOPTION_POPS, 1);
-    for (remote::Item *item : remoteListing)
+    for (const std::string &id : ids)
     {
+        remote::Item *item = remote->get_item_by_id(id);
+        if (!item) { continue; }
+
         const bool deleted = remote->delete_item(item);
-        if (!deleted) { ui::PopMessageManager::push_message(popTicks, popFailure); }
+        if (!deleted)
+        {
+            ui::PopMessageManager::push_message(popTicks, popFailure);
+            remote->return_to_root();
+            TASK_FINISH_RETURN(task);
+        }
     }
 
     remote->return_to_root();
@@ -154,7 +166,9 @@ void tasks::titleoptions::reset_save_data(sys::threadpool::JobData taskData)
         const bool resetFailed  = error::fslib(fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT));
         const bool commitFailed = error::fslib(fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT));
         if (resetFailed || commitFailed) { ui::PopMessageManager::push_message(popTicks, popFailed); }
-        else { ui::PopMessageManager::push_message(popTicks, popSuccess); }
+        else {
+            ui::PopMessageManager::push_message(popTicks, popSuccess);
+        }
     }
 
     task->complete();
@@ -248,8 +262,7 @@ void tasks::titleoptions::extend_save_data(sys::threadpool::JobData taskData)
         const char *popSuccess = strings::get_by_name(strings::names::TITLEOPTION_POPS, 10);
         ui::PopMessageManager::push_message(popTicks, popSuccess);
     }
-    else
-    {
+    else {
         const char *popFailed = strings::get_by_name(strings::names::TITLEOPTION_POPS, 11);
         ui::PopMessageManager::push_message(popTicks, popFailed);
     }

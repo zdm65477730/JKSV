@@ -1,6 +1,7 @@
 #pragma once
 #include "sdl.hpp"
 #include "ui/Element.hpp"
+#include "ui/Transition.hpp"
 
 #include <string>
 
@@ -51,6 +52,11 @@ namespace ui
 
             /// @brief Sets the height.
             void set_height(int height) noexcept;
+
+            /// @brief Uses the transition passed to position the dialog.
+            /// @param transition Transition to use.
+            /// @param centered Whether or not the center the dialog.
+            void set_from_transition(ui::Transition &transition, bool centered = false);
 
         private:
             /// @brief X render coord.
