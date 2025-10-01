@@ -25,8 +25,8 @@ void BlacklistEditState::update()
     sm_slidePanel->update(hasFocus);
 
     if (aPressed) { BlacklistEditState::remove_from_blacklist(); }
-    else if (bPressed || config::blacklist_is_empty()) { sm_slidePanel->close(); }
     else if (sm_slidePanel->is_closed()) { BlacklistEditState::deactivate_state(); }
+    else if (bPressed || m_blacklist.empty()) { sm_slidePanel->close(); }
 }
 
 void BlacklistEditState::render()

@@ -1,4 +1,4 @@
-#include "CmdArgs.hpp"
+#include "cmdargs.hpp"
 
 #include <vector>
 
