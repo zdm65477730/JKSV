@@ -1,9 +1,9 @@
 #include "strings/strings.hpp"
 
-#include "JSON.hpp"
 #include "config/config.hpp"
 #include "error.hpp"
 #include "fslib.hpp"
+#include "json.hpp"
 #include "logging/logger.hpp"
 #include "stringutil.hpp"
 #include "sys/defines.hpp"
@@ -121,9 +121,7 @@ static fslib::Path get_file_path()
     const bool codeError    = error::libnx(setGetLanguageCode(&languageCode));
     const bool langError    = !codeError && error::libnx(setMakeLanguage(languageCode, &language));
     if (forceEnglish || codeError || langError) { returnPath /= PATH_ARRAY[SetLanguage_ENUS]; }
-    else {
-        returnPath /= PATH_ARRAY[language];
-    }
+    else { returnPath /= PATH_ARRAY[language]; }
 
     return returnPath;
 }

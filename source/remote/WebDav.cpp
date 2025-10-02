@@ -1,8 +1,8 @@
 #include "remote/WebDav.hpp"
 
-#include "JSON.hpp"
 #include "curl/curl.hpp"
 #include "error.hpp"
+#include "json.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "strings/strings.hpp"

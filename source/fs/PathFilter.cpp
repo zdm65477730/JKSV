@@ -1,6 +1,6 @@
 #include "fs/PathFilter.hpp"
 
-#include "JSON.hpp"
+#include "json.hpp"
 
 fs::PathFilter::PathFilter(const fslib::Path &filePath)
 {
