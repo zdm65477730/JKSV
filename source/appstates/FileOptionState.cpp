@@ -30,6 +30,10 @@ namespace
         PROPERTIES,
         CLOSE
     };
+
+    constexpr int LEFT_X  = 200;
+    constexpr int RIGHT_X = 840;
+    constexpr int TOP_Y   = 218;
 }
 
 // Defined at bottom.
@@ -38,7 +42,7 @@ static std::string get_size_string(int64_t totalSize);
 FileOptionState::FileOptionState(FileModeState *spawningState)
     : m_spawningState(spawningState)
     , m_target(spawningState->m_target)
-    , m_transition(m_target ? 1280 : -240, 218, 0, 0, m_target ? 840 : 200, 218, 0, 0, 4)
+    , m_transition(m_target ? RIGHT_X : LEFT_X, 232, 32, 32, m_target ? RIGHT_X : LEFT_X, 232, 256, 256, 4)
     , m_dataStruct(std::make_shared<FileOptionState::DataStruct>())
 {
     FileOptionState::initialize_static_members();
@@ -48,13 +52,16 @@ FileOptionState::FileOptionState(FileModeState *spawningState)
 void FileOptionState::update()
 {
     m_transition.update();
-    if (!m_transition.in_place())
-    {
-        const int x = m_transition.get_x();
-        sm_dialog->set_x(x);
-        sm_copyMenu->set_x(x + 9);
-        return;
-    }
+    const int width  = m_transition.get_width();
+    const int height = m_transition.get_height();
+    int x            = m_transition.get_x();
+    x += 128 - (width / 2);
+    int y = m_transition.get_centered_y();
+    sm_dialog->set_x(x);
+    sm_dialog->set_y(y);
+    sm_dialog->set_width(width);
+    sm_dialog->set_height(height);
+    if (!m_transition.in_place()) { return; }
 
     const bool hasFocus = BaseState::has_focus();
     if (m_updateSource)
@@ -92,8 +99,9 @@ void FileOptionState::update()
 void FileOptionState::render()
 {
     const bool hasFocus = BaseState::has_focus();
-
     sm_dialog->render(sdl::Texture::Null, hasFocus);
+    if (!m_transition.in_place()) { return; }
+
     sm_copyMenu->render(sdl::Texture::Null, hasFocus);
 }
 
@@ -105,15 +113,15 @@ void FileOptionState::initialize_static_members()
 {
     if (sm_copyMenu && sm_dialog)
     {
-        const int x = m_transition.get_x();
-
-        sm_dialog->set_x(x);
+        const int x       = m_transition.get_x();
+        const int dialogX = x + (128 - 16);
+        sm_dialog->set_x(dialogX);
         sm_copyMenu->set_x(x + 9);
         return;
     }
 
-    sm_copyMenu = ui::Menu::create(1280, 236, 234, 20, 720); // High target height is a workaround.
-    sm_dialog   = ui::DialogBox::create(1280, 218, 256, 256);
+    sm_copyMenu = ui::Menu::create(m_target ? RIGHT_X + 9 : LEFT_X + 9, 253, 234, 20, 720); // Target height is a workaround.
+    sm_dialog   = ui::DialogBox::create(2000, 1000, 32, 32);                                // Create this off screen at first.
 
     // This never changes, so...
     for (int i = 0; const char *menuOption = strings::get_by_name(strings::names::FILEOPTION_MENU, i); i++)
@@ -331,9 +339,7 @@ void FileOptionState::get_show_target_properties()
 
     const bool isDir = fslib::directory_exists(targetPath);
     if (isDir) { FileOptionState::get_show_directory_properties(targetPath); }
-    else {
-        FileOptionState::get_show_file_properties(targetPath);
-    }
+    else { FileOptionState::get_show_file_properties(targetPath); }
 }
 
 void FileOptionState::get_show_directory_properties(const fslib::Path &path)
@@ -403,9 +409,9 @@ void FileOptionState::pop_system_error()
 
 void FileOptionState::close()
 {
-    m_close           = true;
-    const int targetX = m_target ? 1280 : -240;
-    m_transition.set_target_x(targetX);
+    m_close = true;
+    m_transition.set_target_width(32);
+    m_transition.set_target_height(32);
 }
 
 bool FileOptionState::is_closed() { return m_close && m_transition.in_place(); }
@@ -434,7 +440,8 @@ static std::string get_size_string(int64_t totalSize)
         const double kilobytes = static_cast<double>(totalSize) / static_cast<double>(THRESHOLD_BYTES);
         sizeString             = stringutil::get_formatted_string("%.02f KB", kilobytes);
     }
-    else {
+    else
+    {
         const double megabytes = static_cast<double>(totalSize) / static_cast<double>(THRESHOLD_KB);
         sizeString             = stringutil::get_formatted_string("%.02f MB", megabytes);
     }

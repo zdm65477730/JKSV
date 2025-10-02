@@ -40,6 +40,9 @@ class DataLoadingState final : public BaseTask
         /// @brief Update override.
         void update() override;
 
+        /// @brief Updates the loading glyph.
+        void sub_update() override;
+
         /// @brief Render override.
         void render() override;
 

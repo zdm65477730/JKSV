@@ -10,8 +10,11 @@ bool keyboard::get_input(SwkbdType keyboardType,
                          char *stringOut,
                          size_t stringLength)
 {
-    SwkbdConfig keyboard;
-    swkbdCreate(&keyboard, 0);
+    SwkbdConfig keyboard{};
+
+    const bool createError = error::libnx(swkbdCreate(&keyboard, 0));
+    if (createError) { return false; }
+
     swkbdConfigSetBlurBackground(&keyboard, true);
     swkbdConfigSetInitialText(&keyboard, defaultText.data());
     swkbdConfigSetHeaderText(&keyboard, header.data());

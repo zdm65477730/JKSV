@@ -27,6 +27,8 @@ void DataLoadingState::update()
     m_context.process_icon_queue();
 }
 
+void DataLoadingState::sub_update() { BaseTask::update_loading_glyph(); }
+
 void DataLoadingState::render()
 {
     static constexpr int ICON_X_COORD = SCREEN_CENTER - 128;

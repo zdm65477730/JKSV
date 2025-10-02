@@ -84,6 +84,7 @@ JKSV::JKSV()
     sys::threadpool::initialize();
 
     data::launch_initialization(false, finish_initialization);
+    FadeState::create_and_push(colors::BLACK, 0xFF, 0x00, nullptr);
 
     sm_isRunning = true;
 }

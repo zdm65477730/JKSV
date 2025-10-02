@@ -12,13 +12,13 @@
 
 namespace
 {
-    constexpr int COORD_BAR_X = 312;
+    constexpr int COORD_BAR_X = 296;
     constexpr int COORD_BAR_Y = 437;
 
     constexpr int COORD_TEXT_Y = 442;
 
     constexpr int COORD_DISPLAY_CENTER = 640;
-    constexpr double SIZE_BAR_WIDTH    = 656.0f;
+    constexpr double SIZE_BAR_WIDTH    = 688.0f;
 }
 
 ProgressState::ProgressState(sys::threadpool::JobFunction function, sys::Task::TaskData taskData)
