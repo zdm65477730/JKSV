@@ -119,13 +119,16 @@ void SettingsState::load_extra_strings()
 
 void SettingsState::update_menu_options()
 {
-    for (int i : {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 19, 20, 21, 22, 23})
+    static constexpr std::array<int, 20> TOGGLE_INDEXES = {2,  3,  4,  5,  6,  7,  8,  9,  10, 11,
+                                                           12, 13, 14, 17, 18, 19, 20, 21, 22, 23};
+
+    for (const int index : TOGGLE_INDEXES)
     {
-        const char *optionFormat = strings::get_by_name(strings::names::SETTINGS_MENU, i);
-        const uint8_t value      = config::get_by_key(CONFIG_KEY_ARRAY[i]);
+        const char *optionFormat = strings::get_by_name(strings::names::SETTINGS_MENU, index);
+        const uint8_t value      = config::get_by_key(CONFIG_KEY_ARRAY[index]);
         const char *status       = SettingsState::get_status_text(value);
         const std::string option = stringutil::get_formatted_string(optionFormat, status);
-        m_settingsMenu->edit_option(i, option);
+        m_settingsMenu->edit_option(index, option);
     }
 
     {
@@ -179,9 +182,7 @@ void SettingsState::change_working_directory()
         moved = fs::move_directory_recursively(oldPath, newPath);
         error::fslib(fslib::delete_directory_recursively(oldPath));
     }
-    else {
-        moved = fslib::rename_directory(oldPath, newPath);
-    }
+    else { moved = fslib::rename_directory(oldPath, newPath); }
 
     if (!moved)
     {
@@ -273,9 +274,7 @@ void SettingsState::toggle_trash_folder()
     config::toggle_by_key(config::keys::ENABLE_TRASH_BIN);
 
     if (trashEnabled) { error::fslib(fslib::delete_directory_recursively(trashPath)); }
-    else {
-        error::fslib(fslib::create_directory(trashPath));
-    }
+    else { error::fslib(fslib::create_directory(trashPath)); }
 }
 
 void SettingsState::cycle_anim_scaling()

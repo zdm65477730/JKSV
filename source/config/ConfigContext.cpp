@@ -205,6 +205,7 @@ bool config::ConfigContext::load_config_file()
 
         json_object_iter_next(&configIter);
     }
+
     return true;
 }
 
@@ -227,7 +228,7 @@ void config::ConfigContext::save_config_file()
     json::add_object(configJSON, config::keys::UI_ANIMATION_SCALE, scaling);
 
     json_object *favoritesArray = json_object_new_array();
-    for (const uint64_t &applicationID : m_favorites)
+    for (const uint64_t applicationID : m_favorites)
     {
         const std::string appIDHex = stringutil::get_formatted_string(APP_ID_HEX_FORMAT, applicationID);
         json_object *jsonFavorite  = json_object_new_string(appIDHex.c_str());
@@ -237,7 +238,7 @@ void config::ConfigContext::save_config_file()
     json::add_object(configJSON, config::keys::FAVORITES, favoritesArray);
 
     json_object *blacklistArray = json_object_new_array();
-    for (const uint64_t &applicationID : m_blacklist)
+    for (const uint64_t applicationID : m_blacklist)
     {
         const std::string appIDHex = stringutil::get_formatted_string(APP_ID_HEX_FORMAT, applicationID);
         json_object *jsonBlacklist = json_object_new_string(appIDHex.c_str());
@@ -280,8 +281,7 @@ void config::ConfigContext::load_custom_paths()
 
         const uint64_t applicationID = std::strtoull(appIDString, nullptr, 16);
         const char *path             = json_object_get_string(pathObject);
-
-        m_paths[applicationID] = path;
+        m_paths.try_emplace(applicationID, path);
 
         json_object_iter_next(&pathsIter);
     }
@@ -292,7 +292,7 @@ void config::ConfigContext::save_custom_paths()
     json::Object pathsJSON = json::new_object(json_object_new_object);
     if (!pathsJSON) { return; }
 
-    for (auto &[applicationID, path] : m_paths)
+    for (const auto &[applicationID, path] : m_paths)
     {
         const std::string key   = stringutil::get_formatted_string(APP_ID_HEX_FORMAT, applicationID);
         json_object *pathObject = json_object_new_string(path.c_str());

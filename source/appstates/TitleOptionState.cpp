@@ -40,9 +40,13 @@ namespace
     };
 } // namespace
 
-TitleOptionState::TitleOptionState(data::User *user, data::TitleInfo *titleInfo, TitleSelectCommon *titleSelect)
+TitleOptionState::TitleOptionState(data::User *user,
+                                   data::TitleInfo *titleInfo,
+                                   const FsSaveDataInfo *saveInfo,
+                                   TitleSelectCommon *titleSelect)
     : m_user(user)
     , m_titleInfo(titleInfo)
+    , m_saveInfo(saveInfo)
     , m_titleSelect(titleSelect)
     , m_dataStruct(std::make_shared<TitleOptionState::DataStruct>())
 {
@@ -124,6 +128,7 @@ void TitleOptionState::initialize_data_struct()
 {
     m_dataStruct->user          = m_user;
     m_dataStruct->titleInfo     = m_titleInfo;
+    m_dataStruct->saveInfo      = m_saveInfo;
     m_dataStruct->spawningState = this;
     m_dataStruct->titleSelect   = m_titleSelect;
 }

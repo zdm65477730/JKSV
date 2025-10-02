@@ -208,7 +208,7 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
 
             auto &[buffer, bufferSize] = queuePair;
 
-            const bool commitNeeded = needCommits && journalCount + bufferSize >= journalSize;
+            const bool commitNeeded = needCommits && journalCount + static_cast<int64_t>(bufferSize) >= journalSize;
             if (commitNeeded)
             {
                 destFile.close();

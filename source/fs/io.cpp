@@ -135,7 +135,7 @@ void fs::copy_file_commit(const fslib::Path &source,
         }
 
         const auto &[buffer, bufferSize] = queuePair;
-        const bool needsCommit           = journalCount + bufferSize >= journalSize;
+        const bool needsCommit           = journalCount + static_cast<int64_t>(bufferSize) >= journalSize;
         if (needsCommit)
         {
             destFile.close();

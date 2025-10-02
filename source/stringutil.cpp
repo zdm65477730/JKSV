@@ -7,14 +7,31 @@
 #include <ctime>
 #include <string>
 #include <switch.h>
+#include <unordered_map>
 
 namespace
 {
     // Size limit for formatted strings.
     constexpr size_t VA_BUFFER_SIZE = 0x1000;
+
     // These characters get replaced by spaces when path is sanitized.
     constexpr std::array<uint32_t, 13> FORBIDDEN_PATH_CHARACTERS =
         {L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®'};
+
+    /// @brief This is a table for replacing accented characters and "look alike" unicode characters.
+    // Note: extra outer braces required to initialize std::array of non-scalar elements (pairs)
+    constexpr std::array<std::pair<uint32_t, std::string_view>, 78> REPLACEMENT_TABLE{
+        {{L'Á', "A"},  {L'À', "A"},  {L'Â', "A"},  {L'Ä', "A"},   {L'Ã', "A"},  {L'Å', "A"},  {L'á', "a"},  {L'à', "a"},
+         {L'â', "a"},  {L'ä', "a"},  {L'ã', "a"},  {L'å', "a"},   {L'É', "E"},  {L'È', "E"},  {L'Ê', "E"},  {L'Ë', "E"},
+         {L'é', "e"},  {L'è', "e"},  {L'ê', "e"},  {L'ë', "e"},   {L'Í', "I"},  {L'Ì', "I"},  {L'Î', "I"},  {L'Ï', "I"},
+         {L'í', "i"},  {L'ì', "i"},  {L'î', "i"},  {L'ï', "i"},   {L'Ó', "O"},  {L'Ò', "O"},  {L'Ô', "O"},  {L'Ö', "O"},
+         {L'Õ', "O"},  {L'Ø', "O"},  {L'ó', "o"},  {L'ò', "o"},   {L'ô', "o"},  {L'ö', "o"},  {L'õ', "o"},  {L'ø', "o"},
+         {L'Ú', "U"},  {L'Ù', "U"},  {L'Û', "U"},  {L'Ü', "U"},   {L'ú', "u"},  {L'ù', "u"},  {L'û', "u"},  {L'ü', "u"},
+         {L'Ñ', "N"},  {L'ñ', "n"},  {L'Ç', "C"},  {L'ç', "c"},   {L'ẞ', "Ss"}, {L'ß', "ss"}, {L'Œ', "OE"}, {L'œ', "oe"},
+         {L'Æ', "AE"}, {L'æ', "ae"}, {L'‐', "-"},  {L'–', "-"},   {L'—', "-"},  {L'―', "-"},  {L' ', " "},  {L' ', " "},
+         {L' ', " "},  {L'Ⅰ', "I"},  {L'Ⅱ', "II"}, {L'Ⅲ', "III"}, {L'Ⅳ', "IV"}, {L'Ⅴ', "V"},  {L'※', "*"},  {L'×', "x"},
+         {L'‘', "'"},  {L'’', "'"},  {L'‛', "'"},  {L'′', ";"},   {L'ʼ', "'"}}};
+
 } // namespace
 
 std::string stringutil::get_formatted_string(const char *format, ...)
@@ -57,18 +74,9 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
     {
         const uint8_t *point = reinterpret_cast<const uint8_t *>(&stringIn[i]);
         const ssize_t count  = decode_utf8(&codepoint, point);
-        if (count <= 0 || i + count >= static_cast<int>(stringOutSize)) { return false; }
+        if (count <= 0 || outOffset + count >= static_cast<int>(stringOutSize)) { return false; }
 
-        if (codepoint == L'é')
-        {
-            stringOut[outOffset++] = 'e';
-            i += count;
-            continue;
-        }
-
-        const bool asciiCheck = codepoint < 0x1E || codepoint >= 0x7E;
-        if (asciiCheck) { return false; }
-
+        // If it's forbidden, skip.
         const bool isForbidden = std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) !=
                                  FORBIDDEN_PATH_CHARACTERS.end();
         if (isForbidden)
@@ -76,12 +84,30 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
             i += count;
             continue;
         }
-        else
+
+        // Check for replacing.
+        const auto &replace = std::find_if(REPLACEMENT_TABLE.begin(),
+                                           REPLACEMENT_TABLE.end(),
+                                           [=](const auto &replacePair) { return replacePair.first == codepoint; });
+        if (replace != REPLACEMENT_TABLE.end())
         {
-            std::memcpy(&stringOut[outOffset], &stringIn[i], static_cast<size_t>(count));
-            outOffset += count;
+            const auto &[tablePoint, replacement] = *replace;
+            const size_t replacementLength        = replacement.length();
+
+            std::copy(replacement.data(), replacement.data() + replacementLength, &stringOut[outOffset]);
+
+            outOffset += replacementLength;
+            i += count;
+            continue;
         }
 
+        // Final valid ASCII check.
+        const bool asciiCheck = codepoint < 0x20 || codepoint >= 0x7F;
+        if (asciiCheck) { return false; }
+
+        // Just copy it over.
+        std::copy(&stringIn[i], &stringIn[i] + count, &stringOut[outOffset]);
+        outOffset += count;
         i += count;
     }
 

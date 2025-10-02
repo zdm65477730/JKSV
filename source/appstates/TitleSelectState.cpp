@@ -74,22 +74,23 @@ bool TitleSelectState::title_count_check()
 
 void TitleSelectState::create_backup_menu()
 {
-    const int selected           = m_titleView->get_selected();
-    const uint64_t applicationID = m_user->get_application_id_at(selected);
-    data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
+    const int selected             = m_titleView->get_selected();
+    const uint64_t applicationID   = m_user->get_application_id_at(selected);
+    data::TitleInfo *titleInfo     = data::get_title_info_by_id(applicationID);
+    const FsSaveDataInfo *saveInfo = m_user->get_save_info_at(selected);
 
-    auto backupMenu = std::make_shared<BackupMenuState>(m_user, titleInfo);
+    auto backupMenu = std::make_shared<BackupMenuState>(m_user, titleInfo, saveInfo);
     StateManager::push_state(backupMenu);
 }
 
 void TitleSelectState::create_title_option_menu()
 {
-    const int selected           = m_titleView->get_selected();
-    const uint64_t applicationID = m_user->get_application_id_at(selected);
-    data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
+    const int selected             = m_titleView->get_selected();
+    const uint64_t applicationID   = m_user->get_application_id_at(selected);
+    data::TitleInfo *titleInfo     = data::get_title_info_by_id(applicationID);
+    const FsSaveDataInfo *saveInfo = m_user->get_save_info_at(selected);
 
-    auto titleOptions = std::make_shared<TitleOptionState>(m_user, titleInfo, this);
-    StateManager::push_state(titleOptions);
+    TitleOptionState::create_and_push(m_user, titleInfo, saveInfo, this);
 }
 
 void TitleSelectState::deactivate_state()

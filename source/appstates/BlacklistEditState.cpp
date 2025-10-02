@@ -55,7 +55,7 @@ void BlacklistEditState::refresh_menu()
     m_blacklistMenu->reset();
 
     config::get_blacklisted_titles(m_blacklist);
-    for (const uint64_t &applicationID : m_blacklist)
+    for (const uint64_t applicationID : m_blacklist)
     {
         data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
         if (error::is_null(titleInfo)) { continue; }

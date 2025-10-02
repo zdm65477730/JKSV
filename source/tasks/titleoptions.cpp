@@ -70,7 +70,8 @@ void tasks::titleoptions::delete_all_local_backups_for_title(sys::threadpool::Jo
     const bool dirExists    = fslib::directory_exists(targetPath);
     const bool deleteFailed = dirExists && error::fslib(fslib::delete_directory_recursively(targetPath));
     if (deleteFailed) { ui::PopMessageManager::push_message(popTicks, popFailure); }
-    else {
+    else
+    {
         const char *title      = titleInfo->get_title();
         std::string popMessage = stringutil::get_formatted_string(popSuccess, title);
         ui::PopMessageManager::push_message(popTicks, popMessage);
@@ -140,15 +141,12 @@ void tasks::titleoptions::reset_save_data(sys::threadpool::JobData taskData)
 {
     auto castData = std::static_pointer_cast<TitleOptionState::DataStruct>(taskData);
 
-    sys::Task *task            = castData->task;
-    data::User *user           = castData->user;
-    data::TitleInfo *titleInfo = castData->titleInfo;
+    sys::Task *task                = castData->task;
+    data::User *user               = castData->user;
+    data::TitleInfo *titleInfo     = castData->titleInfo;
+    const FsSaveDataInfo *saveInfo = castData->saveInfo;
     if (error::is_null(task)) { return; }
-    if (error::is_null(user) || error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
-
-    const uint64_t applicationID   = titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
+    else if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
 
     const int popTicks     = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popFailed  = strings::get_by_name(strings::names::TITLEOPTION_POPS, 2);
@@ -166,9 +164,7 @@ void tasks::titleoptions::reset_save_data(sys::threadpool::JobData taskData)
         const bool resetFailed  = error::fslib(fslib::delete_directory_recursively(fs::DEFAULT_SAVE_ROOT));
         const bool commitFailed = error::fslib(fslib::commit_data_to_file_system(fs::DEFAULT_SAVE_MOUNT));
         if (resetFailed || commitFailed) { ui::PopMessageManager::push_message(popTicks, popFailed); }
-        else {
-            ui::PopMessageManager::push_message(popTicks, popSuccess);
-        }
+        else { ui::PopMessageManager::push_message(popTicks, popSuccess); }
     }
 
     task->complete();
@@ -181,17 +177,15 @@ void tasks::titleoptions::delete_save_data_from_system(sys::threadpool::JobData 
     sys::Task *task                 = castData->task;
     data::User *user                = castData->user;
     data::TitleInfo *titleInfo      = castData->titleInfo;
+    const FsSaveDataInfo *saveInfo  = castData->saveInfo;
     TitleSelectCommon *titleSelect  = castData->titleSelect;
     TitleOptionState *spawningState = castData->spawningState;
     if (error::is_null(task)) { return; }
-    if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(titleSelect) || error::is_null(spawningState))
+    else if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(saveInfo) || error::is_null(titleSelect) ||
+             error::is_null(spawningState))
     {
         TASK_FINISH_RETURN(task);
     }
-
-    const uint64_t applicationID   = titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
 
     const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
     {
@@ -210,6 +204,7 @@ void tasks::titleoptions::delete_save_data_from_system(sys::threadpool::JobData 
         return;
     }
 
+    const uint64_t applicationID = titleInfo->get_application_id();
     user->erase_save_info_by_id(applicationID);
     titleSelect->refresh();
     spawningState->close_on_update();
@@ -218,20 +213,15 @@ void tasks::titleoptions::delete_save_data_from_system(sys::threadpool::JobData 
 
 void tasks::titleoptions::extend_save_data(sys::threadpool::JobData taskData)
 {
-    static constexpr int SIZE_MB = 0x100000;
-
-    auto castData = std::static_pointer_cast<TitleOptionState::DataStruct>(taskData);
-
-    sys::Task *task            = castData->task;
-    data::User *user           = castData->user;
-    data::TitleInfo *titleInfo = castData->titleInfo;
-    if (error::is_null(task)) { return; }
-    if (error::is_null(user) || error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
-
+    static constexpr int SIZE_MB   = 0x100000;
     const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
-    const uint64_t applicationID   = titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
+    auto castData                  = std::static_pointer_cast<TitleOptionState::DataStruct>(taskData);
+    sys::Task *task                = castData->task;
+    data::User *user               = castData->user;
+    data::TitleInfo *titleInfo     = castData->titleInfo;
+    const FsSaveDataInfo *saveInfo = castData->saveInfo;
+    if (error::is_null(task)) { return; }
+    else if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
 
     std::array<char, 5> sizeBuffer = {0};
     FsSaveDataExtraData extraData{};
@@ -262,9 +252,11 @@ void tasks::titleoptions::extend_save_data(sys::threadpool::JobData taskData)
         const char *popSuccess = strings::get_by_name(strings::names::TITLEOPTION_POPS, 10);
         ui::PopMessageManager::push_message(popTicks, popSuccess);
     }
-    else {
+    else
+    {
         const char *popFailed = strings::get_by_name(strings::names::TITLEOPTION_POPS, 11);
         ui::PopMessageManager::push_message(popTicks, popFailed);
     }
+
     task->complete();
 }

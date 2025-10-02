@@ -21,9 +21,10 @@
 
 #include <cstring>
 
-BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo)
+BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, const FsSaveDataInfo *saveInfo)
     : m_user(user)
     , m_titleInfo(titleInfo)
+    , m_saveInfo(saveInfo)
     , m_saveType(m_user->get_account_save_type())
     , m_directoryPath(config::get_working_directory() / m_titleInfo->get_path_safe_title())
     , m_dataStruct(std::make_shared<BackupMenuState::DataStruct>())
@@ -168,6 +169,7 @@ void BackupMenuState::initialize_task_data()
     // The other members are set upon actions being taken.
     m_dataStruct->user          = m_user;
     m_dataStruct->titleInfo     = m_titleInfo;
+    m_dataStruct->saveInfo      = m_saveInfo;
     m_dataStruct->spawningState = this;
 }
 
@@ -183,11 +185,7 @@ void BackupMenuState::initialize_info_string()
 
 void BackupMenuState::save_data_check()
 {
-    const uint64_t applicationID   = m_titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { return; }
-
-    fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
+    fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, m_saveInfo};
     fslib::Directory saveRoot{fs::DEFAULT_SAVE_ROOT};
     m_saveHasData = saveRoot.is_open() && saveRoot.get_count() > 0;
 }

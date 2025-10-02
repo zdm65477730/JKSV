@@ -18,19 +18,23 @@ class BackupMenuState final : public BaseState
         /// @brief Creates a new backup selection state.
         /// @param user Pointer to currently selected user.
         /// @param titleInfo Pointer to titleInfo of selected title.
-        /// @param saveType Save data type we're working with.
-        BackupMenuState(data::User *user, data::TitleInfo *titleInfo);
+        /// @param saveInfo Pointer to the target save info.
+        BackupMenuState(data::User *user, data::TitleInfo *titleInfo, const FsSaveDataInfo *saveInfo);
 
         /// @brief Creates and returns a new BackupMenuState.
-        static inline std::shared_ptr<BackupMenuState> create(data::User *user, data::TitleInfo *titleInfo)
+        static inline std::shared_ptr<BackupMenuState> create(data::User *user,
+                                                              data::TitleInfo *titleInfo,
+                                                              const FsSaveDataInfo *saveInfo)
         {
-            return std::make_shared<BackupMenuState>(user, titleInfo);
+            return std::make_shared<BackupMenuState>(user, titleInfo, saveInfo);
         }
 
         /// @brief Creates and pushes a new BackupMenuState to the vector.
-        static inline std::shared_ptr<BackupMenuState> create_and_push(data::User *user, data::TitleInfo *titleInfo)
+        static inline std::shared_ptr<BackupMenuState> create_and_push(data::User *user,
+                                                                       data::TitleInfo *titleInfo,
+                                                                       const FsSaveDataInfo *saveInfo)
         {
-            auto newState = BackupMenuState::create(user, titleInfo);
+            auto newState = BackupMenuState::create(user, titleInfo, saveInfo);
             StateManager::push_state(newState);
             return newState;
         }
@@ -65,6 +69,7 @@ class BackupMenuState final : public BaseState
         {
             data::User *user{};
             data::TitleInfo *titleInfo{};
+            const FsSaveDataInfo *saveInfo{};
             fslib::Path path{}; // This and
             std::string remoteName{}; // and this and
             remote::Item *remoteItem{}; // this are set when needed.
@@ -81,6 +86,9 @@ class BackupMenuState final : public BaseState
 
         /// @brief Pointer to data for selected title.
         data::TitleInfo *m_titleInfo{};
+
+        /// @brief Pointer to the save info. This cleans and simplifies code in other places.
+        const FsSaveDataInfo *m_saveInfo{};
 
         /// @brief Save data type we're working with.
         FsSaveDataType m_saveType{};

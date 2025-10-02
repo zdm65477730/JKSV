@@ -13,22 +13,27 @@ class TitleOptionState final : public BaseState
         /// @brief Constructs a new title option state.
         /// @param user Target user.
         /// @param titleInfo Target title.
-        TitleOptionState(data::User *user, data::TitleInfo *titleInfo, TitleSelectCommon *titleSelect);
+        TitleOptionState(data::User *user,
+                         data::TitleInfo *titleInfo,
+                         const FsSaveDataInfo *saveInfo,
+                         TitleSelectCommon *titleSelect);
 
         /// @brief Returns a new TitleOptionState. See constructor.
         static inline std::shared_ptr<TitleOptionState> create(data::User *user,
                                                                data::TitleInfo *titleInfo,
+                                                               const FsSaveDataInfo *saveInfo,
                                                                TitleSelectCommon *titleSelect)
         {
-            return std::make_shared<TitleOptionState>(user, titleInfo, titleSelect);
+            return std::make_shared<TitleOptionState>(user, titleInfo, saveInfo, titleSelect);
         }
 
         /// @brief Creates, pushes, and returns a new TitleOptionState
         static std::shared_ptr<TitleOptionState> create_and_push(data::User *user,
                                                                  data::TitleInfo *titleInfo,
+                                                                 const FsSaveDataInfo *saveInfo,
                                                                  TitleSelectCommon *titleSelect)
         {
-            auto newState = TitleOptionState::create(user, titleInfo, titleSelect);
+            auto newState = TitleOptionState::create(user, titleInfo, saveInfo, titleSelect);
             StateManager::push_state(newState);
             return newState;
         }
@@ -53,6 +58,7 @@ class TitleOptionState final : public BaseState
         {
             data::User *user{};
             data::TitleInfo *titleInfo{};
+            const FsSaveDataInfo *saveInfo{};
             TitleOptionState *spawningState{};
             TitleSelectCommon *titleSelect{};
         };
@@ -64,6 +70,9 @@ class TitleOptionState final : public BaseState
 
         /// @brief This is the target title.
         data::TitleInfo *m_titleInfo{};
+
+        /// @brief This makes tasks easier to read and understand.
+        const FsSaveDataInfo *m_saveInfo{};
 
         /// @brief Pointer to the title selection being used for updating.
         TitleSelectCommon *m_titleSelect{};
