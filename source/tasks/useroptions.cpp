@@ -90,7 +90,7 @@ void tasks::useroptions::backup_all_for_user_remote(sys::threadpool::JobData tas
         }
 
         data::TitleInfo *titleInfo = data::get_title_info_by_id(saveInfo->application_id);
-        if (error::is_null(saveInfo)) { continue; }
+        if (error::is_null(titleInfo)) { continue; }
 
         backupStruct->titleInfo = titleInfo;
         const std::string_view remoteTitle =

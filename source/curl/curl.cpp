@@ -71,13 +71,10 @@ size_t curl::download_file_threaded(const char *buffer, size_t size, size_t coun
     auto &bufferQueue = download->bufferQueue;
 
     const size_t downloadSize = size * count;
-    auto chunkBuffer          = bufferQueue.allocate_buffer(downloadSize);
+    auto chunkBuffer          = std::make_unique<sys::Byte[]>(downloadSize);
     std::copy(buffer, buffer + downloadSize, chunkBuffer.get());
 
-    {
-        auto queueGuard = bufferQueue.lock_queue();
-        bufferQueue.push_to_queue(chunkBuffer, downloadSize);
-    }
+    while (!bufferQueue.try_push(chunkBuffer, downloadSize)) { std::this_thread::sleep_for(std::chrono::microseconds(10)); }
 
     return downloadSize;
 }
@@ -95,17 +92,10 @@ void curl::download_write_thread_function(sys::threadpool::JobData jobData)
     for (int64_t i = 0; i < fileSize;)
     {
         BufferQueue::QueuePair queuePair{};
-        {
-            auto queueGuard = bufferQueue.lock_queue();
-            if (bufferQueue.is_empty()) { continue; }
-
-            queuePair = bufferQueue.get_front();
-        }
+        while (!bufferQueue.get_front(queuePair)) { BufferQueue::default_delay(); }
 
         auto &[chunkBuffer, bufferSize] = queuePair;
-
         dest.write(chunkBuffer.get(), bufferSize);
-
         i += bufferSize;
 
         if (task) { task->update_current(static_cast<double>(i)); }

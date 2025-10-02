@@ -5,6 +5,7 @@
 #include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
+#include "logging/logger.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
@@ -12,35 +13,24 @@
 // Defined at bottom.
 static bool read_save_meta(const fslib::Path &path, fs::SaveMetaData &metaOut);
 static bool test_for_save(data::User *user, const fs::SaveMetaData &saveMeta);
+static bool create_save_data_from_meta(sys::ProgressTask *task, data::User *user, const fs::SaveMetaData &saveMeta);
 
 void tasks::saveimport::import_save_backup(sys::threadpool::JobData taskData)
 {
     auto castData = std::static_pointer_cast<SaveImportState::DataStruct>(taskData);
 
-    sys::ProgressTask *task = static_cast<sys::ProgressTask *>(castData->task);
-    if (error::is_null(task)) { return; }
-
+    sys::ProgressTask *task   = static_cast<sys::ProgressTask *>(castData->task);
     data::User *user          = castData->user;
     const fslib::Path &target = castData->path;
+    if (error::is_null(task) || error::is_null(user)) { return; }
 
     fs::SaveMetaData metaData{};
     const bool metaRead = read_save_meta(target, metaData);
     if (!metaRead || metaData.revision < 1) { TASK_FINISH_RETURN(task); }
 
-    const bool saveExists = test_for_save(user, metaData);
-    if (!saveExists)
-    {
-        // Gonna borrow this.
-        const char *statusFormat = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);
-        const std::string hexID  = stringutil::get_formatted_string("%016llX", metaData.applicationID);
-        std::string status       = stringutil::get_formatted_string(statusFormat, hexID.c_str());
-        task->set_status(status);
-
-        fs::create_save_data_for(user, metaData);
-        user->clear_data_entries();
-        user->load_user_data();
-        MainMenuState::refresh_view_states();
-    }
+    const bool saveExists  = test_for_save(user, metaData);
+    const bool saveCreated = !saveExists && create_save_data_from_meta(task, user, metaData);
+    if (!saveExists && !saveCreated) { TASK_FINISH_RETURN(task); }
 
     const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(metaData.applicationID);
     if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
@@ -134,4 +124,31 @@ static bool test_for_save(data::User *user, const fs::SaveMetaData &saveMeta)
     if (mounted) { fslib::close_file_system(fs::DEFAULT_SAVE_MOUNT); }
 
     return mounted;
+}
+
+static bool create_save_data_from_meta(sys::ProgressTask *task, data::User *user, const fs::SaveMetaData &saveMeta)
+{
+    if (error::is_null(task) || error::is_null(user)) { return false; }
+
+    // Gonna borrow this.
+    const char *statusFormat = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);
+    const std::string hexID  = stringutil::get_formatted_string("%016llX", saveMeta.applicationID);
+    std::string status       = stringutil::get_formatted_string(statusFormat, hexID.c_str());
+    task->set_status(status);
+
+    const bool saveCreated = fs::create_save_data_for(user, saveMeta);
+    if (!saveCreated)
+    {
+        // Gonna borrow this too.
+        const char *popFailed = strings::get_by_name(strings::names::SAVECREATE_POPS, 1);
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS, popFailed);
+        return false;
+    }
+
+    // Need to reload and refresh to reflect changes.
+    user->clear_data_entries();
+    user->load_user_data();
+    MainMenuState::refresh_view_states();
+
+    return true;
 }

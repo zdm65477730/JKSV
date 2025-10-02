@@ -7,7 +7,6 @@
 #include <ctime>
 #include <string>
 #include <switch.h>
-#include <unordered_map>
 
 namespace
 {
@@ -19,8 +18,7 @@ namespace
         {L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®'};
 
     /// @brief This is a table for replacing accented characters and "look alike" unicode characters.
-    // Note: extra outer braces required to initialize std::array of non-scalar elements (pairs)
-    constexpr std::array<std::pair<uint32_t, std::string_view>, 78> REPLACEMENT_TABLE{
+    constexpr std::array<std::pair<uint32_t, std::string_view>, 78> REPLACEMENT_TABLE = {
         {{L'Á', "A"},  {L'À', "A"},  {L'Â', "A"},  {L'Ä', "A"},   {L'Ã', "A"},  {L'Å', "A"},  {L'á', "a"},  {L'à', "a"},
          {L'â', "a"},  {L'ä', "a"},  {L'ã', "a"},  {L'å', "a"},   {L'É', "E"},  {L'È', "E"},  {L'Ê', "E"},  {L'Ë', "E"},
          {L'é', "e"},  {L'è', "e"},  {L'ê', "e"},  {L'ë', "e"},   {L'Í', "I"},  {L'Ì', "I"},  {L'Î', "I"},  {L'Ï', "I"},
@@ -88,7 +86,7 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
         // Check for replacing.
         const auto &replace = std::find_if(REPLACEMENT_TABLE.begin(),
                                            REPLACEMENT_TABLE.end(),
-                                           [=](const auto &replacePair) { return replacePair.first == codepoint; });
+                                           [codepoint](const auto &replacePair) { return replacePair.first == codepoint; });
         if (replace != REPLACEMENT_TABLE.end())
         {
             const auto &[tablePoint, replacement] = *replace;

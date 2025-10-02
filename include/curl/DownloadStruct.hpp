@@ -10,12 +10,13 @@
 
 namespace curl
 {
+    inline constexpr int DOWNLOAD_QUEUE_LIMIT = 128;
 
     // clang-format off
     struct DownloadStruct : sys::threadpool::DataStruct
     {
         /// @brief Buffer queue for downloads.
-        BufferQueue bufferQueue{BufferQueue::NO_LIMIT, 0};
+        BufferQueue bufferQueue{BufferQueue::NO_LIMIT};
 
         /// @brief Destination file to write to.
         fslib::File *dest{};

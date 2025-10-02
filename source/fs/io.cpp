@@ -25,7 +25,7 @@ namespace
     // clang-format off
     struct FileThreadStruct : sys::threadpool::DataStruct
     {
-        BufferQueue bufferQueue{SIZE_QUEUE_LIMIT, SIZE_FILE_BUFFER};
+        BufferQueue bufferQueue{SIZE_QUEUE_LIMIT};
         fslib::File *source{};
     };
     // clang-format on
@@ -41,16 +41,10 @@ static void read_thread_function(sys::threadpool::JobData jobData)
 
     for (int64_t i = 0; i < fileSize;)
     {
-        ssize_t readSize{};
-        {
-            auto queueGuard = bufferQueue.lock_queue();
-            if (bufferQueue.is_full()) { continue; }
+        auto chunkBuffer = std::make_unique<sys::Byte[]>(SIZE_FILE_BUFFER);
+        ssize_t readSize = source.read(chunkBuffer.get(), SIZE_FILE_BUFFER);
 
-            auto readBuffer = bufferQueue.allocate_buffer();
-            readSize        = source.read(readBuffer.get(), SIZE_FILE_BUFFER);
-            bufferQueue.push_to_queue(readBuffer, readSize);
-        }
-
+        while (!bufferQueue.try_push(chunkBuffer, readSize)) { BufferQueue::default_delay(); }
         i += readSize;
     }
 }
@@ -80,12 +74,7 @@ void fs::copy_file(const fslib::Path &source, const fslib::Path &destination, sy
     for (int64_t i = 0; i < sourceSize;)
     {
         BufferQueue::QueuePair queuePair{};
-        {
-            auto queueGuard = bufferQueue.lock_queue();
-            if (bufferQueue.is_empty()) { continue; }
-
-            queuePair = bufferQueue.get_front();
-        }
+        while (!bufferQueue.get_front(queuePair)) { BufferQueue::default_delay(); }
 
         auto &[buffer, bufferSize] = queuePair;
         destFile.write(buffer.get(), bufferSize);
@@ -127,12 +116,7 @@ void fs::copy_file_commit(const fslib::Path &source,
     for (int64_t i = 0; i < sourceSize;)
     {
         BufferQueue::QueuePair queuePair{};
-        {
-            auto queueGuard = bufferQueue.lock_queue();
-            if (bufferQueue.is_empty()) { continue; }
-
-            queuePair = bufferQueue.get_front();
-        }
+        while (!bufferQueue.get_front(queuePair)) { BufferQueue::default_delay(); }
 
         const auto &[buffer, bufferSize] = queuePair;
         const bool needsCommit           = journalCount + static_cast<int64_t>(bufferSize) >= journalSize;

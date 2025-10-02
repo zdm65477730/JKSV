@@ -29,13 +29,13 @@ namespace
     struct ZipReadStruct : sys::threadpool::DataStruct
     {
         fslib::File *source{};
-        BufferQueue bufferQueue{SIZE_BUFFER_LIMIT, SIZE_ZIP_BUFFER};
+        BufferQueue bufferQueue{SIZE_BUFFER_LIMIT};
     };
 
     struct UnzipReadStruct : sys::threadpool::DataStruct
     {
         fs::MiniUnzip *unzip{};
-        BufferQueue bufferQueue{SIZE_BUFFER_LIMIT, SIZE_UNZIP_BUFFER};
+        BufferQueue bufferQueue{SIZE_BUFFER_LIMIT};
     };
     // clang-format on
 } // namespace
@@ -51,16 +51,10 @@ static void zip_read_thread_function(sys::threadpool::JobData jobData)
 
     for (int64_t i = 0; i < fileSize;)
     {
-        ssize_t readSize{};
-        {
-            auto queueGuard = bufferQueue.lock_queue();
-            if (bufferQueue.is_full()) { continue; }
+        auto chunkBuffer = std::make_unique<sys::Byte[]>(SIZE_ZIP_BUFFER);
+        ssize_t readSize = source.read(chunkBuffer.get(), SIZE_ZIP_BUFFER);
 
-            auto readBuffer = bufferQueue.allocate_buffer();
-            readSize        = source.read(readBuffer.get(), SIZE_ZIP_BUFFER);
-            bufferQueue.push_to_queue(readBuffer, readSize);
-        }
-
+        while (!bufferQueue.try_push(chunkBuffer, readSize)) { BufferQueue::default_delay(); }
         i += readSize;
     }
 }
@@ -76,16 +70,10 @@ static void unzip_read_thread_function(sys::threadpool::JobData jobData)
 
     for (int64_t i = 0; i < fileSize;)
     {
-        ssize_t readSize{};
-        {
-            auto queueGuard = bufferQueue.lock_queue();
-            if (bufferQueue.is_full()) { continue; }
+        auto chunkBuffer = std::make_unique<sys::Byte[]>(SIZE_UNZIP_BUFFER);
+        ssize_t readSize = unzip.read(chunkBuffer.get(), SIZE_UNZIP_BUFFER);
 
-            auto readBuffer = bufferQueue.allocate_buffer();
-            readSize        = unzip.read(readBuffer.get(), SIZE_UNZIP_BUFFER);
-            bufferQueue.push_to_queue(readBuffer, readSize);
-        }
-
+        while (!bufferQueue.try_push(chunkBuffer, readSize)) { BufferQueue::default_delay(); }
         i += readSize;
     }
 }
@@ -128,12 +116,7 @@ void fs::copy_directory_to_zip(const fslib::Path &source, fs::MiniZip &dest, sys
             for (int64_t i = 0; i < fileSize;)
             {
                 BufferQueue::QueuePair queuePair{};
-                {
-                    auto queueGuard = bufferQueue.lock_queue();
-                    if (bufferQueue.is_empty()) { continue; }
-
-                    queuePair = bufferQueue.get_front();
-                }
+                while (!bufferQueue.get_front(queuePair)) { BufferQueue::default_delay(); }
 
                 auto &[buffer, bufferSize] = queuePair;
                 dest.write(buffer.get(), bufferSize);
@@ -199,16 +182,10 @@ void fs::copy_zip_to_directory(fs::MiniUnzip &unzip, const fslib::Path &dest, in
         for (int64_t i = 0; i < fileSize;)
         {
             BufferQueue::QueuePair queuePair{};
-            {
-                auto queueGuard = bufferQueue.lock_queue();
-                if (bufferQueue.is_empty()) { continue; }
-
-                queuePair = bufferQueue.get_front();
-            }
+            while (!bufferQueue.get_front(queuePair)) { BufferQueue::default_delay(); }
 
             auto &[buffer, bufferSize] = queuePair;
-
-            const bool commitNeeded = needCommits && journalCount + static_cast<int64_t>(bufferSize) >= journalSize;
+            const bool commitNeeded    = needCommits && journalCount + static_cast<int64_t>(bufferSize) >= journalSize;
             if (commitNeeded)
             {
                 destFile.close();
