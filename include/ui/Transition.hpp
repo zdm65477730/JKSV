@@ -27,8 +27,20 @@ namespace ui
             /// @brief Updates the transition.
             void update() noexcept;
 
+            /// @brief Updates only the X and Y.
+            void update_xy() noexcept;
+
+            /// @brief Updates only the width and height.
+            void update_width_height() noexcept;
+
             /// @brief Returns whether or not the transition has been met.
             bool in_place() const noexcept;
+
+            /// @brief Returns if the target X and Y coordinates were met.
+            bool in_place_xy() const noexcept;
+
+            /// @brief Returns if the target width and height were met.
+            bool in_place_width_height() const noexcept;
 
             /// @brief Returns the X coordinate.
             int get_x() const noexcept;

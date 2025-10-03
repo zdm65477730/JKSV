@@ -8,12 +8,6 @@
 
 #include <cstdarg>
 
-namespace
-{
-    // Size of the buffer for va strings.
-    constexpr int VA_BUFFER_SIZE = 0x200;
-} // namespace
-
 void ui::PopMessageManager::update()
 {
     static constexpr double COORD_INIT_Y = 594.0f;

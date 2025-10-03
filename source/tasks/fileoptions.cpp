@@ -21,6 +21,7 @@ void tasks::fileoptions::copy_source_to_destination(sys::threadpool::JobData tas
     FileOptionState *spawningState = castData->spawningState;
 
     if (error::is_null(task)) { return; }
+    else if (error::is_null(spawningState)) { TASK_FINISH_RETURN(task); }
 
     const bool sourceIsDir = fslib::directory_exists(source);
     bool destError         = false;
@@ -64,6 +65,7 @@ void tasks::fileoptions::delete_target(sys::threadpool::JobData taskData)
     FileOptionState *spawningState = castData->spawningState;
 
     if (error::is_null(task)) { return; }
+    else if (error::is_null(task)) { TASK_FINISH_RETURN(task); }
 
     // Gonna borrow this. No point in duplicating it.
     const int popTicks         = ui::PopMessageManager::DEFAULT_TICKS;

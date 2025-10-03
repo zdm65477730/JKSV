@@ -15,7 +15,8 @@ void tasks::savecreate::create_save_data_for(sys::threadpool::JobData taskData)
     data::TitleInfo *titleInfo     = castData->titleInfo;
     SaveCreateState *spawningState = castData->spawningState;
 
-    if (error::is_null(task) || error::is_null(user) || error::is_null(titleInfo) || error::is_null(spawningState)) { return; }
+    if (error::is_null(task)) { return; }
+    else if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(spawningState)) { TASK_FINISH_RETURN(task); }
 
     const int popTicks       = ui::PopMessageManager::DEFAULT_TICKS;
     const char *statusFormat = strings::get_by_name(strings::names::USEROPTION_STATUS, 0);

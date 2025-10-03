@@ -22,7 +22,8 @@ void tasks::saveimport::import_save_backup(sys::threadpool::JobData taskData)
     sys::ProgressTask *task   = static_cast<sys::ProgressTask *>(castData->task);
     data::User *user          = castData->user;
     const fslib::Path &target = castData->path;
-    if (error::is_null(task) || error::is_null(user)) { return; }
+    if (error::is_null(task)) { return; }
+    else if (error::is_null(user)) { TASK_FINISH_RETURN(task); }
 
     fs::SaveMetaData metaData{};
     const bool metaRead = read_save_meta(target, metaData);

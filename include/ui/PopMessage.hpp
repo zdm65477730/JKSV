@@ -1,6 +1,7 @@
 #pragma once
 #include "sys/Timer.hpp"
 #include "ui/DialogBox.hpp"
+#include "ui/Transition.hpp"
 
 #include <string>
 
@@ -28,11 +29,8 @@ namespace ui
             std::string_view get_message() const noexcept;
 
         private:
-            // Every message begins off screen.
-            static inline constexpr int START_X      = 624;
-            static inline constexpr double START_Y   = 720;
-            static inline constexpr int START_WIDTH  = 32;
-            static inline constexpr int PERMA_HEIGHT = 48;
+            /// @brief Transition for the pop up/pop out thing.
+            ui::Transition m_transition{};
 
             /// @brief Ticks to start timer with.
             int m_ticks{};
@@ -40,17 +38,14 @@ namespace ui
             /// @brief This stores the message for safe keeping.
             std::string m_message{};
 
-            /// @brief The current, actual Y coord.
-            double m_y{};
-
-            /// @brief Currently rendering coordinate for the text.
+            /// @brief Current rendering coordinate for the text.
             int m_textX{};
-
-            /// @brief Current width;
-            int m_width{};
 
             /// @brief Whether or not the targetY coordinate was met.
             bool m_yMet{};
+
+            /// @brief Whether
+            bool m_close{};
 
             /// @brief Returns whether or not the message has reached the end of its life.
             bool m_finished{};
@@ -72,5 +67,11 @@ namespace ui
 
             /// @brief Updates the current end offset of the text.
             void update_text_offset() noexcept;
+
+            /// @brief Updates the width of the dialog.
+            void update_width() noexcept;
+
+            /// @brief Signals the pop message to close.
+            void close() noexcept;
     };
 }

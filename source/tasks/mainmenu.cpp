@@ -22,6 +22,7 @@ void tasks::mainmenu::backup_all_for_all_local(sys::threadpool::JobData taskData
     backupStruct->killTask = false; // Just to be sure.
 
     if (error::is_null(task)) { return; }
+
     for (data::User *user : userList)
     {
         backupStruct->user = user;
@@ -65,6 +66,7 @@ void tasks::mainmenu::backup_all_for_all_local(sys::threadpool::JobData taskData
             tasks::backup::create_new_backup_local(backupStruct);
         }
     }
+
     task->complete();
 }
 
@@ -122,5 +124,6 @@ void tasks::mainmenu::backup_all_for_all_remote(sys::threadpool::JobData taskDat
             remote->return_to_root();
         }
     }
+
     task->complete();
 }

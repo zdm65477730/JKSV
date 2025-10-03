@@ -34,10 +34,26 @@ void ui::Transition::update() noexcept
     ui::Transition::update_height();
 }
 
+void ui::Transition::update_xy() noexcept
+{
+    ui::Transition::update_x_coord();
+    ui::Transition::update_y_coord();
+}
+
+void ui::Transition::update_width_height() noexcept
+{
+    ui::Transition::update_width();
+    ui::Transition::update_height();
+}
+
 bool ui::Transition::in_place() const noexcept
 {
     return m_x == m_targetX && m_y == m_targetY && m_width == m_targetWidth && m_height == m_targetHeight;
 }
+
+bool ui::Transition::in_place_xy() const noexcept { return m_x == m_targetX && m_y == m_targetY; }
+
+bool ui::Transition::in_place_width_height() const noexcept { return m_width == m_targetWidth && m_height == m_targetHeight; }
 
 int ui::Transition::get_x() const noexcept { return static_cast<int>(m_x); }
 
