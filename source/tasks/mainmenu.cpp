@@ -40,6 +40,7 @@ void tasks::mainmenu::backup_all_for_all_local(sys::threadpool::JobData taskData
                 if (!scopedMount.is_open() || !fs::directory_has_contents(fs::DEFAULT_SAVE_ROOT)) { continue; }
             }
 
+            backupStruct->saveInfo       = saveInfo;
             const uint64_t applicationID = saveInfo->application_id;
             data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
             if (error::is_null(titleInfo)) { continue; }
@@ -96,6 +97,7 @@ void tasks::mainmenu::backup_all_for_all_remote(sys::threadpool::JobData taskDat
             const FsSaveDataInfo *saveInfo = user->get_save_info_at(i);
             if (error::is_null(saveInfo)) { continue; }
 
+            backupStruct->saveInfo = saveInfo;
             {
                 fs::ScopedSaveMount scopedMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
                 if (!scopedMount.is_open() || !fs::directory_has_contents(fs::DEFAULT_SAVE_ROOT)) { continue; }

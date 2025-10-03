@@ -32,6 +32,7 @@ void tasks::useroptions::backup_all_for_user_local(sys::threadpool::JobData task
         const FsSaveDataInfo *saveInfo = user->get_save_info_at(i);
         if (error::is_null(saveInfo)) { continue; }
 
+        backupStruct->saveInfo = saveInfo;
         {
             fs::ScopedSaveMount scopedMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
             if (!scopedMount.is_open() || !fs::directory_has_contents(fs::DEFAULT_SAVE_ROOT)) { continue; }
@@ -39,8 +40,8 @@ void tasks::useroptions::backup_all_for_user_local(sys::threadpool::JobData task
 
         data::TitleInfo *titleInfo = data::get_title_info_by_id(saveInfo->application_id);
         if (error::is_null(titleInfo)) { continue; }
-        backupStruct->titleInfo = titleInfo;
 
+        backupStruct->titleInfo = titleInfo;
         const fslib::Path targetDir{workDir / titleInfo->get_path_safe_title()};
         const bool targetExists = fslib::directory_exists(targetDir);
         const bool createError  = !targetExists && error::fslib(fslib::create_directories_recursively(targetDir));
@@ -84,6 +85,7 @@ void tasks::useroptions::backup_all_for_user_remote(sys::threadpool::JobData tas
         const FsSaveDataInfo *saveInfo = user->get_save_info_at(i);
         if (error::is_null(saveInfo)) { continue; }
 
+        backupStruct->saveInfo = saveInfo;
         {
             fs::ScopedSaveMount scopedMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
             if (!scopedMount.is_open() || !fs::directory_has_contents(fs::DEFAULT_SAVE_ROOT)) { continue; }

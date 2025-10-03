@@ -66,7 +66,7 @@ namespace ui
             void update_y(double targetY) noexcept;
 
             /// @brief Updates the current end offset of the text.
-            void update_text_offset() noexcept;
+            void update_text_offset();
 
             /// @brief Updates the width of the dialog.
             void update_width() noexcept;

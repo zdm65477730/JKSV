@@ -65,7 +65,7 @@ void ui::PopMessage::update_y(double targetY) noexcept
     m_dialog->set_y(y - 6);
 }
 
-void ui::PopMessage::update_text_offset() noexcept
+void ui::PopMessage::update_text_offset()
 {
     static constexpr int HALF_WIDTH = 640;
 
@@ -89,6 +89,7 @@ void ui::PopMessage::update_text_offset() noexcept
 
     m_transition.set_target_x(dialogX);
     m_transition.set_target_width(dialogWidth);
+
     if (m_substrOffset >= messageLength) { m_displayTimer.start(m_ticks); }
 }
 
