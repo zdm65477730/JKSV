@@ -42,7 +42,15 @@ static std::string get_size_string(int64_t totalSize);
 FileOptionState::FileOptionState(FileModeState *spawningState)
     : m_spawningState(spawningState)
     , m_target(spawningState->m_target)
-    , m_transition(m_target ? RIGHT_X : LEFT_X, 232, 32, 32, m_target ? RIGHT_X : LEFT_X, 232, 256, 256, 4)
+    , m_transition(m_target ? RIGHT_X : LEFT_X,
+                   232,
+                   32,
+                   32,
+                   m_target ? RIGHT_X : LEFT_X,
+                   232,
+                   256,
+                   256,
+                   ui::Transition::DEFAULT_THRESHOLD)
     , m_dataStruct(std::make_shared<FileOptionState::DataStruct>())
 {
     FileOptionState::initialize_static_members();

@@ -16,7 +16,15 @@ ui::SlideOutPanel::SlideOutPanel(int width, Side side)
     : m_width(width)
     , m_targetX(side == Side::Left ? 0.0f : static_cast<double>(SCREEN_WIDTH) - m_width)
     , m_side(side)
-    , m_transition(m_side == Side::Left ? -m_width : SCREEN_WIDTH, 0, 0, 0, m_targetX, 0, 0, 0, 4)
+    , m_transition(m_side == Side::Left ? -m_width : SCREEN_WIDTH,
+                   0,
+                   0,
+                   0,
+                   m_targetX,
+                   0,
+                   0,
+                   0,
+                   ui::Transition::DEFAULT_THRESHOLD)
     , m_renderTarget(
           sdl::TextureManager::load("PANEL_" + std::to_string(sm_targetID++), m_width, 720, SDL_TEXTUREACCESS_TARGET)) {};
 

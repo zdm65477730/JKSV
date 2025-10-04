@@ -7,23 +7,28 @@
 
 namespace
 {
-    static inline constexpr int START_X      = 624;
-    static inline constexpr double START_Y   = 720;
-    static inline constexpr int START_WIDTH  = 32;
-    static inline constexpr int PERMA_HEIGHT = 48;
+    constexpr int START_X              = 624;
+    constexpr double START_Y           = 720;
+    constexpr int START_WIDTH          = 20;
+    constexpr int PERMA_HEIGHT         = 48;
+    constexpr int TRANSITION_THRESHOLD = 2; // This is used so the easing on opening doesn't look so odd.
 }
 
 ui::PopMessage::PopMessage(int ticks, std::string_view message)
-    : m_transition(START_X, START_Y, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, 4)
+    : m_transition(START_X, START_Y, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, TRANSITION_THRESHOLD)
     , m_ticks(ticks)
     , m_message(message)
-    , m_dialog(ui::DialogBox::create(START_X, START_Y - 6, START_WIDTH, PERMA_HEIGHT, ui::DialogBox::Type::Light)) {};
+{
+    PopMessage::initialize_static_members();
+}
 
 ui::PopMessage::PopMessage(int ticks, std::string &message)
-    : m_transition(START_X, START_Y, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, 4)
+    : m_transition(START_X, START_Y, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, TRANSITION_THRESHOLD)
     , m_ticks(ticks)
     , m_message(std::move(message))
-    , m_dialog(ui::DialogBox::create(START_X, START_Y - 6, START_WIDTH, PERMA_HEIGHT, ui::DialogBox::Type::Light)) {};
+{
+    PopMessage::initialize_static_members();
+}
 
 void ui::PopMessage::update(double targetY)
 {
@@ -37,18 +42,28 @@ void ui::PopMessage::update(double targetY)
 
 void ui::PopMessage::render()
 {
-    m_dialog->render(sdl::Texture::Null, false);
+    PopMessage::render_container();
     if (!m_yMet || m_close) { return; }
 
     // This avoids allocating and returning another std::string.
     const int y = m_transition.get_y();
     const std::string_view message(m_message.c_str(), m_substrOffset);
-    sdl::text::render(sdl::Texture::Null, m_textX, y + 5, 22, sdl::text::NO_WRAP, colors::BLACK, message);
+    sdl::text::render(sdl::Texture::Null, m_textX, y + 11, 22, sdl::text::NO_WRAP, colors::BLACK, message);
 }
 
 bool ui::PopMessage::finished() const noexcept { return m_finished; }
 
 std::string_view ui::PopMessage::get_message() const noexcept { return m_message; }
+
+void ui::PopMessage::initialize_static_members()
+{
+    static constexpr std::string_view TEX_CAP_NAME = "PopCaps";
+    static constexpr const char *TEX_CAP_PATH      = "romfs:/Textures/PopMessage.png";
+
+    if (sm_endCaps) { return; }
+
+    sm_endCaps = sdl::TextureManager::load(TEX_CAP_NAME, TEX_CAP_PATH);
+}
 
 void ui::PopMessage::update_y(double targetY) noexcept
 {
@@ -60,9 +75,6 @@ void ui::PopMessage::update_y(double targetY) noexcept
         m_yMet = true;
         m_typeTimer.start(5);
     }
-
-    const int y = m_transition.get_y();
-    m_dialog->set_y(y - 6);
 }
 
 void ui::PopMessage::update_text_offset()
@@ -84,12 +96,8 @@ void ui::PopMessage::update_text_offset()
     const int stringWidth = sdl::text::get_width(22, subMessage);
     m_textX               = HALF_WIDTH - (stringWidth / 2);
 
-    const int dialogX     = m_textX - 16;
     const int dialogWidth = stringWidth + 32;
-
-    m_transition.set_target_x(dialogX);
     m_transition.set_target_width(dialogWidth);
-
     if (m_substrOffset >= messageLength) { m_displayTimer.start(m_ticks); }
 }
 
@@ -99,17 +107,25 @@ void ui::PopMessage::update_width() noexcept
 
     m_transition.update_width_height();
 
-    const int x     = m_transition.get_centered_x();
-    const int width = m_transition.get_width();
-
-    m_dialog->set_x(x);
-    m_dialog->set_width(width);
-
     if (m_close && m_transition.in_place_width_height()) { m_transition.set_target_y(720); }
+}
+
+void ui::PopMessage::render_container() noexcept
+{
+    constexpr int WIDTH = 48;
+    constexpr int HALF  = WIDTH / 2;
+
+    const int x     = m_transition.get_centered_x() - (HALF / 2);
+    const int y     = m_transition.get_y();
+    const int width = m_transition.get_width() + HALF;
+
+    sm_endCaps->render_part(sdl::Texture::Null, x, y, 0, 0, HALF, WIDTH);
+    sdl::render_rect_fill(sdl::Texture::Null, x + HALF, y, width - WIDTH, 48, colors::DIALOG_LIGHT);
+    sm_endCaps->render_part(sdl::Texture::Null, x + (width - HALF), y, HALF, 0, HALF, 48);
 }
 
 void ui::PopMessage::close() noexcept
 {
     m_close = true;
-    m_transition.set_target_width(32);
+    m_transition.set_target_width(START_WIDTH);
 }

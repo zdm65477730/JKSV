@@ -11,20 +11,16 @@
 ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     : m_x(x)
     , m_y(y)
-    , m_optionHeight(std::floor(static_cast<double>(fontSize) * 1.8f))
-    , m_optionTarget(
-          sdl::TextureManager::load("MENU_" + std::to_string(sm_menuID++), width, m_optionHeight, SDL_TEXTUREACCESS_TARGET))
-    , m_boundingBox(ui::BoundingBox::create(0, 0, width + 12, m_optionHeight + 12))
     , m_originalY(y)
-    , m_targetY(y)
-    , m_maxDisplayOptions((renderTargetHeight - m_originalY) / m_optionHeight)
-    , m_scrollLength(std::floor(static_cast<double>(m_maxDisplayOptions) / 2))
     , m_width(width)
     , m_fontSize(fontSize)
-    , m_textY((m_optionHeight / 2) - (m_fontSize / 2)) // This seems to be the best alignment.
     , m_renderTargetHeight(renderTargetHeight)
-    , m_optionScroll(
-          ui::TextScroll::create({}, 16, 0, m_width, m_optionHeight, m_fontSize, colors::BLUE_GREEN, colors::TRANSPARENT)) {};
+{
+    Menu::calculate_alignments();
+    Menu::initialize_transition();
+    Menu::initialize_option_target();
+    Menu::initialize_ui_elements();
+}
 
 void ui::Menu::update(bool hasFocus)
 {
@@ -36,6 +32,7 @@ void ui::Menu::update(bool hasFocus)
     Menu::handle_input();
     Menu::update_scrolling();
     Menu::update_scroll_text();
+    m_transition.update();
 }
 
 void ui::Menu::render(sdl::SharedTexture &target, bool hasFocus)
@@ -44,7 +41,8 @@ void ui::Menu::render(sdl::SharedTexture &target, bool hasFocus)
 
     // I hate doing this.
     const int optionSize = m_options.size();
-    for (int i = 0, tempY = m_y; i < optionSize; i++, tempY += m_optionHeight)
+    const int y          = m_transition.get_y();
+    for (int i = 0, tempY = y; i < optionSize; i++, tempY += m_optionHeight)
     {
         if (tempY < -m_fontSize) { continue; }
         else if (tempY > m_renderTargetHeight) { break; }
@@ -114,6 +112,48 @@ void ui::Menu::reset(bool full)
 
 bool ui::Menu::is_empty() const noexcept { return m_options.empty(); }
 
+void ui::Menu::calculate_alignments() noexcept
+{
+    m_optionHeight      = std::floor(static_cast<double>(m_fontSize) * 1.8f);
+    m_maxDisplayOptions = (m_renderTargetHeight - m_originalY) / m_optionHeight;
+    m_scrollLength      = std::floor(static_cast<double>(m_maxDisplayOptions) / 2.0f);
+    m_textY             = (m_optionHeight / 2) - (m_fontSize / 2);
+}
+
+void ui::Menu::initialize_transition() noexcept
+{
+    m_transition.set_x(m_x);
+    m_transition.set_y(m_y);
+    m_transition.set_target_x(m_x);
+    m_transition.set_target_y(m_y);
+    m_transition.set_threshold(m_transition.DEFAULT_THRESHOLD);
+}
+
+void ui::Menu::initialize_option_target()
+{
+    static int MENU_ID{};
+
+    const std::string optionTargetName = "MENU_TARGET_" + std::to_string(MENU_ID++);
+    m_optionTarget = sdl::TextureManager::load(optionTargetName, m_width, m_optionHeight, SDL_TEXTUREACCESS_TARGET);
+}
+
+void ui::Menu::initialize_ui_elements()
+{
+    // This is empty by default.
+    static constexpr std::string_view EMPTY = {};
+
+    m_boundingBox  = ui::BoundingBox::create(0, 0, m_width + 12, m_optionHeight + 12);
+    m_optionScroll = ui::TextScroll::create(EMPTY,
+                                            16,
+                                            0,
+                                            m_width,
+                                            m_optionHeight,
+                                            m_fontSize,
+                                            colors::BLUE_GREEN,
+                                            colors::TRANSPARENT,
+                                            false);
+}
+
 void ui::Menu::update_scroll_text()
 {
     const std::string_view text   = m_optionScroll->get_text();
@@ -149,17 +189,12 @@ void ui::Menu::update_scrolling()
 
     const int endScrollPoint = optionsSize - (m_maxDisplayOptions - m_scrollLength);
     const int scrolledItems  = m_selected - m_scrollLength;
-    const double scaling     = config::get_animation_scaling();
 
-    if (m_selected < m_scrollLength) { m_targetY = m_originalY; } // Don't bother. There's no point.
-    else if (m_selected >= endScrollPoint) { m_targetY = m_originalY - (optionsSize - m_maxDisplayOptions) * m_optionHeight; }
-    else if (m_selected >= m_scrollLength) { m_targetY = m_originalY - (scrolledItems * m_optionHeight); }
+    int targetY{};
+    const int previousTarget = m_transition.get_target_y();
+    if (m_selected < m_scrollLength) { targetY = m_originalY; } // Don't bother. There's no point.
+    else if (m_selected >= endScrollPoint) { targetY = m_originalY - (optionsSize - m_maxDisplayOptions) * m_optionHeight; }
+    else if (m_selected >= m_scrollLength) { targetY = m_originalY - (scrolledItems * m_optionHeight); }
 
-    if (m_y != m_targetY)
-    {
-        m_y += std::round((m_targetY - m_y) / scaling);
-
-        const int distance = math::Util<double>::absolute_distance(m_y, m_targetY);
-        if (distance <= 2) { m_y = m_targetY; }
-    }
+    if (targetY != previousTarget) { m_transition.set_target_y(targetY); }
 }

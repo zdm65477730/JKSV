@@ -6,7 +6,7 @@ namespace ui
     {
         public:
             /// @brief Default.
-            Transition() = default;
+            Transition();
 
             /// @brief Constructs a new transition.
             /// @param x Beginning X coord.
@@ -95,6 +95,11 @@ namespace ui
 
             /// @brief Sets the target height of the transition.
             void set_target_height(int targetHeight) noexcept;
+
+            /// @brief Sets the threshold before snapping occurs.
+            void set_threshold(int threshold) noexcept;
+
+            static inline int DEFAULT_THRESHOLD = 2;
 
         private:
             /// @brief Current X.

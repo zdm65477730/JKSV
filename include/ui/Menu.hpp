@@ -4,6 +4,7 @@
 #include "ui/ColorMod.hpp"
 #include "ui/Element.hpp"
 #include "ui/TextScroll.hpp"
+#include "ui/Transition.hpp"
 
 #include <memory>
 #include <string>
@@ -22,9 +23,6 @@ namespace ui
             /// @param fontSize Size of the font in pixels to use.
             /// @param renderTargetHeight Height of the render target to calculate option height and scrolling.
             Menu(int x, int y, int width, int fontSize, int renderTargetHeight);
-
-            /// @brief Required destructor.
-            ~Menu() {};
 
             /// @brief Creates and returns a new ui::Menu instance.
             static inline std::shared_ptr<ui::Menu> create(int x, int y, int width, int fontSize, int renderTargetHeight)
@@ -83,6 +81,9 @@ namespace ui
             /// @brief Y coordinate menu is rendered to.
             double m_y{};
 
+            /// @brief This is used for scrolling the menu.
+            ui::Transition m_transition{};
+
             /// @brief Currently selected option.
             int m_selected{};
 
@@ -98,9 +99,6 @@ namespace ui
         private:
             /// @brief This to preserve the original Y coordinate passed.
             double m_originalY{};
-
-            /// @brief The target Y coordinate the menu should be rendered at.
-            double m_targetY{};
 
             /// @brief Maximum number of display options render target can show.
             int m_maxDisplayOptions{};
@@ -126,8 +124,17 @@ namespace ui
             /// @brief Text scroll for when the current option is too long to on screen.
             std::shared_ptr<ui::TextScroll> m_optionScroll{};
 
-            /// @brief Keeps track of the current menu ID for render target.
-            static inline int sm_menuID{};
+            /// @brief Calculates the alignment variables.
+            void calculate_alignments() noexcept;
+
+            /// @brief Initializes transition.
+            void initialize_transition() noexcept;
+
+            /// @brief Creates the option target for the menu.
+            void initialize_option_target();
+
+            /// @brief Initializes the UI elements used within the menu.
+            void initialize_ui_elements();
 
             /// @brief Updates the text scroll for the currently highlighted option.
             void update_scroll_text();

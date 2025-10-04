@@ -8,7 +8,7 @@ ui::ControlGuide::ControlGuide(const char *guide)
     , m_textWidth(sdl::text::get_width(23, m_guide))
     , m_targetX(1220 - (m_textWidth + 24))
     , m_guideWidth(1280 - m_targetX)
-    , m_transition(1280, 662, 0, 0, m_targetX, 662, 0, 0, 4)
+    , m_transition(1280, 662, 0, 0, m_targetX, 662, 0, 0, ui::Transition::DEFAULT_THRESHOLD)
 {
     ui::ControlGuide::initialize_static_members();
 }

@@ -22,7 +22,7 @@ namespace
 }
 
 ProgressState::ProgressState(sys::threadpool::JobFunction function, sys::Task::TaskData taskData)
-    : m_transition(0, 0, 32, 32, 0, 0, 720, 256, 4)
+    : m_transition(0, 0, 32, 32, 0, 0, 720, 256, ui::Transition::DEFAULT_THRESHOLD)
 {
     initialize_static_members();
     m_task = std::make_unique<sys::ProgressTask>(function, taskData);

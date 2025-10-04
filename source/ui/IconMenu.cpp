@@ -24,7 +24,8 @@ void ui::IconMenu::update(bool hasFocus) { Menu::update(hasFocus); }
 void ui::IconMenu::render(sdl::SharedTexture &target, bool hasFocus)
 {
     const int optionCount = m_options.size();
-    for (int i = 0, tempY = m_y; i < optionCount; i++, tempY += m_optionHeight)
+    const int y           = m_transition.get_y();
+    for (int i = 0, tempY = y; i < optionCount; i++, tempY += m_optionHeight)
     {
         // Clear target.
         m_optionTarget->clear(colors::TRANSPARENT);

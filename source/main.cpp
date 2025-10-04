@@ -5,7 +5,7 @@
 
 int main(int argc, const char *argv[])
 {
-    // Store the pointers here so JKSV can update itself from where ever the use might have placed it.
+    // Store the pointers here so JKSV can update itself from where ever the user might have placed it.
     cmdargs::store(argc, argv);
 
     JKSV jksv{};

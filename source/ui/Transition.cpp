@@ -6,6 +6,9 @@
 
 #include <cmath>
 
+ui::Transition::Transition()
+    : m_scaling(config::get_animation_scaling()) {};
+
 ui::Transition::Transition(int x,
                            int y,
                            int width,
@@ -83,13 +86,15 @@ void ui::Transition::set_width(int width) noexcept { m_width = static_cast<doubl
 
 void ui::Transition::set_height(int height) noexcept { m_height = static_cast<double>(height); }
 
-void ui::Transition::set_target_x(int targetX) noexcept { m_targetX = targetX; }
+void ui::Transition::set_target_x(int targetX) noexcept { m_targetX = static_cast<double>(targetX); }
 
-void ui::Transition::set_target_y(int targetY) noexcept { m_targetY = targetY; }
+void ui::Transition::set_target_y(int targetY) noexcept { m_targetY = static_cast<double>(targetY); }
 
-void ui::Transition::set_target_width(int targetWidth) noexcept { m_targetWidth = targetWidth; }
+void ui::Transition::set_target_width(int targetWidth) noexcept { m_targetWidth = static_cast<double>(targetWidth); }
 
-void ui::Transition::set_target_height(int targetHeight) noexcept { m_targetHeight = targetHeight; }
+void ui::Transition::set_target_height(int targetHeight) noexcept { m_targetHeight = static_cast<double>(targetHeight); }
+
+void ui::Transition::set_threshold(int threshold) noexcept { m_threshold = static_cast<double>(threshold); }
 
 void ui::Transition::update_x_coord() noexcept
 {

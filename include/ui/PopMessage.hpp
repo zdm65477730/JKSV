@@ -59,8 +59,11 @@ namespace ui
             /// @brief This times  updates the end of the substr printed.
             sys::Timer m_typeTimer{};
 
-            /// @brief Dialog used to render the background.
-            std::shared_ptr<ui::DialogBox> m_dialog{};
+            /// @brief This is the texture used for the ends of the messages.
+            static inline sdl::SharedTexture sm_endCaps{};
+
+            /// @brief Ensures ^ is loaded and ready to go.
+            void initialize_static_members();
 
             /// @brief Updates the Y Coord to match the target passed.
             void update_y(double targetY) noexcept;
@@ -70,6 +73,9 @@ namespace ui
 
             /// @brief Updates the width of the dialog.
             void update_width() noexcept;
+
+            /// @brief Renders the container around the message.
+            void render_container() noexcept;
 
             /// @brief Signals the pop message to close.
             void close() noexcept;
