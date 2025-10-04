@@ -72,7 +72,7 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string_view mess
         {
             ui::PopMessage &back               = messages.back();
             const std::string_view lastMessage = back.get_message();
-            // if (lastMessage == message) { return; }
+            if (lastMessage == message) { return; }
         }
     }
 
