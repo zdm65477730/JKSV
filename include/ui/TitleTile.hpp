@@ -1,5 +1,6 @@
 #pragma once
 #include "sdl.hpp"
+#include "ui/Transition.hpp"
 
 namespace ui
 {
@@ -34,15 +35,13 @@ namespace ui
             int get_height() const noexcept;
 
         private:
-            /// @brief Width in pixels to render icon at.
-            int m_renderWidth = 128;
-
-            /// @brief Height in pixels to render icon at.
-            int m_renderHeight = 128;
+            /// @brief Transition for the tile select/deselect.
+            ui::Transition m_transition{};
 
             /// @brief Whether or not the title is a favorite.
             bool m_isFavorite{};
 
+            
             int m_index{};
 
             /// @brief Title's icon texture.
