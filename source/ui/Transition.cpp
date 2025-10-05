@@ -6,8 +6,7 @@
 
 #include <cmath>
 
-ui::Transition::Transition()
-    : m_scaling(config::get_animation_scaling()) {};
+ui::Transition::Transition() { Transition::update_scaling(); }
 
 ui::Transition::Transition(int x,
                            int y,
@@ -27,7 +26,9 @@ ui::Transition::Transition(int x,
     , m_targetWidth(targetWidth)
     , m_targetHeight(targetHeight)
     , m_threshold(threshold)
-    , m_scaling(config::get_animation_scaling()) {};
+{
+    Transition::update_scaling();
+}
 
 void ui::Transition::update() noexcept
 {
@@ -96,11 +97,13 @@ void ui::Transition::set_target_height(int targetHeight) noexcept { m_targetHeig
 
 void ui::Transition::set_threshold(int threshold) noexcept { m_threshold = static_cast<double>(threshold); }
 
+void ui::Transition::update_scaling() noexcept { sm_scaling = config::get_animation_scaling(); }
+
 void ui::Transition::update_x_coord() noexcept
 {
     if (m_x == m_targetX) { return; }
 
-    const double add = (m_targetX - m_x) / m_scaling;
+    const double add = (m_targetX - m_x) / sm_scaling;
     m_x += std::round(add);
 
     const double distance = math::Util<double>::absolute_distance(m_x, m_targetX);
@@ -111,7 +114,7 @@ void ui::Transition::update_y_coord() noexcept
 {
     if (m_y == m_targetY) { return; }
 
-    const double add = (m_targetY - m_y) / m_scaling;
+    const double add = (m_targetY - m_y) / sm_scaling;
     m_y += std::round(add);
 
     const double distance = math::Util<double>::absolute_distance(m_y, m_targetY);
@@ -122,7 +125,7 @@ void ui::Transition::update_width() noexcept
 {
     if (m_width == m_targetWidth) { return; }
 
-    const double add = (m_targetWidth - m_width) / m_scaling;
+    const double add = (m_targetWidth - m_width) / sm_scaling;
     m_width += std::round(add);
 
     const double distance = math::Util<double>::absolute_distance(m_width, m_targetWidth);
@@ -133,7 +136,7 @@ void ui::Transition::update_height() noexcept
 {
     if (m_height == m_targetHeight) { return; }
 
-    const double add = (m_targetHeight - m_height) / m_scaling;
+    const double add = (m_targetHeight - m_height) / sm_scaling;
     m_height += add;
 
     const double distance = math::Util<double>::absolute_distance(m_height, m_targetHeight);

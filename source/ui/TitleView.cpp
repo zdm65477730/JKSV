@@ -10,11 +10,14 @@
 
 namespace
 {
-    constexpr int ICON_ROW_SIZE = 7;
+    constexpr double UPPER_THRESHOLD = 32.0f;
+    constexpr double LOWER_THRESHOLD = 388.0f;
+    constexpr int ICON_ROW_SIZE      = 7;
 }
 
 ui::TitleView::TitleView(data::User *user)
     : m_user(user)
+    , m_transition(0, UPPER_THRESHOLD, 0, 0, 0, UPPER_THRESHOLD, 0, 0, m_transition.DEFAULT_THRESHOLD)
     , m_bounding(ui::BoundingBox::create(0, 0, 188, 188))
 {
     TitleView::refresh();
@@ -28,6 +31,7 @@ void ui::TitleView::update(bool hasFocus)
     TitleView::handle_input();
     TitleView::handle_scrolling();
     TitleView::update_tiles();
+    m_transition.update();
 }
 
 void ui::TitleView::render(sdl::SharedTexture &target, bool hasFocus)
@@ -38,7 +42,8 @@ void ui::TitleView::render(sdl::SharedTexture &target, bool hasFocus)
     if (m_titleTiles.empty()) { return; }
 
     const int tileCount = m_titleTiles.size();
-    for (int i = 0, tempY = m_y; i < tileCount; i += ICON_ROW_SIZE, tempY += TILE_SPACE_VERT)
+    const int y         = m_transition.get_y();
+    for (int i = 0, tempY = y; i < tileCount; i += ICON_ROW_SIZE, tempY += TILE_SPACE_VERT)
     {
         const int endRow = i + ICON_ROW_SIZE;
         for (int j = i, tempX = 32; j < endRow && j < tileCount; j++, tempX += TILE_SPACE_HOR)
@@ -127,20 +132,23 @@ void ui::TitleView::handle_input()
 
 void ui::TitleView::handle_scrolling()
 {
-    static constexpr double UPPER_THRESHOLD = 32.0f;
-    static constexpr double LOWER_THRESHOLD = 388.0f;
-
-    const double scaling = config::get_animation_scaling();
-
-    if (m_selectedY < UPPER_THRESHOLD)
+    double shift{};
+    bool changed{};
+    if (m_selectedY < static_cast<int>(UPPER_THRESHOLD))
     {
-        const double shiftDown = (UPPER_THRESHOLD - m_selectedY) / scaling;
-        m_y += std::round(shiftDown);
+        shift   = (UPPER_THRESHOLD - m_selectedY);
+        changed = true;
     }
-    else if (m_selectedY > LOWER_THRESHOLD)
+    else if (m_selectedY > static_cast<int>(LOWER_THRESHOLD))
     {
-        const double shiftUp = (LOWER_THRESHOLD - m_selectedY) / scaling;
-        m_y += std::round(shiftUp);
+        shift   = (LOWER_THRESHOLD - m_selectedY);
+        changed = true;
+    }
+
+    if (changed)
+    {
+        const int shiftedY = m_transition.get_y() + std::round(shift);
+        m_transition.set_target_y(shiftedY);
     }
 }
 

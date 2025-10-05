@@ -17,6 +17,7 @@ ui::IconMenu::IconMenu(int x, int y, int renderTargetHeight)
     // This needs to be overriden from the base state.
     m_boundingBox->set_width(152);
     m_boundingBox->set_height(146);
+    m_optionHeight = 144;
 }
 
 void ui::IconMenu::update(bool hasFocus) { Menu::update(hasFocus); }

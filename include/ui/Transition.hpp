@@ -99,7 +99,10 @@ namespace ui
             /// @brief Sets the threshold before snapping occurs.
             void set_threshold(int threshold) noexcept;
 
-            static inline int DEFAULT_THRESHOLD = 2;
+            /// @brief Updates the scaling for all transitions.
+            static void update_scaling() noexcept;
+
+            static inline int DEFAULT_THRESHOLD = 1;
 
         private:
             /// @brief Current X.
@@ -130,7 +133,7 @@ namespace ui
             double m_threshold{};
 
             /// @brief Scaling from config.
-            double m_scaling{};
+            static inline double sm_scaling{};
 
             void update_x_coord() noexcept;
 

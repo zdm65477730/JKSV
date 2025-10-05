@@ -5,6 +5,7 @@
 #include "ui/ColorMod.hpp"
 #include "ui/Element.hpp"
 #include "ui/TitleTile.hpp"
+#include "ui/Transition.hpp"
 
 #include <vector>
 
@@ -49,8 +50,8 @@ namespace ui
             /// @brief Pointer to user passed.
             data::User *m_user{};
 
-            /// @brief Y coordinate.
-            double m_y = 32.0f;
+            /// @brief Transition used for animating the scrolling.
+            ui::Transition m_transition{};
 
             /// @brief Currently highlighted/selected title.
             int m_selected{};

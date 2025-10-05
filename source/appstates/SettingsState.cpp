@@ -283,6 +283,7 @@ void SettingsState::cycle_anim_scaling()
     if ((scaling += 0.25f) > 4.0f) { scaling = 1.0f; }
 
     config::set_animation_scaling(scaling);
+    ui::Transition::update_scaling();
 }
 
 const char *SettingsState::get_status_text(uint8_t value)
