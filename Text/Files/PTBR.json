@@ -135,6 +135,9 @@
         "0: Desligado",
         "1: >Ligado>"
     ],
+    "SaveCreateConfs": [
+        "0: Este é um tipo de salvamento em cache. Deseja criá-lo no cartão SD em vez da NAND?"
+    ],
     "RemotePops": [
         "0: Nenhuma conexão com a internet disponível!"
     ],

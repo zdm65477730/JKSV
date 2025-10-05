@@ -138,6 +138,9 @@
     "RemotePops": [
         "0: Geen internetverbinding beschikbaar!"
     ],
+    "SaveCreateConfs": [
+        "0: Dit is een cache-type savebestand. Wilt u het op de SD-kaart aanmaken in plaats van in de NAND?"
+    ],
     "SaveCreatePops": [
         "0: Opslaggegevens aangemaakt voor #%s#!",
         "1: Fout bij aanmaken van opslaggegevens!",

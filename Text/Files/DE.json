@@ -138,6 +138,9 @@
     "RemotePops": [
         "0: Keine Internetverbindung verfügbar!"
     ],
+    "SaveCreateConfs": [
+        "0: Dies ist ein Cache-Typ-Speicherstand. Möchten Sie ihn auf der SD-Karte statt im NAND erstellen?"
+    ],
     "SaveCreatePops": [
         "0: Speicherdaten für #%s# erstellt!",
         "1: Fehler beim Erstellen der Speicherdaten!",

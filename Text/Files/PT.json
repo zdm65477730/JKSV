@@ -138,6 +138,9 @@
     "RemotePops": [
         "0: Sem ligação à Internet disponível!"
     ],
+    "SaveCreateConfs": [
+        "0: Este é um tipo de gravação em cache. Deseja criá-la no cartão SD em vez da NAND?"
+    ],
     "SaveCreatePops": [
         "0: Dados guardados criados para #%s#!",
         "1: Erro ao criar dados guardados!",

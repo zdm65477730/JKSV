@@ -138,6 +138,9 @@
     "RemotePops": [
         "0: Pas de connexion internet disponible !"
     ],
+    "SaveCreateConfs": [
+        "0: Ceci est une sauvegarde de type cache. Voulez-vous la créer sur la carte SD plutôt que sur la NAND ?"
+    ],
     "SaveCreatePops": [
         "0: Données sauvegardées créées pour #%s#!",
         "1: Échec de la création des données sauvegardées !",

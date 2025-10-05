@@ -138,6 +138,9 @@
     "RemotePops": [
         "0: ¡No hay conexión a internet disponible!"
     ],
+    "SaveCreateConfs": [
+        "0: Este es un tipo de guardado en caché. ¿Desea crearlo en la tarjeta SD en lugar de en la NAND?"
+    ],
     "SaveCreatePops": [
         "0: ¡Datos guardados creados para #%s#!",
         "1: ¡Error al crear los datos guardados!",
