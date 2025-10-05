@@ -138,6 +138,9 @@
     "RemotePops": [
         "0: No internet connection available!"
     ],
+    "SaveCreateConfs":[
+        "This is a cache type save. Would you like to create it on the SD card instead of NAND?"
+    ],
     "SaveCreatePops": [
         "0: Save data created for #%s#!",
         "1: Error creating save data!",

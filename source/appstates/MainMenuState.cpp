@@ -177,9 +177,9 @@ void MainMenuState::backup_all_for_all()
     const char *query       = strings::get_by_name(strings::names::MAINMENU_CONFS, 0);
     if (remote && autoUpload)
     {
-        ConfirmProgress::create_push_fade(query, true, tasks::mainmenu::backup_all_for_all_remote, m_dataStruct);
+        ConfirmProgress::create_push_fade(query, true, tasks::mainmenu::backup_all_for_all_remote, nullptr, m_dataStruct);
     }
-    else { ConfirmProgress::create_push_fade(query, true, tasks::mainmenu::backup_all_for_all_local, m_dataStruct); }
+    else { ConfirmProgress::create_push_fade(query, true, tasks::mainmenu::backup_all_for_all_local, nullptr, m_dataStruct); }
 }
 
 void MainMenuState::confirm_update()
@@ -187,5 +187,5 @@ void MainMenuState::confirm_update()
     const char *confirmUpdate = strings::get_by_name(strings::names::UPDATE_CONFIRMATION, 0);
     auto taskData             = std::make_shared<sys::Task::DataStruct>();
 
-    ConfirmProgress::create_push_fade(confirmUpdate, false, tasks::update::download_update, taskData);
+    ConfirmProgress::create_push_fade(confirmUpdate, false, tasks::update::download_update, nullptr, taskData);
 }

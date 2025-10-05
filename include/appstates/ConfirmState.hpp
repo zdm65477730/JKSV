@@ -39,7 +39,8 @@ class ConfirmState final : public BaseState
         /// @param dataStruct shared_ptr<StructType> that is passed to function. I tried templating this and it was a nightmare.
         ConfirmState(std::string_view query,
                      bool holdRequired,
-                     sys::threadpool::JobFunction function,
+                     sys::threadpool::JobFunction onConfirm,
+                     sys::threadpool::JobFunction onCancel,
                      sys::Task::TaskData taskData)
             : BaseState(false)
             , m_query(query)
@@ -47,7 +48,8 @@ class ConfirmState final : public BaseState
             , m_noText(strings::get_by_name(strings::names::YES_NO_OK, 1))
             , m_holdRequired(holdRequired)
             , m_transition(280, 229, 32, 32, 280, 229, 720, 256, 4)
-            , m_function(function)
+            , m_onConfirm(onConfirm)
+            , m_onCancel(onCancel)
             , m_taskData(taskData)
         {
             ConfirmState::initialize_static_members();
@@ -59,20 +61,22 @@ class ConfirmState final : public BaseState
         /// @brief Returns a new ConfirmState. See constructor.
         static inline std::shared_ptr<ConfirmState> create(std::string_view query,
                                                            bool holdRequired,
-                                                           sys::threadpool::JobFunction function,
+                                                           sys::threadpool::JobFunction onConfirm,
+                                                           sys::threadpool::JobFunction onCancel,
                                                            sys::Task::TaskData taskData)
         {
-            return std::make_shared<ConfirmState>(query, holdRequired, function, taskData);
+            return std::make_shared<ConfirmState>(query, holdRequired, onConfirm, onCancel, taskData);
         }
 
         /// @brief Creates and returns a new ConfirmState and pushes it.
         static inline std::shared_ptr<ConfirmState> create_and_push(std::string_view query,
                                                                     bool holdRequired,
-                                                                    sys::threadpool::JobFunction function,
+                                                                    sys::threadpool::JobFunction onConfirm,
+                                                                    sys::threadpool::JobFunction onCancel,
                                                                     sys::Task::TaskData taskData)
         {
             // I'm gonna use a sneaky trick here. This shouldn't do this because it's confusing.
-            auto newState = create(query, holdRequired, function, taskData);
+            auto newState = create(query, holdRequired, onConfirm, onCancel, taskData);
             StateManager::push_state(newState);
             return newState;
         }
@@ -80,10 +84,11 @@ class ConfirmState final : public BaseState
         /// @brief Same as above but with a fade transition pushed  in between.
         static std::shared_ptr<ConfirmState> create_push_fade(std::string_view query,
                                                               bool holdRequired,
-                                                              sys::threadpool::JobFunction function,
+                                                              sys::threadpool::JobFunction onConfirm,
+                                                              sys::threadpool::JobFunction onCancel,
                                                               sys::Task::TaskData taskData)
         {
-            auto newState = ConfirmState::create(query, holdRequired, function, taskData);
+            auto newState = ConfirmState::create(query, holdRequired, onConfirm, onCancel, taskData);
             FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_BEGIN, colors::ALPHA_FADE_END, newState);
             return newState;
         }
@@ -167,7 +172,10 @@ class ConfirmState final : public BaseState
         bool m_close{};
 
         /// @brief Function to execute if action is confirmed.
-        const sys::threadpool::JobFunction m_function{};
+        const sys::threadpool::JobFunction m_onConfirm{};
+
+        /// @brief Function to execute if action is cancelled.
+        const sys::threadpool::JobFunction m_onCancel{};
 
         /// @brief Pointer to data struct passed to ^
         const sys::Task::TaskData m_taskData{};
@@ -235,8 +243,10 @@ class ConfirmState final : public BaseState
 
         void deactivate_state()
         {
-            if (m_confirmed) { StateType::create_and_push(m_function, m_taskData); }
-            else {
+            if (m_confirmed && m_onConfirm) { StateType::create_and_push(m_onConfirm, m_taskData); }
+            else if (!m_confirmed && m_onCancel) { StateType::create_and_push(m_onCancel, m_taskData); }
+            else
+            {
                 FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
             }
             BaseState::deactivate();

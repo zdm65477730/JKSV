@@ -19,7 +19,7 @@ namespace
     constexpr int SIZE_ICON_FONT = 50;
 
     /// @brief This is the number of FsSaveDataInfo entries to allocate and try to read.
-    constexpr size_t SIZE_SAVE_INFO_BUFFER = 256;
+    constexpr size_t SIZE_SAVE_INFO_BUFFER = 128;
 
     // Array of SaveDataSpaceIDs - SaveDataSpaceAll doesn't seem to work as it should...
     constexpr std::array<FsSaveDataSpaceId, 6> SAVE_DATA_SPACE_ORDER = {FsSaveDataSpaceId_System,
@@ -78,13 +78,9 @@ data::User &data::User::operator=(data::User &&user) noexcept
     return *this;
 }
 
-void data::User::add_data(const FsSaveDataInfo *saveInfo, const PdmPlayStatistics *playStats)
+void data::User::add_data(uint64_t applicationID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats)
 {
-    const uint64_t saveInfoAppID = saveInfo->application_id;
-    const uint64_t saveInfoSysID = saveInfo->system_save_data_id;
-    const uint64_t applicationID = saveInfoAppID != 0 ? saveInfoAppID : saveInfoSysID;
-
-    auto dataPair   = std::make_pair(*saveInfo, *playStats);
+    auto dataPair   = std::make_pair(saveInfo, playStats);
     auto vectorPair = std::make_pair(applicationID, std::move(dataPair));
     m_userData.push_back(std::move(vectorPair));
 }
@@ -180,9 +176,10 @@ void data::User::load_user_data()
                 bool mounted{};
                 if (!isBlacklisted && !systemFilter && enforceMount)
                 {
-                    fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, &saveInfo, false};
+                    fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, &saveInfo};
                     mounted = saveMount.is_open();
                 }
+
                 if (isBlacklisted || systemFilter || (enforceMount && !mounted)) { continue; }
 
                 const bool titleFound = data::title_exists_in_map(applicationID);
@@ -194,10 +191,12 @@ void data::User::load_user_data()
                                                                          m_accountID,
                                                                          false,
                                                                          &playStats);
-                User::add_data(&saveInfo, &playStats);
+
+                User::add_data(applicationID, saveInfo, playStats);
             }
         }
     }
+
     User::sort_data();
 }
 

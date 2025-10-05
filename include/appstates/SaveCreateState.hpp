@@ -45,6 +45,7 @@ class SaveCreateState final : public BaseState
         {
             data::User *user{};
             data::TitleInfo *titleInfo{};
+            uint16_t saveDataIndex{}; // This is only used for cache type saves.
             SaveCreateState *spawningState{};
         };
         // clang-format on

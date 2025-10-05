@@ -25,9 +25,10 @@ namespace
     constexpr int SIZE_TEXT_TARGET_HEIGHT = 40;
 } // namespace
 
-TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo)
+TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo, const FsSaveDataInfo *saveInfo)
     : m_user(user)
     , m_titleInfo(titleInfo)
+    , m_saveInfo(saveInfo)
     , m_icon(m_titleInfo->get_icon())
 {
     TitleInfoState::initialize_static_members();
@@ -71,7 +72,7 @@ void TitleInfoState::create_info_scrolls()
     static constexpr int COORD_INIT_Y  = 278;
 
     const uint64_t applicationID       = m_titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo     = m_user->get_save_info_by_id(applicationID);
+    const FsSaveDataInfo *saveInfo     = m_saveInfo;
     const PdmPlayStatistics *playStats = m_user->get_play_stats_by_id(applicationID);
     if (error::is_null(saveInfo) || error::is_null(playStats)) { return; }
 

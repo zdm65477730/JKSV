@@ -214,7 +214,7 @@ void FileOptionState::copy_target()
     const char *copyFormat  = strings::get_by_name(strings::names::FILEOPTION_CONFS, 0);
     const std::string query = stringutil::get_formatted_string(copyFormat, sourceString.c_str(), destString.c_str());
 
-    ConfirmProgress::create_push_fade(query, false, tasks::fileoptions::copy_source_to_destination, m_dataStruct);
+    ConfirmProgress::create_push_fade(query, false, tasks::fileoptions::copy_source_to_destination, nullptr, m_dataStruct);
 }
 
 void FileOptionState::delete_target()
@@ -245,7 +245,7 @@ void FileOptionState::delete_target()
     m_dataStruct->sourcePath  = std::move(fullTarget);
     m_dataStruct->journalSize = m_spawningState->m_journalSize;
 
-    ConfirmTask::create_push_fade(query, holdRequired, tasks::fileoptions::delete_target, m_dataStruct);
+    ConfirmTask::create_push_fade(query, holdRequired, tasks::fileoptions::delete_target, nullptr, m_dataStruct);
 }
 
 void FileOptionState::rename_target()

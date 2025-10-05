@@ -76,7 +76,7 @@ void SaveImportState::import_backup()
     const char *confirmFormat = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 1);
     std::string query         = stringutil::get_formatted_string(confirmFormat, targetName);
 
-    ConfirmProgress::create_and_push(query, holdRequired, tasks::saveimport::import_save_backup, sm_taskData);
+    ConfirmProgress::create_and_push(query, holdRequired, tasks::saveimport::import_save_backup, nullptr, sm_taskData);
 }
 
 void SaveImportState::deactivate_state()

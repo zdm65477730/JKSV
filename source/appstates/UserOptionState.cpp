@@ -127,9 +127,12 @@ void UserOptionState::backup_all()
     const std::string query = stringutil::get_formatted_string(confirmFormat, nickname);
     if (remote && autoUpload)
     {
-        ConfirmProgress::create_push_fade(query, true, tasks::useroptions::backup_all_for_user_remote, m_dataStruct);
+        ConfirmProgress::create_push_fade(query, true, tasks::useroptions::backup_all_for_user_remote, nullptr, m_dataStruct);
     }
-    else { ConfirmProgress::create_push_fade(query, true, tasks::useroptions::backup_all_for_user_local, m_dataStruct); }
+    else
+    {
+        ConfirmProgress::create_push_fade(query, true, tasks::useroptions::backup_all_for_user_local, nullptr, m_dataStruct);
+    }
 }
 
 void UserOptionState::create_save_create()
@@ -148,7 +151,7 @@ void UserOptionState::create_all_save_data()
     const char *nickname      = m_user->get_nickname();
 
     const std::string query = stringutil::get_formatted_string(confirmFormat, nickname);
-    ConfirmTask::create_push_fade(query, true, tasks::useroptions::create_all_save_data_for_user, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::useroptions::create_all_save_data_for_user, nullptr, m_dataStruct);
 }
 
 void UserOptionState::delete_all_save_data()
@@ -159,7 +162,7 @@ void UserOptionState::delete_all_save_data()
     const char *confirmFormat     = strings::get_by_name(strings::names::USEROPTION_CONFS, 2);
     const char *nickname          = m_user->get_nickname();
     const std::string queryString = stringutil::get_formatted_string(confirmFormat, nickname);
-    ConfirmTask::create_push_fade(queryString, true, tasks::useroptions::delete_all_save_data_for_user, m_dataStruct);
+    ConfirmTask::create_push_fade(queryString, true, tasks::useroptions::delete_all_save_data_for_user, nullptr, m_dataStruct);
 }
 
 void UserOptionState::create_push_save_import()

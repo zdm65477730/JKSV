@@ -1,11 +1,12 @@
 #include "appstates/SaveCreateState.hpp"
 
 #include "StateManager.hpp"
-#include "appstates/TaskState.hpp"
+#include "appstates/ConfirmState.hpp"
 #include "data/data.hpp"
 #include "error.hpp"
 #include "fs/fs.hpp"
 #include "input.hpp"
+#include "keyboard.hpp"
 #include "logging/logger.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
@@ -97,11 +98,29 @@ void SaveCreateState::initialize_data_struct()
 
 void SaveCreateState::create_save_data_for()
 {
+    static constexpr std::string_view DEFAULT_INDEX = "0";
+
+    char cacheIndex[3]         = {0};
     const int selected         = m_saveMenu->get_selected();
     data::TitleInfo *titleInfo = m_titleInfoVector[selected];
     m_dataStruct->titleInfo    = titleInfo;
 
-    TaskState::create_and_push(tasks::savecreate::create_save_data_for, m_dataStruct);
+    const char *keyboardString = strings::get_by_name(strings::names::KEYBOARD, 1);
+    const bool isCache         = m_user->get_account_save_type() == FsSaveDataType_Cache;
+    const bool indexInput      = isCache && keyboard::get_input(SwkbdType_QWERTY, DEFAULT_INDEX, keyboardString, cacheIndex, 3);
+    if (isCache && !indexInput) { return; }
+    else if (isCache && indexInput) { m_dataStruct->saveDataIndex = std::strtoul(cacheIndex, nullptr, 10); }
+
+    if (!isCache) { TaskState::create_and_push(tasks::savecreate::create_save_data_for, m_dataStruct); }
+    else
+    {
+        const char *confirmString = strings::get_by_name(strings::names::SAVECREATE_CONFS, 0);
+        ConfirmTask::create_push_fade(confirmString,
+                                      false,
+                                      tasks::savecreate::create_save_data_for_sd,
+                                      tasks::savecreate::create_save_data_for,
+                                      m_dataStruct);
+    }
 }
 
 void SaveCreateState::deactivate_state()

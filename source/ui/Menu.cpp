@@ -104,7 +104,8 @@ void ui::Menu::reset(bool full)
     if (full)
     {
         m_selected = 0;
-        m_y        = m_originalY;
+        m_transition.set_y(m_originalY);
+        m_transition.set_target_y(m_originalY);
     }
 
     m_options.clear();

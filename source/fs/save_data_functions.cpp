@@ -8,7 +8,10 @@ namespace
     inline constexpr FsSaveDataMetaInfo SAVE_CREATE_META = {.size = 0x40060, .type = FsSaveDataMetaType_Thumbnail};
 }
 
-bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo) noexcept
+bool fs::create_save_data_for(data::User *targetUser,
+                              data::TitleInfo *titleInfo,
+                              uint16_t saveDataIndex,
+                              uint8_t spaceID) noexcept
 {
 
     const uint8_t saveType       = targetUser->get_account_save_type();
@@ -23,14 +26,14 @@ bool fs::create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo
                                                 .system_save_data_id = 0,
                                                 .save_data_type      = saveType,
                                                 .save_data_rank      = FsSaveDataRank_Primary,
-                                                .save_data_index     = 0};
+                                                .save_data_index     = saveDataIndex};
 
     const FsSaveDataCreationInfo saveCreation = {.save_data_size     = saveSize,
                                                  .journal_size       = journalSize,
                                                  .available_size     = 0x4000,
                                                  .owner_id           = ownerID,
                                                  .flags              = 0,
-                                                 .save_data_space_id = FsSaveDataSpaceId_User};
+                                                 .save_data_space_id = spaceID};
 
     // I want this recorded.
     return error::libnx(fsCreateSaveDataFileSystem(&saveAttributes, &saveCreation, &SAVE_CREATE_META)) == false;

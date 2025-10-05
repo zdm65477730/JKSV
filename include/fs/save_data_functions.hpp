@@ -9,8 +9,13 @@ namespace fs
     /// @brief Creates save data for the target user for the title passed.
     /// @param targetUser User to create save data for.
     /// @param titleInfo Title to create save data for.
+    /// @param saveDataIndex Index. Only applicable to cache saves.
+    /// @param spaceID Save data space ID to create with. Default is 1/User.
     /// @return True on success. False on failure.
-    bool create_save_data_for(data::User *targetUser, data::TitleInfo *titleInfo) noexcept;
+    bool create_save_data_for(data::User *targetUser,
+                              data::TitleInfo *titleInfo,
+                              uint16_t saveDataIndex = 0,
+                              uint8_t spaceID        = 1) noexcept;
 
     /// @brief Creates save data for the user passed using the meta data passed.
     bool create_save_data_for(data::User *targetUser, const fs::SaveMetaData &saveMeta) noexcept;

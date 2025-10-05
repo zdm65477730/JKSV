@@ -15,18 +15,22 @@ class TitleInfoState final : public BaseState
         /// @brief Constructs a new title info state.
         /// @param user User to display info for.
         /// @param titleInfo Title to display info for.
-        TitleInfoState(data::User *user, data::TitleInfo *titleInfo);
+        TitleInfoState(data::User *user, data::TitleInfo *titleInfo, const FsSaveDataInfo *saveInfo);
 
         /// @brief Creates a new TitleInfoState.
-        static inline std::shared_ptr<TitleInfoState> create(data::User *user, data::TitleInfo *titleInfo)
+        static inline std::shared_ptr<TitleInfoState> create(data::User *user,
+                                                             data::TitleInfo *titleInfo,
+                                                             const FsSaveDataInfo *saveInfo)
         {
-            return std::make_shared<TitleInfoState>(user, titleInfo);
+            return std::make_shared<TitleInfoState>(user, titleInfo, saveInfo);
         }
 
         /// @brief Creates, pushes, and returns a new TitleInfoState.
-        static inline std::shared_ptr<TitleInfoState> create_and_push(data::User *user, data::TitleInfo *titleInfo)
+        static inline std::shared_ptr<TitleInfoState> create_and_push(data::User *user,
+                                                                      data::TitleInfo *titleInfo,
+                                                                      const FsSaveDataInfo *saveInfo)
         {
-            auto newState = TitleInfoState::create(user, titleInfo);
+            auto newState = TitleInfoState::create(user, titleInfo, saveInfo);
             StateManager::push_state(newState);
             return newState;
         }
@@ -43,6 +47,9 @@ class TitleInfoState final : public BaseState
 
         /// @brief Pointer to title info.
         data::TitleInfo *m_titleInfo{};
+
+        /// @brief Save a pointer to the save info.
+        const FsSaveDataInfo *m_saveInfo{};
 
         /// @brief This is a pointer to the title's icon.
         sdl::SharedTexture m_icon{};

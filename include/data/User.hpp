@@ -52,7 +52,7 @@ namespace data
             /// @brief Pushes data to m_userData
             /// @param saveInfo SaveDataInfo.
             /// @param playStats Play statistics.
-            void add_data(const FsSaveDataInfo *saveInfo, const PdmPlayStatistics *playStats);
+            void add_data(uint64_t applicationID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats);
 
             /// @brief Clears the user save info vector.
             void clear_data_entries() noexcept;

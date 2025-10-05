@@ -15,7 +15,7 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
     : m_mountA(mountA)
     , m_mountB(mountB)
     , m_journalSize(journalSize)
-    , m_transition(15, 720, 0, 0, 15, 87, 0, 0, ui::Transition::DEFAULT_THRESHOLD)
+    , m_transition(15, 720, 0, 0, 15, 89, 0, 0, ui::Transition::DEFAULT_THRESHOLD)
     , m_isSystem(isSystem)
     , m_allowSystem(config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
 {
@@ -91,11 +91,8 @@ void FileModeState::initialize_static_members()
 
 void FileModeState::initialize_paths()
 {
-    const std::string pathA = m_mountA + ":/";
-    const std::string pathB = m_mountB + ":/";
-
-    m_pathA = pathA;
-    m_pathB = pathB;
+    m_pathA = m_mountA + ":/";
+    m_pathB = m_mountB + ":/";
 }
 
 void FileModeState::initialize_menus()
@@ -133,6 +130,7 @@ void FileModeState::initialize_directory_menu(const fslib::Path &path, fslib::Di
 void FileModeState::hide_dialog() noexcept
 {
     if (!m_transition.in_place()) { return; }
+    sm_controlGuide->reset();
     m_transition.set_target_y(720);
     m_close = true;
 }
@@ -205,7 +203,6 @@ fslib::Directory &FileModeState::get_destination_directory() noexcept { return m
 void FileModeState::deactivate_state() noexcept
 {
     sm_frame->set_y(720);
-    sm_controlGuide->reset();
     fslib::close_file_system(m_mountA);
     fslib::close_file_system(m_mountB);
     BaseState::deactivate();

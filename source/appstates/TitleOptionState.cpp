@@ -136,8 +136,8 @@ void TitleOptionState::initialize_data_struct()
 void TitleOptionState::create_push_info_state()
 {
     sm_slidePanel->hide();
-    auto titleInfoState = TitleInfoState::create(m_user, m_titleInfo);
-    StateManager::push_state(titleInfoState);
+
+    TitleInfoState::create_and_push(m_user, m_titleInfo, m_saveInfo);
 }
 
 void TitleOptionState::add_to_blacklist()
@@ -146,7 +146,7 @@ void TitleOptionState::add_to_blacklist()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 0);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
 
-    ConfirmTask::create_push_fade(query, false, tasks::titleoptions::blacklist_title, m_dataStruct);
+    ConfirmTask::create_push_fade(query, false, tasks::titleoptions::blacklist_title, nullptr, m_dataStruct);
 }
 
 void TitleOptionState::change_output_directory()
@@ -201,23 +201,18 @@ void TitleOptionState::change_output_directory()
 
 void TitleOptionState::create_push_file_mode()
 {
-    const uint64_t applicationID     = m_titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo   = m_user->get_save_info_by_id(applicationID);
-    const data::TitleInfo *titleInfo = data::get_title_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { return; }
-
-    const bool saveOpened = fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *saveInfo);
+    const bool saveOpened = fslib::open_save_data_with_save_info(fs::DEFAULT_SAVE_MOUNT, *m_saveInfo);
     if (!saveOpened) { return; }
 
     const FsSaveDataType saveType = m_user->get_account_save_type();
     const bool isSystem           = saveType == FsSaveDataType_System || saveType == FsSaveDataType_SystemBcat;
 
     FsSaveDataExtraData extraData{};
-    const bool readExtra      = fs::read_save_extra_data(saveInfo, extraData);
-    const int64_t journalSize = readExtra ? extraData.journal_size : titleInfo->get_journal_size(saveType);
+    const bool readExtra      = fs::read_save_extra_data(m_saveInfo, extraData);
+    const int64_t journalSize = readExtra ? extraData.journal_size : m_titleInfo->get_journal_size(saveType);
 
-    sm_slidePanel->hide();
     FileModeState::create_and_push(fs::DEFAULT_SAVE_MOUNT, "sdmc", journalSize, isSystem);
+    sm_slidePanel->hide();
 }
 
 void TitleOptionState::delete_all_local_backups()
@@ -226,7 +221,7 @@ void TitleOptionState::delete_all_local_backups()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 1);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
 
-    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_all_local_backups_for_title, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_all_local_backups_for_title, nullptr, m_dataStruct);
 }
 
 void TitleOptionState::delete_all_remote_backups()
@@ -235,18 +230,14 @@ void TitleOptionState::delete_all_remote_backups()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 1);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
 
-    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_all_remote_backups_for_title, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_all_remote_backups_for_title, nullptr, m_dataStruct);
 }
 
 void TitleOptionState::reset_save_data()
 {
-    const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
-    const uint64_t applicationID   = m_titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { return; }
-
+    const int popTicks            = ui::PopMessageManager::DEFAULT_TICKS;
     const bool allowSystemWriting = config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM);
-    if (!allowSystemWriting && fs::is_system_save_data(saveInfo))
+    if (!allowSystemWriting && fs::is_system_save_data(m_saveInfo))
     {
         const char *popNoSysWrite = strings::get_by_name(strings::names::TITLEOPTION_POPS, 6);
         ui::PopMessageManager::push_message(popTicks, popNoSysWrite);
@@ -257,18 +248,15 @@ void TitleOptionState::reset_save_data()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 2);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
 
-    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::reset_save_data, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::reset_save_data, nullptr, m_dataStruct);
 }
 
 void TitleOptionState::delete_save_from_system()
 {
-    const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
-    const uint64_t applicationID   = m_titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { return; }
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
 
     // This isn't allowed at ALL.
-    if (fs::is_system_save_data(saveInfo))
+    if (fs::is_system_save_data(m_saveInfo))
     {
         const char *popUnavailable = strings::get_by_name(strings::names::TITLEOPTION_POPS, 6);
         ui::PopMessageManager::push_message(popTicks, popUnavailable);
@@ -280,17 +268,14 @@ void TitleOptionState::delete_save_from_system()
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 3);
     const std::string query   = stringutil::get_formatted_string(confirmFormat, nickname, title);
 
-    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_save_data_from_system, m_dataStruct);
+    ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_save_data_from_system, nullptr, m_dataStruct);
 }
 
 void TitleOptionState::extend_save_container()
 {
-    const int popTicks             = ui::PopMessageManager::DEFAULT_TICKS;
-    const uint64_t applicationID   = m_titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = m_user->get_save_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { return; }
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
 
-    if (fs::is_system_save_data(saveInfo))
+    if (fs::is_system_save_data(m_saveInfo))
     {
         const char *popUnavailable = strings::get_by_name(strings::names::TITLEOPTION_POPS, 6);
         ui::PopMessageManager::push_message(popTicks, popUnavailable);
