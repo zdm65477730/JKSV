@@ -171,7 +171,7 @@ void tasks::useroptions::delete_all_save_data_for_user(sys::threadpool::JobData 
     const char *statusFormat = strings::get_by_name(strings::names::USEROPTION_STATUS, 1);
     const char *popFailed    = strings::get_by_name(strings::names::SAVECREATE_POPS, 2);
 
-    std::vector<uint64_t> applicationIDs{};
+    std::vector<const FsSaveDataInfo *> saveInfos{};
     const int titleCount = user->get_total_data_entries();
     for (int i = 0; i < titleCount; i++)
     {
@@ -192,10 +192,12 @@ void tasks::useroptions::delete_all_save_data_for_user(sys::threadpool::JobData 
             ui::PopMessageManager::push_message(popTicks, popFailed);
             continue;
         }
-        applicationIDs.push_back(applicationID);
+
+        saveInfos.push_back(saveInfo);
     }
 
-    for (const uint64_t applicationID : applicationIDs) { user->erase_save_info_by_id(applicationID); }
+    for (const FsSaveDataInfo *saveInfo : saveInfos) { user->erase_save_info(saveInfo); }
+
     spawningState->refresh_required();
     task->complete();
 }

@@ -135,6 +135,16 @@ PdmPlayStatistics *data::User::get_play_stats_by_id(uint64_t applicationID) noex
     return &target->second.second;
 }
 
+void data::User::erase_save_info(const FsSaveDataInfo *saveInfo)
+{
+    auto find_save_info = [&](const data::UserDataEntry &entry) { return &entry.second.first == saveInfo; };
+
+    auto findInfo = std::find_if(m_userData.begin(), m_userData.end(), find_save_info);
+    if (findInfo == m_userData.end()) { return; }
+
+    m_userData.erase(findInfo);
+}
+
 void data::User::erase_save_info_by_id(uint64_t applicationID)
 {
     auto target = User::find_title_by_id(applicationID);

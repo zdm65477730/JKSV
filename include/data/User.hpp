@@ -97,6 +97,9 @@ namespace data
             /// @brief Returns a pointer to the play statistics of applicationID
             PdmPlayStatistics *get_play_stats_by_id(uint64_t applicationID) noexcept;
 
+            /// @brief Erases the save info from the vector according to the pointer passed.
+            void erase_save_info(const FsSaveDataInfo *saveInfo);
+
             /// @brief Erases a UserDataEntry according to the application ID passed.
             /// @param applicationID ID of the save to erase.
             void erase_save_info_by_id(uint64_t applicationID);

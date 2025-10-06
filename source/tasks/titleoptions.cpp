@@ -22,7 +22,7 @@ void tasks::titleoptions::blacklist_title(sys::threadpool::JobData taskData)
     TitleOptionState *spawningState = castData->spawningState;
 
     if (error::is_null(task)) { return; }
-    if (error::is_null(titleInfo) || error::is_null(spawningState))
+    else if (error::is_null(titleInfo) || error::is_null(spawningState))
     {
         task->complete();
         return;
@@ -50,7 +50,7 @@ void tasks::titleoptions::delete_all_local_backups_for_title(sys::threadpool::Jo
     data::TitleInfo *titleInfo = castData->titleInfo;
 
     if (error::is_null(task)) { return; }
-    if (error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
+    else if (error::is_null(titleInfo)) { TASK_FINISH_RETURN(task); }
 
     const int popTicks     = ui::PopMessageManager::DEFAULT_TICKS;
     const char *popSuccess = strings::get_by_name(strings::names::TITLEOPTION_POPS, 0);
@@ -89,7 +89,7 @@ void tasks::titleoptions::delete_all_remote_backups_for_title(sys::threadpool::J
     remote::Storage *remote    = remote::get_remote_storage();
 
     if (error::is_null(task)) { return; }
-    if (error::is_null(titleInfo) || error::is_null(remote)) { TASK_FINISH_RETURN(task); }
+    else if (error::is_null(titleInfo) || error::is_null(remote)) { TASK_FINISH_RETURN(task); }
 
     const char *title                  = titleInfo->get_title();
     const std::string_view remoteTitle = remote->supports_utf8() ? titleInfo->get_title() : titleInfo->get_path_safe_title();
@@ -205,7 +205,7 @@ void tasks::titleoptions::delete_save_data_from_system(sys::threadpool::JobData 
     }
 
     const uint64_t applicationID = titleInfo->get_application_id();
-    user->erase_save_info_by_id(applicationID);
+    user->erase_save_info(saveInfo);
     titleSelect->refresh();
     spawningState->close_on_update();
     task->complete();
