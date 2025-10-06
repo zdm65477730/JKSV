@@ -204,7 +204,6 @@ void tasks::titleoptions::delete_save_data_from_system(sys::threadpool::JobData 
         return;
     }
 
-    const uint64_t applicationID = titleInfo->get_application_id();
     user->erase_save_info(saveInfo);
     titleSelect->refresh();
     spawningState->close_on_update();

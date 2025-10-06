@@ -220,13 +220,19 @@
         "2: Last Played"
     ],
     "TitleInfo": [
-        "0: App ID: %016lX",
-        "1: Save ID: %016lx",
-        "2: First Played: %c",
-        "3: Last Played: %c",
-        "4: Play Time: %02d:%02d:%02d",
-        "5: Launches: %i",
-        "6: Save Type: %s"
+        "0: App: %016lX",
+        "1: Save: %016lx",
+        "2: Owner: %016lX",
+        "3: Size: 0x%X",
+        "4: Journal: 0x%X",
+        "5: Commit: %016llX",
+        "6: Stamp: %c",
+        "7: User: %016lX%016lX",
+        "8: First: %c",
+        "9: Last: %c",
+        "10: Time: %02d:%02d:%02d",
+        "11: Launches: %i",
+        "12: Type: %s"
     ],
     "TitleOptionConfirmations": [
         "0: Are you sure you want to add #%s# to your blacklist? Once you do this, it will no longer appear on any title list or selection.",

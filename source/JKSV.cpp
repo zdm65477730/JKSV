@@ -205,6 +205,7 @@ void JKSV::add_color_chars()
     sdl::text::add_color_character(L'>', colors::GREEN);
     sdl::text::add_color_character(L'`', colors::BLUE_GREEN);
     sdl::text::add_color_character(L'^', colors::PINK);
+    sdl::text::add_color_character(L'$', colors::GOLD);
 }
 
 void JKSV::exit_services()

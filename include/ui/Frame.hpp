@@ -1,6 +1,7 @@
 #pragma once
 #include "sdl.hpp"
 #include "ui/Element.hpp"
+#include "ui/Transition.hpp"
 
 #include <memory>
 
@@ -35,6 +36,9 @@ namespace ui
 
             /// @brief Sets the height of the frame.
             void set_height(int height) noexcept;
+
+            /// @brief Sets the dimensions and coords of the the frame according to the transition passed.
+            void set_from_transition(const ui::Transition &transition, bool centered = false) noexcept;
 
         private:
             /// @brief X rendering coord.

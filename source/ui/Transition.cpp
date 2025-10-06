@@ -101,44 +101,56 @@ void ui::Transition::update_scaling() noexcept { sm_scaling = config::get_animat
 
 void ui::Transition::update_x_coord() noexcept
 {
+    const double distance = math::Util<double>::absolute_distance(m_x, m_targetX);
     if (m_x == m_targetX) { return; }
+    else if (distance <= m_threshold)
+    {
+        m_x = m_targetX;
+        return;
+    }
 
     const double add = (m_targetX - m_x) / sm_scaling;
     m_x += std::round(add);
-
-    const double distance = math::Util<double>::absolute_distance(m_x, m_targetX);
-    if (distance <= m_threshold) { m_x = m_targetX; }
 }
 
 void ui::Transition::update_y_coord() noexcept
 {
+    const double distance = math::Util<double>::absolute_distance(m_y, m_targetY);
     if (m_y == m_targetY) { return; }
+    else if (distance <= m_threshold)
+    {
+        m_y = m_targetY;
+        return;
+    }
 
     const double add = (m_targetY - m_y) / sm_scaling;
     m_y += std::round(add);
-
-    const double distance = math::Util<double>::absolute_distance(m_y, m_targetY);
-    if (distance <= m_threshold) { m_y = m_targetY; }
 }
 
 void ui::Transition::update_width() noexcept
 {
+    const double distance = math::Util<double>::absolute_distance(m_width, m_targetWidth);
     if (m_width == m_targetWidth) { return; }
+    else if (distance <= m_threshold)
+    {
+        m_width = m_targetWidth;
+        return;
+    }
 
     const double add = (m_targetWidth - m_width) / sm_scaling;
     m_width += std::round(add);
-
-    const double distance = math::Util<double>::absolute_distance(m_width, m_targetWidth);
-    if (distance <= m_threshold) { m_width = m_targetWidth; }
 }
 
 void ui::Transition::update_height() noexcept
 {
+    const double distance = math::Util<double>::absolute_distance(m_height, m_targetHeight);
     if (m_height == m_targetHeight) { return; }
+    else if (distance <= m_threshold)
+    {
+        m_height = m_targetHeight;
+        return;
+    }
 
     const double add = (m_targetHeight - m_height) / sm_scaling;
     m_height += add;
-
-    const double distance = math::Util<double>::absolute_distance(m_height, m_targetHeight);
-    if (distance <= m_threshold) { m_height = m_targetHeight; }
 }

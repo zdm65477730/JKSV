@@ -38,13 +38,26 @@ void ui::Frame::render(sdl::SharedTexture &target, bool hasFocus)
     sm_frameCorners->render_part(target, rightEdge, bottomEdge, textureCorner, textureCorner, TILE, TILE);
 }
 
-void ui::Frame::set_x(int x) { m_x = x; }
+void ui::Frame::set_x(int x) noexcept { m_x = x; }
 
-void ui::Frame::set_y(int y) { m_y = y; }
+void ui::Frame::set_y(int y) noexcept { m_y = y; }
 
-void ui::Frame::set_width(int width) { m_width = width; }
+void ui::Frame::set_width(int width) noexcept { m_width = width; }
 
-void ui::Frame::set_height(int height) { m_height = height; }
+void ui::Frame::set_height(int height) noexcept { m_height = height; }
+
+void ui::Frame::set_from_transition(const ui::Transition &transition, bool centered) noexcept
+{
+    const int x      = centered ? transition.get_centered_x() : transition.get_x();
+    const int y      = centered ? transition.get_centered_y() : transition.get_y();
+    const int width  = transition.get_width();
+    const int height = transition.get_height();
+
+    m_x      = x;
+    m_y      = y;
+    m_width  = width;
+    m_height = height;
+}
 
 void ui::Frame::initialize_static_members()
 {

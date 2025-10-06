@@ -15,7 +15,7 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
     : m_mountA(mountA)
     , m_mountB(mountB)
     , m_journalSize(journalSize)
-    , m_transition(15, 720, 0, 0, 15, 89, 0, 0, ui::Transition::DEFAULT_THRESHOLD)
+    , m_transition(15, 720, 0, 0, 15, 90, 0, 0, ui::Transition::DEFAULT_THRESHOLD)
     , m_isSystem(isSystem)
     , m_allowSystem(config::get_by_key(config::keys::ALLOW_WRITING_TO_SYSTEM))
 {

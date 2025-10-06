@@ -32,8 +32,31 @@ namespace ui
                        sdl::Color clearColor,
                        bool center = true);
 
+            TextScroll(std::string &text,
+                       int x,
+                       int y,
+                       int width,
+                       int height,
+                       int fontSize,
+                       sdl::Color textColor,
+                       sdl::Color clearColor,
+                       bool center = true);
+
             /// @brief Creates and returns a new TextScroll. See constructor.
             static inline std::shared_ptr<ui::TextScroll> create(std::string_view text,
+                                                                 int x,
+                                                                 int y,
+                                                                 int width,
+                                                                 int height,
+                                                                 int fontSize,
+                                                                 sdl::Color textColor,
+                                                                 sdl::Color clearColor,
+                                                                 bool center = true)
+            {
+                return std::make_shared<ui::TextScroll>(text, x, y, width, height, fontSize, textColor, clearColor, center);
+            }
+
+            static inline std::shared_ptr<ui::TextScroll> create(std::string &text,
                                                                  int x,
                                                                  int y,
                                                                  int width,
@@ -63,6 +86,16 @@ namespace ui
                             sdl::Color clearColor,
                             bool center = true);
 
+            void initialize(std::string &text,
+                            int x,
+                            int y,
+                            int width,
+                            int height,
+                            int fontSize,
+                            sdl::Color textColor,
+                            sdl::Color clearColor,
+                            bool center = true);
+
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.
             void update(bool hasFocus) override;
@@ -77,6 +110,9 @@ namespace ui
 
             /// @brief Sets and allows changing the text scrolled.
             void set_text(std::string_view text, bool center);
+
+            /// @brief Sets text. Moves instead of copy.
+            void set_text(std::string &text, bool center);
 
         private:
             /// @brief Text to display.

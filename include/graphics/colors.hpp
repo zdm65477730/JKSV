@@ -22,6 +22,7 @@ namespace colors
     inline constexpr sdl::Color DIV_COLOR         = {0x707070FF};
     inline constexpr sdl::Color GUIDE_COLOR       = {0x0000007F};
     inline constexpr sdl::Color BAR_GREEN         = {0x11CC33FF};
+    inline constexpr sdl::Color GOLD              = {0xFFD700FF};
 
     inline constexpr uint8_t ALPHA_FADE_BEGIN = 0x00;
     inline constexpr uint8_t ALPHA_FADE_END   = 0x80;
