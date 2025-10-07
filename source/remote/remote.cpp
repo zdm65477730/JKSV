@@ -3,6 +3,7 @@
 #include "StateManager.hpp"
 #include "appstates/TaskState.hpp"
 #include "error.hpp"
+#include "input.hpp"
 #include "logging/logger.hpp"
 #include "remote/GoogleDrive.hpp"
 #include "remote/WebDav.hpp"
@@ -28,15 +29,17 @@ namespace
         remote::GoogleDrive *drive{};
     };
     // clang-format on
-
 } // namespace
+
+static void initialize_google_drive();
+static void initialize_webdav();
 
 // Declarations here. Definitions at bottom.
 /// @brief This is the thread function that handles logging into Google.
 static void drive_sign_in(sys::threadpool::JobData taskData);
 
 /// @brief This creates (if needed) the JKSV folder for Google Drive and sets it as the root.
-/// @param drive Pointer to the drive instance..
+/// @param drive Pointer to the drive instance.
 static void drive_set_jksv_root(remote::GoogleDrive *drive);
 
 bool remote::has_internet_connection() noexcept
@@ -49,16 +52,24 @@ bool remote::has_internet_connection() noexcept
     return true;
 }
 
-void remote::initialize_google_drive()
+void remote::initialize(sys::threadpool::JobData jobData)
 {
-    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
-
-    if (!remote::has_internet_connection())
+    const bool driveExists  = fslib::file_exists(remote::PATH_GOOGLE_DRIVE_CONFIG);
+    const bool webdavExists = fslib::file_exists(remote::PATH_WEBDAV_CONFIG);
+    if ((driveExists || webdavExists) && !remote::has_internet_connection())
     {
         const char *popNoInternet = strings::get_by_name(strings::names::REMOTE_POPS, 0);
-        ui::PopMessageManager::push_message(popTicks, popNoInternet);
+        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS, popNoInternet);
         return;
     }
+
+    if (driveExists) { initialize_google_drive(); }
+    else if (webdavExists) { initialize_webdav(); }
+}
+
+void initialize_google_drive()
+{
+    const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
 
     s_storage                  = std::make_unique<remote::GoogleDrive>();
     remote::GoogleDrive *drive = static_cast<remote::GoogleDrive *>(s_storage.get());
@@ -67,7 +78,8 @@ void remote::initialize_google_drive()
         auto driveStruct   = std::make_shared<DriveStruct>();
         driveStruct->drive = drive;
 
-        TaskState::create_and_push(drive_sign_in, driveStruct);
+        // To do: StateManager isn't thread safe. This might/probably will cause data race randomly.
+        TaskState::create_push_fade(drive_sign_in, driveStruct);
         return;
     }
 
@@ -79,10 +91,8 @@ void remote::initialize_google_drive()
     ui::PopMessageManager::push_message(popTicks, popDriveSuccess);
 }
 
-void remote::initialize_webdav()
+void initialize_webdav()
 {
-    if (!remote::has_internet_connection()) { return; }
-
     s_storage          = std::make_unique<remote::WebDav>();
     const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
     if (s_storage->is_initialized())
@@ -126,6 +136,10 @@ static void drive_sign_in(sys::threadpool::JobData taskData)
 
     while (std::time(NULL) < expiration && !drive->poll_sign_in(deviceCode))
     {
+        const bool bPressed = input::button_pressed(HidNpadButton_B);
+        const bool bHeld    = input::button_held(HidNpadButton_B);
+        if (bPressed || bHeld) { break; }
+
         std::this_thread::sleep_for(std::chrono::seconds(pollingInterval));
     }
 

@@ -83,6 +83,7 @@ JKSV::JKSV()
     JKSV::create_directories();
     sys::threadpool::initialize();
 
+    sys::threadpool::push_job(remote::initialize, nullptr);
     data::launch_initialization(false, finish_initialization);
     FadeState::create_and_push(colors::BLACK, 0xFF, 0x00, nullptr);
 
@@ -221,10 +222,4 @@ void JKSV::exit_services()
     accountExit();
 }
 
-static void finish_initialization()
-{
-    MainMenuState::create_and_push();
-
-    if (fslib::file_exists(remote::PATH_GOOGLE_DRIVE_CONFIG)) { remote::initialize_google_drive(); }
-    else if (fslib::file_exists(remote::PATH_WEBDAV_CONFIG)) { remote::initialize_webdav(); }
-}
+static void finish_initialization() { MainMenuState::create_and_push(); }
