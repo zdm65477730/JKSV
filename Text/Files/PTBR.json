@@ -220,13 +220,19 @@
         "2: Últimos Jogados"
     ],
     "TitleInfo": [
-        "0: ID do App: %016lX",
-        "1: ID do Save: %016lx",
-        "2: Primeiro Jogo: %c",
-        "3: Último Jogo: %c",
-        "4: Tempo de Jogo: %02d:%02d:%02d",
-        "5: Lançamentos: %i",
-        "6: Tipo de Save: %s"
+        "0: Aplicativo: %016lX",
+        "1: Salvar: %016lx",
+        "2: Proprietário: %016lX",
+        "3: Tamanho: 0x%X",
+        "4: Jornal: 0x%X",
+        "5: Commit: %016llX",
+        "6: Carimbo: %c",
+        "7: Usuário: %016lX%016lX",
+        "8: Primeiro: %c",
+        "9: Último: %c",
+        "10: Hora: %02d:%02d:%02d",
+        "11: Inicializações: %i",
+        "12: Tipo: %s"
     ],
     "TitleOptionConfirmations": [
         "0: Tem certeza que deseja adicionar #%s# à lista negra? Depois disso, não aparecerá em nenhuma lista ou seleção de títulos.",

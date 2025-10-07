@@ -220,13 +220,19 @@
         "2: Derniers joués"
     ],
     "TitleInfo": [
-        "0: ID de l’app : %016lX",
-        "1: ID de la sauvegarde : %016lx",
-        "2: Première partie : %c",
-        "3: Dernière partie : %c",
-        "4: Temps de jeu : %02d:%02d:%02d",
-        "5: Lancements : %i",
-        "6: Type de sauvegarde : %s"
+        "0: Application : %016lX",
+        "1: Sauvegarde : %016lx",
+        "2: Propriétaire : %016lX",
+        "3: Taille : 0x%X",
+        "4: Journal : 0x%X",
+        "5: Commit : %016llX",
+        "6: Cachet : %c",
+        "7: Utilisateur : %016lX%016lX",
+        "8: Premier : %c",
+        "9: Dernier : %c",
+        "10: Heure : %02d:%02d:%02d",
+        "11: Lancements : %i",
+        "12: Type : %s"
     ],
     "TitleOptionConfirmations": [
         "0: Êtes-vous certain de vouloir ajouter #%s# à votre liste noire ? Une fois fait, il n’apparaîtra plus dans aucune liste ou sélection de titres.",

@@ -220,13 +220,19 @@
         "2: Zuletzt gespielt"
     ],
     "TitleInfo": [
-        "0: App-ID: %016lX",
-        "1: Save-ID: %016lx",
-        "2: Erstes Spielen: %c",
-        "3: Zuletzt gespielt: %c",
-        "4: Spielzeit: %02d:%02d:%02d",
-        "5: Starts: %i",
-        "6: Speichertyp: %s"
+        "0: App: %016lX",
+        "1: Speicher: %016lx",
+        "2: Besitzer: %016lX",
+        "3: Größe: 0x%X",
+        "4: Journal: 0x%X",
+        "5: Commit: %016llX",
+        "6: Stempel: %c",
+        "7: Benutzer: %016lX%016lX",
+        "8: Erster: %c",
+        "9: Letzter: %c",
+        "10: Zeit: %02d:%02d:%02d",
+        "11: Starts: %i",
+        "12: Typ: %s"
     ],
     "TitleOptionConfirmations": [
         "0: Sind Sie sicher, dass Sie #%s# zur Blacklist hinzufügen möchten? Danach erscheint es in keiner Titelliste oder Auswahl mehr.",

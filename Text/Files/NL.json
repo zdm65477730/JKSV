@@ -220,13 +220,19 @@
         "2: Laatst gespeeld"
     ],
     "TitleInfo": [
-        "0: App ID: %016lX",
-        "1: Opslag ID: %016lx",
-        "2: Eerste keer gespeeld: %c",
-        "3: Laatste keer gespeeld: %c",
-        "4: Speeltijd: %02d:%02d:%02d",
-        "5: Aantal keer gestart: %i",
-        "6: Opslagtype: %s"
+        "0: App: %016lX",
+        "1: Opslag: %016lx",
+        "2: Eigenaar: %016lX",
+        "3: Grootte: 0x%X",
+        "4: Logboek: 0x%X",
+        "5: Commit: %016llX",
+        "6: Stempel: %c",
+        "7: Gebruiker: %016lX%016lX",
+        "8: Eerste: %c",
+        "9: Laatste: %c",
+        "10: Tijd: %02d:%02d:%02d",
+        "11: Starts: %i",
+        "12: Type: %s"
     ],
     "TitleOptionConfirmations": [
         "0: Weet je zeker dat je #%s# wilt toevoegen aan je blacklist? Daarna zal het niet meer verschijnen in titellijsten of selecties.",

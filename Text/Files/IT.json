@@ -220,13 +220,19 @@
         "2: Ultimi giocati"
     ],
     "TitleInfo": [
-        "0: ID app: %016lX",
-        "1: ID salvataggio: %016lx",
-        "2: Prima partita: %c",
-        "3: Ultima partita: %c",
-        "4: Tempo di gioco: %02d:%02d:%02d",
-        "5: Lancii: %i",
-        "6: Tipo di salvataggio: %s"
+        "0: App: %016lX",
+        "1: Salvataggio: %016lx",
+        "2: Proprietario: %016lX",
+        "3: Dimensione: 0x%X",
+        "4: Registro: 0x%X",
+        "5: Commit: %016llX",
+        "6: Timbro: %c",
+        "7: Utente: %016lX%016lX",
+        "8: Primo: %c",
+        "9: Ultimo: %c",
+        "10: Ora: %02d:%02d:%02d",
+        "11: Avvii: %i",
+        "12: Tipo: %s"
     ],
     "TitleOptionConfirmations": [
         "0: Sei sicuro di voler aggiungere #%s# alla lista nera? Una volta fatto, non apparirà più in nessuna lista o selezione di titoli.",

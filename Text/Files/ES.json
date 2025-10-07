@@ -220,13 +220,19 @@
         "2: Últimos jugados"
     ],
     "TitleInfo": [
-        "0: ID de la aplicación: %016lX",
-        "1: ID de la partida guardada: %016lx",
-        "2: Primera vez jugado: %c",
-        "3: Última vez jugado: %c",
-        "4: Tiempo de juego: %02d:%02d:%02d",
-        "5: Lanzamientos: %i",
-        "6: Tipo de guardado: %s"
+        "0: Aplicación: %016lX",
+        "1: Guardado: %016lx",
+        "2: Propietario: %016lX",
+        "3: Tamaño: 0x%X",
+        "4: Diario: 0x%X",
+        "5: Confirmación: %016llX",
+        "6: Sello: %c",
+        "7: Usuario: %016lX%016lX",
+        "8: Primero: %c",
+        "9: Último: %c",
+        "10: Hora: %02d:%02d:%02d",
+        "11: Inicios: %i",
+        "12: Tipo: %s"
     ],
     "TitleOptionConfirmations": [
         "0: ¿Estás seguro de que quieres añadir #%s# a tu lista negra? Una vez hecho, no aparecerá en ninguna lista o selección de títulos.",
