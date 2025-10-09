@@ -68,7 +68,7 @@ void TitleInfoState::update()
     if (!m_transition.in_place()) { return; }
     else if (m_transition.in_place() && !m_timerStarted)
     {
-        m_timer.start(40);
+        m_timer.start(50);
         m_timerStarted = true;
     }
 
