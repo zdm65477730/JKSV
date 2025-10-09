@@ -13,13 +13,20 @@ bool fs::create_save_data_for(data::User *targetUser,
                               uint16_t saveDataIndex,
                               uint8_t spaceID) noexcept
 {
+    // This is needed or creating BCAT saves will soft brick the Switch.
+    static constexpr uint64_t ID_OWNER_BCAT = 0x010000000000000C;
 
     const uint8_t saveType       = targetUser->get_account_save_type();
     const uint64_t applicationID = titleInfo->get_application_id();
     const AccountUid accountID   = saveType == FsSaveDataType_Account ? targetUser->get_account_id() : data::BLANK_ACCOUNT_ID;
-    const uint64_t ownerID       = saveType == FsSaveDataType_Bcat ? 0x010000000000000C : titleInfo->get_save_data_owner_id();
-    const int64_t saveSize       = titleInfo->get_save_data_size(saveType);
-    const int64_t journalSize    = titleInfo->get_journal_size(saveType);
+    const uint64_t ownerID       = saveType == FsSaveDataType_Bcat ? ID_OWNER_BCAT : titleInfo->get_save_data_owner_id();
+
+    // Some cache type saves need this to create correctly.
+    int64_t saveSize = titleInfo->get_save_data_size(saveType);
+    saveSize         = saveSize == 0 ? titleInfo->get_save_data_size_max(saveType) : saveSize;
+
+    int64_t journalSize = titleInfo->get_journal_size(saveType);
+    journalSize         = journalSize == 0 ? titleInfo->get_journal_size_max(saveType) : journalSize;
 
     const FsSaveDataAttribute saveAttributes = {.application_id      = applicationID,
                                                 .uid                 = accountID,
