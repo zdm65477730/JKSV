@@ -31,6 +31,7 @@ void ui::TitleView::update(bool hasFocus)
     TitleView::handle_input();
     TitleView::handle_scrolling();
     TitleView::update_tiles();
+
     m_transition.update();
 }
 
@@ -64,6 +65,7 @@ void ui::TitleView::render(sdl::SharedTexture &target, bool hasFocus)
     {
         m_bounding->set_x(m_selectedX - 30);
         m_bounding->set_y(m_selectedY - 30);
+
         sdl::render_rect_fill(target, m_selectedX - 28, m_selectedY - 28, 184, 184, colors::CLEAR_COLOR);
         m_bounding->render(target, hasFocus);
     }

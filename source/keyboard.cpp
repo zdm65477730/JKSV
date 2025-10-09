@@ -25,7 +25,12 @@ bool keyboard::get_input(SwkbdType keyboardType,
 
     const bool swkbdError = error::libnx(swkbdShow(&keyboard, stringOut, stringLength));
     const bool empty      = std::char_traits<char>::length(stringOut) == 0;
-    if (swkbdError || empty) { return false; }
+    if (swkbdError || empty)
+    {
+        swkbdClose(&keyboard);
+        return false;
+    }
 
+    swkbdClose(&keyboard);
     return true;
 }
