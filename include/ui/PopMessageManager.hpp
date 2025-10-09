@@ -1,4 +1,5 @@
 #pragma once
+#include "sdl.hpp"
 #include "sys/sys.hpp"
 #include "ui/DialogBox.hpp"
 #include "ui/PopMessage.hpp"
@@ -35,7 +36,7 @@ namespace ui
 
         private:
             // Only one instance allowed.
-            PopMessageManager() = default;
+            PopMessageManager();
 
             // Returns the only instance.
             static PopMessageManager &get_instance()
@@ -54,5 +55,11 @@ namespace ui
             std::mutex m_messageMutex{};
 
             std::mutex m_queueMutex{};
+
+            /// @brief The little chirp that's played when messages pop.
+            sdl::SharedSound m_popSound{};
+
+            /// @brief Loads the pop message sound into memory.
+            void initialize_pop_sound();
     };
 } // namespace ui

@@ -8,6 +8,8 @@
 
 #include <cstdarg>
 
+ui::PopMessageManager::PopMessageManager() { PopMessageManager::initialize_pop_sound(); }
+
 void ui::PopMessageManager::update()
 {
     static constexpr double COORD_INIT_Y = 594.0f;
@@ -65,6 +67,7 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string_view mess
     std::mutex &messageMutex   = manager.m_messageMutex;
     auto &messageQueue         = manager.m_messageQueue;
     auto &messages             = manager.m_messages;
+    auto &popSound             = manager.m_popSound;
 
     {
         std::lock_guard messageGuard{messageMutex};
@@ -79,6 +82,7 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string_view mess
     std::lock_guard queueGuard(queueMutex);
     auto queuePair = std::make_pair(displayTicks, std::string{message});
     messageQueue.push_back(std::move(queuePair));
+    popSound->play();
 }
 
 void ui::PopMessageManager::push_message(int displayTicks, std::string &message)
@@ -88,6 +92,7 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string &message)
     std::mutex &messageMutex   = manager.m_messageMutex;
     auto &messageQueue         = manager.m_messageQueue;
     auto &messages             = manager.m_messages;
+    auto &popSound             = manager.m_popSound;
 
     {
         std::lock_guard messageGuard{messageMutex};
@@ -102,4 +107,15 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string &message)
     std::lock_guard queueGuard(queueMutex);
     auto queuePair = std::make_pair(displayTicks, std::move(message));
     messageQueue.push_back(std::move(queuePair));
+    popSound->play();
+}
+
+void ui::PopMessageManager::initialize_pop_sound()
+{
+    static constexpr std::string_view POP_NAME = "PopSound";
+    static constexpr const char *POP_PATH      = "romfs:/Sound/PopMessage.wav";
+
+    if (m_popSound) { return; }
+
+    m_popSound = sdl::SoundManager::load(POP_NAME, POP_PATH);
 }
