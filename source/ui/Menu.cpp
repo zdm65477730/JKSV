@@ -116,9 +116,9 @@ bool ui::Menu::is_empty() const noexcept { return m_options.empty(); }
 
 void ui::Menu::calculate_alignments() noexcept
 {
-    m_optionHeight      = std::round(static_cast<double>(m_fontSize) * 1.8f);
+    m_optionHeight      = std::floor(static_cast<double>(m_fontSize) * 1.8f);
     m_maxDisplayOptions = (m_renderTargetHeight - m_originalY) / m_optionHeight;
-    m_scrollLength      = std::round(static_cast<double>(m_maxDisplayOptions) / 2.0f);
+    m_scrollLength      = std::floor(static_cast<double>(m_maxDisplayOptions) / 2.0f);
     m_textY             = (m_optionHeight / 2) - (m_fontSize / 2);
 }
 

@@ -152,5 +152,5 @@ void ui::Transition::update_height() noexcept
     }
 
     const double add = (m_targetHeight - m_height) / sm_scaling;
-    m_height += add;
+    m_height += std::round(add);
 }
