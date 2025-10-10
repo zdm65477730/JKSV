@@ -20,6 +20,7 @@ ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     Menu::initialize_transition();
     Menu::initialize_option_target();
     Menu::initialize_ui_elements();
+    Menu::initialize_cursor_sound();
 }
 
 void ui::Menu::update(bool hasFocus)
@@ -155,6 +156,16 @@ void ui::Menu::initialize_ui_elements()
                                             false);
 }
 
+void ui::Menu::initialize_cursor_sound()
+{
+    static constexpr std::string_view CURSOR_NAME = "MenuCursor";
+    static constexpr const char *CURSOR_PATH      = "romfs:/Sound/MenuCursor.wav";
+
+    if (sm_cursor) { return; }
+
+    sm_cursor = sdl::SoundManager::load(CURSOR_NAME, CURSOR_PATH);
+}
+
 void ui::Menu::update_scroll_text()
 {
     const std::string_view text   = m_optionScroll->get_text();
@@ -172,6 +183,7 @@ void ui::Menu::handle_input()
     const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
     const int optionsSize       = m_options.size();
 
+    const int previousSelected = m_selected;
     if (upPressed) { --m_selected; }
     else if (downPressed) { ++m_selected; }
     else if (leftPressed) { m_selected -= m_scrollLength; }
@@ -181,6 +193,8 @@ void ui::Menu::handle_input()
 
     if (m_selected < 0) { m_selected = 0; }
     else if (m_selected >= optionsSize) { m_selected = optionsSize - 1; }
+
+    if (m_selected != previousSelected) { sm_cursor->play(); }
 }
 
 void ui::Menu::update_scrolling()

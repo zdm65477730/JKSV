@@ -78,6 +78,9 @@ class TitleInfoState final : public BaseState
         /// @brief This frame is shared by all instances. No point in allocating it over and over.
         static inline std::shared_ptr<ui::Frame> sm_frame{};
 
+        /// @brief This is the little chime that plays when this is opened.
+        static inline sdl::SharedSound sm_openChime{};
+
         /// @brief Initializes the static members if they haven't been already.
         void initialize_static_members();
 

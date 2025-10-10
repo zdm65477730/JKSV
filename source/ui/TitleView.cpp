@@ -20,6 +20,7 @@ ui::TitleView::TitleView(data::User *user)
     , m_transition(0, UPPER_THRESHOLD, 0, 0, 0, UPPER_THRESHOLD, 0, 0, m_transition.DEFAULT_THRESHOLD)
     , m_bounding(ui::BoundingBox::create(0, 0, 188, 188))
 {
+    TitleView::initialize_static_members();
     TitleView::refresh();
 }
 
@@ -111,6 +112,16 @@ void ui::TitleView::reset()
     for (ui::TitleTile &currentTile : m_titleTiles) { currentTile.reset(); }
 }
 
+void ui::TitleView::initialize_static_members()
+{
+    static constexpr std::string_view CURSOR_NAME = "MenuCursor";
+    static constexpr const char *CURSOR_PATH      = "romfs:/Sound/MenuCursor.wav";
+
+    if (sm_cursor) { return; }
+
+    sm_cursor = sdl::SoundManager::load(CURSOR_NAME, CURSOR_PATH);
+}
+
 void ui::TitleView::handle_input()
 {
     const int totalTiles        = m_titleTiles.size() - 1;
@@ -121,6 +132,8 @@ void ui::TitleView::handle_input()
     const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
     const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
 
+    const int previousSelected = m_selected;
+
     if (upPressed) { m_selected -= ICON_ROW_SIZE; }
     else if (leftPressed) { --m_selected; }
     else if (lShoulderPressed) { m_selected -= ICON_ROW_SIZE * 3; }
@@ -130,6 +143,8 @@ void ui::TitleView::handle_input()
 
     if (m_selected < 0) { m_selected = 0; }
     if (m_selected > totalTiles) { m_selected = totalTiles; }
+
+    if (m_selected != previousSelected) { sm_cursor->play(); }
 }
 
 void ui::TitleView::handle_scrolling()

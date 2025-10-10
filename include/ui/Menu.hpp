@@ -124,6 +124,9 @@ namespace ui
             /// @brief Text scroll for when the current option is too long to on screen.
             std::shared_ptr<ui::TextScroll> m_optionScroll{};
 
+            /// @brief The sound played when the selected/cursor moves.
+            static inline sdl::SharedSound sm_cursor{};
+
             /// @brief Calculates the alignment variables.
             void calculate_alignments() noexcept;
 
@@ -135,6 +138,9 @@ namespace ui
 
             /// @brief Initializes the UI elements used within the menu.
             void initialize_ui_elements();
+
+            /// @brief Ensures the menu cursor sound is loaded.
+            void initialize_cursor_sound();
 
             /// @brief Updates the text scroll for the currently highlighted option.
             void update_scroll_text();

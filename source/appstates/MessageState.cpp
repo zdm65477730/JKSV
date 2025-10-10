@@ -11,6 +11,7 @@ MessageState::MessageState(std::string_view message)
     , m_transition(0, 0, 32, 32, 0, 0, 720, 256, ui::Transition::DEFAULT_THRESHOLD)
 {
     MessageState::initialize_static_members();
+    sm_dialogPop->play();
 }
 
 void MessageState::update()
@@ -44,12 +45,16 @@ void MessageState::render()
 
 void MessageState::initialize_static_members()
 {
-    static constexpr int HALF_WIDTH = 640;
-    if (sm_okText && sm_dialog) { return; }
+    static constexpr int HALF_WIDTH             = 640;
+    static constexpr std::string_view POP_SOUND = "ConfirmPop";
+    static constexpr const char *POP_PATH       = "romfs:/Sound/ConfirmPop.wav";
 
-    sm_okText = strings::get_by_name(strings::names::YES_NO_OK, 2);
-    sm_okX    = HALF_WIDTH - (sdl::text::get_width(22, sm_okText) / 2);
-    sm_dialog = ui::DialogBox::create(0, 0, 0, 0);
+    if (sm_okText && sm_dialog && sm_dialogPop) { return; }
+
+    sm_okText    = strings::get_by_name(strings::names::YES_NO_OK, 2);
+    sm_okX       = HALF_WIDTH - (sdl::text::get_width(22, sm_okText) / 2);
+    sm_dialog    = ui::DialogBox::create(0, 0, 0, 0);
+    sm_dialogPop = sdl::SoundManager::load(POP_SOUND, POP_PATH);
     sm_dialog->set_from_transition(m_transition, true);
 }
 

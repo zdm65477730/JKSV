@@ -78,10 +78,12 @@ void SettingsState::update()
     const bool hasFocus     = BaseState::has_focus();
     const bool aPressed     = input::button_pressed(HidNpadButton_A);
     const bool bPressed     = input::button_pressed(HidNpadButton_B);
+    const bool xPressed     = input::button_pressed(HidNpadButton_X);
     const bool minusPressed = input::button_pressed(HidNpadButton_Minus);
 
     m_settingsMenu->update(hasFocus);
     if (aPressed) { SettingsState::toggle_options(); }
+    else if (xPressed) { SettingsState::reset_settings(); }
     else if (minusPressed) { SettingsState::create_push_description_message(); }
     else if (bPressed) { BaseState::deactivate(); }
 
@@ -228,6 +230,12 @@ void SettingsState::toggle_options()
         default:              config::toggle_by_key(CONFIG_KEY_ARRAY[selected]); break;
     }
 
+    SettingsState::update_menu_options();
+}
+
+void SettingsState::reset_settings()
+{
+    config::reset_to_default();
     SettingsState::update_menu_options();
 }
 

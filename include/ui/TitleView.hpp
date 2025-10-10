@@ -71,6 +71,12 @@ namespace ui
             /// @brief Bounding box rendered around the selected title.
             std::shared_ptr<ui::BoundingBox> m_bounding{};
 
+            /// @brief Sound that is played when the selected title changes. This is shared with the menu code.
+            static inline sdl::SharedSound sm_cursor{};
+
+            /// @brief Ensures static members are initialized properly.
+            void initialize_static_members();
+
             /// @brief Performs the input routine.
             void handle_input();
 

@@ -67,6 +67,9 @@ class MessageState final : public BaseState
         /// @brief All instances share this. There's no point in constantly allocating a new one.
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
 
+        /// @brief This is the same sound that the confirmation uses.
+        static inline sdl::SharedSound sm_dialogPop{};
+
         /// @brief Allocates and ensures ^
         void initialize_static_members();
 

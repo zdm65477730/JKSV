@@ -56,6 +56,7 @@ class ConfirmState final : public BaseState
             ConfirmState::center_no();
             ConfirmState::center_yes();
             ConfirmState::load_holding_strings();
+            sm_dialogPop->play();
         }
 
         /// @brief Returns a new ConfirmState. See constructor.
@@ -180,13 +181,21 @@ class ConfirmState final : public BaseState
         /// @brief Pointer to data struct passed to ^
         const sys::Task::TaskData m_taskData{};
 
+        /// @brief This dialog is shared between all instances.
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
+
+        /// @brief This sound is shared.
+        static inline sdl::SharedSound sm_dialogPop{};
 
         void initialize_static_members()
         {
-            if (sm_dialog) { return; }
+            static constexpr std::string_view POP_SOUND = "ConfirmPop";
+            static constexpr const char *POP_PATH       = "romfs:/Sound/ConfirmPop.wav";
 
-            sm_dialog = ui::DialogBox::create(0, 0, 0, 0);
+            if (sm_dialog && sm_dialogPop) { return; }
+
+            sm_dialog    = ui::DialogBox::create(0, 0, 0, 0);
+            sm_dialogPop = sdl::SoundManager::load(POP_SOUND, POP_PATH);
             sm_dialog->set_from_transition(m_transition, true);
         }
 

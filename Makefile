@@ -146,12 +146,12 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) FsLib SDLLib clean all
+.PHONY: $(BUILD) FsLib SDLLib Assets clean all
 
 #---------------------------------------------------------------------------------
-all: FsLib SDLLib TextFiles $(BUILD)
+all: FsLib SDLLib Assets $(BUILD)
 
-$(BUILD): FsLib SDLLib TextFiles
+$(BUILD): FsLib SDLLib Assets
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
@@ -167,8 +167,9 @@ SDLLib:
 
 #---------------------------------------------------------------------------------
 
-TextFiles:
-	@python ./Text/compress_text.py
+Assets:
+	@echo python script
+	@python ./Assets/compress_assets.py
 
 #---------------------------------------------------------------------------------
 

@@ -55,6 +55,9 @@ class SettingsState final : public BaseState
         /// @brief Toggles or executes the code to changed the selected menu option.
         void toggle_options();
 
+        /// @brief Calls config::reset_to_default and refreshes the menu.
+        void reset_settings();
+
         /// @brief Creates and pushes the message with the description.
         void create_push_description_message();
 

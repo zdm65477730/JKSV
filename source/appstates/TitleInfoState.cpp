@@ -57,6 +57,7 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo, con
 {
     TitleInfoState::initialize_static_members();
     TitleInfoState::initialize_info_fields();
+    sm_openChime->play();
 }
 
 void TitleInfoState::update()
@@ -95,7 +96,10 @@ void TitleInfoState::render()
 
 void TitleInfoState::initialize_static_members()
 {
-    if (sm_frame)
+    static constexpr std::string_view CHIME_NAME = "TitleInfoChime";
+    static constexpr const char *CHIME_PATH      = "romfs:/Sound/TitleInfo.wav";
+
+    if (sm_frame && sm_openChime)
     {
         sm_frame->set_from_transition(m_transition, true);
         return;
@@ -106,6 +110,7 @@ void TitleInfoState::initialize_static_members()
     const int width  = m_transition.get_width();
     const int height = m_transition.get_height();
     sm_frame         = ui::Frame::create(x, y, width, height);
+    sm_openChime     = sdl::SoundManager::load(CHIME_NAME, CHIME_PATH);
 }
 
 void TitleInfoState::initialize_info_fields()
