@@ -20,7 +20,7 @@ ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     Menu::initialize_transition();
     Menu::initialize_option_target();
     Menu::initialize_ui_elements();
-    Menu::initialize_cursor_sound();
+    Menu::initialize_sounds();
 }
 
 void ui::Menu::update(bool hasFocus)
@@ -114,6 +114,8 @@ void ui::Menu::reset(bool full)
 
 bool ui::Menu::is_empty() const noexcept { return m_options.empty(); }
 
+void ui::Menu::play_sound() noexcept { sm_cursor->play(); }
+
 void ui::Menu::calculate_alignments() noexcept
 {
     m_optionHeight      = std::floor(static_cast<double>(m_fontSize) * 1.8f);
@@ -156,7 +158,7 @@ void ui::Menu::initialize_ui_elements()
                                             false);
 }
 
-void ui::Menu::initialize_cursor_sound()
+void ui::Menu::initialize_sounds()
 {
     static constexpr std::string_view CURSOR_NAME = "MenuCursor";
     static constexpr const char *CURSOR_PATH      = "romfs:/Sound/MenuCursor.wav";
@@ -194,7 +196,7 @@ void ui::Menu::handle_input()
     if (m_selected < 0) { m_selected = 0; }
     else if (m_selected >= optionsSize) { m_selected = optionsSize - 1; }
 
-    if (m_selected != previousSelected) { sm_cursor->play(); }
+    if (m_selected != previousSelected) { Menu::play_sound(); }
 }
 
 void ui::Menu::update_scrolling()

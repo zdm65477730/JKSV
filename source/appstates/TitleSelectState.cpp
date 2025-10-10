@@ -81,6 +81,7 @@ void TitleSelectState::create_backup_menu()
 
     auto backupMenu = std::make_shared<BackupMenuState>(m_user, titleInfo, saveInfo);
     StateManager::push_state(backupMenu);
+    m_titleView->play_sound();
 }
 
 void TitleSelectState::create_title_option_menu()

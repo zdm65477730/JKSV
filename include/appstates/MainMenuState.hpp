@@ -104,9 +104,6 @@ class MainMenuState final : public BaseState
         /// @brief Silently checks for an update in the background.
         void check_for_update();
 
-        /// @brief Plays the little boot sound.
-        void play_boot_sound();
-
         /// @brief Pushes the target state to the vector.
         void push_target_state();
 

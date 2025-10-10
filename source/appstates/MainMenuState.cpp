@@ -35,7 +35,6 @@ MainMenuState::MainMenuState()
     MainMenuState::initialize_view_states();
     MainMenuState::initialize_data_struct();
     MainMenuState::check_for_update();
-    MainMenuState::play_boot_sound();
 }
 
 void MainMenuState::update()
@@ -137,15 +136,6 @@ void MainMenuState::initialize_data_struct()
 
 void MainMenuState::check_for_update() { sys::threadpool::push_job(tasks::update::check_for_update, m_dataStruct); }
 
-void MainMenuState::play_boot_sound()
-{
-    // static constexpr std::string_view BOOT_NAME = "BootSound";
-    // static constexpr const char *BOOT_PATH      = "romfs:/Sound/Boot.wav";
-
-    // sdl::SharedSound bootSound = sdl::SoundManager::load(BOOT_NAME, BOOT_PATH);
-    // bootSound->play();
-}
-
 void MainMenuState::push_target_state()
 {
     const int popTicks          = ui::PopMessageManager::DEFAULT_TICKS;
@@ -169,6 +159,7 @@ void MainMenuState::push_target_state()
     auto &target = sm_states[selected];
     target->reactivate();
     StateManager::push_state(target);
+    m_mainMenu->play_sound();
 }
 
 void MainMenuState::create_user_options()

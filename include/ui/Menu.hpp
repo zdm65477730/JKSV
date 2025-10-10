@@ -71,6 +71,9 @@ namespace ui
             /// @brief Returns if the menu has no options.
             bool is_empty() const noexcept;
 
+            /// @brief Plays the cursor sound effect since it can be conditional.
+            void play_sound() noexcept;
+
             /// @brief Resets the menu and returns it to an empty, default state.
             void reset(bool full = true);
 
@@ -140,7 +143,7 @@ namespace ui
             void initialize_ui_elements();
 
             /// @brief Ensures the menu cursor sound is loaded.
-            void initialize_cursor_sound();
+            void initialize_sounds();
 
             /// @brief Updates the text scroll for the currently highlighted option.
             void update_scroll_text();

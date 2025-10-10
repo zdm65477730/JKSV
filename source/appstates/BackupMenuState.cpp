@@ -193,7 +193,7 @@ void BackupMenuState::save_data_check()
 void BackupMenuState::initialize_remote_storage()
 {
     remote::Storage *remote = remote::get_remote_storage();
-    if (error::is_null(remote)) { return; }
+    if (!remote) { return; }
 
     const bool supportsUtf8            = remote->supports_utf8();
     const std::string_view remoteTitle = supportsUtf8 ? m_titleInfo->get_title() : m_titleInfo->get_path_safe_title();

@@ -481,13 +481,9 @@ static void auto_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskD
     remote::Storage *remote        = remote::get_remote_storage();
     data::User *user               = taskData->user;
     data::TitleInfo *titleInfo     = taskData->titleInfo;
+    const FsSaveDataInfo *saveInfo = taskData->saveInfo;
     fslib::Path &target            = taskData->path;
-    BackupMenuState *spawningState = taskData->spawningState;
-    if (error::is_null(user) || error::is_null(titleInfo)) { return; }
-
-    const uint64_t applicationID   = titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { return; }
+    if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(saveInfo)) { return; }
 
     {
         fs::ScopedSaveMount testMount{fs::DEFAULT_SAVE_MOUNT, saveInfo, false};
@@ -504,18 +500,13 @@ static void auto_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskD
     std::string backupName       = stringutil::get_formatted_string("AUTO - %s - %s", safeNickname, dateString.c_str());
     if (zip) { backupName += STRING_ZIP_EXT; }
 
-    auto tempData           = std::make_shared<BackupMenuState::DataStruct>();
-    tempData->task          = task;
-    tempData->user          = user;
-    tempData->titleInfo     = titleInfo;
-    tempData->spawningState = spawningState;
-    tempData->killTask      = false;
+    taskData->killTask = false;
 
     if (autoUpload && remote)
     {
-        tempData->remoteName = std::move(backupName);
+        taskData->remoteName = std::move(backupName);
 
-        tasks::backup::create_new_backup_remote(tempData);
+        tasks::backup::create_new_backup_remote(taskData);
     }
     else
     {
@@ -525,22 +516,25 @@ static void auto_backup(sys::ProgressTask *task, BackupMenuState::TaskData taskD
 
         fslib::Path autoTarget{target.sub_path(lastSlash) / backupName};
 
-        tempData->path = std::move(autoTarget);
+        // This is used to move and store the path before using the local auto path.
+        fslib::Path storePath = std::move(taskData->path);
+        // Swap em.
+        taskData->path = std::move(autoTarget);
 
-        tasks::backup::create_new_backup_local(tempData);
+        tasks::backup::create_new_backup_local(taskData);
+
+        // Swap em back.
+        taskData->path = std::move(storePath);
     }
 }
 
 static bool read_and_process_meta(const fslib::Path &targetDir, BackupMenuState::TaskData taskData, sys::ProgressTask *task)
 {
-    data::User *user           = taskData->user;
-    data::TitleInfo *titleInfo = taskData->titleInfo;
+    data::User *user               = taskData->user;
+    data::TitleInfo *titleInfo     = taskData->titleInfo;
+    const FsSaveDataInfo *saveInfo = taskData->saveInfo;
     if (error::is_null(task)) { return false; }
-    else if (error::is_null(user) || error::is_null(titleInfo)) { return false; }
-
-    const uint64_t applicationID   = titleInfo->get_application_id();
-    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(applicationID);
-    if (error::is_null(saveInfo)) { return false; }
+    else if (error::is_null(user) || error::is_null(titleInfo) || error::is_null(saveInfo)) { return false; }
 
     const int popTicks = ui::PopMessageManager::DEFAULT_TICKS;
     {

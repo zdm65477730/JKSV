@@ -46,6 +46,9 @@ namespace ui
             /// @brief Resets the view to its default, empty state.
             void reset();
 
+            /// @brief Plays the cursor sound.
+            void play_sound() noexcept;
+
         private:
             /// @brief Pointer to user passed.
             data::User *m_user{};

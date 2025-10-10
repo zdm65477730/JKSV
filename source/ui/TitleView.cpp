@@ -112,6 +112,8 @@ void ui::TitleView::reset()
     for (ui::TitleTile &currentTile : m_titleTiles) { currentTile.reset(); }
 }
 
+void ui::TitleView::play_sound() noexcept { sm_cursor->play(); }
+
 void ui::TitleView::initialize_static_members()
 {
     static constexpr std::string_view CURSOR_NAME = "MenuCursor";
