@@ -8,6 +8,8 @@
 
 #include <cstring>
 
+//                      ---- Construction ----
+
 data::TitleInfo::TitleInfo(uint64_t applicationID) noexcept
     : m_applicationID(applicationID)
 {
@@ -53,6 +55,8 @@ data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &con
 
     TitleInfo::get_create_path_safe_title();
 }
+
+//                      ---- Public functions ----
 
 uint64_t data::TitleInfo::get_application_id() const noexcept { return m_applicationID; }
 
@@ -150,20 +154,6 @@ void data::TitleInfo::set_path_safe_title(const char *newPathSafe) noexcept
     std::memcpy(m_pathSafeTitle, newPathSafe, length);
 }
 
-void data::TitleInfo::get_create_path_safe_title() noexcept
-{
-    const bool hasCustom = config::has_custom_path(m_applicationID);
-    if (hasCustom)
-    {
-        config::get_custom_path(m_applicationID, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE);
-        return;
-    }
-
-    const bool useTitleId = config::get_by_key(config::keys::USE_TITLE_IDS);
-    const bool sanitized  = !useTitleId && stringutil::sanitize_string_for_path(m_entry->name, m_pathSafeTitle, SIZE_PATH_SAFE);
-    if (useTitleId || !sanitized) { std::snprintf(m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID); }
-}
-
 void data::TitleInfo::load_icon()
 {
     // This is taken from the NacpStruct.
@@ -179,4 +169,20 @@ void data::TitleInfo::load_icon()
         const std::string text = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
         m_icon                 = gfxutil::create_generic_icon(text, 48, colors::DIALOG_DARK, colors::WHITE);
     }
+}
+
+//                      ---- Private functions ----
+
+void data::TitleInfo::get_create_path_safe_title() noexcept
+{
+    const bool hasCustom = config::has_custom_path(m_applicationID);
+    if (hasCustom)
+    {
+        config::get_custom_path(m_applicationID, m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE);
+        return;
+    }
+
+    const bool useTitleId = config::get_by_key(config::keys::USE_TITLE_IDS);
+    const bool sanitized  = !useTitleId && stringutil::sanitize_string_for_path(m_entry->name, m_pathSafeTitle, SIZE_PATH_SAFE);
+    if (useTitleId || !sanitized) { std::snprintf(m_pathSafeTitle, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID); }
 }

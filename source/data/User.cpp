@@ -33,6 +33,8 @@ namespace
 // Function used to sort user data. Definition at the bottom.
 static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDataEntry &entryB);
 
+//                      ---- Construction ----
+
 data::User::User(AccountUid accountID, FsSaveDataType saveType) noexcept
     : m_accountID(accountID)
     , m_saveType(saveType)
@@ -58,6 +60,8 @@ data::User::User(AccountUid accountID,
     std::strncpy(m_pathSafeNickname, pathSafeNickname.data(), pathSafeNickname.length());
 }
 
+//                      ---- Move constructor & operator ----
+
 data::User::User(data::User &&user) noexcept { *this = std::move(user); }
 
 data::User &data::User::operator=(data::User &&user) noexcept
@@ -77,6 +81,8 @@ data::User &data::User::operator=(data::User &&user) noexcept
 
     return *this;
 }
+
+//                      ---- Public functions ----
 
 void data::User::add_data(uint64_t applicationID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats)
 {
@@ -151,6 +157,8 @@ void data::User::erase_save_info_by_id(uint64_t applicationID)
     if (target == m_userData.end()) { return; }
     m_userData.erase(target);
 }
+
+//                      ---- Private functions ----
 
 void data::User::load_user_data()
 {
@@ -261,6 +269,8 @@ data::UserSaveInfoList::iterator data::User::find_title_by_id(uint64_t applicati
 {
     return std::find_if(m_userData.begin(), m_userData.end(), [&](const auto &entry) { return entry.first == applicationID; });
 }
+
+//                      ---- Static functions ----
 
 static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDataEntry &entryB)
 {

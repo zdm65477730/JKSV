@@ -21,6 +21,8 @@ namespace
     constexpr const char *APP_ID_HEX_FORMAT = "%016llX";
 }
 
+//                      ---- Public functions ----
+
 void config::ConfigContext::create_directory()
 {
     const fslib::Path configDir{PATH_CONFIG_FOLDER};
@@ -175,6 +177,8 @@ void config::ConfigContext::get_custom_path(uint64_t applicationID, char *buffer
     std::memset(buffer, 0x00, bufferSize);
     std::memcpy(buffer, path.c_str(), path.length());
 }
+
+//                      ---- Private functions ----
 
 bool config::ConfigContext::load_config_file()
 {

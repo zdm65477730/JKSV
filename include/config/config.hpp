@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+/// @brief This API acts like a passthrough for the context so the context doesn't need to be global.
 namespace config
 {
     /// @brief Attempts to load config from file. If it fails, loads defaults.

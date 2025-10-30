@@ -16,6 +16,8 @@ namespace
     constexpr size_t SIZE_CTRL_DATA = sizeof(NsApplicationControlData);
 }
 
+//                      ---- Public functions ----
+
 bool data::DataContext::load_create_users(sys::Task *task)
 {
     static constexpr int32_t MAX_SWITCH_ACCOUNTS = 8;

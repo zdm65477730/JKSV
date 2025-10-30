@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
+/// @brief The functions in this namespace serve as a passthrough API for the data context so it's not needed globally.
 namespace data
 {
     /// @brief Launches the data loading/initialization state.
