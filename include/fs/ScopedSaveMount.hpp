@@ -13,14 +13,14 @@ namespace fs
             /// @param log Optional. Whether or not logging errors is wanted. True by default.
             ScopedSaveMount(std::string_view mount, const FsSaveDataInfo *saveInfo, bool log = true);
 
+            /// @brief Closes the save mounted.
+            ~ScopedSaveMount();
+
             ScopedSaveMount(ScopedSaveMount &&scopedSaveMount) noexcept;
             ScopedSaveMount &operator=(ScopedSaveMount &&scopedSaveMount) noexcept;
 
             ScopedSaveMount(const ScopedSaveMount &)            = delete;
             ScopedSaveMount &operator=(const ScopedSaveMount &) = delete;
-
-            /// @brief Closes the save mounted.
-            ~ScopedSaveMount();
 
             /// @brief Returns whether or not mounting the data was successful.
             bool is_open() const noexcept;
@@ -32,6 +32,7 @@ namespace fs
             /// @brief Stores whether or not mounting the save was successful.
             bool m_isOpen{};
 
+            /// @brief Stores whether or not to log errors with the mount.
             bool m_log{};
     };
 }

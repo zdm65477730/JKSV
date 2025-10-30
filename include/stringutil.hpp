@@ -10,13 +10,14 @@ namespace stringutil
         YearDayMonth
     };
 
-    /// @brief Returns a formatted string as a C++ string.
+    /// @brief Returns a formatted string as a C++ string. This uses C instead of std::format because std::format bloats the NRO
+    /// up another whole MB.
     /// @param format Format of string.
     /// @param arguments Arguments for string.
     /// @return Formatted C++ string.
     std::string get_formatted_string(const char *format, ...);
 
-    /// @brief Replaces and sequence of characters in a string.
+    /// @brief Replaces a sequence of characters in a string.
     /// @param target Target string.
     /// @param find Sequence to search for.
     /// @param replace What to replace the sequence with.

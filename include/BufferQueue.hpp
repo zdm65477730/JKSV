@@ -25,6 +25,7 @@ class BufferQueue final
         BufferQueue(int bufferLimit) noexcept
             : m_bufferLimit(bufferLimit) {};
 
+        /// @brief Attempts the push the buffer to the queue. Returns false if it fails.
         inline bool try_push(Buffer &buffer, size_t bufferSize)
         {
             std::lock_guard queueGuard{m_queueMutex};
@@ -34,6 +35,7 @@ class BufferQueue final
             return true;
         }
 
+        /// @brief Gets and returns the pair at the front of the queue if there is one. Returns false if this fails.
         inline bool get_front(QueuePair &pairOut)
         {
             std::lock_guard queueGuard{m_queueMutex};
@@ -44,6 +46,7 @@ class BufferQueue final
             return true;
         }
 
+        /// @brief This is the default delay period to use if either of the above fail.
         static inline void default_delay() noexcept { std::this_thread::sleep_for(std::chrono::microseconds(10)); }
 
         /// @brief This can be passed to the constructor to make is_full() return false all of the time.

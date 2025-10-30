@@ -31,6 +31,8 @@ static std::string ensure_valid_dir_path(std::string_view parent);
 /// @note This seemed like a better alternative than relying on servers having displayname.
 static std::string slice_name_from_href(curl::Handle &handle, std::string_view href);
 
+//                      ---- Construction ----
+
 remote::WebDav::WebDav()
     : Storage("[WD]")
 {
@@ -300,6 +302,8 @@ bool remote::WebDav::rename_item(remote::Item *item, std::string_view newName)
     return false;
 }
 
+//                      ---- Private functions ----
+
 void remote::WebDav::append_credentials()
 {
     if (!m_username.empty()) { curl::set_option(m_curl, CURLOPT_USERNAME, m_username.c_str()); }
@@ -391,6 +395,8 @@ bool remote::WebDav::process_listing(std::string_view xml)
     }
     return true;
 }
+
+//                      ---- Static functions ----
 
 static tinyxml2::XMLElement *get_element_by_name(tinyxml2::XMLElement *parent, std::string_view name)
 {

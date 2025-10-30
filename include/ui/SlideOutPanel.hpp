@@ -1,4 +1,5 @@
 #pragma once
+#include "graphics/screen.hpp"
 #include "sdl.hpp"
 #include "ui/Element.hpp"
 #include "ui/Transition.hpp"
@@ -113,9 +114,9 @@ namespace ui
             static inline int sm_targetID{};
 
             /// @brief Returns the target X to open the panel.
-            inline int get_target_open_x() { return m_side == Side::Left ? 0 : 1280 - m_width; }
+            inline int get_target_open_x() { return m_side == Side::Left ? 0 : graphics::SCREEN_WIDTH - m_width; }
 
             /// @brief Returns the target X to close/hide the panel.
-            inline int get_target_close_x() { return m_side == Side::Left ? -m_width : 1280; }
+            inline int get_target_close_x() { return m_side == Side::Left ? -m_width : graphics::SCREEN_WIDTH; }
     };
 } // namespace ui

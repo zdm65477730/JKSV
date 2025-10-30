@@ -9,6 +9,8 @@ namespace
     constexpr int RECT_HEIGHT = 4;
 }
 
+//                      ---- Construction ----
+
 ui::BoundingBox::BoundingBox(int x, int y, int width, int height)
     : m_x(x)
     , m_y(y)
@@ -17,6 +19,8 @@ ui::BoundingBox::BoundingBox(int x, int y, int width, int height)
 {
     BoundingBox::initialize_static_members();
 }
+
+//                      ---- Public functions ----
 
 void ui::BoundingBox::update(bool hasFocus) { m_colorMod.update(); }
 
@@ -53,6 +57,8 @@ void ui::BoundingBox::set_y(int y) noexcept { m_y = y; }
 void ui::BoundingBox::set_width(int width) noexcept { m_width = width; }
 
 void ui::BoundingBox::set_height(int height) noexcept { m_height = height; }
+
+//                      ---- Private functions ----
 
 void ui::BoundingBox::initialize_static_members()
 {

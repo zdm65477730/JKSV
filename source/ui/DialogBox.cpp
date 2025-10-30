@@ -8,6 +8,8 @@ namespace
     constexpr int CORNER_HEIGHT = 16;
 }
 
+//                      ---- Construction ----
+
 ui::DialogBox::DialogBox(int x, int y, int width, int height, ui::DialogBox::Type type)
     : m_x(x)
     , m_y(y)
@@ -17,6 +19,8 @@ ui::DialogBox::DialogBox(int x, int y, int width, int height, ui::DialogBox::Typ
 {
     ui::DialogBox::initialize_static_members();
 }
+
+//                      ---- Public functions ----
 
 void ui::DialogBox::render(sdl::SharedTexture &target, bool hasFocus)
 {
@@ -69,6 +73,8 @@ void ui::DialogBox::set_from_transition(ui::Transition &transition, bool centere
     m_width  = width;
     m_height = height;
 }
+
+//                      ---- Private functions ----
 
 void ui::DialogBox::initialize_static_members()
 {

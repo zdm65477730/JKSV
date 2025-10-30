@@ -322,18 +322,10 @@ static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDa
         break;
 
         // Most played.
-        case 1:
-        {
-            return playStatsA.playtime > playStatsB.playtime;
-        }
-        break;
+        case 1: return playStatsA.playtime > playStatsB.playtime; break;
 
         // Last played.
-        case 2:
-        {
-            return playStatsA.last_timestamp_user > playStatsB.last_timestamp_user;
-        }
-        break;
+        case 2: return playStatsA.last_timestamp_user > playStatsB.last_timestamp_user; break;
     }
     return false;
 }

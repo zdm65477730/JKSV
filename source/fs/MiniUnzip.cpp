@@ -3,9 +3,13 @@
 #include "error.hpp"
 #include "logging/logger.hpp"
 
+//                      ---- Construction ----
+
 fs::MiniUnzip::MiniUnzip(const fslib::Path &path) { MiniUnzip::open(path); }
 
 fs::MiniUnzip::~MiniUnzip() { MiniUnzip::close(); }
+
+//                      ---- Public functions ----
 
 bool fs::MiniUnzip::is_open() const noexcept { return m_isOpen; }
 

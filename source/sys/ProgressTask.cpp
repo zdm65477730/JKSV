@@ -2,12 +2,16 @@
 
 #include "logging/logger.hpp"
 
+//                      ---- Construction ----
+
 sys::ProgressTask::ProgressTask(sys::threadpool::JobFunction function, sys::ProgressTask::TaskData taskData)
     : Task()
 {
     taskData->task = this;
     threadpool::push_job(function, taskData);
 }
+
+//                      ---- Public functions ----
 
 void sys::ProgressTask::reset(double goal) noexcept
 {

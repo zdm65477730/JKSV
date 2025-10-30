@@ -5,11 +5,14 @@
 #include <algorithm>
 #include <cstring>
 
-// Declarations here. Defined at bottom.
+//                      ---- Construction ----
+
 remote::Storage::Storage(std::string_view prefix, bool supportsUtf8)
     : m_curl(curl::new_handle())
     , m_utf8Paths(supportsUtf8)
     , m_prefix(prefix) {};
+
+//                      ---- Public functions ----
 
 bool remote::Storage::is_initialized() const noexcept { return m_isInitialized; }
 
@@ -81,6 +84,8 @@ remote::Item *remote::Storage::get_item_by_id(std::string_view id) noexcept
 bool remote::Storage::supports_utf8() const noexcept { return m_utf8Paths; }
 
 std::string_view remote::Storage::get_prefix() const noexcept { return m_prefix; }
+
+//                      ---- Private functions ----
 
 remote::Storage::List::iterator remote::Storage::find_directory_by_name(std::string_view name) noexcept
 {

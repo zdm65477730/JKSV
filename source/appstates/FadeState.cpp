@@ -1,6 +1,7 @@
 #include "appstates/FadeState.hpp"
 
 #include "StateManager.hpp"
+#include "graphics/screen.hpp"
 #include "logging/logger.hpp"
 #include "mathutil.hpp"
 #include "sdl.hpp"
@@ -42,7 +43,7 @@ void FadeState::render()
     const uint32_t rawColor = (m_baseColor.raw & 0xFFFFFF00) | m_alpha;
     const sdl::Color fadeColor{rawColor};
 
-    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, fadeColor);
+    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, fadeColor);
 }
 
 //                      ---- Private functions ----

@@ -3,6 +3,7 @@
 #include "StateManager.hpp"
 #include "appstates/FadeState.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/screen.hpp"
 #include "input.hpp"
 #include "strings/strings.hpp"
 
@@ -10,7 +11,7 @@
 
 MessageState::MessageState(std::string_view message)
     : m_message(message)
-    , m_transition(0, 0, 32, 32, 0, 0, 720, 256, ui::Transition::DEFAULT_THRESHOLD)
+    , m_transition(0, 0, 32, 32, 0, 0, graphics::SCREEN_HEIGHT, 256, ui::Transition::DEFAULT_THRESHOLD)
 {
     MessageState::initialize_static_members();
     sm_dialogPop->play();
@@ -38,7 +39,7 @@ void MessageState::render()
     static constexpr int y = 229;
     const bool hasFocus    = BaseState::has_focus();
 
-    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
+    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::DIM_BACKGROUND);
     sm_dialog->render(sdl::Texture::Null, hasFocus);
     if (!m_transition.in_place()) { return; }
 

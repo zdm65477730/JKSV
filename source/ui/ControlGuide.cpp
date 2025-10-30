@@ -1,17 +1,34 @@
 #include "ui/ControlGuide.hpp"
 
 #include "graphics/colors.hpp"
+#include "graphics/screen.hpp"
 #include "logging/logger.hpp"
+
+namespace
+{
+    /// @brief This is the X coordinate used to calculate where the guide should be.
+    constexpr int GUIDE_X_OFFSET = 1220;
+
+    /// @brief This is the font size used for the guides.
+    constexpr int GUIDE_TEXT_SIZE = 24;
+
+    /// @brief This is the constant Y of the transition.
+    constexpr int TRANS_Y = 662;
+}
+
+//                      ---- Construction ----
 
 ui::ControlGuide::ControlGuide(const char *guide)
     : m_guide(guide)
-    , m_textWidth(sdl::text::get_width(23, m_guide))
-    , m_targetX(1220 - (m_textWidth + 24))
-    , m_guideWidth(1280 - m_targetX)
-    , m_transition(1280, 662, 0, 0, m_targetX, 662, 0, 0, ui::Transition::DEFAULT_THRESHOLD)
+    , m_textWidth(sdl::text::get_width(GUIDE_TEXT_SIZE, m_guide))
+    , m_targetX(GUIDE_X_OFFSET - (m_textWidth + 24))
+    , m_guideWidth(graphics::SCREEN_WIDTH - m_targetX)
+    , m_transition(graphics::SCREEN_WIDTH, TRANS_Y, 0, 0, m_targetX, TRANS_Y, 0, 0, ui::Transition::DEFAULT_THRESHOLD)
 {
     ui::ControlGuide::initialize_static_members();
 }
+
+//                      ---- Public functions ----
 
 void ui::ControlGuide::update(bool hasFocus)
 {
@@ -25,20 +42,40 @@ void ui::ControlGuide::update(bool hasFocus)
 void ui::ControlGuide::sub_update()
 {
     const int targetX = m_transition.get_target_x();
-    if (targetX != 1280) { m_transition.set_target_x(1280); }
+    if (targetX != graphics::SCREEN_WIDTH) { m_transition.set_target_x(graphics::SCREEN_WIDTH); }
 
     m_transition.update();
 }
 
 void ui::ControlGuide::render(sdl::SharedTexture &target, bool hasFocus)
 {
+    static constexpr int RECT_OFFSET_X = 16;
+    static constexpr int RECT_HEIGHT   = 48;
+
+    static constexpr int TEXT_OFFSET_X  = 24;
+    static constexpr int TEXT_OFFSET_Y  = 10;
+    static constexpr int TEXT_FONT_SIZE = 24;
+
     const int guideX = m_transition.get_x();
     const int guideY = m_transition.get_y();
 
     sm_controlCap->render(sdl::Texture::Null, guideX, guideY);
-    sdl::render_rect_fill(sdl::Texture::Null, guideX + 16, guideY, m_guideWidth - 16, 48, colors::GUIDE_COLOR);
-    sdl::text::render(sdl::Texture::Null, guideX + 24, guideY + 10, 23, sdl::text::NO_WRAP, colors::WHITE, m_guide);
+    sdl::render_rect_fill(sdl::Texture::Null,
+                          guideX + RECT_OFFSET_X,
+                          guideY,
+                          m_guideWidth - RECT_OFFSET_X,
+                          RECT_HEIGHT,
+                          colors::GUIDE_COLOR);
+    sdl::text::render(sdl::Texture::Null,
+                      guideX + TEXT_OFFSET_X,
+                      guideY + TEXT_OFFSET_Y,
+                      TEXT_FONT_SIZE,
+                      sdl::text::NO_WRAP,
+                      colors::WHITE,
+                      m_guide);
 }
+
+//                      ---- Private functions ----
 
 void ui::ControlGuide::initialize_static_members()
 {
@@ -51,6 +88,6 @@ void ui::ControlGuide::initialize_static_members()
 
 void ui::ControlGuide::reset() noexcept
 {
-    m_transition.set_target_x(1280);
-    m_transition.set_x(1280);
+    m_transition.set_target_x(graphics::SCREEN_WIDTH);
+    m_transition.set_x(graphics::SCREEN_WIDTH);
 }

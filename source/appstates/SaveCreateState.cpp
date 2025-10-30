@@ -27,7 +27,7 @@ static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB);
 SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelect)
     : m_user(user)
     , m_titleSelect(titleSelect)
-    , m_saveMenu(ui::Menu::create(8, 8, 624, 23, 720))
+    , m_saveMenu(ui::Menu::create(8, 8, 624, 23, graphics::SCREEN_HEIGHT))
     , m_dataStruct(std::make_shared<SaveCreateState::DataStruct>())
 {
     SaveCreateState::initialize_static_members();

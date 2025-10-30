@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+//                      ---- Construction ----
+
 ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     : m_x(x)
     , m_y(y)
@@ -22,6 +24,8 @@ ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
     Menu::initialize_ui_elements();
     Menu::initialize_sounds();
 }
+
+//                      ---- Public functions ----
 
 void ui::Menu::update(bool hasFocus)
 {
@@ -115,6 +119,8 @@ void ui::Menu::reset(bool full)
 bool ui::Menu::is_empty() const noexcept { return m_options.empty(); }
 
 void ui::Menu::play_sound() noexcept { sm_cursor->play(); }
+
+//                      ---- Private functions ----
 
 void ui::Menu::calculate_alignments() noexcept
 {

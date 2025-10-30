@@ -2,20 +2,22 @@
 
 #include "config/config.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/screen.hpp"
 #include "mathutil.hpp"
 #include "sdl.hpp"
 
 namespace
 {
     constexpr int START_X              = 624;
-    constexpr double START_Y           = 720;
     constexpr int START_WIDTH          = 20;
     constexpr int PERMA_HEIGHT         = 48;
     constexpr int TRANSITION_THRESHOLD = 2; // This is used so the easing on opening doesn't look so odd.
 }
 
+//                      ---- Construction ----
+
 ui::PopMessage::PopMessage(int ticks, std::string_view message)
-    : m_transition(START_X, START_Y, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, TRANSITION_THRESHOLD)
+    : m_transition(START_X, graphics::SCREEN_HEIGHT, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, TRANSITION_THRESHOLD)
     , m_ticks(ticks)
     , m_message(message)
 {
@@ -23,12 +25,14 @@ ui::PopMessage::PopMessage(int ticks, std::string_view message)
 }
 
 ui::PopMessage::PopMessage(int ticks, std::string &message)
-    : m_transition(START_X, START_Y, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, TRANSITION_THRESHOLD)
+    : m_transition(START_X, graphics::SCREEN_HEIGHT, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, TRANSITION_THRESHOLD)
     , m_ticks(ticks)
     , m_message(std::move(message))
 {
     PopMessage::initialize_static_members();
 }
+
+//                      ---- Public functions ----
 
 void ui::PopMessage::update(double targetY)
 {
@@ -54,6 +58,8 @@ void ui::PopMessage::render()
 bool ui::PopMessage::finished() const noexcept { return m_finished; }
 
 std::string_view ui::PopMessage::get_message() const noexcept { return m_message; }
+
+//                      ---- Private functions ----
 
 void ui::PopMessage::initialize_static_members()
 {
@@ -107,7 +113,7 @@ void ui::PopMessage::update_width() noexcept
 
     m_transition.update_width_height();
 
-    if (m_close && m_transition.in_place_width_height()) { m_transition.set_target_y(720); }
+    if (m_close && m_transition.in_place_width_height()) { m_transition.set_target_y(graphics::SCREEN_HEIGHT); }
 }
 
 void ui::PopMessage::render_container() noexcept

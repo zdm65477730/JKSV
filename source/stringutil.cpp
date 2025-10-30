@@ -5,6 +5,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <ctime>
+#include <span>
 #include <string>
 #include <switch.h>
 
@@ -92,7 +93,9 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
             const auto &[tablePoint, replacement] = *replace;
             const size_t replacementLength        = replacement.length();
 
-            std::copy(replacement.data(), replacement.data() + replacementLength, &stringOut[outOffset]);
+            const size_t remainingSize = stringOutSize - outOffset;
+            const std::span<char> stringSpan{&stringOut[outOffset], remainingSize};
+            std::copy(replacement.data(), replacement.data() + replacementLength, stringSpan.begin());
 
             outOffset += replacementLength;
             i += count;
@@ -104,7 +107,11 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
         if (asciiCheck) { return false; }
 
         // Just copy it over.
-        std::copy(&stringIn[i], &stringIn[i] + count, &stringOut[outOffset]);
+        const size_t remainingSpace = stringOutSize - outOffset;
+        const std::span<const char> stringSpan{&stringIn[i], static_cast<size_t>(count)};
+        const std::span<char> stringOutSpan{&stringOut[outOffset], remainingSpace};
+        std::copy(stringSpan.begin(), stringSpan.end(), stringOutSpan.begin());
+
         outOffset += count;
         i += count;
     }

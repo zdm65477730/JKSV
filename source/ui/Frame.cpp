@@ -2,6 +2,8 @@
 
 #include "graphics/colors.hpp"
 
+//                      ---- Construction ----
+
 ui::Frame::Frame(int x, int y, int width, int height)
     : m_x(x)
     , m_y(y)
@@ -10,6 +12,8 @@ ui::Frame::Frame(int x, int y, int width, int height)
 {
     Frame::initialize_static_members();
 }
+
+//                      ---- Public functions ----
 
 void ui::Frame::render(sdl::SharedTexture &target, bool hasFocus)
 {
@@ -58,6 +62,8 @@ void ui::Frame::set_from_transition(const ui::Transition &transition, bool cente
     m_width  = width;
     m_height = height;
 }
+
+//                      ---- Private functions ----
 
 void ui::Frame::initialize_static_members()
 {

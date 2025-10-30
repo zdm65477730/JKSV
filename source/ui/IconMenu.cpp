@@ -11,6 +11,8 @@ namespace
     constexpr int BOUND_HEIGHT = 146;
 }
 
+//                      ---- Construction ----
+
 ui::IconMenu::IconMenu(int x, int y, int renderTargetHeight)
     : Menu(x, y, 152, 84, renderTargetHeight)
 {
@@ -19,6 +21,8 @@ ui::IconMenu::IconMenu(int x, int y, int renderTargetHeight)
     m_boundingBox->set_height(146);
     m_optionHeight = 144;
 }
+
+//                      ---- Public functions ----
 
 void ui::IconMenu::update(bool hasFocus) { Menu::update(hasFocus); }
 

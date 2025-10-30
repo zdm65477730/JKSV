@@ -134,8 +134,12 @@ void FileOptionState::initialize_static_members()
         return;
     }
 
-    sm_copyMenu = ui::Menu::create(m_target ? RIGHT_X + 9 : LEFT_X + 9, 253, 234, 20, 720); // Target height is a workaround.
-    sm_dialog   = ui::DialogBox::create(2000, 1000, 32, 32);                                // Create this off screen at first.
+    sm_copyMenu = ui::Menu::create(m_target ? RIGHT_X + 9 : LEFT_X + 9,
+                                   253,
+                                   234,
+                                   20,
+                                   graphics::SCREEN_HEIGHT); // Target height is a workaround.
+    sm_dialog = ui::DialogBox::create(2000, 1000, 32, 32);   // Create this off screen at first.
 
     // This never changes, so...
     for (int i = 0; const char *menuOption = strings::get_by_name(strings::names::FILEOPTION_MENU, i); i++)

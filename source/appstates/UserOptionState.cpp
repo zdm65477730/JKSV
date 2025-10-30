@@ -39,7 +39,7 @@ namespace
 UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelect)
     : m_user(user)
     , m_titleSelect(titleSelect)
-    , m_userOptionMenu(ui::Menu::create(8, 8, 460, 22, 720))
+    , m_userOptionMenu(ui::Menu::create(8, 8, 460, 22, graphics::SCREEN_HEIGHT))
     , m_dataStruct(std::make_shared<UserOptionState::DataStruct>())
 {
     UserOptionState::create_menu_panel();

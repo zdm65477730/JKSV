@@ -13,6 +13,8 @@ namespace
     int TARGET_ID{};
 } // namespace
 
+//                      ---- Construction ----
+
 ui::TextScroll::TextScroll(std::string_view text,
                            int x,
                            int y,
@@ -38,6 +40,8 @@ ui::TextScroll::TextScroll(std::string &text,
 {
     TextScroll::initialize(text, x, y, width, height, fontSize, textColor, clearColor, center);
 }
+
+//                      ---- Public functions ----
 
 void ui::TextScroll::initialize(std::string_view text,
                                 int x,

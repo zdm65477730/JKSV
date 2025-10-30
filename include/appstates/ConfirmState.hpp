@@ -5,6 +5,7 @@
 #include "appstates/ProgressState.hpp"
 #include "appstates/TaskState.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/screen.hpp"
 #include "input.hpp"
 #include "logging/logger.hpp"
 #include "sdl.hpp"
@@ -22,6 +23,13 @@ namespace
     constexpr int COORD_YES_X = 460;
     // ^ but for no.
     constexpr int COORD_NO_X = 820;
+
+    // Transition starting vars.
+    constexpr int TRANS_X                  = 280;
+    constexpr int TRANS_Y                  = 229;
+    constexpr int TRANS_BEGIN_WIDTH_HEIGHT = 32;
+    constexpr int TRANS_END_WIDTH          = 720;
+    constexpr int TRANS_END_HEIGHT         = 256;
 } // namespace
 
 /// @brief Templated class to create confirmation dialogs.
@@ -47,7 +55,15 @@ class ConfirmState final : public BaseState
             , m_yesText(strings::get_by_name(strings::names::YES_NO_OK, 0))
             , m_noText(strings::get_by_name(strings::names::YES_NO_OK, 1))
             , m_holdRequired(holdRequired)
-            , m_transition(280, 229, 32, 32, 280, 229, 720, 256, 4)
+            , m_transition(TRANS_X,
+                           TRANS_Y,
+                           TRANS_BEGIN_WIDTH_HEIGHT,
+                           TRANS_BEGIN_WIDTH_HEIGHT,
+                           TRANS_X,
+                           TRANS_Y,
+                           TRANS_END_WIDTH,
+                           TRANS_END_HEIGHT,
+                           ui::Transition::DEFAULT_THRESHOLD)
             , m_onConfirm(onConfirm)
             , m_onCancel(onCancel)
             , m_taskData(taskData)
@@ -122,20 +138,69 @@ class ConfirmState final : public BaseState
         /// @brief Renders the state to screen.
         void render() override
         {
+            // These are the rendering coordinates that aren't affected by the transition.
+            static constexpr int TEXT_X          = 312;
+            static constexpr int TEXT_Y_OFFSET   = 24;
+            static constexpr int TEXT_FONT_SIZE  = 20;
+            static constexpr int TEXT_WRAP_WIDTH = 656;
+
+            // Divider line A.
+            static constexpr int LINE_A_X_A = 280;
+            static constexpr int LINE_A_X_B = 999;
+
+            // Divider line B.
+            static constexpr int LINE_B_X   = 640;
+            static constexpr int LINE_B_Y_B = 255;
+
+            // Shared line stuff.
+            static constexpr int LINE_Y_OFFSET = 192;
+
+            // Yes/NO
+            static constexpr int OPTION_Y_OFFSET  = 214;
+            static constexpr int OPTION_FONT_SIZE = 22;
+
             const bool hasFocus = BaseState::has_focus();
             const int y         = m_transition.get_y();
 
-            sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
+            sdl::render_rect_fill(sdl::Texture::Null,
+                                  0,
+                                  0,
+                                  graphics::SCREEN_WIDTH,
+                                  graphics::SCREEN_HEIGHT,
+                                  colors::DIM_BACKGROUND);
             sm_dialog->render(sdl::Texture::Null, hasFocus);
             if (!m_transition.in_place() || m_close) { return; }
 
-            sdl::text::render(sdl::Texture::Null, 312, y + 24, 20, 656, colors::WHITE, m_query);
+            sdl::text::render(sdl::Texture::Null,
+                              TEXT_X,
+                              y + TEXT_Y_OFFSET,
+                              TEXT_FONT_SIZE,
+                              TEXT_WRAP_WIDTH,
+                              colors::WHITE,
+                              m_query);
 
-            sdl::render_line(sdl::Texture::Null, 280, y + 192, 999, y + 192, colors::DIV_COLOR);
-            sdl::render_line(sdl::Texture::Null, 640, y + 192, 640, y + 255, colors::DIV_COLOR);
+            sdl::render_line(sdl::Texture::Null,
+                             LINE_A_X_A,
+                             y + LINE_Y_OFFSET,
+                             LINE_A_X_B,
+                             y + LINE_Y_OFFSET,
+                             colors::DIV_COLOR);
+            sdl::render_line(sdl::Texture::Null, LINE_B_X, y + LINE_Y_OFFSET, LINE_B_X, y + LINE_B_Y_B, colors::DIV_COLOR);
 
-            sdl::text::render(sdl::Texture::Null, m_yesX, y + 214, 22, sdl::text::NO_WRAP, colors::WHITE, m_yesText);
-            sdl::text::render(sdl::Texture::Null, m_noX, y + 214, 22, sdl::text::NO_WRAP, colors::WHITE, m_noText);
+            sdl::text::render(sdl::Texture::Null,
+                              m_yesX,
+                              y + OPTION_Y_OFFSET,
+                              OPTION_FONT_SIZE,
+                              sdl::text::NO_WRAP,
+                              colors::WHITE,
+                              m_yesText);
+            sdl::text::render(sdl::Texture::Null,
+                              m_noX,
+                              y + OPTION_Y_OFFSET,
+                              OPTION_FONT_SIZE,
+                              sdl::text::NO_WRAP,
+                              colors::WHITE,
+                              m_noText);
         }
 
     private:

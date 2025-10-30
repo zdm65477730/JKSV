@@ -2,6 +2,8 @@
 
 #include "logging/logger.hpp"
 
+//                      ---- Construction ----
+
 sys::Task::Task()
     : m_isRunning(true) {};
 
@@ -11,6 +13,8 @@ sys::Task::Task(sys::threadpool::JobFunction function, sys::Task::TaskData taskD
     taskData->task = this;
     sys::threadpool::push_job(function, taskData);
 }
+
+//                      ---- Public functions ----
 
 bool sys::Task::is_running() const noexcept { return m_isRunning; }
 

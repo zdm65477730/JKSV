@@ -15,6 +15,8 @@ namespace
     constexpr int ICON_ROW_SIZE      = 7;
 }
 
+//                      ---- Construction ----
+
 ui::TitleView::TitleView(data::User *user)
     : m_user(user)
     , m_transition(0, UPPER_THRESHOLD, 0, 0, 0, UPPER_THRESHOLD, 0, 0, m_transition.DEFAULT_THRESHOLD)
@@ -113,6 +115,8 @@ void ui::TitleView::reset()
 }
 
 void ui::TitleView::play_sound() noexcept { sm_cursor->play(); }
+
+//                          ---- Private functions ----
 
 void ui::TitleView::initialize_static_members()
 {

@@ -4,7 +4,11 @@
 
 #include <SDL2/SDL.h>
 
+//                      ---- Construction ----
+
 sys::Timer::Timer(uint64_t triggerTicks) noexcept { Timer::start(triggerTicks); }
+
+//                      ---- Public functions ----
 
 void sys::Timer::start(uint64_t triggerTicks) noexcept
 {

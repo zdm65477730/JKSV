@@ -33,6 +33,7 @@ void StateManager::update()
     for (auto iter = stateVector.begin(); iter < stateVector.end() - 1; iter++) { (*iter)->sub_update(); }
 
     {
+        // Double check to make sure the back has focus.
         auto &back = stateVector.back();
         if (!back->has_focus()) { back->give_focus(); }
     }

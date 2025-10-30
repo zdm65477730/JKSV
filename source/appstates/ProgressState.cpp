@@ -2,6 +2,7 @@
 
 #include "appstates/FadeState.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/screen.hpp"
 #include "input.hpp"
 #include "sdl.hpp"
 #include "strings/strings.hpp"
@@ -24,7 +25,7 @@ namespace
 //                      ---- Construction ----
 
 ProgressState::ProgressState(sys::threadpool::JobFunction function, sys::Task::TaskData taskData)
-    : m_transition(0, 0, 32, 32, 0, 0, 720, 256, ui::Transition::DEFAULT_THRESHOLD)
+    : m_transition(0, 0, 32, 32, 0, 0, graphics::SCREEN_HEIGHT, 256, ui::Transition::DEFAULT_THRESHOLD)
 {
     initialize_static_members();
     m_task = std::make_unique<sys::ProgressTask>(function, taskData);
@@ -59,7 +60,7 @@ void ProgressState::render()
     static constexpr int RIGHT_EDGE_X = (COORD_BAR_X + SIZE_BAR_WIDTH) - 16;
     const bool hasFocus               = BaseState::has_focus();
 
-    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
+    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::DIM_BACKGROUND);
     sm_dialog->render(sdl::Texture::Null, hasFocus);
     BaseTask::render_loading_glyph();
     if (!m_transition.in_place()) { return; }

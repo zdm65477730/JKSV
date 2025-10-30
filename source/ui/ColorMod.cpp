@@ -1,5 +1,7 @@
 #include "ui/ColorMod.hpp"
 
+//                      ---- Public functions ----
+
 void ui::ColorMod::update() noexcept
 {
     const bool changeDown = m_direction && ((m_colorMod += 6) >= 0x72);

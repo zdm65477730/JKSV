@@ -5,6 +5,7 @@
 #include "config/config.hpp"
 #include "data/data.hpp"
 #include "error.hpp"
+#include "graphics/screen.hpp"
 #include "input.hpp"
 
 //                      ---- Construction ----
@@ -52,7 +53,7 @@ void BlacklistEditState::load_blacklist() { config::get_blacklisted_titles(m_bla
 
 void BlacklistEditState::initialize_menu()
 {
-    m_blacklistMenu = std::make_shared<ui::Menu>(8, 8, 460, 22, 720);
+    m_blacklistMenu = std::make_shared<ui::Menu>(8, 8, 460, 22, graphics::SCREEN_HEIGHT);
     sm_slidePanel->push_new_element(m_blacklistMenu);
 }
 

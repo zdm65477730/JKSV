@@ -11,6 +11,7 @@
 #include "error.hpp"
 #include "fslib.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/screen.hpp"
 #include "input.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
@@ -82,6 +83,8 @@ JKSV::JKSV()
 
     // These are the strings used in the UI.
     ABORT_ON_FAILURE(strings::initialize()); // This is fatal now.
+
+    JKSV::setup_translation_info_strings();
 
     // This needs the config init'd or read to work.
     JKSV::create_directories();
@@ -183,7 +186,7 @@ bool JKSV::initialize_services()
 bool JKSV::initialize_sdl()
 {
     // Initialize SDL, freetype and the system font.
-    bool sdlInit = sdl::initialize("JKSV", 1280, 720);
+    bool sdlInit = sdl::initialize("JKSV", graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT);
     sdlInit      = sdlInit && sdl::text::initialize();
 
     // Load the icon in the top left.
@@ -234,26 +237,56 @@ void JKSV::setup_translation_info_strings()
 
 void JKSV::render_base()
 {
+    // These are the same for both.
+    static constexpr int LINE_X_BEGIN = 30;
+    static constexpr int LINE_X_END   = 1250;
+
+    // These are the Y's.
+    static constexpr int LINE_A_Y = 88;
+    static constexpr int LINE_B_Y = 648;
+
+    // Coordinates for the header icon.
+    static constexpr int HEADER_X = 66;
+    static constexpr int HEADER_Y = 27;
+
+    // Coordinates for the title text.
+    static constexpr int TITLE_X    = 130;
+    static constexpr int TITLE_Y    = 32;
+    static constexpr int TITLE_SIZE = 34;
+
+    // Coordinates for the translation info and build date.
+    static constexpr int BUILD_X    = 8;
+    static constexpr int BUILD_Y    = 700;
+    static constexpr int TRANS_Y    = 680;
+    static constexpr int BUILD_SIZE = 14;
+
+    // This is just the JKSV string.
     static constexpr std::string_view TITLE_TEXT = "JKSV";
 
     // Top and bottom framing lines.
-    sdl::render_line(sdl::Texture::Null, 30, 88, 1250, 88, colors::WHITE);
-    sdl::render_line(sdl::Texture::Null, 30, 648, 1250, 648, colors::WHITE);
+    sdl::render_line(sdl::Texture::Null, LINE_X_BEGIN, LINE_A_Y, LINE_X_END, LINE_A_Y, colors::WHITE);
+    sdl::render_line(sdl::Texture::Null, LINE_X_BEGIN, LINE_B_Y, LINE_X_END, LINE_B_Y, colors::WHITE);
 
     // Icon
-    m_headerIcon->render(sdl::Texture::Null, 66, 27);
+    m_headerIcon->render(sdl::Texture::Null, HEADER_X, HEADER_Y);
 
     // "JKSV"
-    sdl::text::render(sdl::Texture::Null, 130, 32, 34, sdl::text::NO_WRAP, colors::WHITE, TITLE_TEXT);
+    sdl::text::render(sdl::Texture::Null, TITLE_X, TITLE_Y, TITLE_SIZE, sdl::text::NO_WRAP, colors::WHITE, TITLE_TEXT);
 
     // Translation info in bottom left.
     if (m_showTranslationInfo)
     {
-        sdl::text::render(sdl::Texture::Null, 8, 680, 14, sdl::text::NO_WRAP, colors::WHITE, m_translationInfo);
+        sdl::text::render(sdl::Texture::Null,
+                          BUILD_X,
+                          TRANS_Y,
+                          BUILD_SIZE,
+                          sdl::text::NO_WRAP,
+                          colors::WHITE,
+                          m_translationInfo);
     }
 
     // Build date
-    sdl::text::render(sdl::Texture::Null, 8, 700, 14, sdl::text::NO_WRAP, colors::WHITE, m_buildString);
+    sdl::text::render(sdl::Texture::Null, BUILD_X, BUILD_Y, BUILD_SIZE, sdl::text::NO_WRAP, colors::WHITE, m_buildString);
 }
 
 void JKSV::exit_services()

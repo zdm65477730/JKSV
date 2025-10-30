@@ -45,6 +45,8 @@ namespace
     constexpr const char *MIME_TYPE_DIRECTORY = "application/vnd.google-apps.folder";
 } // namespace
 
+//                      ---- Construction ----
+
 remote::GoogleDrive::GoogleDrive()
     : Storage("[GD]", true)
 {
@@ -88,6 +90,8 @@ remote::GoogleDrive::GoogleDrive()
     }
     else if (GoogleDrive::get_root_id() && GoogleDrive::request_listing()) { m_isInitialized = true; }
 }
+
+//                      ---- Public functions ----
 
 bool remote::GoogleDrive::create_directory(std::string_view name)
 {
@@ -518,6 +522,8 @@ bool remote::GoogleDrive::poll_sign_in(std::string_view code)
 
     return true;
 }
+
+//                      ---- Private functions ----
 
 bool remote::GoogleDrive::get_root_id()
 {

@@ -6,6 +6,8 @@
 
 #include <cmath>
 
+//                      ---- Construction ----
+
 ui::Transition::Transition() { Transition::update_scaling(); }
 
 ui::Transition::Transition(int x,
@@ -29,6 +31,8 @@ ui::Transition::Transition(int x,
 {
     Transition::update_scaling();
 }
+
+//                      ---- Public functions ----
 
 void ui::Transition::update() noexcept
 {
@@ -98,6 +102,8 @@ void ui::Transition::set_target_height(int targetHeight) noexcept { m_targetHeig
 void ui::Transition::set_threshold(int threshold) noexcept { m_threshold = static_cast<double>(threshold); }
 
 void ui::Transition::update_scaling() noexcept { sm_scaling = config::get_animation_scaling(); }
+
+//                      ---- Private functions ----
 
 void ui::Transition::update_x_coord() noexcept
 {

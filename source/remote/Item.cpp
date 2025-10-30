@@ -1,6 +1,6 @@
 #include "remote/Item.hpp"
 
-#include "logging/logger.hpp"
+//                      ---- Construction ----
 
 remote::Item::Item(std::string_view name, std::string_view id, std::string_view parent, size_t size, bool directory)
     : m_name{name}
@@ -8,6 +8,8 @@ remote::Item::Item(std::string_view name, std::string_view id, std::string_view 
     , m_parent{parent}
     , m_size{size}
     , m_isDirectory{directory} {};
+
+//                      ---- Public functions ----
 
 std::string_view remote::Item::get_name() const noexcept { return m_name; }
 

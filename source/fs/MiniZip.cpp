@@ -9,6 +9,8 @@
 // Definition at bottom.
 static zip_fileinfo create_zip_file_info();
 
+//                      ---- Construction ----
+
 fs::MiniZip::MiniZip(const fslib::Path &path)
     : m_level(config::get_by_key(config::keys::ZIP_COMPRESSION_LEVEL))
 {
@@ -16,6 +18,8 @@ fs::MiniZip::MiniZip(const fslib::Path &path)
 }
 
 fs::MiniZip::~MiniZip() { MiniZip::close(); }
+
+//                      ---- Public functions ----
 
 bool fs::MiniZip::is_open() const noexcept { return m_isOpen; }
 
@@ -63,6 +67,8 @@ bool fs::MiniZip::write(const void *buffer, size_t dataSize)
     if (!m_isOpen) { return false; }
     return zipWriteInFileInZip(m_zip, buffer, dataSize) == ZIP_OK;
 }
+
+//                      ---- Static functions ----
 
 static zip_fileinfo create_zip_file_info()
 {

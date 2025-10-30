@@ -121,7 +121,7 @@ void TitleOptionState::initialize_static_members()
     if (sm_slidePanel && sm_titleOptionMenu) { return; }
 
     sm_slidePanel      = std::make_unique<ui::SlideOutPanel>(480, ui::SlideOutPanel::Side::Right);
-    sm_titleOptionMenu = std::make_shared<ui::Menu>(8, 8, 460, 22, 720);
+    sm_titleOptionMenu = std::make_shared<ui::Menu>(8, 8, 460, 22, graphics::SCREEN_HEIGHT);
 
     for (int i = 0; const char *option = strings::get_by_name(strings::names::TITLEOPTION, i); i++)
     {

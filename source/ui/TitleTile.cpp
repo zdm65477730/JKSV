@@ -9,6 +9,8 @@ namespace
     constexpr int SELECTED_WIDTH_HEIGHT   = 176;
 }
 
+//                      ---- Construction ----
+
 ui::TitleTile::TitleTile(bool isFavorite, int index, sdl::SharedTexture icon)
     : m_transition(0,
                    0,
@@ -22,6 +24,8 @@ ui::TitleTile::TitleTile(bool isFavorite, int index, sdl::SharedTexture icon)
     , m_isFavorite(isFavorite)
     , m_index(index)
     , m_icon(icon) {};
+
+//                      ---- Public functions ----
 
 void ui::TitleTile::update(int selected)
 {

@@ -3,6 +3,8 @@
 #include "error.hpp"
 #include "fslib.hpp"
 
+//                      ---- Construction ----
+
 fs::ScopedSaveMount::ScopedSaveMount(std::string_view mount, const FsSaveDataInfo *saveInfo, bool log)
     : m_mountPoint(mount)
     , m_log(log)
@@ -11,7 +13,17 @@ fs::ScopedSaveMount::ScopedSaveMount(std::string_view mount, const FsSaveDataInf
     else { m_isOpen = fslib::open_save_data_with_save_info(m_mountPoint, *saveInfo); }
 }
 
-fs::ScopedSaveMount::ScopedSaveMount(ScopedSaveMount &&scopedSaveMount) noexcept { *this = std::move(scopedSaveMount); }
+fs::ScopedSaveMount::~ScopedSaveMount()
+{
+    if (m_log) { error::fslib(fslib::close_file_system(m_mountPoint)); }
+    else { fslib::close_file_system(m_mountPoint); }
+}
+
+//                      ---- Move constructor & operator ----
+
+fs::ScopedSaveMount::ScopedSaveMount(ScopedSaveMount &&scopedSaveMount) noexcept
+    : m_mountPoint(std::move(scopedSaveMount.m_mountPoint))
+    , m_isOpen(scopedSaveMount.m_isOpen) {};
 
 fs::ScopedSaveMount &fs::ScopedSaveMount::operator=(ScopedSaveMount &&scopedSaveMount) noexcept
 {
@@ -21,10 +33,6 @@ fs::ScopedSaveMount &fs::ScopedSaveMount::operator=(ScopedSaveMount &&scopedSave
     return *this;
 }
 
-fs::ScopedSaveMount::~ScopedSaveMount()
-{
-    if (m_log) { error::fslib(fslib::close_file_system(m_mountPoint)); }
-    else { fslib::close_file_system(m_mountPoint); }
-}
+//                      ---- Public functions ----
 
 bool fs::ScopedSaveMount::is_open() const noexcept { return m_isOpen; }

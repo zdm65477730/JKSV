@@ -135,12 +135,16 @@ namespace ui
             /// @brief Scaling from config.
             static inline double sm_scaling{};
 
+            /// @brief Updates the x coordinate.
             void update_x_coord() noexcept;
 
+            /// @brief Updates the y coordinate.
             void update_y_coord() noexcept;
 
+            /// @brief Updates the width.
             void update_width() noexcept;
 
+            /// @brief Updates the height.
             void update_height() noexcept;
     };
 }

@@ -2,21 +2,19 @@
 
 #include "config/config.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/screen.hpp"
 #include "mathutil.hpp"
 
 #include <cmath>
 #include <utility>
 
-namespace
-{
-    constexpr int SCREEN_WIDTH = 1280;
-}
+//                      ---- Construction ----
 
 ui::SlideOutPanel::SlideOutPanel(int width, Side side)
     : m_width(width)
-    , m_targetX(side == Side::Left ? 0.0f : static_cast<double>(SCREEN_WIDTH) - m_width)
+    , m_targetX(side == Side::Left ? 0.0f : static_cast<double>(graphics::SCREEN_WIDTH) - m_width)
     , m_side(side)
-    , m_transition(m_side == Side::Left ? -m_width : SCREEN_WIDTH,
+    , m_transition(m_side == Side::Left ? -m_width : graphics::SCREEN_WIDTH,
                    0,
                    0,
                    0,
@@ -25,8 +23,12 @@ ui::SlideOutPanel::SlideOutPanel(int width, Side side)
                    0,
                    0,
                    ui::Transition::DEFAULT_THRESHOLD)
-    , m_renderTarget(
-          sdl::TextureManager::load("PANEL_" + std::to_string(sm_targetID++), m_width, 720, SDL_TEXTUREACCESS_TARGET)) {};
+    , m_renderTarget(sdl::TextureManager::load("PANEL_" + std::to_string(sm_targetID++),
+                                               m_width,
+                                               graphics::SCREEN_HEIGHT,
+                                               SDL_TEXTUREACCESS_TARGET)) {};
+
+//                      ---- Public functions ----
 
 void ui::SlideOutPanel::update(bool hasFocus)
 {

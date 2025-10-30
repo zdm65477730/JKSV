@@ -2,6 +2,7 @@
 
 #include "appstates/FadeState.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/screen.hpp"
 #include "input.hpp"
 #include "sdl.hpp"
 #include "strings/strings.hpp"
@@ -28,7 +29,7 @@ void TaskState::render()
     const std::string status = m_task->get_status();
     const int statusX        = 640 - (sdl::text::get_width(BaseTask::FONT_SIZE, status.c_str()) / 2);
 
-    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, colors::DIM_BACKGROUND);
+    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::DIM_BACKGROUND);
     sdl::text::render(sdl::Texture::Null, statusX, 351, BaseTask::FONT_SIZE, sdl::text::NO_WRAP, colors::WHITE, status);
 
     BaseTask::render_loading_glyph();

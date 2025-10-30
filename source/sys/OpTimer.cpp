@@ -2,6 +2,8 @@
 
 #include "logging/logger.hpp"
 
+//                      ---- Construction ----
+
 sys::OpTimer::OpTimer(const std::source_location &location) noexcept
     : m_location(location)
     , m_begin(std::chrono::high_resolution_clock::now()) {};
@@ -14,6 +16,8 @@ sys::OpTimer::~OpTimer() noexcept
     std::string_view functionName = OpTimer::get_function_name();
     logger::log("%s took %lli microseconds.", functionName.data(), diff.count());
 }
+
+//                      ---- Public functions ----
 
 std::string_view sys::OpTimer::get_function_name() const noexcept
 {

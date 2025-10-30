@@ -53,7 +53,7 @@ void SaveImportState::initialize_static_members()
 
     sm_taskData = std::make_shared<SaveImportState::DataStruct>();
 
-    sm_saveMenu   = ui::Menu::create(8, 8, 492, 22, 720);
+    sm_saveMenu   = ui::Menu::create(8, 8, 492, 22, graphics::SCREEN_HEIGHT);
     sm_slidePanel = ui::SlideOutPanel::create(SIZE_PANEL_WIDTH, ui::SlideOutPanel::Side::Right);
 
     sm_slidePanel->push_new_element(sm_saveMenu);

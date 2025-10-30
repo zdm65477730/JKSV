@@ -8,7 +8,11 @@
 
 #include <cstdarg>
 
+//                      ---- Construction ----
+
 ui::PopMessageManager::PopMessageManager() { PopMessageManager::initialize_pop_sound(); }
+
+//                      ---- Public functions ----
 
 void ui::PopMessageManager::update()
 {
@@ -109,6 +113,8 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string &message)
     messageQueue.push_back(std::move(queuePair));
     popSound->play();
 }
+
+//                      ---- Private functions ----
 
 void ui::PopMessageManager::initialize_pop_sound()
 {
