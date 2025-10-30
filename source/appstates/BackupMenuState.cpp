@@ -21,6 +21,8 @@
 
 #include <cstring>
 
+//                      ---- Construction ----
+
 BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, const FsSaveDataInfo *saveInfo)
     : m_user(user)
     , m_titleInfo(titleInfo)
@@ -38,6 +40,8 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, c
     BackupMenuState::save_data_check();
     BackupMenuState::refresh();
 }
+
+//                      ---- Public functions ----
 
 void BackupMenuState::update()
 {
@@ -139,6 +143,9 @@ void BackupMenuState::save_data_written()
 {
     if (!m_saveHasData) { m_saveHasData = true; }
 }
+
+
+//                      ---- Private functions ----
 
 void BackupMenuState::initialize_static_members()
 {

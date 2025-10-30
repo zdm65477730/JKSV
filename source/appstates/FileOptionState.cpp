@@ -39,6 +39,8 @@ namespace
 // Defined at bottom.
 static std::string get_size_string(int64_t totalSize);
 
+//                      ---- Construction ----
+
 FileOptionState::FileOptionState(FileModeState *spawningState)
     : m_spawningState(spawningState)
     , m_target(spawningState->m_target)
@@ -56,6 +58,8 @@ FileOptionState::FileOptionState(FileModeState *spawningState)
     FileOptionState::initialize_static_members();
     FileOptionState::initialize_data_struct();
 }
+
+//                      ---- Public functions ----
 
 void FileOptionState::update()
 {
@@ -116,6 +120,8 @@ void FileOptionState::render()
 void FileOptionState::update_source() { m_updateSource = true; }
 
 void FileOptionState::update_destination() { m_updateDest = true; }
+
+//                      ---- Private functions ----
 
 void FileOptionState::initialize_static_members()
 {
@@ -429,6 +435,8 @@ void FileOptionState::deactivate_state()
     sm_copyMenu->set_selected(0);
     BaseState::deactivate();
 }
+
+//                      ---- Static definitions ----
 
 static std::string get_size_string(int64_t totalSize)
 {

@@ -7,10 +7,14 @@
 #include "strings/strings.hpp"
 #include "ui/PopMessageManager.hpp"
 
+//                      ---- Construction ----
+
 TaskState::TaskState(sys::threadpool::JobFunction function, sys::Task::TaskData taskData)
 {
     m_task = std::make_unique<sys::Task>(function, taskData);
 }
+
+//                      ---- Public functions ----
 
 void TaskState::update()
 {

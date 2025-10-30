@@ -7,6 +7,8 @@
 #include "error.hpp"
 #include "input.hpp"
 
+//                      ---- Construction ----
+
 BlacklistEditState::BlacklistEditState()
     : BaseState()
 {
@@ -15,6 +17,8 @@ BlacklistEditState::BlacklistEditState()
     BlacklistEditState::initialize_menu();
     BlacklistEditState::refresh_menu();
 }
+
+//                      ---- Public functions ----
 
 void BlacklistEditState::update()
 {
@@ -35,6 +39,8 @@ void BlacklistEditState::render()
     sm_slidePanel->clear_target();
     sm_slidePanel->render(sdl::Texture::Null, hasFocus);
 }
+
+//                      ---- Private functions ----
 
 void BlacklistEditState::initialize_static_members()
 {

@@ -19,11 +19,16 @@ namespace
     constexpr std::string_view SECONDARY_TARGET = "SecondaryTarget";
 } // namespace
 
+//                      ---- Construction ----
+
 TitleSelectState::TitleSelectState(data::User *user)
     : TitleSelectCommon()
     , m_user(user)
     , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
     , m_titleView(ui::TitleView::create(m_user)) {};
+
+
+//                      ---- Public functions ----
 
 void TitleSelectState::update()
 {
@@ -59,6 +64,8 @@ void TitleSelectState::render()
 }
 
 void TitleSelectState::refresh() { m_titleView->refresh(); }
+
+//                      ---- Private functions ----
 
 bool TitleSelectState::title_count_check()
 {

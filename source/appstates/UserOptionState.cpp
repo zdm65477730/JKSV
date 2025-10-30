@@ -34,6 +34,8 @@ namespace
     };
 } // namespace
 
+//                      ---- Construction ----
+
 UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelect)
     : m_user(user)
     , m_titleSelect(titleSelect)
@@ -44,6 +46,8 @@ UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelec
     UserOptionState::load_menu_strings();
     UserOptionState::initialize_data_struct();
 }
+
+//                      ---- Public functions ----
 
 void UserOptionState::update()
 {
@@ -90,6 +94,8 @@ void UserOptionState::render()
 }
 
 void UserOptionState::refresh_required() { m_refreshRequired = true; }
+
+//                      ---- Private functions ----
 
 void UserOptionState::create_menu_panel()
 {

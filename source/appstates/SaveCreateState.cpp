@@ -22,6 +22,8 @@
 // This is the sorting function.
 static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB);
 
+//                      ---- Construction ----
+
 SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelect)
     : m_user(user)
     , m_titleSelect(titleSelect)
@@ -33,6 +35,8 @@ SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelec
     SaveCreateState::initialize_menu();
     SaveCreateState::initialize_data_struct();
 }
+
+//                      ---- Public functions ----
 
 void SaveCreateState::update()
 {
@@ -66,6 +70,8 @@ void SaveCreateState::render()
 }
 
 void SaveCreateState::refresh_required() { m_refreshRequired.store(true); }
+
+//                      ---- Private functions ----
 
 void SaveCreateState::initialize_static_members()
 {
@@ -129,6 +135,8 @@ void SaveCreateState::deactivate_state()
     sm_slidePanel->reset();
     BaseState::deactivate();
 }
+
+//                      ---- Static functions ----
 
 static bool compare_info(data::TitleInfo *infoA, data::TitleInfo *infoB)
 {

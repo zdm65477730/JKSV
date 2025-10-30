@@ -10,6 +10,7 @@ namespace
     constexpr uint64_t TICKS_TIMER_TRIGGER = 1;
 }
 
+//                          ---- Construction ----
 FadeState::FadeState(sdl::Color baseColor, uint8_t startAlpha, uint8_t endAlpha, std::shared_ptr<BaseState> nextState)
     : m_baseColor(baseColor)
     , m_alpha(startAlpha)
@@ -43,6 +44,8 @@ void FadeState::render()
 
     sdl::render_rect_fill(sdl::Texture::Null, 0, 0, 1280, 720, fadeColor);
 }
+
+//                      ---- Private functions ----
 
 void FadeState::find_divisor()
 {

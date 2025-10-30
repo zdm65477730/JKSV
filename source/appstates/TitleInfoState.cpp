@@ -40,6 +40,8 @@ static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string_view 
 static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string &text, int x, int y, sdl::Color clear);
 static bool is_a_best_game(uint64_t applicationID) noexcept;
 
+//                      ---- Construction ----
+
 TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo, const FsSaveDataInfo *saveInfo)
     : m_user(user)
     , m_titleInfo(titleInfo)
@@ -59,6 +61,8 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo, con
     TitleInfoState::initialize_info_fields();
     sm_openChime->play();
 }
+
+//                      ---- Public functions ----
 
 void TitleInfoState::update()
 {
@@ -93,6 +97,8 @@ void TitleInfoState::render()
         currentField->render(sdl::Texture::Null, hasFocus);
     }
 }
+
+//                      ---- Private functions ----
 
 void TitleInfoState::initialize_static_members()
 {
@@ -394,6 +400,8 @@ void TitleInfoState::close() noexcept
 }
 
 void TitleInfoState::deactivate_state() { BaseState::deactivate(); }
+
+//                      ---- Static functions ----
 
 static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string_view text, int x, int y, sdl::Color clear)
 {

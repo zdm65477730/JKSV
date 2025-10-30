@@ -11,6 +11,8 @@
 
 #include <cmath>
 
+//                      ---- Construction ----
+
 FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, int64_t journalSize, bool isSystem)
     : m_mountA(mountA)
     , m_mountB(mountB)
@@ -23,6 +25,8 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
     FileModeState::initialize_paths();
     FileModeState::initialize_menus();
 }
+
+//                      ---- Public functions ----
 
 void FileModeState::update()
 {
@@ -77,6 +81,8 @@ void FileModeState::render()
     const int y = m_transition.get_y();
     sm_renderTarget->render(sdl::Texture::Null, 23, y + 12);
 }
+
+//                      ---- Private functions ----
 
 void FileModeState::initialize_static_members()
 {

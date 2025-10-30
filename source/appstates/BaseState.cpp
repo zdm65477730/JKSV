@@ -4,6 +4,7 @@
 
 #include <switch.h>
 
+//                      ---- Construction ----
 BaseState::BaseState(bool isClosable)
     : m_isClosable(isClosable)
 {
@@ -16,6 +17,8 @@ BaseState::~BaseState()
     if (m_isClosable) { return; }
     error::libnx(appletEndBlockingHomeButtonShortAndLongPressed());
 }
+
+//                      ---- Public functions ----
 
 void BaseState::deactivate() { m_isActive = false; }
 

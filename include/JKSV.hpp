@@ -45,6 +45,9 @@ class JKSV
         /// @brief Stores the build string.
         std::string m_buildString{};
 
+        /// @brief Sets the system to enable boost mode.
+        void set_boost_mode();
+
         /// @brief Initializes fslib and takes care of a few other things.
         bool initialize_filesystem();
 
@@ -59,6 +62,12 @@ class JKSV
 
         /// @brief Adds the text color changing characters.
         void add_color_chars();
+
+        /// @brief Retrieves the strings from the map and sets them up for printing.
+        void setup_translation_info_strings();
+
+        /// @brief Renders the base UI.
+        void render_base();
 
         /// @brief Exits all services.
         void exit_services();

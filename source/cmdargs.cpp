@@ -4,6 +4,7 @@
 
 namespace
 {
+    /// @brief Stores pointers to the arguments passed to JKSV.
     std::vector<const char *> s_args{};
 }
 

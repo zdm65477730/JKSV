@@ -8,6 +8,8 @@ namespace
     constexpr int SCREEN_CENTER = 640;
 }
 
+//                      ---- Construction ----
+
 DataLoadingState::DataLoadingState(data::DataContext &context,
                                    DestructFunction destructFunction,
                                    sys::threadpool::JobFunction function,
@@ -19,6 +21,8 @@ DataLoadingState::DataLoadingState(data::DataContext &context,
     DataLoadingState::initialize_static_members();
     m_task = std::make_unique<sys::Task>(function, taskData);
 }
+
+//                      ---- Public functions ----
 
 void DataLoadingState::update()
 {
@@ -43,6 +47,8 @@ void DataLoadingState::render()
     sdl::text::render(sdl::Texture::Null, m_statusX, 673, BaseTask::FONT_SIZE, sdl::text::NO_WRAP, colors::WHITE, status);
     BaseTask::render_loading_glyph();
 }
+
+//                      ---- Private functions ----
 
 void DataLoadingState::initialize_static_members()
 {

@@ -20,6 +20,8 @@ namespace
     constexpr std::string_view SECONDARY_TARGET = "SecondaryTarget";
 } // namespace
 
+//                      ---- Construction ----
+
 TextTitleSelectState::TextTitleSelectState(data::User *user)
     : TitleSelectCommon()
     , m_user(user)
@@ -28,6 +30,8 @@ TextTitleSelectState::TextTitleSelectState(data::User *user)
 {
     TextTitleSelectState::refresh();
 }
+
+//                      ---- Public functions ----
 
 void TextTitleSelectState::update()
 {
@@ -78,6 +82,8 @@ void TextTitleSelectState::refresh()
         m_titleSelectMenu->add_option(option);
     }
 }
+
+//                      ---- Private functions ----
 
 void TextTitleSelectState::create_backup_menu()
 {

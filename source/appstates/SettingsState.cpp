@@ -63,6 +63,8 @@ namespace
                                                                    CONFIG_KEY_NULL};
 } // namespace
 
+//                      ---- Construction ----
+
 SettingsState::SettingsState()
     : m_settingsMenu(ui::Menu::create(32, 10, 1000, 23, 555))
     , m_controlGuide(ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 3)))
@@ -72,6 +74,8 @@ SettingsState::SettingsState()
     SettingsState::load_extra_strings();
     SettingsState::update_menu_options();
 }
+
+//                      ---- Public functions ----
 
 void SettingsState::update()
 {
@@ -101,6 +105,8 @@ void SettingsState::render()
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
     m_controlGuide->render(sdl::Texture::Null, hasFocus);
 }
+
+//                      ---- Private functions ----
 
 void SettingsState::load_settings_menu()
 {
@@ -184,7 +190,9 @@ void SettingsState::change_working_directory()
         moved = fs::move_directory_recursively(oldPath, newPath);
         error::fslib(fslib::delete_directory_recursively(oldPath));
     }
-    else { moved = fslib::rename_directory(oldPath, newPath); }
+    else {
+        moved = fslib::rename_directory(oldPath, newPath);
+    }
 
     if (!moved)
     {
@@ -282,7 +290,9 @@ void SettingsState::toggle_trash_folder()
     config::toggle_by_key(config::keys::ENABLE_TRASH_BIN);
 
     if (trashEnabled) { error::fslib(fslib::delete_directory_recursively(trashPath)); }
-    else { error::fslib(fslib::create_directory(trashPath)); }
+    else {
+        error::fslib(fslib::create_directory(trashPath));
+    }
 }
 
 void SettingsState::cycle_anim_scaling()

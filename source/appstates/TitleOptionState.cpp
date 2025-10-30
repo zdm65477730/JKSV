@@ -40,6 +40,8 @@ namespace
     };
 } // namespace
 
+//                      ---- Construction ----
+
 TitleOptionState::TitleOptionState(data::User *user,
                                    data::TitleInfo *titleInfo,
                                    const FsSaveDataInfo *saveInfo,
@@ -53,6 +55,8 @@ TitleOptionState::TitleOptionState(data::User *user,
     TitleOptionState::initialize_static_members();
     TitleOptionState::initialize_data_struct();
 }
+
+//                      ---- Public functions ----
 
 void TitleOptionState::update()
 {
@@ -109,6 +113,8 @@ void TitleOptionState::render()
 void TitleOptionState::close_on_update() { m_exitRequired = true; }
 
 void TitleOptionState::refresh_required() { m_refreshRequired = true; }
+
+//                      ---- Private functions ----
 
 void TitleOptionState::initialize_static_members()
 {

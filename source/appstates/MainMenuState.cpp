@@ -21,6 +21,8 @@
 #include "tasks/update.hpp"
 #include "ui/PopMessageManager.hpp"
 
+//                      ---- Construction ----
+
 MainMenuState::MainMenuState()
     : m_renderTarget(sdl::TextureManager::load("mainMenuTarget", 200, 555, SDL_TEXTUREACCESS_TARGET))
     , m_background(sdl::TextureManager::load("mainBackground", "romfs:/Textures/MenuBackground.png"))
@@ -36,6 +38,8 @@ MainMenuState::MainMenuState()
     MainMenuState::initialize_data_struct();
     MainMenuState::check_for_update();
 }
+
+//                      ---- Public functions ----
 
 void MainMenuState::update()
 {
@@ -109,6 +113,8 @@ void MainMenuState::refresh_view_states()
         target->refresh();
     }
 }
+
+//                      ---- Private functions ----
 
 void MainMenuState::initialize_settings_extras()
 {

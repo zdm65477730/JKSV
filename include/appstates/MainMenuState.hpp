@@ -113,5 +113,6 @@ class MainMenuState final : public BaseState
         /// @brief Backups up all save data for all users.
         void backup_all_for_all();
 
+        /// @brief Pushes the update notice and allows the user to select whether or not they want to update JKSV.
         void confirm_update();
 };

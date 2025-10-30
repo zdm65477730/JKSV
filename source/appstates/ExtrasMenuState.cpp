@@ -33,12 +33,16 @@ namespace
 // Definition at bottom.
 static void finish_reinitialization();
 
+//                      ---- Construction ----
+
 ExtrasMenuState::ExtrasMenuState()
     : m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
     , m_controlGuide(ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 5)))
 {
     ExtrasMenuState::initialize_menu();
 }
+
+//                      ---- Public functions ----
 
 void ExtrasMenuState::update()
 {
@@ -76,6 +80,8 @@ void ExtrasMenuState::render()
     m_renderTarget->render(sdl::Texture::Null, 201, 91);
     m_controlGuide->render(sdl::Texture::Null, hasFocus);
 }
+
+//                      ---- Private functions ----
 
 void ExtrasMenuState::initialize_menu()
 {

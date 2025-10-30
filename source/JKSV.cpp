@@ -43,6 +43,7 @@ namespace
 
 } // namespace
 
+// This function allows any service init to be logged with its name without repeating the code.
 template <typename... Args>
 static bool initialize_service(Result (*function)(Args...), const char *serviceName, Args... args)
 {
@@ -55,40 +56,52 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
     return true;
 }
 
-// Definition at bottom.
-static void finish_initialization();
+//                      ---- Construction ----
 
-// This can't really have an initializer list since it sets everything up.
 JKSV::JKSV()
 {
-    appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad);
+    // Set boost mode first.
+    JKSV::set_boost_mode();
+
+    // Nothing in JKSV can really continue without these.
     ABORT_ON_FAILURE(JKSV::initialize_services());
     ABORT_ON_FAILURE(JKSV::initialize_filesystem());
+
+    // Create the log file if it hasn't been already.
     logger::initialize();
+
+    // SDL2
     ABORT_ON_FAILURE(JKSV::initialize_sdl());
 
+    // Curl.
     ABORT_ON_FAILURE(curl::initialize());
+
+    // Config and input.
     input::initialize();
     config::initialize();
 
+    // These are the strings used in the UI.
     ABORT_ON_FAILURE(strings::initialize()); // This is fatal now.
-
-    const char *translationFormat = strings::get_by_name(strings::names::TRANSLATION, 0);
-    const char *author            = strings::get_by_name(strings::names::TRANSLATION, 1);
-    m_showTranslationInfo         = std::char_traits<char>::compare(author, "NULL", 4) != 0; // This is whether or not to show.
-    m_translationInfo             = stringutil::get_formatted_string(translationFormat, author);
-    m_buildString = stringutil::get_formatted_string("v. %02d.%02d.%04d", builddate::MONTH, builddate::DAY, builddate::YEAR);
 
     // This needs the config init'd or read to work.
     JKSV::create_directories();
-    sys::threadpool::initialize();
+    sys::threadpool::initialize(); // This is the thread pool so JKSV isn't constantly creating and destroying threads.
 
+    // Push the remote init.
     sys::threadpool::push_job(remote::initialize, nullptr);
-    data::launch_initialization(false, finish_initialization);
+
+    // Launch the loading init. Finish init is called afterwards.
+    auto init_finish = []() { MainMenuState::create_and_push(); }; // Lambda that's exec'd after state is finished.
+    data::launch_initialization(false, init_finish);
+
+    // This isn't required, but why not?
     FadeState::create_and_push(colors::BLACK, 0xFF, 0x00, nullptr);
 
+    // JKSV is now running.
     sm_isRunning = true;
 }
+
+//                      ---- Destruction ----
 
 JKSV::~JKSV()
 {
@@ -102,6 +115,8 @@ JKSV::~JKSV()
     appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
     appletUnlockExit();
 }
+
+//                      ---- Public functions ----
 
 bool JKSV::is_running() const noexcept { return sm_isRunning && appletMainLoop(); }
 
@@ -121,22 +136,7 @@ void JKSV::render()
 {
     sdl::frame_begin(colors::CLEAR_COLOR);
 
-    // Top and bottom divider lines.
-    sdl::render_line(sdl::Texture::Null, 30, 88, 1250, 88, colors::WHITE);
-    sdl::render_line(sdl::Texture::Null, 30, 648, 1250, 648, colors::WHITE);
-    // Icon
-    m_headerIcon->render(sdl::Texture::Null, 66, 27);
-    // "JKSV"
-    sdl::text::render(sdl::Texture::Null, 130, 32, 34, sdl::text::NO_WRAP, colors::WHITE, "JKSV");
-
-    // Translation info in bottom left.
-    if (m_showTranslationInfo)
-    {
-        sdl::text::render(sdl::Texture::Null, 8, 680, 14, sdl::text::NO_WRAP, colors::WHITE, m_translationInfo);
-    }
-    // Build date
-    sdl::text::render(sdl::Texture::Null, 8, 700, 14, sdl::text::NO_WRAP, colors::WHITE, m_buildString);
-
+    JKSV::render_base();
     StateManager::render();
     ui::PopMessageManager::render();
 
@@ -144,6 +144,14 @@ void JKSV::render()
 }
 
 void JKSV::request_quit() noexcept { sm_isRunning = false; }
+
+//                      ---- Private functions ----
+
+void JKSV::set_boost_mode()
+{
+    // Log for errors, but not fatal.
+    error::libnx(appletSetCpuBoostMode(ApmCpuBoostMode_FastLoad));
+}
 
 bool JKSV::initialize_filesystem()
 {
@@ -174,10 +182,16 @@ bool JKSV::initialize_services()
 
 bool JKSV::initialize_sdl()
 {
+    // Initialize SDL, freetype and the system font.
     bool sdlInit = sdl::initialize("JKSV", 1280, 720);
     sdlInit      = sdlInit && sdl::text::initialize();
+
+    // Load the icon in the top left.
     m_headerIcon = sdl::TextureManager::load("headerIcon", "romfs:/Textures/HeaderIcon.png");
+
+    // Push the color changing characters.
     JKSV::add_color_chars();
+
     return sdlInit && m_headerIcon;
 }
 
@@ -209,6 +223,39 @@ void JKSV::add_color_chars()
     sdl::text::add_color_character(L'$', colors::GOLD);
 }
 
+void JKSV::setup_translation_info_strings()
+{
+    const char *translationFormat = strings::get_by_name(strings::names::TRANSLATION, 0);
+    const char *author            = strings::get_by_name(strings::names::TRANSLATION, 1);
+    m_showTranslationInfo         = std::char_traits<char>::compare(author, "NULL", 4) != 0; // This is whether or not to show.
+    m_translationInfo             = stringutil::get_formatted_string(translationFormat, author);
+    m_buildString = stringutil::get_formatted_string("v. %02d.%02d.%04d", builddate::MONTH, builddate::DAY, builddate::YEAR);
+}
+
+void JKSV::render_base()
+{
+    static constexpr std::string_view TITLE_TEXT = "JKSV";
+
+    // Top and bottom framing lines.
+    sdl::render_line(sdl::Texture::Null, 30, 88, 1250, 88, colors::WHITE);
+    sdl::render_line(sdl::Texture::Null, 30, 648, 1250, 648, colors::WHITE);
+
+    // Icon
+    m_headerIcon->render(sdl::Texture::Null, 66, 27);
+
+    // "JKSV"
+    sdl::text::render(sdl::Texture::Null, 130, 32, 34, sdl::text::NO_WRAP, colors::WHITE, TITLE_TEXT);
+
+    // Translation info in bottom left.
+    if (m_showTranslationInfo)
+    {
+        sdl::text::render(sdl::Texture::Null, 8, 680, 14, sdl::text::NO_WRAP, colors::WHITE, m_translationInfo);
+    }
+
+    // Build date
+    sdl::text::render(sdl::Texture::Null, 8, 700, 14, sdl::text::NO_WRAP, colors::WHITE, m_buildString);
+}
+
 void JKSV::exit_services()
 {
     nifmExit();
@@ -221,5 +268,3 @@ void JKSV::exit_services()
     nsExit();
     accountExit();
 }
-
-static void finish_initialization() { MainMenuState::create_and_push(); }

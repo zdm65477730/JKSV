@@ -8,6 +8,8 @@
 #include "stringutil.hpp"
 #include "tasks/saveimport.hpp"
 
+//                      ---- Construction ----
+
 SaveImportState::SaveImportState(data::User *user)
     : m_user(user)
     , m_saveDir()
@@ -15,6 +17,8 @@ SaveImportState::SaveImportState(data::User *user)
     SaveImportState::initialize_static_members();
     SaveImportState::initialize_directory_menu();
 }
+
+//                      ---- Public functions ----
 
 void SaveImportState::update()
 {
@@ -38,6 +42,8 @@ void SaveImportState::render()
     sm_slidePanel->clear_target();
     sm_slidePanel->render(sdl::Texture::Null, hasFocus);
 }
+
+//                      ---- Private functions ----
 
 void SaveImportState::initialize_static_members()
 {

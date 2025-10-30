@@ -6,6 +6,8 @@
 #include "input.hpp"
 #include "strings/strings.hpp"
 
+//                      ---- Construction ----
+
 MessageState::MessageState(std::string_view message)
     : m_message(message)
     , m_transition(0, 0, 32, 32, 0, 0, 720, 256, ui::Transition::DEFAULT_THRESHOLD)
@@ -13,6 +15,8 @@ MessageState::MessageState(std::string_view message)
     MessageState::initialize_static_members();
     sm_dialogPop->play();
 }
+
+//                      ---- Public functions ----
 
 void MessageState::update()
 {
@@ -42,6 +46,8 @@ void MessageState::render()
     sdl::render_line(sdl::Texture::Null, 280, y + 192, 999, y + 192, colors::DIV_COLOR);
     sdl::text::render(sdl::Texture::Null, sm_okX, y + 214, 22, sdl::text::NO_WRAP, colors::WHITE, sm_okText);
 }
+
+//                      ---- Private functions ----
 
 void MessageState::initialize_static_members()
 {

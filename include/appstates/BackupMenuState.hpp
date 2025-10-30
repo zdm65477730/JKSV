@@ -1,4 +1,5 @@
 #pragma once
+
 #include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
 #include "data/data.hpp"
@@ -171,6 +172,7 @@ class BackupMenuState final : public BaseState
         /// @brief Performs some operations and then marks the state for purging.
         void deactivate_state();
 
+        /// @brief Inline. Returns if the user is "system" type.
         inline bool user_is_system()
         {
             const uint8_t saveType = m_user->get_account_save_type();

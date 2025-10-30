@@ -11,10 +11,13 @@ namespace
     constexpr uint64_t TICKS_GLYPH_TRIGGER = 50;
 } // namespace
 
+//                      ---- Construction ----
 BaseTask::BaseTask()
     : BaseState(false)
     , m_frameTimer(TICKS_GLYPH_TRIGGER)
     , m_popUnableExit(strings::get_by_name(strings::names::GENERAL_POPS, 0)) {};
+
+//                      ---- Public functions ----
 
 void BaseTask::update_loading_glyph()
 {
