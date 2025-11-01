@@ -80,14 +80,22 @@ void BackupMenuState::update()
 
 void BackupMenuState::render()
 {
+    // Line render coords.
+    static constexpr int LINE_X   = 10;
+    static constexpr int LINE_A_Y = 42;
+    static constexpr int LINE_B_Y = 648;
+
+    static constexpr int CONTROL_X = 32;
+    static constexpr int CONTROL_Y = 673;
+
     const bool hasFocus        = BaseState::has_focus();
     sdl::SharedTexture &target = sm_slidePanel->get_target();
 
     sm_slidePanel->clear_target();
 
-    sdl::render_line(target, 10, 42, sm_panelWidth - 10, 42, colors::WHITE);
-    sdl::render_line(target, 10, 648, sm_panelWidth - 10, 648, colors::WHITE);
-    sdl::text::render(target, 32, 673, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
+    sdl::render_line(target, LINE_X, LINE_A_Y, sm_panelWidth - LINE_X, LINE_A_Y, colors::WHITE);
+    sdl::render_line(target, LINE_X, LINE_B_Y, sm_panelWidth - LINE_X, LINE_B_Y, colors::WHITE);
+    sdl::text::render(target, CONTROL_X, CONTROL_Y, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
 
     sm_menuRenderTarget->clear(colors::TRANSPARENT);
     {
@@ -143,7 +151,6 @@ void BackupMenuState::save_data_written()
 {
     if (!m_saveHasData) { m_saveHasData = true; }
 }
-
 
 //                      ---- Private functions ----
 

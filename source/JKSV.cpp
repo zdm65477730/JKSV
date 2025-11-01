@@ -112,7 +112,7 @@ JKSV::~JKSV()
     config::save();
     curl::exit();
     JKSV::exit_services();
-    sdl::text::exit();
+    sdl::text::SystemFont::exit();
     sdl::exit();
 
     appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
@@ -187,15 +187,17 @@ bool JKSV::initialize_sdl()
 {
     // Initialize SDL, freetype and the system font.
     bool sdlInit = sdl::initialize("JKSV", graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT);
-    sdlInit      = sdlInit && sdl::text::initialize();
+    sdlInit      = sdlInit && sdl::text::SystemFont::initialize();
+    if (!sdlInit) { return false; }
 
     // Load the icon in the top left.
     m_headerIcon = sdl::TextureManager::load("headerIcon", "romfs:/Textures/HeaderIcon.png");
+    if (!m_headerIcon) { return false; }
 
     // Push the color changing characters.
     JKSV::add_color_chars();
 
-    return sdlInit && m_headerIcon;
+    return true;
 }
 
 bool JKSV::create_directories()
