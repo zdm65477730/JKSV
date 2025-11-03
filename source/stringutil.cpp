@@ -10,9 +10,14 @@
 #include <unordered_map>
 #include <unordered_set>
 
+namespace
+{
+    constexpr std::array<uint32_t, 13> FORBIDDEN =
+        {L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®'};
+}
+
 // Defined at bottom.
-static std::unordered_set<uint32_t> &get_forbidden_characters();
-static std::unordered_map<uint32_t, std::string_view> &get_replacement_table();
+static const std::unordered_map<uint32_t, std::string_view> &get_replacement_table();
 
 std::string stringutil::get_formatted_string(const char *format, ...)
 {
@@ -50,9 +55,8 @@ void stringutil::strip_character(char c, std::string &target)
 bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut, size_t stringOutSize)
 {
     uint32_t codepoint{};
-    const int length       = std::char_traits<char>::length(stringIn);
-    auto &forbiddenChars   = get_forbidden_characters();
-    auto &replacementTable = get_replacement_table();
+    const int length             = std::char_traits<char>::length(stringIn);
+    const auto &replacementTable = get_replacement_table();
 
     for (int i = 0, outOffset = 0; i < length;)
     {
@@ -61,7 +65,7 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
         if (count <= 0 || outOffset + count >= static_cast<int>(stringOutSize)) { return false; }
 
         // If it's forbidden, skip.
-        const bool isForbidden = forbiddenChars.find(codepoint) != forbiddenChars.end();
+        const bool isForbidden = std::find(FORBIDDEN.begin(), FORBIDDEN.end(), codepoint) != FORBIDDEN.end();
         if (isForbidden)
         {
             i += count;
@@ -77,7 +81,7 @@ bool stringutil::sanitize_string_for_path(const char *stringIn, char *stringOut,
 
             const size_t remainingSize = stringOutSize - outOffset;
             const std::span<char> stringSpan{&stringOut[outOffset], remainingSize};
-            std::copy(replacement.data(), replacement.data() + replacementLength, stringSpan.begin());
+            std::copy(replacement.begin(), replacement.end(), stringSpan.begin());
 
             outOffset += replacementLength;
             i += count;
@@ -132,17 +136,9 @@ std::string stringutil::get_date_string(stringutil::DateFormat format)
     return std::string(stringBuffer);
 }
 
-static std::unordered_set<uint32_t> &get_forbidden_characters()
+static const std::unordered_map<uint32_t, std::string_view> &get_replacement_table()
 {
-    static std::unordered_set<uint32_t> forbidden =
-        {L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®'};
-
-    return forbidden;
-}
-
-static std::unordered_map<uint32_t, std::string_view> &get_replacement_table()
-{
-    static std::unordered_map<uint32_t, std::string_view> replacementTable = {
+    static const std::unordered_map<uint32_t, std::string_view> replacementTable = {
         {L'Á', "A"},  {L'À', "A"},  {L'Â', "A"},   {L'Ä', "A"},    {L'Ã', "A"},  {L'Å', "A"},  {L'Ā', "A"},   {L'Ă', "A"},
         {L'Ą', "A"},  {L'Ǎ', "A"},  {L'Ǻ', "A"},   {L'Ȁ', "A"},    {L'Ȃ', "A"},  {L'Ǟ', "A"},  {L'Ǡ', "A"},   {L'á', "a"},
         {L'à', "a"},  {L'â', "a"},  {L'ä', "a"},   {L'ã', "a"},    {L'å', "a"},  {L'ā', "a"},  {L'ă', "a"},   {L'ą', "a"},
