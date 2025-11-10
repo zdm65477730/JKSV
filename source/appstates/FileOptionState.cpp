@@ -31,9 +31,17 @@ namespace
         CLOSE
     };
 
+    // X coordinates
     constexpr int LEFT_X  = 200;
     constexpr int RIGHT_X = 840;
-    constexpr int TOP_Y   = 218;
+
+    // Y coordinate.
+    constexpr int TOP_Y = 218;
+
+    // Initial width and height.
+    constexpr int INITIAL_WIDTH_HEIGHT = 32;
+    // Target width and height.
+    constexpr int TARGET_WIDTH_HEIGHT = 256;
 }
 
 // Defined at bottom.
@@ -44,14 +52,15 @@ static std::string get_size_string(int64_t totalSize);
 FileOptionState::FileOptionState(FileModeState *spawningState)
     : m_spawningState(spawningState)
     , m_target(spawningState->m_target)
+    , m_state(State::Opening)
     , m_transition(m_target == FileModeState::Target::MountA ? LEFT_X : RIGHT_X,
-                   232,
-                   32,
-                   32,
+                   0,
+                   INITIAL_WIDTH_HEIGHT,
+                   INITIAL_WIDTH_HEIGHT,
                    m_target == FileModeState::Target::MountA ? LEFT_X : RIGHT_X,
-                   232,
-                   256,
-                   256,
+                   0,
+                   TARGET_WIDTH_HEIGHT,
+                   TARGET_WIDTH_HEIGHT,
                    ui::Transition::DEFAULT_THRESHOLD)
     , m_dataStruct(std::make_shared<FileOptionState::DataStruct>())
 {
@@ -63,49 +72,12 @@ FileOptionState::FileOptionState(FileModeState *spawningState)
 
 void FileOptionState::update()
 {
-    m_transition.update();
-    const int width  = m_transition.get_width();
-    const int height = m_transition.get_height();
-    int x            = m_transition.get_x();
-    x += 128 - (width / 2);
-    int y = m_transition.get_centered_y();
-    sm_dialog->set_x(x);
-    sm_dialog->set_y(y);
-    sm_dialog->set_width(width);
-    sm_dialog->set_height(height);
-    if (!m_transition.in_place()) { return; }
-
-    const bool hasFocus = BaseState::has_focus();
-    if (m_updateSource)
+    switch (m_state)
     {
-        FileOptionState::update_filemode_source();
-        m_updateSource = false;
+        case State::Opening: FileOptionState::update_dimensions(); break;
+        case State::Opened:  FileOptionState::update_handle_input(); break;
+        case State::Closing: FileOptionState::update_dimensions(); break;
     }
-    else if (m_updateDest)
-    {
-        FileOptionState::update_filemode_dest();
-        m_updateDest = false;
-    }
-
-    sm_copyMenu->update(hasFocus);
-    const int selected  = sm_copyMenu->get_selected();
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
-
-    if (aPressed)
-    {
-        switch (selected)
-        {
-            case COPY:       FileOptionState::copy_target(); break;
-            case DELETE:     FileOptionState::delete_target(); break;
-            case RENAME:     FileOptionState::rename_target(); break;
-            case CREATE_DIR: FileOptionState::create_directory(); break;
-            case PROPERTIES: FileOptionState::get_show_target_properties(); break;
-            case CLOSE:      FileOptionState::close(); break;
-        }
-    }
-    else if (bPressed) { FileOptionState::close(); }
-    else if (FileOptionState::is_closed()) { FileOptionState::deactivate_state(); }
 }
 
 void FileOptionState::render()
@@ -125,30 +97,97 @@ void FileOptionState::update_destination() { m_updateDest = true; }
 
 void FileOptionState::initialize_static_members()
 {
+    // Menu coords.
+    static constexpr int MENU_Y         = 253;
+    static constexpr int MENU_WIDTH     = 234;
+    static constexpr int MENU_FONT_SIZE = 20;
+
+    // Dialog
+    static constexpr int DIALOG_X            = 2000;
+    static constexpr int DIALOG_Y            = 1000;
+    static constexpr int DIALOG_WIDTH_HEIGHT = 32;
+
+    // If these are already allocated, just reset.
     if (sm_copyMenu && sm_dialog)
     {
         const int x       = m_transition.get_x();
         const int dialogX = x + (128 - 16);
+
         sm_dialog->set_x(dialogX);
         sm_copyMenu->set_x(x + 9);
         return;
     }
 
     sm_copyMenu = ui::Menu::create(m_target == FileModeState::Target::MountA ? LEFT_X + 9 : RIGHT_X + 9,
-                                   253,
-                                   234,
-                                   20,
+                                   MENU_Y,
+                                   MENU_WIDTH,
+                                   MENU_FONT_SIZE,
                                    graphics::SCREEN_HEIGHT); // Target height is a workaround.
-    sm_dialog = ui::DialogBox::create(2000, 1000, 32, 32);   // Create this off screen at first.
+    sm_dialog =
+        ui::DialogBox::create(DIALOG_X, DIALOG_Y, DIALOG_WIDTH_HEIGHT, DIALOG_WIDTH_HEIGHT); // Create this off screen at first.
 
     // This never changes, so...
-    for (int i = 0; const char *menuOption = strings::get_by_name(strings::names::FILEOPTION_MENU, i); i++)
+    const char *menuOption = nullptr;
+    for (int i = 0; (menuOption = strings::get_by_name(strings::names::FILEOPTION_MENU, i)); i++)
     {
         sm_copyMenu->add_option(menuOption);
     }
 }
 
 void FileOptionState::initialize_data_struct() { m_dataStruct->spawningState = this; }
+
+void FileOptionState::update_dimensions() noexcept
+{
+    // Update transition.
+    m_transition.update();
+
+    // Grab and calculate updated coords.
+    const int width = m_transition.get_width();
+    const int x     = (m_transition.get_x() + 128) - (width / 2);
+
+    // Update the dialog. Use the transition and then manually override the x.
+    sm_dialog->set_from_transition(m_transition, true);
+    sm_dialog->set_x(x);
+
+    // Conditions for state shifting.
+    const bool isOpened = m_state == State::Opening && m_transition.in_place();
+    const bool isClosed = m_state == State::Closing && m_transition.in_place();
+    if (isOpened) { m_state = State::Opened; }
+    else if (isClosed) { FileOptionState::deactivate_state(); }
+}
+
+void FileOptionState::update_handle_input() noexcept
+{
+    // Grab whether or not the state has focus since this is actually used a lot.
+    const bool hasFocus = BaseState::has_focus();
+
+    // Check if we need to update the source or dest.
+    if (m_updateSource) { FileOptionState::update_filemode_source(); }
+    else if (m_updateDest) { FileOptionState::update_filemode_dest(); }
+
+    // Update the menu input.
+    sm_copyMenu->update(hasFocus);
+
+    // Local input handling.
+    const int selected  = sm_copyMenu->get_selected();
+    const bool aPressed = input::button_pressed(HidNpadButton_A);
+    const bool bPressed = input::button_pressed(HidNpadButton_B);
+
+    if (aPressed)
+    {
+        switch (selected)
+        {
+            case COPY:       FileOptionState::copy_target(); break;
+            case DELETE:     FileOptionState::delete_target(); break;
+            case RENAME:     FileOptionState::rename_target(); break;
+            case CREATE_DIR: FileOptionState::create_directory(); break;
+            case PROPERTIES: FileOptionState::get_show_target_properties(); break;
+            case CLOSE:      FileOptionState::close_dialog(); break;
+            default:         break; // This should never happen.
+        }
+    }
+    else if (bPressed) { FileOptionState::close_dialog(); }
+}
 
 void FileOptionState::update_filemode_source()
 {
@@ -157,6 +196,7 @@ void FileOptionState::update_filemode_source()
     ui::Menu &sourceMenu          = m_spawningState->get_source_menu();
 
     m_spawningState->initialize_directory_menu(sourcePath, sourceDir, sourceMenu);
+    m_updateSource = false;
 }
 
 void FileOptionState::update_filemode_dest()
@@ -166,6 +206,7 @@ void FileOptionState::update_filemode_dest()
     ui::Menu &destMenu          = m_spawningState->get_destination_menu();
 
     m_spawningState->initialize_directory_menu(destPath, destDir, destMenu);
+    m_updateDest = false;
 }
 
 void FileOptionState::copy_target()
@@ -360,6 +401,16 @@ void FileOptionState::get_show_target_properties()
     else { FileOptionState::get_show_file_properties(targetPath); }
 }
 
+void FileOptionState::close_dialog() noexcept
+{
+    // Set the state.
+    m_state = State::Closing;
+
+    // Set the targets to their initial values.
+    m_transition.set_target_width(INITIAL_WIDTH_HEIGHT);
+    m_transition.set_target_height(INITIAL_WIDTH_HEIGHT);
+}
+
 void FileOptionState::get_show_directory_properties(const fslib::Path &path)
 {
     int64_t subDirCount{};
@@ -424,15 +475,6 @@ void FileOptionState::pop_system_error()
     const char *error  = strings::get_by_name(strings::names::FILEOPTION_POPS, 5);
     ui::PopMessageManager::push_message(popTicks, error);
 }
-
-void FileOptionState::close()
-{
-    m_close = true;
-    m_transition.set_target_width(32);
-    m_transition.set_target_height(32);
-}
-
-bool FileOptionState::is_closed() { return m_close && m_transition.in_place(); }
 
 void FileOptionState::deactivate_state()
 {

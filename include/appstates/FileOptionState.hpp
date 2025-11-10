@@ -52,17 +52,25 @@ class FileOptionState final : public BaseState
         // clang-format on
 
     private:
+        /// @brief States this state can be in.
+        enum class State : uint8_t
+        {
+            Opening,
+            Opened,
+            Closing
+        };
+
         /// @brief Pointer to spawning FileMode state.
         FileModeState *m_spawningState{};
 
         /// @brief Stores the target for easier access.
         FileModeState::Target m_target{};
 
+        /// @brief Current state of the state.
+        FileOptionState::State m_state{};
+
         /// @brief Transition.
         ui::Transition m_transition{};
-
-        /// @brief Whether or not the state should be closed.
-        bool m_close{};
 
         /// @brief Stores whether or not an update is needed on the next update().
         std::atomic<bool> m_updateSource{};
@@ -82,6 +90,12 @@ class FileOptionState final : public BaseState
 
         /// @brief Assigns the pointer to this.
         void initialize_data_struct();
+
+        /// @brief Updates the dimensions of the dialog.
+        void update_dimensions() noexcept;
+
+        /// @brief Updates and handles input.
+        void update_handle_input() noexcept;
 
         /// @brief Updates the FileModeState's source data.
         void update_filemode_source();
@@ -104,6 +118,9 @@ class FileOptionState final : public BaseState
         /// @brief Gets the properties of a file/folder.
         void get_show_target_properties();
 
+        /// @brief Closes the dialog.
+        void close_dialog() noexcept;
+
         /// @brief Gets info and creates a MessageState displaying the properties of the target directory.
         void get_show_directory_properties(const fslib::Path &path);
 
@@ -113,12 +130,6 @@ class FileOptionState final : public BaseState
 
         /// @brief Pops the error writing to system message.
         void pop_system_error();
-
-        /// @brief Closes and hides the state.
-        void close();
-
-        /// @brief Returns whether or not the state is closed.
-        bool is_closed();
 
         /// @brief Sets the menu index back to 0 and deactivates the state.
         void deactivate_state();
