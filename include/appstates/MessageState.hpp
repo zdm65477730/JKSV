@@ -16,14 +16,31 @@ class MessageState final : public BaseState
         /// @param message Message to display.
         MessageState(std::string_view message);
 
+        /// @brief Same as above. Moves message instead of copying.
+        MessageState(std::string &message);
+
         /// @brief Creates and returns a new MessageState. See constructor.
         static inline std::shared_ptr<MessageState> create(std::string_view message)
         {
             return std::make_shared<MessageState>(message);
         }
 
+        /// @brief Creates and returns a new MessageState. See constructor.
+        static inline std::shared_ptr<MessageState> create(std::string &message)
+        {
+            return std::make_shared<MessageState>(message);
+        }
+
         /// @brief Same as above, only pushed to the StateManager before return.
         static inline std::shared_ptr<MessageState> create_and_push(std::string_view message)
+        {
+            auto newState = MessageState::create(message);
+            StateManager::push_state(newState);
+            return newState;
+        }
+
+        /// @brief Same as above, only pushed to the StateManager before return.
+        static inline std::shared_ptr<MessageState> create_and_push(std::string &message)
         {
             auto newState = MessageState::create(message);
             StateManager::push_state(newState);
@@ -39,6 +56,15 @@ class MessageState final : public BaseState
             return newState;
         }
 
+        /// @brief Same as above, but creates and pushes a transition fade in between.
+        static inline std::shared_ptr<MessageState> create_push_fade(std::string &message)
+        {
+            auto newState = MessageState::create(message);
+            auto fadeState =
+                FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_BEGIN, colors::ALPHA_FADE_END, newState);
+            return newState;
+        }
+
         /// @brief Update override.
         void update() override;
 
@@ -46,6 +72,14 @@ class MessageState final : public BaseState
         void render() override;
 
     private:
+        /// @brief States this state can be in.
+        enum class State
+        {
+            Opening,
+            Displaying,
+            Closing
+        };
+
         /// @brief Safe store of the message to display.
         std::string m_message{};
 
@@ -55,8 +89,8 @@ class MessageState final : public BaseState
         /// @brief Transition.
         ui::Transition m_transition{};
 
-        /// @brief Bool to signal to close.
-        bool m_close{};
+        /// @brief Stores the current state of the current state.
+        MessageState::State m_state{};
 
         /// @brief This is the OK string.
         static inline const char *sm_okText{};
@@ -74,7 +108,10 @@ class MessageState final : public BaseState
         void initialize_static_members();
 
         /// @brief Updates the dialog according to the transition.
-        void update_dialog();
+        void update_dimensions() noexcept;
+
+        /// @brief Updates and handles the input.
+        void update_handle_input() noexcept;
 
         /// @brief Closes and "hides" the dialog.
         void close_dialog();

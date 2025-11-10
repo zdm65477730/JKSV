@@ -256,7 +256,7 @@ class ConfirmState final : public BaseState
                               OPTION_FONT_SIZE,
                               sdl::text::NO_WRAP,
                               colors::WHITE,
-                              sm_yes);
+                              sm_no);
         }
 
     private:
@@ -429,7 +429,7 @@ class ConfirmState final : public BaseState
             else if (validCancel) { StateType::create_and_push(m_onCancel, m_taskData); }
             else
             {
-                FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_END, nullptr);
+                FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
             }
 
             // Deactivate this state.

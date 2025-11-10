@@ -7,11 +7,47 @@
 #include "input.hpp"
 #include "strings/strings.hpp"
 
+namespace
+{
+    // Initial coordinates.
+    constexpr int INITIAL_WIDTH_HEIGHT = 32;
+
+    // Target
+    constexpr int TARGET_WIDTH  = 720;
+    constexpr int TARGET_HEIGHT = 256;
+}
+
 //                      ---- Construction ----
 
 MessageState::MessageState(std::string_view message)
     : m_message(message)
-    , m_transition(0, 0, 32, 32, 0, 0, graphics::SCREEN_HEIGHT, 256, ui::Transition::DEFAULT_THRESHOLD)
+    , m_transition(0,
+                   0,
+                   INITIAL_WIDTH_HEIGHT,
+                   INITIAL_WIDTH_HEIGHT,
+                   0,
+                   0,
+                   TARGET_WIDTH,
+                   TARGET_HEIGHT,
+                   ui::Transition::DEFAULT_THRESHOLD)
+    , m_state(State::Opening)
+{
+    MessageState::initialize_static_members();
+    sm_dialogPop->play();
+}
+
+MessageState::MessageState(std::string &message)
+    : m_message(std::move(message))
+    , m_transition(0,
+                   0,
+                   INITIAL_WIDTH_HEIGHT,
+                   INITIAL_WIDTH_HEIGHT,
+                   0,
+                   0,
+                   TARGET_WIDTH,
+                   TARGET_HEIGHT,
+                   ui::Transition::DEFAULT_THRESHOLD)
+    , m_state(State::Opening)
 {
     MessageState::initialize_static_members();
     sm_dialogPop->play();
@@ -21,17 +57,12 @@ MessageState::MessageState(std::string_view message)
 
 void MessageState::update()
 {
-    m_transition.update();
-    sm_dialog->set_from_transition(m_transition, true);
-    if (!m_transition.in_place()) { return; }
-
-    // To do: I only use this in one place right now. I'm not sure this guards correctly here?
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    m_triggerGuard      = m_triggerGuard || (aPressed && !m_triggerGuard);
-    const bool finished = m_triggerGuard && aPressed;
-
-    if (finished) { MessageState::close_dialog(); }
-    else if (m_close && m_transition.in_place()) { MessageState::deactivate_state(); }
+    switch (m_state)
+    {
+        case State::Opening:    MessageState::update_dimensions(); break;
+        case State::Displaying: MessageState::update_handle_input(); break;
+        case State::Closing:    MessageState::update_dimensions(); break;
+    }
 }
 
 void MessageState::render()
@@ -65,9 +96,35 @@ void MessageState::initialize_static_members()
     sm_dialog->set_from_transition(m_transition, true);
 }
 
+void MessageState::update_dimensions() noexcept
+{
+    // Update the dialog.
+    m_transition.update();
+    sm_dialog->set_from_transition(m_transition, true);
+
+    // Conditions for state shifting.
+    const bool opened = m_state == State::Opening && m_transition.in_place();
+    const bool closed = m_state == State::Closing && m_transition.in_place();
+    if (opened) { m_state = State::Displaying; }
+    else if (closed) { MessageState::deactivate_state(); }
+}
+
+void MessageState::update_handle_input() noexcept
+{
+    // Input bools.
+    const bool aPressed = input::button_pressed(HidNpadButton_A);
+
+    // Handle the triggerguard.
+    m_triggerGuard = m_triggerGuard || (aPressed && !m_triggerGuard);
+
+    // Conditions.
+    const bool finished = m_triggerGuard && aPressed;
+    if (finished) { MessageState::close_dialog(); }
+}
+
 void MessageState::close_dialog()
 {
-    m_close = true;
+    m_state = State::Closing;
     m_transition.set_target_width(32);
     m_transition.set_target_height(32);
 }
