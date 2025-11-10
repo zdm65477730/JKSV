@@ -29,6 +29,17 @@ namespace ui
             std::string_view get_message() const noexcept;
 
         private:
+            /// @brief States the message will be in.
+            enum class State : uint8_t
+            {
+                Rising,
+                Opening,
+                Displaying,
+                Closing,
+                Dropping,
+                Finished
+            };
+
             /// @brief Transition for the pop up/pop out thing.
             ui::Transition m_transition{};
 
@@ -38,17 +49,11 @@ namespace ui
             /// @brief This stores the message for safe keeping.
             std::string m_message{};
 
-            /// @brief Current rendering coordinate for the text.
+            /// @brief Current state the message is in.
+            PopMessage::State m_state{};
+
+            /// @brief Current X rendering coordinate for the text.
             int m_textX{};
-
-            /// @brief Whether or not the targetY coordinate was met.
-            bool m_yMet{};
-
-            /// @brief Whether
-            bool m_close{};
-
-            /// @brief Returns whether or not the message has reached the end of its life.
-            bool m_finished{};
 
             /// @brief The current offset of the substr.
             int m_substrOffset{};
@@ -66,7 +71,7 @@ namespace ui
             void initialize_static_members();
 
             /// @brief Updates the Y Coord to match the target passed.
-            void update_y(double targetY) noexcept;
+            void update_y() noexcept;
 
             /// @brief Updates the current end offset of the text.
             void update_text_offset();
@@ -74,10 +79,10 @@ namespace ui
             /// @brief Updates the width of the dialog.
             void update_width() noexcept;
 
+            /// @brief Updates the display timer and begins the closing process of the message.
+            void update_display_timer() noexcept;
+
             /// @brief Renders the container around the message.
             void render_container() noexcept;
-
-            /// @brief Signals the pop message to close.
-            void close() noexcept;
     };
 }

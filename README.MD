@@ -1,28 +1,26 @@
 # JKSV Rewrite
 <p align="center">
   <a href="https://github.com/J-D-K/JKSV">
-    <img style="border-radius: 10px;"  alt="Language" src="https://img.shields.io/github/languages/top/J-D-K/JKSV?style=flat-square">
+    <img alt="Language" src="https://img.shields.io/github/languages/top/J-D-K/JKSV?style=for-the-badge">
   </a>
   <a href="https://github.com/J-D-K/JKSV/stargazers">
-    <img style="border-radius: 10px;" alt="GitHub stars" src="https://img.shields.io/github/stars/J-D-K/JKSV?style=flat-square">
+    <img alt="GitHub stars" src="https://img.shields.io/github/stars/J-D-K/JKSV?style=for-the-badge">
   </a>
   <a href="https://github.com/J-D-K/JKSV/network/members">
-    <img style="border-radius: 10px;" alt="GitHub forks" src="https://img.shields.io/github/forks/J-D-K/JKSV?style=flat-square">
+    <img alt="GitHub forks" src="https://img.shields.io/github/forks/J-D-K/JKSV?style=for-the-badge">
   </a>
   <a href="https://github.com/J-D-K/JKSV/releases">
-    <img style="border-radius: 10px;" alt="GitHub downloads" src="https://img.shields.io/github/downloads/J-D-K/JKSV/total?style=flat-square">
+    <img alt="GitHub downloads" src="https://img.shields.io/github/downloads/J-D-K/JKSV/total?style=for-the-badge">
   </a>
   <a href="https://github.com/J-D-K/JKSV/releases/latest">
-    <img style="border-radius: 10px;"  alt="GitHub release" src="https://img.shields.io/github/v/release/J-D-K/JKSV?style=flat-square">
+    <img alt="GitHub release" src="https://img.shields.io/github/v/release/J-D-K/JKSV?style=for-the-badge">
   </a>
   <a href="https://github.com/J-D-K/JKSV/blob/master/LICENSE">
-    <img style="border-radius: 10px;"  alt="License" src="https://img.shields.io/github/license/J-D-K/JKSV?style=flat-square">
+    <img alt="License" src="https://img.shields.io/github/license/J-D-K/JKSV?style=for-the-badge">
   </a>
-  <img src="https://i.imgur.com/aUrq46c.png" />
 </p>
 
 ---
-
 
 <p align="center">
 	If you appreciate my work, or if JKSM or JKSV has gotten you out of a jam, please consider supporting development through a donation. Any contribution is appreciated, but never required! Creating and maintaining these tools takes a lot of time and effort.
@@ -33,20 +31,20 @@
 
 ## Rewritten from the ground up:
 
-JKSV's rewrite aims to accomplish the following:
+JKSV's rewrite makes improvements on the following:
 - **Clean up and modernize the codebase:** The original master branch code became a mess over time and is extremely difficult to navigate and maintain. 	
-- **Zero global variables:** Everything is encapsulated via interfaces. This alone makes the rewrite easier to work with and **much**  less fragile in comparison to the original.
+- **Fully encapsulated design:** Everything is encapsulated via interfaces. This alone makes the rewrite easier to work with and **much**  less fragile in comparison to the original.
 - **Improved error logging:** The master branch did an extremely poor job at logging errors. The rewrite corrects this greatly. Each error is logged with the file, line, and column making errors and bugs easier to track down.
 - **Designed with translations in mind:** Unlike the original, translations weren't a feature that were tacked on later. This also made the original difficult to maintain.
 - **Use standard formats:** JKSV originally used a custom file parser for data files. This has been removed in favor of JSON using libjson-c.
 - **Uses [FsLib](https://github.com/J-D-K/FsLib):**
 	- All file operations are handled using FsLib. FsLib is a C++ wrapper I wrote around libnx's FS API.
 	- FsLib also handles SD card redirection so libraries that depend on C standard I/O can read and write files to and from the SD card.
-- **More convenient Google Drive login.**
+- **Streamlined Google Drive login.**
 - **Improve WebDav Support and code.**
 - **Title Cache:** Titles found on the system are cached the same way [JKSM](https://github.com/J-D-K/JKSM) was. This improves boot time greatly on higher Switch firmware versions.
 	- The title cache is also **auto-invalidating**. No need to manually update it like JKSM on 3DS.
-- **_Proper_ use of C++ features:**
+- **Modern C++ design patterns and resource management:**
 	- **Polymorphism and state patterns** instead of scattered global variables and logic.
 	- **Smart pointers** to enure no memory leaks can occur.
 	- **C APIs wrapped in smart pointers and classes** to ensure proper cleanup.
