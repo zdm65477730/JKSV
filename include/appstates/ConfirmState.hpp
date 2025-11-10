@@ -52,8 +52,6 @@ class ConfirmState final : public BaseState
                      sys::Task::TaskData taskData)
             : BaseState(false)
             , m_query(query)
-            , m_yesText(strings::get_by_name(strings::names::YES_NO_OK, 0))
-            , m_noText(strings::get_by_name(strings::names::YES_NO_OK, 1))
             , m_holdRequired(holdRequired)
             , m_transition(TRANS_X,
                            TRANS_Y,
@@ -64,6 +62,7 @@ class ConfirmState final : public BaseState
                            TRANS_END_WIDTH,
                            TRANS_END_HEIGHT,
                            ui::Transition::DEFAULT_THRESHOLD)
+            , m_state(State::Opening)
             , m_onConfirm(onConfirm)
             , m_onCancel(onCancel)
             , m_taskData(taskData)
@@ -71,12 +70,50 @@ class ConfirmState final : public BaseState
             ConfirmState::initialize_static_members();
             ConfirmState::center_no();
             ConfirmState::center_yes();
-            ConfirmState::load_holding_strings();
+            sm_dialogPop->play();
+        }
+
+        /// @brief Same as above. Difference is that the query string is moved instead of assigned.
+        ConfirmState(std::string &query,
+                     bool holdRequired,
+                     sys::threadpool::JobFunction onConfirm,
+                     sys::threadpool::JobFunction onCancel,
+                     sys::Task::TaskData taskData)
+            : BaseState(false)
+            , m_query(std::move(query))
+            , m_holdRequired(holdRequired)
+            , m_transition(TRANS_X,
+                           TRANS_Y,
+                           TRANS_BEGIN_WIDTH_HEIGHT,
+                           TRANS_BEGIN_WIDTH_HEIGHT,
+                           TRANS_X,
+                           TRANS_Y,
+                           TRANS_END_WIDTH,
+                           TRANS_END_HEIGHT,
+                           ui::Transition::DEFAULT_THRESHOLD)
+            , m_state(State::Opening)
+            , m_onConfirm(onConfirm)
+            , m_onCancel(onCancel)
+            , m_taskData(taskData)
+        {
+            ConfirmState::initialize_static_members();
+            ConfirmState::center_no();
+            ConfirmState::center_yes();
             sm_dialogPop->play();
         }
 
         /// @brief Returns a new ConfirmState. See constructor.
         static inline std::shared_ptr<ConfirmState> create(std::string_view query,
+                                                           bool holdRequired,
+                                                           sys::threadpool::JobFunction onConfirm,
+                                                           sys::threadpool::JobFunction onCancel,
+                                                           sys::Task::TaskData taskData)
+        {
+            return std::make_shared<ConfirmState>(query, holdRequired, onConfirm, onCancel, taskData);
+        }
+
+        /// @brief Returns a new ConfirmState. See constructor.
+        static inline std::shared_ptr<ConfirmState> create(std::string &query,
                                                            bool holdRequired,
                                                            sys::threadpool::JobFunction onConfirm,
                                                            sys::threadpool::JobFunction onCancel,
@@ -93,7 +130,20 @@ class ConfirmState final : public BaseState
                                                                     sys::Task::TaskData taskData)
         {
             // I'm gonna use a sneaky trick here. This shouldn't do this because it's confusing.
-            auto newState = create(query, holdRequired, onConfirm, onCancel, taskData);
+            auto newState = ConfirmState::create(query, holdRequired, onConfirm, onCancel, taskData);
+            StateManager::push_state(newState);
+            return newState;
+        }
+
+        /// @brief Creates and returns a new ConfirmState and pushes it.
+        static inline std::shared_ptr<ConfirmState> create_and_push(std::string &query,
+                                                                    bool holdRequired,
+                                                                    sys::threadpool::JobFunction onConfirm,
+                                                                    sys::threadpool::JobFunction onCancel,
+                                                                    sys::Task::TaskData taskData)
+        {
+            // I'm gonna use a sneaky trick here. This shouldn't do this because it's confusing.
+            auto newState = ConfirmState::create(query, holdRequired, onConfirm, onCancel, taskData);
             StateManager::push_state(newState);
             return newState;
         }
@@ -110,29 +160,27 @@ class ConfirmState final : public BaseState
             return newState;
         }
 
+        /// @brief Same as above but with a fade transition pushed  in between.
+        static std::shared_ptr<ConfirmState> create_push_fade(std::string &query,
+                                                              bool holdRequired,
+                                                              sys::threadpool::JobFunction onConfirm,
+                                                              sys::threadpool::JobFunction onCancel,
+                                                              sys::Task::TaskData taskData)
+        {
+            auto newState = ConfirmState::create(query, holdRequired, onConfirm, onCancel, taskData);
+            FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_BEGIN, colors::ALPHA_FADE_END, newState);
+            return newState;
+        }
+
         /// @brief Just updates the ConfirmState.
         void update() override
         {
-            m_transition.update();
-            sm_dialog->set_from_transition(m_transition, true);
-            if (!m_transition.in_place()) { return; }
-
-            const bool aPressed  = input::button_pressed(HidNpadButton_A);
-            const bool bPressed  = input::button_pressed(HidNpadButton_B);
-            const bool aHeld     = input::button_held(HidNpadButton_A);
-            const bool aReleased = input::button_released(HidNpadButton_A);
-
-            m_triggerGuard           = m_triggerGuard || (aPressed && !m_triggerGuard);
-            const bool noHoldTrigger = m_triggerGuard && aPressed && !m_holdRequired;
-            const bool holdTriggered = m_triggerGuard && aPressed && m_holdRequired;
-            const bool holdSustained = m_triggerGuard && aHeld && m_holdRequired;
-
-            if (noHoldTrigger) { ConfirmState::confirmed(); }
-            else if (holdTriggered) { ConfirmState::hold_triggered(); }
-            else if (holdSustained) { ConfirmState::hold_sustained(); }
-            else if (aReleased) { ConfirmState::hold_released(); }
-            else if (bPressed) { ConfirmState::close_dialog(); }
-            else if (m_close && m_transition.in_place()) { ConfirmState::deactivate_state(); }
+            switch (m_state)
+            {
+                case State::Opening:    ConfirmState::update_dimensions(); break;
+                case State::Displaying: ConfirmState::update_handle_input(); break;
+                case State::Closing:    ConfirmState::update_dimensions(); break;
+            }
         }
 
         /// @brief Renders the state to screen.
@@ -162,15 +210,19 @@ class ConfirmState final : public BaseState
             const bool hasFocus = BaseState::has_focus();
             const int y         = m_transition.get_y();
 
+            // This is the dimming rectangle.
             sdl::render_rect_fill(sdl::Texture::Null,
                                   0,
                                   0,
                                   graphics::SCREEN_WIDTH,
                                   graphics::SCREEN_HEIGHT,
                                   colors::DIM_BACKGROUND);
-            sm_dialog->render(sdl::Texture::Null, hasFocus);
-            if (!m_transition.in_place() || m_close) { return; }
 
+            // Render the dialog. Only render the rest if we're in the display state.
+            sm_dialog->render(sdl::Texture::Null, hasFocus);
+            if (!m_transition.in_place() || m_state != State::Displaying) { return; }
+
+            // Main string.
             sdl::text::render(sdl::Texture::Null,
                               TEXT_X,
                               y + TEXT_Y_OFFSET,
@@ -179,6 +231,7 @@ class ConfirmState final : public BaseState
                               colors::WHITE,
                               m_query);
 
+            // Divider lines.
             sdl::render_line(sdl::Texture::Null,
                              LINE_A_X_A,
                              y + LINE_Y_OFFSET,
@@ -187,31 +240,40 @@ class ConfirmState final : public BaseState
                              colors::DIV_COLOR);
             sdl::render_line(sdl::Texture::Null, LINE_B_X, y + LINE_Y_OFFSET, LINE_B_X, y + LINE_B_Y_B, colors::DIV_COLOR);
 
+            // Yes
             sdl::text::render(sdl::Texture::Null,
                               m_yesX,
                               y + OPTION_Y_OFFSET,
                               OPTION_FONT_SIZE,
                               sdl::text::NO_WRAP,
                               colors::WHITE,
-                              m_yesText);
+                              sm_yes);
+
+            // No
             sdl::text::render(sdl::Texture::Null,
                               m_noX,
                               y + OPTION_Y_OFFSET,
                               OPTION_FONT_SIZE,
                               sdl::text::NO_WRAP,
                               colors::WHITE,
-                              m_noText);
+                              sm_yes);
         }
 
     private:
+        /// @brief States this state can be in.
+        enum class State : uint8_t
+        {
+            Opening,
+            Displaying,
+            Closing
+        };
+
         /// @brief This stores the query text.
         std::string m_query{};
 
-        /// @brief These are pointers to the strings used to avoid call strings::get_by_name so much.
-        const char *m_yesText{}, *m_noText{};
-
         /// @brief X coordinate to render the Yes No
-        int m_yesX{}, m_noX{};
+        int m_yesX{};
+        int m_noX{};
 
         /// @brief This is to prevent the dialog from triggering immediately.
         bool m_triggerGuard{};
@@ -222,9 +284,6 @@ class ConfirmState final : public BaseState
         /// @brief Whether or not holding [A] to confirm is required.
         const bool m_holdRequired{};
 
-        /// @brief These are pointers to the holding strings.
-        const char *m_holdText[3]{};
-
         /// @brief Keep track of the ticks/time needed to confirm.
         uint64_t m_startingTickCount{};
 
@@ -234,8 +293,8 @@ class ConfirmState final : public BaseState
         /// @brief To make the dialog pop in from bottom to be more inline with the rest of the UI.
         ui::Transition m_transition{};
 
-        // Controls whether or not to close or hide the dialog.
-        bool m_close{};
+        /// @brief Tracks the state the dialog is currently in.
+        ConfirmState::State m_state{};
 
         /// @brief Function to execute if action is confirmed.
         const sys::threadpool::JobFunction m_onConfirm{};
@@ -246,6 +305,11 @@ class ConfirmState final : public BaseState
         /// @brief Pointer to data struct passed to ^
         const sys::Task::TaskData m_taskData{};
 
+        // All of these strings are shared between all instances.
+        static inline const char *sm_yes{};
+        static inline const char *sm_no{};
+        static inline const char *sm_hold[3]{};
+
         /// @brief This dialog is shared between all instances.
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
 
@@ -254,35 +318,75 @@ class ConfirmState final : public BaseState
 
         void initialize_static_members()
         {
+            // Name and path to the sound used.
             static constexpr std::string_view POP_SOUND = "ConfirmPop";
             static constexpr const char *POP_PATH       = "romfs:/Sound/ConfirmPop.wav";
 
-            if (sm_dialog && sm_dialogPop) { return; }
+            // To do: Not sure about checking the holding text.
+            if (sm_dialog && sm_dialogPop && sm_yes && sm_no) { return; }
 
             sm_dialog    = ui::DialogBox::create(0, 0, 0, 0);
             sm_dialogPop = sdl::SoundManager::load(POP_SOUND, POP_PATH);
             sm_dialog->set_from_transition(m_transition, true);
+
+            // Load yes and no.
+            sm_yes = strings::get_by_name(strings::names::YES_NO_OK, 0);
+            sm_no  = strings::get_by_name(strings::names::YES_NO_OK, 1);
+
+            // Loop load the holding strings.
+            const char *hold{};
+            for (int i = 0; (hold = strings::get_by_name(strings::names::HOLDING_STRINGS, i)); i++) { sm_hold[i] = hold; }
+        }
+
+        /// @brief Updates the dimensions of the dialog.
+        void update_dimensions() noexcept
+        {
+            // Update the dialog to be centered.
+            m_transition.update();
+            sm_dialog->set_from_transition(m_transition, true);
+
+            // Conditions for state switching.
+            const bool opened = m_state == State::Opening && m_transition.in_place();
+            const bool closed = m_state == State::Closing && m_transition.in_place();
+            if (opened) { m_state = State::Displaying; }
+            else if (closed) { ConfirmState::deactivate_state(); }
+        }
+
+        /// @brief Handles the input and updating.
+        void update_handle_input() noexcept
+        {
+            // Grab our input bools.
+            const bool aPressed  = input::button_pressed(HidNpadButton_A);
+            const bool bPressed  = input::button_pressed(HidNpadButton_B);
+            const bool aHeld     = input::button_held(HidNpadButton_A);
+            const bool aReleased = input::button_released(HidNpadButton_A);
+
+            // This is to prevent A from auto triggering the dialog.
+            m_triggerGuard = m_triggerGuard || (aPressed && !m_triggerGuard);
+
+            // Conditions.
+            const bool noHoldTrigger = m_triggerGuard && aPressed && !m_holdRequired;
+            const bool holdTriggered = m_triggerGuard && aPressed && m_holdRequired;
+            const bool holdSustained = m_triggerGuard && aHeld && m_holdRequired;
+
+            if (noHoldTrigger) { ConfirmState::confirmed(); }
+            else if (holdTriggered) { ConfirmState::hold_triggered(); }
+            else if (holdSustained) { ConfirmState::hold_sustained(); }
+            else if (aReleased) { ConfirmState::hold_released(); }
+            else if (bPressed) { ConfirmState::close_dialog(); }
         }
 
         // This just centers the Yes or holding text.
         void center_yes()
         {
-            const int yesWidth = sdl::text::get_width(22, m_yesText);
+            const int yesWidth = sdl::text::get_width(22, sm_yes);
             m_yesX             = COORD_YES_X - (yesWidth / 2);
         }
 
         void center_no()
         {
-            const int noWidth = sdl::text::get_width(22, m_noText);
+            const int noWidth = sdl::text::get_width(22, sm_no);
             m_noX             = COORD_NO_X - (noWidth / 2);
-        }
-
-        void load_holding_strings()
-        {
-            for (int i = 0; const char *string = strings::get_by_name(strings::names::HOLDING_STRINGS, i); i++)
-            {
-                m_holdText[i] = string;
-            }
         }
 
         void confirmed()
@@ -311,30 +415,36 @@ class ConfirmState final : public BaseState
 
         void hold_released()
         {
-            m_yesText = strings::get_by_name(strings::names::YES_NO_OK, 0);
+            sm_yes = strings::get_by_name(strings::names::YES_NO_OK, 0);
             ConfirmState::center_yes();
         }
 
         void deactivate_state()
         {
-            if (m_confirmed && m_onConfirm) { StateType::create_and_push(m_onConfirm, m_taskData); }
-            else if (!m_confirmed && m_onCancel) { StateType::create_and_push(m_onCancel, m_taskData); }
+            // Conditions.
+            const bool validConfirm = m_confirmed && m_onConfirm;
+            const bool validCancel  = !m_confirmed && m_onCancel;
+
+            if (validConfirm) { StateType::create_and_push(m_onConfirm, m_taskData); }
+            else if (validCancel) { StateType::create_and_push(m_onCancel, m_taskData); }
             else
             {
-                FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
+                FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_END, nullptr);
             }
+
+            // Deactivate this state.
             BaseState::deactivate();
         }
 
         void change_holding_text(int index)
         {
-            m_yesText = m_holdText[index];
+            sm_yes = sm_hold[index];
             ConfirmState::center_yes();
         }
 
         void close_dialog()
         {
-            m_close = true;
+            m_state = State::Closing;
             m_transition.set_target_width(32);
             m_transition.set_target_height(32);
         }

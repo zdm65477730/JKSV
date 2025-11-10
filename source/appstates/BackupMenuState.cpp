@@ -276,15 +276,15 @@ void BackupMenuState::confirm_overwrite()
     {
         m_dataStruct->remoteItem = m_remoteListing.at(entry.index);
         const char *itemName     = m_dataStruct->remoteItem->get_name().data();
-        const std::string query  = stringutil::get_formatted_string(confirmTemplate, itemName);
+        std::string query        = stringutil::get_formatted_string(confirmTemplate, itemName);
 
         ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::overwrite_backup_remote, nullptr, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Local)
     {
-        m_dataStruct->path      = m_directoryPath / m_directoryListing[entry.index];
-        const char *targetName  = m_directoryListing[entry.index].get_filename();
-        const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
+        m_dataStruct->path     = m_directoryPath / m_directoryListing[entry.index];
+        const char *targetName = m_directoryListing[entry.index].get_filename();
+        std::string query      = stringutil::get_formatted_string(confirmTemplate, targetName);
 
         ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::overwrite_backup_local, nullptr, m_dataStruct);
     }
@@ -323,15 +323,15 @@ void BackupMenuState::confirm_restore()
         }
         m_dataStruct->path = target;
 
-        const char *targetName  = m_directoryListing[entry.index].get_filename();
-        const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
+        const char *targetName = m_directoryListing[entry.index].get_filename();
+        std::string query      = stringutil::get_formatted_string(confirmTemplate, targetName);
 
         ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::restore_backup_local, nullptr, m_dataStruct);
     }
     else if (entry.type == MenuEntryType::Remote)
     {
         remote::Item *target     = m_remoteListing[entry.index];
-        const std::string query  = stringutil::get_formatted_string(confirmTemplate, target->get_name().data());
+        std::string query        = stringutil::get_formatted_string(confirmTemplate, target->get_name().data());
         m_dataStruct->remoteItem = target;
         m_dataStruct->path       = m_directoryPath + "//"; // To-do: This is a workaround.
 
@@ -348,9 +348,9 @@ void BackupMenuState::confirm_delete()
 
     if (entry.type == MenuEntryType::Local)
     {
-        m_dataStruct->path      = m_directoryPath / m_directoryListing[entry.index];
-        const char *targetName  = m_directoryListing[entry.index].get_filename();
-        const std::string query = stringutil::get_formatted_string(confirmTemplate, targetName);
+        m_dataStruct->path     = m_directoryPath / m_directoryListing[entry.index];
+        const char *targetName = m_directoryListing[entry.index].get_filename();
+        std::string query      = stringutil::get_formatted_string(confirmTemplate, targetName);
 
         ConfirmTask::create_push_fade(query, holdRequired, tasks::backup::delete_backup_local, nullptr, m_dataStruct);
     }
@@ -358,7 +358,7 @@ void BackupMenuState::confirm_delete()
     {
         m_dataStruct->remoteItem = m_remoteListing.at(entry.index);
         const char *itemName     = m_dataStruct->remoteItem->get_name().data();
-        const std::string query  = stringutil::get_formatted_string(confirmTemplate, itemName);
+        std::string query        = stringutil::get_formatted_string(confirmTemplate, itemName);
 
         ConfirmTask::create_push_fade(query, holdRequired, tasks::backup::delete_backup_remote, nullptr, m_dataStruct);
     }
@@ -390,7 +390,7 @@ void BackupMenuState::upload_backup()
     {
         remote::Item *remoteItem = remote->get_file_by_name(itemName);
         const char *queryFormat  = strings::get_by_name(strings::names::BACKUPMENU_CONFS, 0);
-        const std::string query  = stringutil::get_formatted_string(queryFormat, itemName.data());
+        std::string query        = stringutil::get_formatted_string(queryFormat, itemName.data());
         const bool holdRequired  = config::get_by_key(config::keys::HOLD_FOR_OVERWRITE);
         m_dataStruct->remoteItem = remoteItem;
 
