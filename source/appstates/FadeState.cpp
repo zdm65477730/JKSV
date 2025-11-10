@@ -50,6 +50,7 @@ void FadeState::render()
 
 void FadeState::find_divisor()
 {
+    // Get the distance between where we start and need to end.
     m_divisor = math::Util<uint8_t>::absolute_distance(m_alpha, m_endAlpha);
 
     // Going to loop and try to find the highest divisible number. To do: Maybe not brute force this?

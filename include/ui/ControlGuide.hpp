@@ -12,6 +12,7 @@ namespace ui
             /// @param string Pointer to the control guide string to render.
             ControlGuide(const char *guide);
 
+            /// @brief Factory function to return a control guide.
             static inline std::shared_ptr<ControlGuide> create(const char *guide)
             {
                 return std::make_shared<ControlGuide>(guide);

@@ -56,7 +56,7 @@ class FileOptionState final : public BaseState
         FileModeState *m_spawningState{};
 
         /// @brief Stores the target for easier access.
-        bool m_target{};
+        FileModeState::Target m_target{};
 
         /// @brief Transition.
         ui::Transition m_transition{};
@@ -126,20 +126,20 @@ class FileOptionState final : public BaseState
         /// @brief Returns if the copy/from is allowed before continuing.
         inline bool system_write_check()
         {
-            const bool target      = m_spawningState->m_target;
-            const bool isSystem    = m_spawningState->m_isSystem;
-            const bool allowSystem = m_spawningState->m_allowSystem;
+            const FileModeState::Target target = m_spawningState->m_target;
+            const bool isSystem                = m_spawningState->m_isSystem;
+            const bool allowSystem             = m_spawningState->m_allowSystem;
 
-            return target && isSystem && !allowSystem;
+            return target == FileModeState::Target::MountB && isSystem && !allowSystem;
         }
 
         /// @brief Returns if the operation is allowed.
         inline bool system_operation_check()
         {
-            const bool target      = m_spawningState->m_target;
-            const bool isSystem    = m_spawningState->m_isSystem;
-            const bool allowSystem = m_spawningState->m_allowSystem;
+            const FileModeState::Target target = m_spawningState->m_target;
+            const bool isSystem                = m_spawningState->m_isSystem;
+            const bool allowSystem             = m_spawningState->m_allowSystem;
 
-            return !target && isSystem && !allowSystem;
+            return target == FileModeState::Target::MountA && isSystem && !allowSystem;
         }
 };

@@ -41,6 +41,22 @@ class FileModeState final : public BaseState
         friend class FileOptionState;
 
     private:
+        /// @brief States the browser can be in.
+        enum class State : uint8_t
+        {
+            Rising,
+            Open,
+            Dropping
+        };
+
+        /// @brief This is to make the target code easier to understand and read.
+        // I didn't know what else to name these either...
+        enum class Target : uint8_t
+        {
+            MountA,
+            MountB
+        };
+
         /// @brief These store the mount points to close the filesystems upon construction.
         std::string m_mountA{};
         std::string m_mountB{};
@@ -57,23 +73,23 @@ class FileModeState final : public BaseState
         std::shared_ptr<ui::Menu> m_dirMenuA{};
         std::shared_ptr<ui::Menu> m_dirMenuB{};
 
-        /// @brief Controls which menu/filesystem is currently targetted.
-        bool m_target{};
-
-        /// @brief Stores the size for committing data (if needed) to mountA.
-        int64_t m_journalSize{};
-
-        /// @brief Stores whether or not the panel should be closed.
-        bool m_close{};
-
-        /// @brief Transition for the pop-up effect.
-        ui::Transition m_transition{};
-
         /// @brief Stores whether the instance is dealing with sensitive data.
         bool m_isSystem{};
 
         /// @brief Stores the config setting from config to allow writing to the sensitive parts of the system.
         bool m_allowSystem{};
+
+        /// @brief Stores the size for committing data (if needed) to mountA.
+        int64_t m_journalSize{};
+
+        /// @brief Controls which menu/filesystem is currently targetted.
+        FileModeState::Target m_target{};
+
+        /// @brief Transition for the pop-up effect.
+        ui::Transition m_transition{};
+
+        /// @brief Stores the current state.
+        FileModeState::State m_state{};
 
         /// @brief Frame shared by all instances.
         static inline std::shared_ptr<ui::Frame> sm_frame{};
@@ -96,11 +112,11 @@ class FileModeState final : public BaseState
         /// @brief Loads the current directory listings and menus.
         void initialize_directory_menu(const fslib::Path &path, fslib::Directory &directory, ui::Menu &menu);
 
-        /// @brief Starts the dialog hiding process.
-        void hide_dialog() noexcept;
+        /// @brief Updates the current Y coordinate of the dialog.
+        void update_y() noexcept;
 
-        /// @brief Returns whether or not the dialog is hidden.
-        bool is_hidden() noexcept;
+        /// @brief Handles input.
+        void update_handle_input() noexcept;
 
         /// @brief Handles changing the current directory or opening the options.
         void enter_selected(fslib::Path &path, fslib::Directory &directory, ui::Menu &menu);

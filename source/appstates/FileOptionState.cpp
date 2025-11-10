@@ -44,11 +44,11 @@ static std::string get_size_string(int64_t totalSize);
 FileOptionState::FileOptionState(FileModeState *spawningState)
     : m_spawningState(spawningState)
     , m_target(spawningState->m_target)
-    , m_transition(m_target ? RIGHT_X : LEFT_X,
+    , m_transition(m_target == FileModeState::Target::MountA ? LEFT_X : RIGHT_X,
                    232,
                    32,
                    32,
-                   m_target ? RIGHT_X : LEFT_X,
+                   m_target == FileModeState::Target::MountA ? LEFT_X : RIGHT_X,
                    232,
                    256,
                    256,
@@ -134,7 +134,7 @@ void FileOptionState::initialize_static_members()
         return;
     }
 
-    sm_copyMenu = ui::Menu::create(m_target ? RIGHT_X + 9 : LEFT_X + 9,
+    sm_copyMenu = ui::Menu::create(m_target == FileModeState::Target::MountA ? LEFT_X + 9 : RIGHT_X + 9,
                                    253,
                                    234,
                                    20,
@@ -289,7 +289,7 @@ void FileOptionState::rename_target()
     const std::string newString = newPath.string();
 
     // If this is false and there's a journaling size set, we need to commit on renaming for it to stick.
-    const bool isSource       = !m_target;
+    const bool isSource       = m_target == FileModeState::Target::MountA;
     const int64_t journalSize = m_spawningState->m_journalSize;
     const bool commitNeeded   = isSource && journalSize > 0;
 
