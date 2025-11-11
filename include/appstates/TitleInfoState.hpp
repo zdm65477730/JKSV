@@ -42,6 +42,14 @@ class TitleInfoState final : public BaseState
         void render() override;
 
     private:
+        /// @brief States this state can be in.
+        enum class State : uint8_t
+        {
+            Opening,
+            Displaying,
+            Closing
+        };
+
         /// @brief Pointer to user.
         data::User *m_user{};
 
@@ -51,17 +59,14 @@ class TitleInfoState final : public BaseState
         /// @brief Save a pointer to the save info.
         const FsSaveDataInfo *m_saveInfo{};
 
-        /// @brief Whether or not the state was "closed";
-        bool m_close{};
-
         /// @brief This is a pointer to the title's icon.
         sdl::SharedTexture m_icon{};
 
         /// @brief Transition for the open/close effect.
         ui::Transition m_transition{};
 
-        /// @brief Stores whether or not the timer is started for the tiling animation.
-        bool m_timerStarted{};
+        /// @brief State the current state is in.
+        TitleInfoState::State m_state{};
 
         /// @brief This is to create the "tiled in" effect because I like it.
         sys::Timer m_timer{};
@@ -117,14 +122,14 @@ class TitleInfoState final : public BaseState
 
         void create_save_data_type(const FsSaveDataInfo *saveInfo, int x, int &y);
 
-        /// @brief Updates the current count of fields to display.
-        void update_field_count() noexcept;
+        /// @brief Updates the dimensions of the frame. Handles conditional state shifting.
+        void update_dimensions() noexcept;
 
-        /// @brief Runs the update routine on all fields.
-        void update_fields(bool hasFocus) noexcept;
+        /// @brief Handles input and updating.
+        void update_handle_input() noexcept;
 
         /// @brief Returns the color to clear the field with.
-        sdl::Color get_field_color() noexcept;
+        inline sdl::Color get_field_color() noexcept;
 
         /// @brief Signals to close the state.
         void close() noexcept;

@@ -27,7 +27,7 @@ namespace
     constexpr int SIZE_FONT = 24;
 
     /// @brief Dimensions of the frame.
-    constexpr int SIZE_START_WIDTH_HEIGHT = 16;
+    constexpr int SIZE_START_WIDTH_HEIGHT = 48;
     constexpr int SIZE_END_WIDTH          = 960;
     constexpr int SIZE_END_HEIGHT         = 580;
 
@@ -55,7 +55,8 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo, con
                    0,
                    SIZE_END_WIDTH,
                    SIZE_END_HEIGHT,
-                   m_transition.DEFAULT_THRESHOLD)
+                   ui::Transition::DEFAULT_THRESHOLD)
+    , m_state(State::Opening)
 {
     TitleInfoState::initialize_static_members();
     TitleInfoState::initialize_info_fields();
@@ -66,31 +67,24 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo, con
 
 void TitleInfoState::update()
 {
-    // Grab this instead of calling the function over and over.
-    const bool hasFocus = BaseState::has_focus();
-    m_transition.update();
-    sm_frame->set_from_transition(m_transition, true);
-    if (!m_transition.in_place()) { return; }
-    else if (m_transition.in_place() && !m_timerStarted)
+    switch (m_state)
     {
-        m_timer.start(50);
-        m_timerStarted = true;
+        case State::Opening:    TitleInfoState::update_dimensions(); break;
+        case State::Displaying: TitleInfoState::update_handle_input(); break;
+        case State::Closing:    TitleInfoState::update_dimensions(); break;
     }
-
-    TitleInfoState::update_field_count();
-    TitleInfoState::update_fields(hasFocus);
-
-    bool bPressed = input::button_pressed(HidNpadButton_B);
-    if (bPressed) { TitleInfoState::close(); }
-    else if (m_close && m_transition.in_place()) { TitleInfoState::deactivate_state(); }
 }
 
 void TitleInfoState::render()
 {
+    // Grab cause needed everywhere.
     const bool hasFocus = BaseState::has_focus();
-    sm_frame->render(sdl::Texture::Null, hasFocus);
-    if (!m_transition.in_place()) { return; }
 
+    // Render the frame. Only continue further if we're currently displaying.
+    sm_frame->render(sdl::Texture::Null, hasFocus);
+    if (m_state != State::Displaying) { return; }
+
+    // We only want to render what's been triggered so far for the tiling in effect.
     for (int i = 0; i < m_fieldDisplayCount; i++)
     {
         auto &currentField = m_infoFields[i];
@@ -162,6 +156,7 @@ void TitleInfoState::initialize_info_fields()
 
 void TitleInfoState::create_title(int y)
 {
+    // This only works because the string is so short.
     static constexpr std::string BESTEST_STAR = "$\u2605$";
     static constexpr int WIDTH                = SIZE_END_WIDTH - 64;
     static constexpr int X                    = 640 - (WIDTH / 2);
@@ -369,24 +364,41 @@ void TitleInfoState::create_save_data_type(const FsSaveDataInfo *saveInfo, int x
     y += VERT_GAP;
 }
 
-void TitleInfoState::update_field_count() noexcept
+void TitleInfoState::update_dimensions() noexcept
 {
-    const int fieldSize = m_infoFields.size();
-    if (m_fieldDisplayCount >= fieldSize || !m_timer.is_triggered()) { return; }
+    // Update the transition and set the frame according to it.
+    m_transition.update();
+    sm_frame->set_from_transition(m_transition, true);
 
-    ++m_fieldDisplayCount;
-}
-
-void TitleInfoState::update_fields(bool hasFocus) noexcept
-{
-    for (int i = 0; i < m_fieldDisplayCount; i++)
+    // State shifting conditions.
+    const bool opened = m_state == State::Opening && m_transition.in_place();
+    const bool closed = m_state == State::Closing && m_transition.in_place();
+    if (opened)
     {
-        auto &field = m_infoFields[i];
-        field->update(hasFocus);
+        m_timer.start(50);
+        m_state = State::Displaying;
     }
+    else if (closed) { TitleInfoState::deactivate_state(); }
 }
 
-sdl::Color TitleInfoState::get_field_color() noexcept
+void TitleInfoState::update_handle_input() noexcept
+{
+    // Grab a cache this since it's needed a lot.
+    const bool hasFocus = BaseState::has_focus();
+
+    // Update the field count if needed.
+    const int currentCount = m_infoFields.size();
+    if (m_fieldDisplayCount < currentCount && m_timer.is_triggered()) { ++m_fieldDisplayCount; }
+
+    // Update the actually displayed fields so the text scrolls if need be.
+    for (int i = 0; i < m_fieldDisplayCount; i++) { m_infoFields[i]->update(hasFocus); }
+
+    // Input bools.
+    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    if (bPressed) { TitleInfoState::close(); }
+}
+
+inline sdl::Color TitleInfoState::get_field_color() noexcept
 {
     m_fieldClearSwitch = m_fieldClearSwitch ? false : true;
     return m_fieldClearSwitch ? colors::DIALOG_DARK : colors::CLEAR_COLOR;
@@ -394,9 +406,9 @@ sdl::Color TitleInfoState::get_field_color() noexcept
 
 void TitleInfoState::close() noexcept
 {
+    m_state = State::Closing;
     m_transition.set_target_width(SIZE_START_WIDTH_HEIGHT);
     m_transition.set_target_height(SIZE_START_WIDTH_HEIGHT);
-    m_close = true;
 }
 
 void TitleInfoState::deactivate_state() { BaseState::deactivate(); }
@@ -415,7 +427,7 @@ static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string &text
 
 static bool is_a_best_game(uint64_t applicationID) noexcept
 {
-    static constexpr std::array<uint64_t, 16> BESTEST_GAMES = {0x0100BC300CB48000,
+    static constexpr std::array<uint64_t, 17> BESTEST_GAMES = {0x0100BC300CB48000,
                                                                0x01006C300E9F0000,
                                                                0x010065301A2E0000,
                                                                0x01000EA014150000,
@@ -430,7 +442,8 @@ static bool is_a_best_game(uint64_t applicationID) noexcept
                                                                0x01002C0008E52000,
                                                                0x0100FF500E34A000,
                                                                0x010015100B514000,
-                                                               0x0100AC20128AC000};
+                                                               0x0100AC20128AC000,
+                                                               0x0100453019AA8000};
 
     return std::find(BESTEST_GAMES.begin(), BESTEST_GAMES.end(), applicationID) != BESTEST_GAMES.end();
 }

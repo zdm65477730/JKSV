@@ -24,7 +24,7 @@ void BaseTask::update_loading_glyph()
     m_colorMod.update();
 
     if (!m_frameTimer.is_triggered()) { return; }
-    if (++m_currentFrame % 8 == 0) { m_currentFrame = 0; }
+    else if (++m_currentFrame % 8 == 0) { m_currentFrame = 0; }
 }
 
 void BaseTask::pop_on_plus()
@@ -36,5 +36,16 @@ void BaseTask::pop_on_plus()
 
 void BaseTask::render_loading_glyph()
 {
-    sdl::text::render(sdl::Texture::Null, 56, 673, 32, sdl::text::NO_WRAP, m_colorMod, sm_glyphArray[m_currentFrame]);
+    // Render coords.
+    static constexpr int RENDER_X    = 56;
+    static constexpr int RENDER_Y    = 673;
+    static constexpr int RENDER_SIZE = 32;
+
+    sdl::text::render(sdl::Texture::Null,
+                      RENDER_X,
+                      RENDER_Y,
+                      RENDER_SIZE,
+                      sdl::text::NO_WRAP,
+                      m_colorMod,
+                      sm_glyphArray[m_currentFrame]);
 }
