@@ -432,6 +432,9 @@ class ConfirmState final : public BaseState
                 FadeState::create_and_push(colors::DIM_BACKGROUND, colors::ALPHA_FADE_END, colors::ALPHA_FADE_BEGIN, nullptr);
             }
 
+            // Return the yes to its original state.
+            sm_yes = strings::get_by_name(strings::names::YES_NO_OK, 0);
+
             // Deactivate this state.
             BaseState::deactivate();
         }

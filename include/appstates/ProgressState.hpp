@@ -48,6 +48,20 @@ class ProgressState final : public BaseTask
         void render() override;
 
     private:
+        /// @brief States this state can be in.
+        enum class State : uint8_t
+        {
+            Opening,
+            Running,
+            Closing
+        };
+
+        /// @brief Stores the function for task.
+        sys::threadpool::JobFunction m_job{};
+
+        /// @brief Stores the data for the task.
+        sys::Task::TaskData m_taskData{};
+
         /// @brief Progress which is saved as a rounded whole number.
         size_t m_progress{};
 
@@ -63,8 +77,8 @@ class ProgressState final : public BaseTask
         /// @brief Transition.
         ui::Transition m_transition{};
 
-        /// @brief Controls the closing transition.
-        bool m_close{};
+        /// @brief Current state of the current state.
+        ProgressState::State m_state{};
 
         /// @brief This is the dialog box everything is rendered to.
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
@@ -74,6 +88,12 @@ class ProgressState final : public BaseTask
 
         /// @brief Initializes the shared dialog box.
         void initialize_static_members();
+
+        /// @brief Updates the dimensions of the dialog.
+        void update_dimensions() noexcept;
+
+        /// @brief This updates the current progress displayed.
+        void update_progress() noexcept;
 
         /// @brief Closes the dialog.
         void close_dialog();

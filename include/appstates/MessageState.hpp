@@ -73,7 +73,7 @@ class MessageState final : public BaseState
 
     private:
         /// @brief States this state can be in.
-        enum class State
+        enum class State : uint8_t
         {
             Opening,
             Displaying,

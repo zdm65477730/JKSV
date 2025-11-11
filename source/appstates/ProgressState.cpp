@@ -13,6 +13,13 @@
 
 namespace
 {
+    // Initial coords.
+    constexpr int INITIAL_WIDTH_HEIGHT = 32;
+
+    // Target coords.
+    constexpr int TARGET_WIDTH  = 720;
+    constexpr int TARGET_HEIGHT = 256;
+
     constexpr int COORD_BAR_X = 296;
     constexpr int COORD_BAR_Y = 437;
 
@@ -25,57 +32,71 @@ namespace
 //                      ---- Construction ----
 
 ProgressState::ProgressState(sys::threadpool::JobFunction function, sys::Task::TaskData taskData)
-    : m_transition(0, 0, 32, 32, 0, 0, graphics::SCREEN_HEIGHT, 256, ui::Transition::DEFAULT_THRESHOLD)
+    : m_job(function)
+    , m_taskData(taskData)
+    , m_transition(0,
+                   0,
+                   INITIAL_WIDTH_HEIGHT,
+                   INITIAL_WIDTH_HEIGHT,
+                   0,
+                   0,
+                   TARGET_WIDTH,
+                   TARGET_HEIGHT,
+                   ui::Transition::DEFAULT_THRESHOLD)
 {
     initialize_static_members();
-    m_task = std::make_unique<sys::ProgressTask>(function, taskData);
 }
 
 //                      ---- Public functions ----
 
 void ProgressState::update()
 {
+    // These are always updated and aren't conditional.
     BaseTask::update_loading_glyph();
     BaseTask::pop_on_plus();
-    m_transition.update();
-    sm_dialog->set_from_transition(m_transition, true);
-    if (!m_transition.in_place()) { return; }
 
-    sys::ProgressTask *task = static_cast<sys::ProgressTask *>(m_task.get());
-    const double current    = task->get_progress();
-
-    const bool isRunning = m_task->is_running();
-    if (!isRunning && !m_close) { ProgressState::close_dialog(); }
-    else if (m_close && m_transition.in_place()) { ProgressState::deactivate_state(); }
-
-    m_progressBarWidth        = std::round(SIZE_BAR_WIDTH * current);
-    m_progress                = std::round(current * 100);
-    m_percentageString        = stringutil::get_formatted_string("%u%%", m_progress);
-    const int percentageWidth = sdl::text::get_width(BaseTask::FONT_SIZE, m_percentageString);
-    m_percentageX             = COORD_DISPLAY_CENTER - (percentageWidth / 2);
+    switch (m_state)
+    {
+        case State::Opening: ProgressState::update_dimensions(); break;
+        case State::Running: ProgressState::update_progress(); break;
+        case State::Closing: ProgressState::update_dimensions(); break;
+    }
 }
 
 void ProgressState::render()
 {
     static constexpr int RIGHT_EDGE_X = (COORD_BAR_X + SIZE_BAR_WIDTH) - 16;
-    const bool hasFocus               = BaseState::has_focus();
 
+    // Grab the focus since everything wants it.
+    const bool hasFocus = BaseState::has_focus();
+
+    // This will dim the background.
     sdl::render_rect_fill(sdl::Texture::Null, 0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::DIM_BACKGROUND);
-    sm_dialog->render(sdl::Texture::Null, hasFocus);
-    BaseTask::render_loading_glyph();
-    if (!m_transition.in_place()) { return; }
 
-    const int barWidth       = static_cast<int>(SIZE_BAR_WIDTH);
+    // Render the glyph and dialog. Don't render anything else unless the task is running.
+    BaseTask::render_loading_glyph();
+    sm_dialog->render(sdl::Texture::Null, hasFocus);
+    if (m_state != State::Running) { return; }
+
+    // This just makes this easier to work with.
+    const int barWidth = static_cast<int>(SIZE_BAR_WIDTH);
+
+    // Grab and render the status.
     const std::string status = m_task->get_status();
     sdl::text::render(sdl::Texture::Null, 312, 255, BaseTask::FONT_SIZE, 656, colors::WHITE, status);
 
+    // This is the divider line.
     sdl::render_line(sdl::Texture::Null, 280, 421, 999, 421, colors::DIV_COLOR);
+
+    // Progress showing bar.
     sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, barWidth, 32, colors::BLACK);
     sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, m_progressBarWidth, 32, colors::BAR_GREEN);
 
+    // These are the "caps" to round the edges of the bar.
     sm_barEdges->render_part(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, 0, 0, 16, 32);
     sm_barEdges->render_part(sdl::Texture::Null, RIGHT_EDGE_X, COORD_BAR_Y, 16, 0, 16, 32);
 
+    // Progress string.
     sdl::text::render(sdl::Texture::Null,
                       m_percentageX,
                       COORD_TEXT_Y,
@@ -95,15 +116,56 @@ void ProgressState::initialize_static_members()
 
     sm_dialog   = ui::DialogBox::create(0, 0, 0, 0);
     sm_barEdges = sdl::TextureManager::load(BAR_EDGE_NAME, "romfs:/Textures/BarEdges.png");
-
     sm_dialog->set_from_transition(m_transition, true);
+}
+
+void ProgressState::update_dimensions() noexcept
+{
+    // Update the transition and dialog.
+    m_transition.update();
+    sm_dialog->set_from_transition(m_transition, true);
+
+    // State shifting.
+    const bool opened = m_state == State::Opening && m_transition.in_place();
+    const bool closed = m_state == State::Closing && m_transition.in_place();
+    if (opened)
+    {
+        // Gonna start the task here. Sometimes JKSV is too quick and it looks like nothing happened otherwise.
+        m_task  = std::make_unique<sys::ProgressTask>(m_job, m_taskData);
+        m_state = State::Running;
+    }
+    else if (closed) { ProgressState::deactivate_state(); }
+}
+
+void ProgressState::update_progress() noexcept
+{
+    // Cast pointer to the task. To do: Consider dynamic for this...
+    auto *task = static_cast<sys::ProgressTask *>(m_task.get());
+
+    // Current progress.
+    const double current = task->get_progress();
+
+    // Update the width and actual progress.
+    m_progressBarWidth = std::round(SIZE_BAR_WIDTH * current);
+    m_progress         = std::round(current * 100);
+
+    // This is the actual string that's displayed.
+    m_percentageString = stringutil::get_formatted_string("%u%%", m_progress);
+
+    // Center the string above.
+    const int stringWidth = sdl::text::get_width(BaseTask::FONT_SIZE, m_percentageString);
+    m_percentageX         = COORD_DISPLAY_CENTER - (stringWidth / 2);
+
+    // Handle closing and updating.
+    const bool taskRunning = m_task->is_running();
+    if (!taskRunning && m_state != State::Closing) { ProgressState::close_dialog(); }
 }
 
 void ProgressState::close_dialog()
 {
+    m_state = State::Closing;
     m_transition.set_target_width(32);
     m_transition.set_target_height(32);
-    m_close = true;
 }
 
 void ProgressState::deactivate_state()
