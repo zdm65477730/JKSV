@@ -43,19 +43,21 @@ void ui::PopMessage::update(double targetY)
     // Always update the targetY unless the message is dropping. This is so messages collapse properly.
     if (m_state != State::Dropping) { m_transition.set_target_y(targetY); }
 
+    // Always run the update_y routine.
+    PopMessage::update_y();
+
     // Update the current state.
     switch (m_state)
     {
-        case State::Rising: PopMessage::update_y(); break;
         case State::Opening:
         {
             PopMessage::update_text_offset();
             PopMessage::update_width();
         }
         break;
+
         case State::Displaying: PopMessage::update_display_timer(); break;
         case State::Closing:    PopMessage::update_width(); break;
-        case State::Dropping:   PopMessage::update_y(); break;
         default:                break;
     }
 }
