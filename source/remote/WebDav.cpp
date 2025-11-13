@@ -143,6 +143,7 @@ bool remote::WebDav::upload_file(const fslib::Path &source, std::string_view rem
     curl::set_option(m_curl, CURLOPT_URL, url.get());
     curl::set_option(m_curl, CURLOPT_UPLOAD, 1L);
     curl::set_option(m_curl, CURLOPT_UPLOAD_BUFFERSIZE, Storage::SIZE_UPLOAD_BUFFER);
+    curl::set_option(m_curl, CURLOPT_INFILESIZE_LARGE, static_cast<curl_off_t>(sourceFile.get_size()));
     curl::set_option(m_curl, CURLOPT_READFUNCTION, curl::read_data_from_file);
     curl::set_option(m_curl, CURLOPT_READDATA, &uploadData);
 
