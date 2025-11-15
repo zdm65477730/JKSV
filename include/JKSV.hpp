@@ -60,6 +60,9 @@ class JKSV
         // Creates the needed directories on SD.
         bool create_directories();
 
+        /// @brief Checks for and pushes the applet mode state. Returns true if applet type is applet.
+        bool applet_mode_check() noexcept;
+
         /// @brief Adds the text color changing characters.
         void add_color_chars();
 

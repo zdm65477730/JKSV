@@ -1,6 +1,7 @@
 #include "JKSV.hpp"
 
 #include "StateManager.hpp"
+#include "appstates/AppletModeState.hpp"
 #include "appstates/FileModeState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TaskState.hpp"
@@ -89,6 +90,9 @@ JKSV::JKSV()
     // This needs the config init'd or read to work.
     JKSV::create_directories();
     sys::threadpool::initialize(); // This is the thread pool so JKSV isn't constantly creating and destroying threads.
+
+    // To do: Rearrange init so JKSV doesn't init so much.
+    if (JKSV::applet_mode_check()) { return; }
 
     // Push the remote init.
     sys::threadpool::push_job(remote::initialize, nullptr);
@@ -213,6 +217,21 @@ bool JKSV::create_directories()
     const bool trashEnabled = config::get_by_key(config::keys::ENABLE_TRASH_BIN);
     const bool needsTash    = trashEnabled && !fslib::directory_exists(trashDir);
     if (needsTash) { error::fslib(fslib::create_directory(trashDir)); }
+
+    return true;
+}
+
+bool JKSV::applet_mode_check() noexcept
+{
+    // Determine whether or not we're running as and application. If we are, return false.
+    const bool appletMode = appletGetAppletType() != AppletType_Application;
+    if (!appletMode) { return false; }
+
+    // We are running as an applet. Push the state.
+    StateManager::push_state(AppletModeState::create());
+
+    // Set this to running.
+    sm_isRunning = true;
 
     return true;
 }

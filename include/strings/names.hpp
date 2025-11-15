@@ -3,6 +3,7 @@
 
 namespace strings::names
 {
+    inline constexpr std::string_view APPLET_MODE           = "AppletMode";
     inline constexpr std::string_view BACKUPMENU_MENU       = "BackupMenu";
     inline constexpr std::string_view BACKUPMENU_CONFS      = "BackupMenuConfirmations";
     inline constexpr std::string_view BACKUPMENU_POPS       = "BackupMenuPops";
