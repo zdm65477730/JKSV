@@ -31,6 +31,15 @@ namespace ui
             void reset() noexcept;
 
         private:
+            /// @brief States the guide can be in.
+            enum class State : uint8_t
+            {
+                Opening,
+                Opened,
+                Hiding,
+                Hidden
+            };
+
             /// @brief Stores the pointer to the guide string.
             const char *m_guide{};
 
@@ -46,10 +55,19 @@ namespace ui
             /// @brief Transition for the guide string.
             ui::Transition m_transition{};
 
+            /// @brief Current state of the control guide.
+            ControlGuide::State m_state{};
+
             /// @brief This is shared by all instances.
             static inline sdl::SharedTexture sm_controlCap{};
 
             /// @brief Ensures the control guide cap is loaded for all instances.
             void initialize_static_members();
+
+            /// @brief Updates the position of the guide.
+            void update_position_state() noexcept;
+
+            /// @brief Updates the current state of the control guide.
+            void update_state(bool hasFocus) noexcept;
     };
 }
