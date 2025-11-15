@@ -53,7 +53,7 @@ class BackupMenuState final : public BaseState
         void save_data_written();
 
         // clang-format off
-        enum class MenuEntryType
+        enum class MenuEntryType : uint8_t
         {
             Null,
             Local,

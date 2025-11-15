@@ -55,8 +55,11 @@ void UserOptionState::update()
     const bool aPressed = input::button_pressed(HidNpadButton_A);
     const bool bPressed = input::button_pressed(HidNpadButton_B);
 
+    // Start by running the unhide check routine and then update the panel.
+    sm_menuPanel->unhide_on_focus(hasFocus);
     sm_menuPanel->update(hasFocus);
 
+    // Refresh here if needed to avoid threading issues.
     if (m_refreshRequired)
     {
         m_user->load_user_data();

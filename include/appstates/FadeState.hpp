@@ -10,7 +10,7 @@ class FadeState final : public BaseState
 {
     public:
         /// @brief Direction (In/Out) of the fade. This is auto-determined at construction.
-        enum class Direction
+        enum class Direction : uint8_t
         {
             In,
             Out

@@ -58,8 +58,8 @@ void ProgressState::update()
     switch (m_state)
     {
         case State::Opening: ProgressState::update_dimensions(); break;
-        case State::Running: ProgressState::update_progress(); break;
         case State::Closing: ProgressState::update_dimensions(); break;
+        case State::Running: ProgressState::update_progress(); break;
     }
 }
 
@@ -152,9 +152,9 @@ void ProgressState::update_progress() noexcept
     // This is the actual string that's displayed.
     m_percentageString = stringutil::get_formatted_string("%u%%", m_progress);
 
-    // Center the string above.
     const int stringWidth = sdl::text::get_width(BaseTask::FONT_SIZE, m_percentageString);
-    m_percentageX         = COORD_DISPLAY_CENTER - (stringWidth / 2);
+    // Center the string above.
+    m_percentageX = COORD_DISPLAY_CENTER - (stringWidth / 2);
 
     // Handle closing and updating.
     const bool taskRunning = m_task->is_running();

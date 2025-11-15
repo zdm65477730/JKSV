@@ -132,7 +132,9 @@ bool remote::WebDav::upload_file(const fslib::Path &source, std::string_view rem
         return false;
     }
 
-    if (task) { task->reset(static_cast<double>(sourceFile.get_size())); }
+    // This is used multiple multiple places. No need to recall.
+    const int64_t fileSize = sourceFile.get_size();
+    if (task) { task->reset(static_cast<double>(fileSize)); }
 
     remote::URL url{m_origin};
     url.append_path(m_parent).append_path(escapedName);
@@ -143,14 +145,14 @@ bool remote::WebDav::upload_file(const fslib::Path &source, std::string_view rem
     curl::set_option(m_curl, CURLOPT_URL, url.get());
     curl::set_option(m_curl, CURLOPT_UPLOAD, 1L);
     curl::set_option(m_curl, CURLOPT_UPLOAD_BUFFERSIZE, Storage::SIZE_UPLOAD_BUFFER);
-    curl::set_option(m_curl, CURLOPT_INFILESIZE_LARGE, static_cast<curl_off_t>(sourceFile.get_size()));
+    curl::set_option(m_curl, CURLOPT_INFILESIZE_LARGE, static_cast<curl_off_t>(fileSize));
     curl::set_option(m_curl, CURLOPT_READFUNCTION, curl::read_data_from_file);
     curl::set_option(m_curl, CURLOPT_READDATA, &uploadData);
 
     if (!curl::perform(m_curl)) { return false; }
 
     const std::string id = m_parent + "/" + escapedName;
-    m_list.emplace_back(remoteName, id, m_parent, sourceFile.get_size(), false);
+    m_list.emplace_back(remoteName, id, m_parent, fileSize, false);
 
     return true;
 }

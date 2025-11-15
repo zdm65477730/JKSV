@@ -74,9 +74,9 @@ void FileOptionState::update()
 {
     switch (m_state)
     {
-        case State::Opening: FileOptionState::update_dimensions(); break;
-        case State::Opened:  FileOptionState::update_handle_input(); break;
+        case State::Opening:
         case State::Closing: FileOptionState::update_dimensions(); break;
+        case State::Opened:  FileOptionState::update_handle_input(); break;
     }
 }
 

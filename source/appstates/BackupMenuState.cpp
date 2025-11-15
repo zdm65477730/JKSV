@@ -45,20 +45,35 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, c
 
 void BackupMenuState::update()
 {
+    // Grab focus once and only once.
     const bool hasFocus = BaseState::has_focus();
-    const bool isOpen   = sm_slidePanel->is_open();
+
+    // Update the panel first.
     sm_slidePanel->update(hasFocus);
-    if (!isOpen) { return; }
 
-    std::lock_guard menuGuard{sm_menuMutex};
+    // Grab these.
+    const bool isOpen   = sm_slidePanel->is_open();
+    const bool isClosed = sm_slidePanel->is_closed();
 
-    const int selected   = sm_backupMenu->get_selected();
+    // If the panel is closed, deactivate. If it's not open, return.
+    if (isClosed) { BackupMenuState::deactivate_state(); }
+    else if (!isOpen) { return; }
+
+    // Grab the currently selected index.
+    int selected{};
+    {
+        std::lock_guard menuGuard{sm_menuMutex};
+        selected = sm_backupMenu->get_selected();
+    }
+
+    // Input bools.
     const bool aPressed  = input::button_pressed(HidNpadButton_A);
     const bool bPressed  = input::button_pressed(HidNpadButton_B);
     const bool xPressed  = input::button_pressed(HidNpadButton_X);
     const bool yPressed  = input::button_pressed(HidNpadButton_Y);
     const bool zrPressed = input::button_pressed(HidNpadButton_ZR);
 
+    // Conditions.
     const bool newSelected     = selected == 0;
     const bool newBackup       = aPressed && newSelected && m_saveHasData;
     const bool overwriteBackup = aPressed && !newSelected && m_saveHasData;
@@ -75,6 +90,9 @@ void BackupMenuState::update()
     else if (popEmpty) { BackupMenuState::pop_save_empty(); }
     else if (bPressed) { sm_slidePanel->close(); }
     else if (sm_slidePanel->is_closed()) { BackupMenuState::deactivate_state(); }
+
+    // Lock and update the menu.
+    std::lock_guard menuGuard{sm_menuMutex};
     sm_backupMenu->update(hasFocus);
 }
 
@@ -88,22 +106,31 @@ void BackupMenuState::render()
     static constexpr int CONTROL_X = 32;
     static constexpr int CONTROL_Y = 673;
 
+    // Clear the render target.
+    sm_slidePanel->clear_target();
+
+    // Grab whether or not the state has focus and the render target for the panel.
     const bool hasFocus        = BaseState::has_focus();
     sdl::SharedTexture &target = sm_slidePanel->get_target();
 
-    sm_slidePanel->clear_target();
-
+    // Render the top, bottom lines. Control guide string.
     sdl::render_line(target, LINE_X, LINE_A_Y, sm_panelWidth - LINE_X, LINE_A_Y, colors::WHITE);
     sdl::render_line(target, LINE_X, LINE_B_Y, sm_panelWidth - LINE_X, LINE_B_Y, colors::WHITE);
     sdl::text::render(target, CONTROL_X, CONTROL_Y, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
 
+    // This is the target for the menu so it can't render outside of the lines above.
     sm_menuRenderTarget->clear(colors::TRANSPARENT);
+
+    // Lock and render the menu.
     {
         std::lock_guard menuGuard{sm_menuMutex};
         sm_backupMenu->render(sm_menuRenderTarget, hasFocus);
     }
+
+    // Render the menu target to the slide panel target.
     sm_menuRenderTarget->render(target, 0, 43);
 
+    // Finally, render the target to the screen.
     sm_slidePanel->render(sdl::Texture::Null, hasFocus);
 }
 
@@ -149,7 +176,14 @@ void BackupMenuState::refresh()
 
 void BackupMenuState::save_data_written()
 {
-    if (!m_saveHasData) { m_saveHasData = true; }
+    // Temporarily mount the save.
+    fs::ScopedSaveMount tempMount{fs::DEFAULT_SAVE_MOUNT, m_saveInfo};
+
+    // Check to see if the root is empty.
+    fslib::Directory saveRoot{fs::DEFAULT_SAVE_ROOT, false};
+
+    // Just check if the root is empty.
+    m_saveHasData = saveRoot.get_count() > 0;
 }
 
 //                      ---- Private functions ----
@@ -408,6 +442,7 @@ void BackupMenuState::pop_save_empty()
 
 void BackupMenuState::deactivate_state()
 {
+    logger::log("BackupMenuState::deactivate_state()");
     sm_slidePanel->clear_elements();
     sm_slidePanel->reset();
     sm_backupMenu->reset();

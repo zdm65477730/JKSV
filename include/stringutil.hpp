@@ -4,7 +4,7 @@
 namespace stringutil
 {
     /// @brief Enum for creating date strings.
-    enum class DateFormat
+    enum class DateFormat : uint8_t
     {
         YearMonthDay,
         YearDayMonth

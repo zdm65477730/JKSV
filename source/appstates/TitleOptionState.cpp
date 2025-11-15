@@ -62,6 +62,7 @@ void TitleOptionState::update()
 {
     const bool hasFocus = BaseState::has_focus();
 
+    sm_slidePanel->unhide_on_focus(hasFocus);
     sm_slidePanel->update(hasFocus);
 
     const bool isOpen   = sm_slidePanel->is_open();
@@ -150,7 +151,7 @@ void TitleOptionState::add_to_blacklist()
 {
     const char *title         = m_titleInfo->get_title();
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 0);
-    const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
+    std::string query         = stringutil::get_formatted_string(confirmFormat, title);
 
     ConfirmTask::create_push_fade(query, false, tasks::titleoptions::blacklist_title, nullptr, m_dataStruct);
 }
@@ -225,7 +226,7 @@ void TitleOptionState::delete_all_local_backups()
 {
     const char *title         = m_titleInfo->get_title();
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 1);
-    const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
+    std::string query         = stringutil::get_formatted_string(confirmFormat, title);
 
     ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_all_local_backups_for_title, nullptr, m_dataStruct);
 }
@@ -234,7 +235,7 @@ void TitleOptionState::delete_all_remote_backups()
 {
     const char *title         = m_titleInfo->get_title();
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 1);
-    const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
+    std::string query         = stringutil::get_formatted_string(confirmFormat, title);
 
     ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_all_remote_backups_for_title, nullptr, m_dataStruct);
 }
@@ -252,7 +253,7 @@ void TitleOptionState::reset_save_data()
 
     const char *title         = m_titleInfo->get_title();
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 2);
-    const std::string query   = stringutil::get_formatted_string(confirmFormat, title);
+    std::string query         = stringutil::get_formatted_string(confirmFormat, title);
 
     ConfirmTask::create_push_fade(query, true, tasks::titleoptions::reset_save_data, nullptr, m_dataStruct);
 }
@@ -272,7 +273,7 @@ void TitleOptionState::delete_save_from_system()
     const char *nickname      = m_user->get_nickname();
     const char *title         = m_titleInfo->get_title();
     const char *confirmFormat = strings::get_by_name(strings::names::TITLEOPTION_CONFS, 3);
-    const std::string query   = stringutil::get_formatted_string(confirmFormat, nickname, title);
+    std::string query         = stringutil::get_formatted_string(confirmFormat, nickname, title);
 
     ConfirmTask::create_push_fade(query, true, tasks::titleoptions::delete_save_data_from_system, nullptr, m_dataStruct);
 }
@@ -326,8 +327,7 @@ void TitleOptionState::export_svi_file()
     }
 
     const NsApplicationControlData *controlData = m_titleInfo->get_control_data();
-
-    const bool magicWritten = sviFile.write(&fs::SAVE_META_MAGIC, sizeof(uint32_t)) == sizeof(uint32_t);
+    const bool magicWritten                     = sviFile.write(&fs::SAVE_META_MAGIC, sizeof(uint32_t)) == sizeof(uint32_t);
     const bool appIdWritten = magicWritten && sviFile.write(&applicationID, sizeof(uint64_t)) == sizeof(uint64_t);
     const bool controlWritten =
         appIdWritten && sviFile.write(controlData, sizeof(NsApplicationControlData)) == sizeof(NsApplicationControlData);

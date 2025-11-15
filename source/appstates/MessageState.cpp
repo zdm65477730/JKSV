@@ -59,9 +59,9 @@ void MessageState::update()
 {
     switch (m_state)
     {
-        case State::Opening:    MessageState::update_dimensions(); break;
-        case State::Displaying: MessageState::update_handle_input(); break;
+        case State::Opening:
         case State::Closing:    MessageState::update_dimensions(); break;
+        case State::Displaying: MessageState::update_handle_input(); break;
     }
 }
 

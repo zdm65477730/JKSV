@@ -43,9 +43,9 @@ void FileModeState::update()
 {
     switch (m_state)
     {
-        case State::Rising:   FileModeState::update_y(); break;
-        case State::Open:     FileModeState::update_handle_input(); break;
+        case State::Rising:
         case State::Dropping: FileModeState::update_y(); break;
+        case State::Open:     FileModeState::update_handle_input(); break;
     }
 }
 

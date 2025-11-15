@@ -69,9 +69,9 @@ void TitleInfoState::update()
 {
     switch (m_state)
     {
-        case State::Opening:    TitleInfoState::update_dimensions(); break;
-        case State::Displaying: TitleInfoState::update_handle_input(); break;
+        case State::Opening:
         case State::Closing:    TitleInfoState::update_dimensions(); break;
+        case State::Displaying: TitleInfoState::update_handle_input(); break;
     }
 }
 
@@ -85,11 +85,7 @@ void TitleInfoState::render()
     if (m_state != State::Displaying) { return; }
 
     // We only want to render what's been triggered so far for the tiling in effect.
-    for (int i = 0; i < m_fieldDisplayCount; i++)
-    {
-        auto &currentField = m_infoFields[i];
-        currentField->render(sdl::Texture::Null, hasFocus);
-    }
+    for (int i = 0; i < m_fieldDisplayCount; i++) { m_infoFields[i]->render(sdl::Texture::Null, hasFocus); }
 }
 
 //                      ---- Private functions ----

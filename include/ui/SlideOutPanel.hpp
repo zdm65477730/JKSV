@@ -13,7 +13,7 @@ namespace ui
     {
         public:
             /// @brief Enum for which side of the screen the panel slides from.
-            enum class Side
+            enum class Side : uint8_t
             {
                 Left,
                 Right
@@ -60,13 +60,16 @@ namespace ui
             /// @brief Unhides the panel.
             void unhide() noexcept;
 
+            /// @brief This function unhide the panel when the bool passed is true.
+            void unhide_on_focus(bool hasFocus) noexcept;
+
             /// @brief Returns if the panel is fully open.
             /// @return If the panel is fully open.
             bool is_open() const noexcept;
 
             /// @brief Returns if the panel is fully closed.
             /// @return If the panel is fully closed.
-            bool is_closed() noexcept;
+            bool is_closed() const noexcept;
 
             /// @brief Returns whether or not the panel is hidden.
             bool is_hidden() const noexcept;
@@ -83,14 +86,16 @@ namespace ui
             sdl::SharedTexture &get_target() noexcept;
 
         private:
-            /// @brief Bool for whether panel is fully open or not.
-            bool m_isOpen{};
-
-            /// @brief Whether or not to close panel.
-            bool m_closePanel{};
-
-            /// @brief Whether or not to hide the panel.
-            bool m_hidePanel{};
+            /// @brief States the panel can be in.
+            enum class State : uint8_t
+            {
+                Opening,
+                Opened,
+                Closing,
+                Closed,
+                Hiding,
+                Hidden
+            };
 
             /// @brief Width of the panel in pixels.
             int m_width{};
@@ -103,6 +108,9 @@ namespace ui
 
             /// @brief Transition for the slide out effect.
             ui::Transition m_transition{};
+
+            /// @brief Current state of the panel.
+            SlideOutPanel::State m_state{};
 
             /// @brief Render target if panel.
             sdl::SharedTexture m_renderTarget{};
@@ -118,5 +126,11 @@ namespace ui
 
             /// @brief Returns the target X to close/hide the panel.
             inline int get_target_close_x() { return m_side == Side::Left ? -m_width : graphics::SCREEN_WIDTH; }
+
+            /// @brief Updates the position of the panel.
+            void update_position_state() noexcept;
+
+            /// @brief Updates sub-elements.
+            void update_sub_elements(bool hasFocus) noexcept;
     };
 } // namespace ui
