@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-class MessageState : public BaseState
+class MessageState final : public BaseState
 {
     public:
         /// @brief Constructor.

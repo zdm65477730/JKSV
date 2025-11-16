@@ -27,7 +27,7 @@ ui::ControlGuide::ControlGuide(const char *guide)
     , m_targetX(GUIDE_X_OFFSET - (m_textWidth + CONTAINER_PADDING))
     , m_guideWidth(graphics::SCREEN_WIDTH - m_targetX)
     , m_transition(graphics::SCREEN_WIDTH, TRANS_Y, 0, 0, m_targetX, TRANS_Y, 0, 0, ui::Transition::DEFAULT_THRESHOLD)
-    , m_state(State::Opening)
+    , m_state(State::Hidden)
 {
     ui::ControlGuide::initialize_static_members();
 }
