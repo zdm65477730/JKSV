@@ -101,6 +101,9 @@ void ui::ControlGuide::reset() noexcept
     // Set both to the width of the screen.
     m_transition.set_target_x(graphics::SCREEN_WIDTH);
     m_transition.set_x(graphics::SCREEN_WIDTH);
+
+    // Set the state to Hidden.
+    m_state = State::Hidden;
 }
 
 void ui::ControlGuide::update_position_state() noexcept

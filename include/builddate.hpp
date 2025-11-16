@@ -2,7 +2,7 @@
 
 namespace builddate
 {
-    inline constexpr int MONTH = 10;
-    inline constexpr int DAY   = 30;
+    inline constexpr int MONTH = 11;
+    inline constexpr int DAY   = 16;
     inline constexpr int YEAR  = 2025;
 }
