@@ -442,7 +442,6 @@ void BackupMenuState::pop_save_empty()
 
 void BackupMenuState::deactivate_state()
 {
-    logger::log("BackupMenuState::deactivate_state()");
     sm_slidePanel->clear_elements();
     sm_slidePanel->reset();
     sm_backupMenu->reset();

@@ -183,16 +183,26 @@ void ui::Menu::update_scroll_text()
 
 void ui::Menu::handle_input()
 {
+    // Get the length of the menu.
+    const int optionsSize = m_options.size();
+
+    // Control bools.
     const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);
     const bool downPressed      = input::button_pressed(HidNpadButton_AnyDown);
     const bool leftPressed      = input::button_pressed(HidNpadButton_AnyLeft);
     const bool rightPressed     = input::button_pressed(HidNpadButton_AnyRight);
     const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
     const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
-    const int optionsSize       = m_options.size();
+
+    // Wrapping conditions.
+    const bool wrapEnd   = upPressed && m_selected - 1 < 0;
+    const bool wrapBegin = downPressed && m_selected + 1 >= optionsSize;
 
     const int previousSelected = m_selected;
-    if (upPressed) { --m_selected; }
+
+    if (wrapEnd) { m_selected = optionsSize - 1; }
+    else if (wrapBegin) { m_selected = 0; }
+    else if (upPressed) { --m_selected; }
     else if (downPressed) { ++m_selected; }
     else if (leftPressed) { m_selected -= m_scrollLength; }
     else if (rightPressed) { m_selected += m_scrollLength; }
