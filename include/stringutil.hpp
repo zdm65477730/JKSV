@@ -6,8 +6,11 @@ namespace stringutil
     /// @brief Enum for creating date strings.
     enum class DateFormat : uint8_t
     {
+        Year_Month_Day,
+        Year_Day_Month,
         YearMonthDay,
-        YearDayMonth
+        YearDayMonth,
+        AscTime
     };
 
     /// @brief Returns a formatted string as a C++ string. This uses C instead of std::format because std::format bloats the NRO
@@ -38,5 +41,5 @@ namespace stringutil
     /// @brief Returns a date string.
     /// @param format Optional. Format to use. Default is Year_Month_Day-Time
     /// @return Date string.
-    std::string get_date_string(stringutil::DateFormat format = stringutil::DateFormat::YearMonthDay);
+    std::string get_date_string(stringutil::DateFormat format = stringutil::DateFormat::Year_Month_Day);
 } // namespace stringutil
